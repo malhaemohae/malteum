@@ -39,3 +39,5 @@ make up                                  # docker compose: postgres + server
 ```
 
 각 폴더의 `AGENTS.md`가 그 모듈의 담당·허용 import·규칙을 적는다. 사람과 에이전트 모두 그 문서를 먼저 읽는다.
+
+## 재오
