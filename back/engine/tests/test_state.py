@@ -1,0 +1,42 @@
+from contracts.engine_contract import JudgeResult, VerdictPayload
+from engine.adapters.pack_source.fake import FakePackSource
+from engine.build import build_engine
+from engine.tests.conftest import PACK_VERSION
+
+
+def _engine(pack_json):
+    return build_engine(FakePackSource(pack_json))
+
+
+def test_initial_state_required_unmet_forbidden_clean(pack_json):
+    engine = _engine(pack_json)
+    pack = engine.load_pack(PACK_VERSION)
+    state = engine.initial_state("S1", pack, "text")
+    by_code = {s.item_code: s for s in state.items}
+    assert len(by_code) == 8  # reference 항목(DEP-DOC-001)은 제외
+    assert all(by_code[c].state == "unmet" for c in ("DEP-INT-001", "DEP-PRO-001"))
+    assert all(by_code[c].state == "clean" for c in ("DEP-BAN-001", "DEP-BAN-002"))
+    assert state.unmet_codes() == tuple(it.code for it in pack.required_items())
+
+
+def test_apply_is_idempotent_and_bumps_ver_only_on_change(pack_json):
+    engine = _engine(pack_json)
+    pack = engine.load_pack(PACK_VERSION)
+    s0 = engine.initial_state("S1", pack, "text")
+    result = JudgeResult(
+        verdicts=(
+            VerdictPayload(item_code="DEP-INT-001", axis="omission", state="met", decided_by="L1"),
+        )
+    )
+    s1 = engine.apply(s0, result)
+    s2 = engine.apply(s1, result)
+    assert s1 == s2
+    assert s0.state_of("DEP-INT-001").state == "unmet"  # 인자는 안 바뀐다
+    assert s1.state_of("DEP-INT-001").state == "met"
+    assert s1.state_of("DEP-INT-001").ver == 1
+    l3 = JudgeResult(
+        verdicts=(
+            VerdictPayload(item_code="DEP-INT-001", axis="omission", state="met", decided_by="L3"),
+        )
+    )
+    assert engine.apply(s1, l3).state_of("DEP-INT-001").ver == 2
