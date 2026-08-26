@@ -1,5 +1,5 @@
 [project]
-name = "back"                      # 임시. 저장소 이름 확정 후 한 줄 교체
+name = "malteum"
 version = "0.1.0"
 description = "M1 server · M2 engine · M3 rulepack. 접점은 contracts/ 하나."
 requires-python = ">=3.12,<3.13"

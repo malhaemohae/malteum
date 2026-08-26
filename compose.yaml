@@ -1,4 +1,4 @@
-name: app   # 임시. 저장소 이름 확정 후 한 줄 교체
+name: malteum
 
 services:
   db:
