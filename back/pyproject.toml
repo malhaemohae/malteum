@@ -1,0 +1,77 @@
+[project]
+name = "back"                      # 임시. 저장소 이름 확정 후 한 줄 교체
+version = "0.1.0"
+description = "M1 server · M2 engine · M3 rulepack. 접점은 contracts/ 하나."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "jsonschema>=4.23",
+    "pyyaml>=6.0",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "psycopg[binary]>=3.2",
+    "pgvector>=0.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "httpx>=0.27",                # fastapi TestClient
+    "ruff>=0.6",
+    "import-linter>=2.0",
+    "datamodel-code-generator>=0.26",
+]
+
+[tool.uv]
+package = false                    # 배포 패키지가 아니라 실행 루트. server·engine·rulepack 은 back/ 를 cwd 로 import 한다
+
+# ---------------------------------------------------------------------------
+# ruff
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["server/generated", "contracts"]   # 생성 파일·계약 원본은 손대지 않는다
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["server", "engine", "rulepack", "contracts"]
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["server/tests", "engine/tests", "rulepack/tests"]
+pythonpath = ["."]
+
+# ---------------------------------------------------------------------------
+# import-linter — 모듈 경계 (DESIGN.md 5절)
+#   server → engine, contracts / engine → contracts / rulepack → contracts
+#   contracts 는 __init__ 없는 namespace 패키지라 root 가 아니라 외부 모듈로 본다
+# ---------------------------------------------------------------------------
+[tool.importlinter]
+root_packages = ["server", "engine", "rulepack"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "server 는 rulepack 을 모른다"
+type = "forbidden"
+source_modules = ["server"]
+forbidden_modules = ["rulepack"]
+
+[[tool.importlinter.contracts]]
+name = "engine 은 server·rulepack 을 모른다"
+type = "forbidden"
+source_modules = ["engine"]
+forbidden_modules = ["server", "rulepack"]
+
+[[tool.importlinter.contracts]]
+name = "rulepack 은 server·engine 을 모른다"
+type = "forbidden"
+source_modules = ["rulepack"]
+forbidden_modules = ["server", "engine"]
