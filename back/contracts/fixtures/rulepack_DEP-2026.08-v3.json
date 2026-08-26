@@ -1,0 +1,316 @@
+{
+  "schema_version": "1",
+  "pack_version": "DEP-2026.08-v3",
+  "product": {
+    "code": "SHB-MYPLUS-TD",
+    "name": "신한 My플러스 정기예금",
+    "category": "deposit"
+  },
+  "published_at": "2026-08-20T09:00:00.000Z",
+  "published_by": "M3",
+  "embedding": {
+    "model": "intfloat/multilingual-e5-small",
+    "dim": 384,
+    "normalized": true
+  },
+  "sources": [
+    {
+      "doc_id": "05_상품설명서_정기예금",
+      "title": "신한 My플러스 정기예금 상품설명서",
+      "publisher": "신한은행",
+      "url": "https://img.shinhan.com/sbank2016/seol/20230823000001510002LC000030.PDF",
+      "snapshot_date": "2026-08-23",
+      "page_count": 7,
+      "note": "준법감시인 사전심사필 제2023-15689-1호. 게시본 기준이며 현행 고시 이율과 다를 수 있다"
+    },
+    {
+      "doc_id": "01_금융소비자보호법",
+      "title": "금융소비자 보호에 관한 법률",
+      "publisher": "법제처",
+      "url": "https://www.law.go.kr/LSW/lsPdfPrint.do?lsiSeq=252409&efYd=20231012",
+      "snapshot_date": "2026-08-23",
+      "page_count": 31
+    },
+    {
+      "doc_id": "03_예금거래기본약관",
+      "title": "예금거래기본약관",
+      "publisher": "은행연합회 표준약관 제10012호",
+      "url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/",
+      "snapshot_date": "2026-08-23",
+      "page_count": 9,
+      "note": "씨티은행 게시본"
+    }
+  ],
+  "items": [
+    {
+      "code": "DEP-INT-001",
+      "name": "적용 이자율과 산정 방식",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["기간별 이자율", "우대이자율", "합산 적용"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제19조제1항", "note": "상품의 내용" }
+      ],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 1,
+        "span": "이 예금의 만기이자율은 『기간별 이자율』과 『우대이자율』을 더하여 적용하며,",
+        "bbox": [153.2, 176.1, 521.5, 188.3]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "기간별 이자율", "element": "기간별 이자율" },
+        { "kind": "keyword", "value": "우대이자율", "element": "우대이자율" },
+        { "kind": "regex", "value": "연\\s*\\d+(\\.\\d+)?\\s*%", "element": "합산 적용" }
+      ],
+      "plain_language": [
+        "기본으로 드리는 이자가 있고, 조건을 채우면 더 얹어 드리는 이자가 따로 있습니다. 두 개를 합한 것이 최종 이자입니다."
+      ],
+      "approved_at": "2026-08-20T08:12:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-INT-002",
+      "name": "중도해지 이자율",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["만기 전 해지 시 불이익", "적용 이율", "차감률 또는 산출식"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제19조제1항", "note": "투자성·예금성 상품의 위험과 불이익" }
+      ],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 5,
+        "span": "만기 전 해지할 경우 약정한 이자율보다 낮은 중도해지이자율이 적용됩니다.",
+        "bbox": [74.2, 467.8, 467.6, 479.7]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "중도해지", "element": "만기 전 해지 시 불이익" },
+        { "kind": "keyword", "value": "중도해지이자율", "element": "적용 이율" },
+        { "kind": "keyword", "value": "차감률", "element": "차감률 또는 산출식" },
+        { "kind": "numeric", "value": "0.10", "element": "적용 이율" }
+      ],
+      "numeric_facts": [
+        {
+          "label": "중도해지 이자율",
+          "value": "0.10",
+          "unit": "%",
+          "condition": "1개월 미만",
+          "tolerance": 0,
+          "evidence": {
+            "doc_id": "05_상품설명서_정기예금",
+            "page": 3,
+            "span": "○ 1개월 미만: 연 0.10%",
+            "bbox": [152.8, 763.8, 278.8, 774.4]
+          }
+        },
+        {
+          "label": "중도해지 이자율 최저",
+          "value": "0.10",
+          "unit": "%",
+          "condition": "산출식 적용 후 하한",
+          "tolerance": 0
+        }
+      ],
+      "plain_language": [
+        "만기까지 두지 않고 중간에 찾으시면, 처음 약속한 이자가 아니라 훨씬 낮은 이자로 계산됩니다.",
+        "한 달도 안 돼서 찾으시면 연 0.10%만 붙습니다."
+      ],
+      "approved_at": "2026-08-20T08:14:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-INT-003",
+      "name": "만기 후 이자율",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["만기 후 이율이 별도 적용됨", "경과기간별 차등", "하한"],
+      "legal_basis": [{ "law": "금융소비자보호법", "article": "제19조제1항" }],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 3,
+        "span": "○ 만기 후 1개월 이내: 만기일 당시의 가입기간에 해당하는 일반정기예금",
+        "bbox": [156.6, 309.3, 515.7, 320.3]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "만기후이자율", "element": "만기 후 이율이 별도 적용됨" },
+        { "kind": "keyword", "value": "만기 후", "element": "만기 후 이율이 별도 적용됨" }
+      ],
+      "numeric_facts": [
+        {
+          "label": "만기 후 이자율",
+          "value": "0.10",
+          "unit": "%",
+          "condition": "만기 후 6개월 초과",
+          "tolerance": 0,
+          "evidence": {
+            "doc_id": "05_상품설명서_정기예금",
+            "page": 3,
+            "span": "○ 만기 후 6개월 초과: 연 0.10%",
+            "bbox": [156.6, 224.8, 324.5, 235.7]
+          }
+        }
+      ],
+      "plain_language": [
+        "만기가 지나서 그대로 두시면 원래 이자율이 아니라 훨씬 낮은 이자율로 바뀝니다. 시간이 더 지나면 더 낮아집니다."
+      ],
+      "approved_at": "2026-08-20T08:14:40.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-PRO-001",
+      "name": "예금자보호 한도",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["예금자보호 대상 여부", "보호 한도 금액", "한도 초과분 미보호"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제19조제1항" },
+        { "law": "예금자보호법", "article": "제32조" }
+      ],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 6,
+        "span": "예금자보호 O 원금과 이자 포함 5천만원까지 가능",
+        "bbox": [70.5, 522.6, 421.2, 534.4]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "예금자보호", "element": "예금자보호 대상 여부" },
+        { "kind": "regex", "value": "5\\s*천만\\s*원|5,?000\\s*만\\s*원", "element": "보호 한도 금액" }
+      ],
+      "numeric_facts": [
+        { "label": "예금자보호 한도", "value": "50000000", "unit": "원", "tolerance": 0 }
+      ],
+      "plain_language": [
+        "이 은행이 문을 닫는 일이 생겨도 원금과 이자를 합해 5천만원까지는 나라에서 돌려드립니다. 그 위로 넘는 금액은 보장되지 않습니다."
+      ],
+      "approved_at": "2026-08-20T08:15:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-TAX-001",
+      "name": "이자 과세와 비과세 요건",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["만기 후 이자 과세", "비과세종합저축 가능 여부"],
+      "legal_basis": [{ "law": "금융소비자보호법", "article": "제19조제1항" }],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 4,
+        "span": "※ 계약기간 만료일 이후의 이자는 과세합니다.",
+        "bbox": [157.3, 566.3, 382.9, 577.1]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "과세", "element": "만기 후 이자 과세" },
+        { "kind": "keyword", "value": "비과세종합저축", "element": "비과세종합저축 가능 여부" }
+      ],
+      "plain_language": [
+        "만기가 지난 다음에 붙는 이자에는 세금이 붙습니다.",
+        "조건이 맞으면 세금을 떼지 않는 통장으로 가입하실 수 있습니다."
+      ],
+      "approved_at": "2026-08-20T08:16:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-LIM-001",
+      "name": "일부해지 횟수 제한",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["일부해지 가능", "횟수 한도"],
+      "legal_basis": [{ "law": "금융소비자보호법", "article": "제19조제1항" }],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 5,
+        "span": "일부해지 횟수는 2회를 초과할 수 없습니다.",
+        "bbox": [74.4, 444.9, 301.4, 456.7]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "일부해지", "element": "일부해지 가능" },
+        { "kind": "regex", "value": "2\\s*회", "element": "횟수 한도" }
+      ],
+      "numeric_facts": [
+        { "label": "일부해지 횟수", "value": "2", "unit": "회", "tolerance": 0 }
+      ],
+      "plain_language": [
+        "필요하실 때 일부만 먼저 빼실 수 있는데, 최대 두 번까지만 됩니다."
+      ],
+      "approved_at": "2026-08-20T08:17:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-BAN-001",
+      "name": "단정적 판단 제공",
+      "type": "forbidden",
+      "axis": "commission",
+      "requirement_elements": ["불확실한 사항에 대한 단정", "확실하다고 오인시키는 표현"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제21조제1호", "note": "부당권유행위 금지" }
+      ],
+      "evidence": {
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+        "bbox": [61.3, 170.0, 554.2, 181.6],
+        "legal_basis": "금융소비자보호법 제21조제1호"
+      },
+      "forbidden_examples": [
+        "원금은 100% 보장됩니다",
+        "무조건 이만큼 받으실 수 있어요",
+        "손실은 절대 없습니다",
+        "이 금리는 앞으로도 계속 유지됩니다",
+        "지금 가입하면 확실히 이득입니다"
+      ],
+      "l1_patterns": [
+        { "kind": "regex", "value": "무조건|절대\\s*(안|없|아니)|100\\s*%\\s*보장|확실(히|하)", "element": "확실하다고 오인시키는 표현" }
+      ],
+      "approved_at": "2026-08-20T08:20:00.000Z",
+      "approved_by": "reviewer-2"
+    },
+    {
+      "code": "DEP-BAN-002",
+      "name": "사실과 다른 내용 알림",
+      "type": "forbidden",
+      "axis": "commission",
+      "requirement_elements": ["상품 내용의 사실과 다른 설명"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제21조제2호", "note": "부당권유행위 금지" }
+      ],
+      "evidence": {
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "2. 금융상품의 내용을 사실과 다르게 알리는 행위",
+        "bbox": [60.7, 138.0, 320.7, 149.4],
+        "legal_basis": "금융소비자보호법 제21조제2호"
+      },
+      "forbidden_examples": [
+        "중도해지해도 약정 이자 그대로 나옵니다",
+        "예금자보호는 한도 없이 전액 다 됩니다",
+        "일부해지는 몇 번이든 가능합니다"
+      ],
+      "l1_patterns": [],
+      "approved_at": "2026-08-20T08:21:00.000Z",
+      "approved_by": "reviewer-2"
+    },
+    {
+      "code": "DEP-DOC-001",
+      "name": "신규 개설 필요 서류",
+      "type": "reference",
+      "requirement_elements": ["실명확인증표 제시"],
+      "legal_basis": [
+        { "law": "금융실명거래 및 비밀보장에 관한 법률", "article": "제3조" }
+      ],
+      "evidence": {
+        "doc_id": "03_예금거래기본약관",
+        "page": 1,
+        "span": "② 은행은 거래처의 실명확인을 위하여 주민등록증, 사업자등록증 등 실명확인증표 또는 그 밖에 필요",
+        "bbox": [54.6, 451.9, 540.7, 462.1],
+        "legal_basis": "예금거래기본약관 제2조제2항"
+      },
+      "documents_required": [
+        "실명확인증표 (주민등록증 또는 운전면허증 또는 여권)",
+        "거래목적 확인서 (고객확인 대상인 경우)",
+        "대리 개설 시 위임장과 대리인 실명확인증표"
+      ],
+      "approved_at": "2026-08-20T08:25:00.000Z",
+      "approved_by": "reviewer-1"
+    }
+  ]
+}

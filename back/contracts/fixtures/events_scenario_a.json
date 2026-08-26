@@ -1,0 +1,563 @@
+[
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0000",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 0,
+    "occurred_at": "2026-09-07T11:02:00.000Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "session_started",
+    "session_started": {
+      "mode": "replay",
+      "product": {
+        "code": "SHB-MYPLUS-TD",
+        "name": "신한 My플러스 정기예금",
+        "category": "deposit"
+      },
+      "customer_profile": { "type": "general", "tags": [] },
+      "item_count": 6,
+      "preset_id": "preset-dep-a"
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0001",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 1,
+    "occurred_at": "2026-09-07T11:02:04.800Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "teller",
+      "text": "안녕하세요. My플러스 정기예금 안내드리겠습니다. 가입금액은 50만원부터 1억원까지고 계약기간은 1개월, 3개월, 6개월, 12개월 중에 고르실 수 있습니다.",
+      "t_ms": 4800,
+      "duration_ms": 9200,
+      "stt_confidence": 0.96,
+      "speaker_confidence": 0.98
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0002",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 2,
+    "occurred_at": "2026-09-07T11:02:21.400Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "teller",
+      "text": "이자율은 기간별 이자율에 우대이자율을 더해서 적용됩니다. 우대조건을 채우시면 연 0.3% 더 붙습니다.",
+      "t_ms": 21400,
+      "duration_ms": 7100,
+      "stt_confidence": 0.94,
+      "speaker_confidence": 0.97
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0003",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 3,
+    "occurred_at": "2026-09-07T11:02:21.412Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "verdict",
+    "verdict": {
+      "item_code": "DEP-INT-001",
+      "axis": "omission",
+      "state": "met",
+      "decided_by": "L1",
+      "confidence": 1.0,
+      "missing_elements": [],
+      "utterance_ref": "FIXT-EV-0002",
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 1,
+        "span": "이 예금의 만기이자율은 『기간별 이자율』과 『우대이자율』을 더하여 적용하며,",
+        "bbox": [153.2, 176.1, 521.5, 188.3],
+        "legal_basis": "금융소비자보호법 제19조제1항"
+      }
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0004",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 4,
+    "occurred_at": "2026-09-07T11:02:35.200Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "teller",
+      "text": "중도해지하시면 0.5% 정도는 받으세요.",
+      "t_ms": 35200,
+      "duration_ms": 2900,
+      "stt_confidence": 0.92,
+      "speaker_confidence": 0.97
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0005",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 5,
+    "occurred_at": "2026-09-07T11:02:35.219Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "alert",
+    "alert": {
+      "alert_type": "number_mismatch",
+      "severity": "warning",
+      "message": "설명서 기준 중도해지 이자율은 1개월 미만 연 0.10% 입니다. 확인 후 다시 안내해 주세요.",
+      "item_code": "DEP-INT-002",
+      "comparison": {
+        "said": "0.5%",
+        "reference": "연 0.10%",
+        "condition": "1개월 미만"
+      },
+      "utterance_ref": "FIXT-EV-0004",
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 3,
+        "span": "○ 1개월 미만: 연 0.10%",
+        "bbox": [152.8, 763.8, 278.8, 774.4]
+      },
+      "acknowledged": false
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0006",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 6,
+    "occurred_at": "2026-09-07T11:02:35.221Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "verdict",
+    "verdict": {
+      "item_code": "DEP-INT-002",
+      "axis": "omission",
+      "state": "partial",
+      "decided_by": "L1",
+      "confidence": 0.7,
+      "missing_elements": ["적용 이율", "차감률 또는 산출식"],
+      "utterance_ref": "FIXT-EV-0004",
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 5,
+        "span": "만기 전 해지할 경우 약정한 이자율보다 낮은 중도해지이자율이 적용됩니다.",
+        "bbox": [74.2, 467.8, 467.6, 479.7],
+        "legal_basis": "금융소비자보호법 제19조제1항"
+      }
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0007",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 7,
+    "occurred_at": "2026-09-07T11:03:10.100Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "customer",
+      "text": "네? 우대이자율이 뭐예요?",
+      "t_ms": 70100,
+      "duration_ms": 1800,
+      "stt_confidence": 0.89,
+      "speaker_confidence": 0.93
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0008",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 8,
+    "occurred_at": "2026-09-07T11:03:10.135Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "verdict",
+    "verdict": {
+      "item_code": "DEP-INT-001",
+      "axis": "comprehension",
+      "state": "explained",
+      "decided_by": "L2",
+      "confidence": 0.81,
+      "utterance_ref": "FIXT-EV-0007"
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0009",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 9,
+    "occurred_at": "2026-09-07T11:03:10.640Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "assist",
+    "assist": {
+      "assist_type": "rephrase",
+      "text": "기본으로 드리는 이자가 있고, 조건을 채우시면 거기에 더 얹어 드리는 이자가 따로 있습니다. 두 개를 합한 것이 최종 이자입니다.",
+      "item_code": "DEP-INT-001",
+      "trigger": "customer_reask",
+      "source_utterance_ref": "FIXT-EV-0002"
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0010",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 10,
+    "occurred_at": "2026-09-07T11:03:16.300Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "teller",
+      "text": "기본으로 드리는 이자가 있고, 조건을 채우시면 거기에 더 얹어 드리는 이자가 따로 있습니다. 두 개를 합한 것이 최종 이자입니다.",
+      "t_ms": 76300,
+      "duration_ms": 6400,
+      "stt_confidence": 0.95,
+      "speaker_confidence": 0.98
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0011",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 11,
+    "occurred_at": "2026-09-07T11:03:16.910Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "assist",
+    "supersedes": "FIXT-EV-0009",
+    "assist": {
+      "assist_type": "rephrase",
+      "text": "기본으로 드리는 이자가 있고, 조건을 채우시면 거기에 더 얹어 드리는 이자가 따로 있습니다. 두 개를 합한 것이 최종 이자입니다.",
+      "item_code": "DEP-INT-001",
+      "trigger": "customer_reask",
+      "source_utterance_ref": "FIXT-EV-0002",
+      "outcome": "adopted"
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0012",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 12,
+    "occurred_at": "2026-09-07T11:03:24.000Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "customer",
+      "text": "아, 조건 채우면 더 준다는 거네요. 알겠습니다.",
+      "t_ms": 84000,
+      "duration_ms": 2600,
+      "stt_confidence": 0.91,
+      "speaker_confidence": 0.94
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0013",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 13,
+    "occurred_at": "2026-09-07T11:03:25.180Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "verdict",
+    "supersedes": "FIXT-EV-0008",
+    "verdict": {
+      "item_code": "DEP-INT-001",
+      "axis": "comprehension",
+      "state": "confirmed",
+      "decided_by": "L3",
+      "confidence": 0.88,
+      "utterance_ref": "FIXT-EV-0012"
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0014",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 14,
+    "occurred_at": "2026-09-07T11:03:50.500Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "teller",
+      "text": "우대금리는 무조건 다 받으실 수 있어요.",
+      "t_ms": 110500,
+      "duration_ms": 2400,
+      "stt_confidence": 0.93,
+      "speaker_confidence": 0.97
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0015",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 15,
+    "occurred_at": "2026-09-07T11:03:50.516Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "verdict",
+    "verdict": {
+      "item_code": "DEP-BAN-001",
+      "axis": "commission",
+      "state": "suspected",
+      "decided_by": "L1",
+      "confidence": 0.6,
+      "utterance_ref": "FIXT-EV-0014",
+      "evidence": {
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+        "bbox": [61.3, 170.0, 554.2, 181.6],
+        "legal_basis": "금융소비자보호법 제21조제1호"
+      }
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0016",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 16,
+    "occurred_at": "2026-09-07T11:03:51.402Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "alert",
+    "alert": {
+      "alert_type": "forbidden_phrase",
+      "severity": "warning",
+      "message": "우대이자율에는 적용조건이 있습니다. 조건을 함께 안내해 주세요.",
+      "item_code": "DEP-BAN-001",
+      "utterance_ref": "FIXT-EV-0014",
+      "evidence": {
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+        "bbox": [61.3, 170.0, 554.2, 181.6],
+        "legal_basis": "금융소비자보호법 제21조제1호"
+      },
+      "acknowledged": true
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0017",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 17,
+    "occurred_at": "2026-09-07T11:03:51.418Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "verdict",
+    "supersedes": "FIXT-EV-0015",
+    "verdict": {
+      "item_code": "DEP-BAN-001",
+      "axis": "commission",
+      "state": "violated",
+      "decided_by": "L3",
+      "confidence": 0.94,
+      "utterance_ref": "FIXT-EV-0014",
+      "evidence": {
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+        "bbox": [61.3, 170.0, 554.2, 181.6],
+        "legal_basis": "금융소비자보호법 제21조제1호"
+      }
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0018",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 18,
+    "occurred_at": "2026-09-07T11:04:15.200Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "teller",
+      "text": "아까 중도해지 말씀 다시 정확히 드리면, 한 달 안에 해지하시면 연 0.10% 입니다. 그 뒤로는 기본이자율에서 경과기간별 차감률을 빼서 계산하고 최저 연 0.10% 입니다.",
+      "t_ms": 135200,
+      "duration_ms": 11800,
+      "stt_confidence": 0.95,
+      "speaker_confidence": 0.98
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0019",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 19,
+    "occurred_at": "2026-09-07T11:04:16.930Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "verdict",
+    "supersedes": "FIXT-EV-0006",
+    "verdict": {
+      "item_code": "DEP-INT-002",
+      "axis": "omission",
+      "state": "met",
+      "decided_by": "L3",
+      "confidence": 0.96,
+      "missing_elements": [],
+      "utterance_ref": "FIXT-EV-0018",
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 5,
+        "span": "만기 전 해지할 경우 약정한 이자율보다 낮은 중도해지이자율이 적용됩니다.",
+        "bbox": [74.2, 467.8, 467.6, 479.7],
+        "legal_basis": "금융소비자보호법 제19조제1항"
+      }
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0020",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 20,
+    "occurred_at": "2026-09-07T11:04:30.800Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "teller",
+      "text": "계약기간이 끝난 다음에 붙는 이자에는 세금이 붙습니다. 조건이 맞으면 비과세종합저축으로도 가입 가능합니다.",
+      "t_ms": 150800,
+      "duration_ms": 7300,
+      "stt_confidence": 0.94,
+      "speaker_confidence": 0.98
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0021",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 21,
+    "occurred_at": "2026-09-07T11:04:30.813Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "verdict",
+    "verdict": {
+      "item_code": "DEP-TAX-001",
+      "axis": "omission",
+      "state": "met",
+      "decided_by": "L1",
+      "confidence": 1.0,
+      "missing_elements": [],
+      "utterance_ref": "FIXT-EV-0020",
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 4,
+        "span": "※ 계약기간 만료일 이후의 이자는 과세합니다.",
+        "bbox": [157.3, 566.3, 382.9, 577.1],
+        "legal_basis": "금융소비자보호법 제19조제1항"
+      }
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0022",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 22,
+    "occurred_at": "2026-09-07T11:04:38.900Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "utterance",
+    "utterance": {
+      "speaker": "teller",
+      "text": "중간에 일부만 빼시는 것도 가능한데 2회까지만 됩니다.",
+      "t_ms": 158900,
+      "duration_ms": 3600,
+      "stt_confidence": 0.93,
+      "speaker_confidence": 0.98
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0023",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 23,
+    "occurred_at": "2026-09-07T11:04:38.911Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "verdict",
+    "verdict": {
+      "item_code": "DEP-LIM-001",
+      "axis": "omission",
+      "state": "met",
+      "decided_by": "L1",
+      "confidence": 1.0,
+      "missing_elements": [],
+      "utterance_ref": "FIXT-EV-0022",
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 5,
+        "span": "일부해지 횟수는 2회를 초과할 수 없습니다.",
+        "bbox": [74.4, 444.9, 301.4, 456.7],
+        "legal_basis": "금융소비자보호법 제19조제1항"
+      }
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0024",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 24,
+    "occurred_at": "2026-09-07T11:04:45.000Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "assist",
+    "assist": {
+      "assist_type": "nudge",
+      "text": "예금자보호 한도가 아직 안 나왔습니다. 원금과 이자 합해 5천만원까지라는 점을 안내해 주세요.",
+      "item_code": "DEP-PRO-001",
+      "trigger": "missing_item",
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 6,
+        "span": "예금자보호 O 원금과 이자 포함 5천만원까지 가능",
+        "bbox": [70.5, 522.6, 421.2, 534.4]
+      }
+    }
+  },
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0025",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 25,
+    "occurred_at": "2026-09-07T11:04:45.020Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "assist",
+    "assist": {
+      "assist_type": "nudge",
+      "text": "만기 후 이자율이 아직 안 나왔습니다. 만기가 지나면 이율이 낮아진다는 점을 안내해 주세요.",
+      "item_code": "DEP-INT-003",
+      "trigger": "missing_item",
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 3,
+        "span": "○ 만기 후 1개월 이내: 만기일 당시의 가입기간에 해당하는 일반정기예금",
+        "bbox": [156.6, 309.3, 515.7, 320.3]
+      }
+    }
+  },
+
+  {
+    "schema_version": "1",
+    "event_id": "FIXT-EV-0026",
+    "session_id": "FIXT-SESS-0A",
+    "seq_in_session": 26,
+    "occurred_at": "2026-09-07T11:05:02.000Z",
+    "pack_version": "DEP-2026.08-v3",
+    "kind": "session_ended",
+    "session_ended": {
+      "reason": "normal",
+      "duration_ms": 182000,
+      "summary": {
+        "items_total": 6,
+        "met": 4,
+        "partial": 0,
+        "unmet": 2,
+        "waived": 0,
+        "violations": 1,
+        "alerts": 2,
+        "assists_adopted": 1
+      }
+    }
+  }
+]

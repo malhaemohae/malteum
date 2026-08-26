@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guitteum.local/contracts/rulepack.schema.json",
+  "title": "귀띔 규정 팩",
+  "description": "M3 rulepack 이 만들고 M2 engine 이 읽는다. 불변 발행물이며 수정하지 않고 새 버전을 낸다. 세션이 pack_version 을 고정해 과거 판정을 재현한다.",
+
+  "type": "object",
+  "required": ["schema_version", "pack_version", "product", "published_at", "embedding", "sources", "items"],
+  "additionalProperties": false,
+
+  "properties": {
+    "schema_version": { "const": "1" },
+    "pack_version": {
+      "type": "string",
+      "pattern": "^[A-Z]{3,4}-\\d{4}\\.\\d{2}-v\\d+$",
+      "examples": ["DEP-2026.08-v3"]
+    },
+    "product": {
+      "type": "object",
+      "required": ["code", "name", "category"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string", "examples": ["신한 My플러스 정기예금"] },
+        "category": { "enum": ["deposit", "loan"] }
+      }
+    },
+    "published_at": { "type": "string", "format": "date-time" },
+    "published_by": { "type": "string" },
+    "embedding": {
+      "type": "object",
+      "description": "차원을 팩에 묶는다. 모델을 바꾸면 팩을 재발행하고, 과거 세션은 과거 팩과 과거 차원을 그대로 쓴다. 컬럼에 차원을 박으면 교체 때 마이그레이션이 필요해진다.",
+      "required": ["model", "dim"],
+      "additionalProperties": false,
+      "properties": {
+        "model": { "type": "string", "examples": ["intfloat/multilingual-e5-small"] },
+        "dim": { "type": "integer", "minimum": 1, "examples": [384] },
+        "normalized": { "type": "boolean", "default": true }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "description": "출처와 스냅샷 일자를 항목마다 추적할 수 있게 여기에 모아 둔다. 화면·리포트에 상시 표기한다.",
+      "items": {
+        "type": "object",
+        "required": ["doc_id", "title", "publisher", "snapshot_date"],
+        "additionalProperties": false,
+        "properties": {
+          "doc_id": { "type": "string", "examples": ["05_상품설명서_정기예금"] },
+          "title": { "type": "string" },
+          "publisher": { "type": "string", "examples": ["신한은행", "법제처", "금융위원회"] },
+          "url": { "type": "string" },
+          "snapshot_date": { "type": "string", "format": "date" },
+          "page_count": { "type": "integer", "minimum": 1 },
+          "note": { "type": "string", "description": "은행 게시본 여부 등. 표준약관과 다른 부분이 있으면 밝힌다" }
+        }
+      }
+    },
+    "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/item" } }
+  },
+
+  "$defs": {
+    "evidenceRef": {
+      "type": "object",
+      "description": "근거 한 건. events.schema.json 의 $defs/evidence 와 같은 모양이어야 한다. M2 가 변환 없이 판정에 실어 보내고, 화면은 어디서 왔든 같은 코드로 그린다.",
+      "required": ["doc_id", "page", "span"],
+      "additionalProperties": false,
+      "properties": {
+        "doc_id": { "type": "string" },
+        "page": { "type": "integer", "minimum": 1 },
+        "span": { "type": "string", "minLength": 1, "description": "원문 인용 문자열 그대로. PDF 는 줄바꿈을 문자로 넣으므로 한 줄 단위로 자른다" },
+        "bbox": {
+          "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4,
+          "description": "[x1,y1,x2,y2] PDF 포인트. pypdfium2 문자 단위 좌표. ⑭ 문장 하이라이트용. OpenDataLoader 의 요소 단위 bbox 로는 문장 하이라이트가 안 되므로 여기는 반드시 문자 좌표"
+        },
+        "legal_basis": {
+          "type": "string",
+          "description": "화면·리포트에 그대로 붙는 표기 문자열",
+          "examples": ["금융소비자보호법 제21조제1호"]
+        }
+      }
+    },
+
+    "item": {
+      "type": "object",
+      "required": ["code", "name", "type", "requirement_elements", "legal_basis", "evidence", "approved_at"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z]{3,4}-[A-Z]{3}-\\d{3}$",
+          "description": "{상품군}-{근거유형}-{연번}. 팩 버전이 올라가도 코드는 유지해야 과거 판정을 추적할 수 있다",
+          "examples": ["DEP-INT-002", "DEP-DIC-001", "LOAN-BAN-002", "DEP-DOC-001"]
+        },
+        "name": { "type": "string", "examples": ["중도해지 이자율"] },
+        "type": {
+          "enum": ["required", "forbidden", "reference"],
+          "description": "required=필수 고지 · forbidden=금지 발언 · reference=참고(필요 서류 등, 판정 대상 아님)"
+        },
+        "axis": {
+          "enum": ["omission", "commission"],
+          "description": "type=required 는 omission, forbidden 은 commission. reference 는 없음"
+        },
+        "requirement_elements": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "이 항목이 충족되려면 발화에 나와야 하는 요소들. L3 가 met/partial 을 가르는 기준이고, 빠진 것이 넛지 문구의 재료가 된다",
+          "examples": [["적용 이율", "기간별 차등", "산정 방식"]]
+        },
+        "legal_basis": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["law", "article"],
+            "additionalProperties": false,
+            "properties": {
+              "law": { "type": "string", "examples": ["금융소비자보호법", "은행법", "전자금융거래법"] },
+              "article": { "type": "string", "examples": ["제19조제1항", "제30조의2"] },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "evidence": {
+          "$ref": "#/$defs/evidenceRef",
+          "description": "P4 의 관문. span 이 원문에 실재하는지 기계가 문자열로 대조하고, 불일치하면 이 항목은 폐기된다. 따라서 발행된 팩에 있는 항목은 모두 근거가 실재한다"
+        },
+        "l1_patterns": {
+          "type": "array",
+          "description": "L1 결정 규칙. 약 1ms, 비용 0. 확실한 것을 먼저 걸러 L3 로 넘어가는 후보를 줄인다",
+          "items": {
+            "type": "object",
+            "required": ["kind", "value"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "enum": ["regex", "keyword", "numeric"] },
+              "value": { "type": "string" },
+              "flags": { "type": "string", "examples": ["i"] },
+              "element": { "type": "string", "description": "이 패턴이 어느 요건 요소를 충족시키는지" }
+            }
+          }
+        },
+        "embedding_id": {
+          "type": "string",
+          "description": "벡터 본체는 pgvector 에 둔다. 팩 JSON 에 넣으면 파일이 거대해지고 diff 가 무의미해진다"
+        },
+        "plain_language": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "⑥-A 쉬운 말 사전. 팩 발행 때 미리 생성하고 사람이 승인한다. 실시간 LLM 호출 0, 검수 완료 문장만 은행원에게 나간다",
+          "examples": [["만기 전에 돈을 빼시면 원래 약속한 이자보다 훨씬 적게 받으십니다"]]
+        },
+        "numeric_facts": {
+          "type": "array",
+          "description": "⑤ 숫자 오류 감지의 정답. 표 셀 구조에서 뽑는다. 라벨과 값의 대응이 깨지면 잘못된 정답으로 오탐이 나므로 사람 승인 단계에서 반드시 확인한다",
+          "items": {
+            "type": "object",
+            "required": ["label", "value", "unit"],
+            "additionalProperties": false,
+            "properties": {
+              "label": { "type": "string", "examples": ["중도해지 이자율"] },
+              "value": { "type": "string", "examples": ["0.10"] },
+              "unit": { "type": "string", "examples": ["%", "원", "개월"] },
+              "condition": { "type": "string", "examples": ["1개월 미만"] },
+              "tolerance": { "type": "number", "default": 0, "description": "허용 오차. 0 이면 정확히 일치해야 한다" },
+              "evidence": {
+                "$ref": "#/$defs/evidenceRef",
+                "description": "이 숫자가 실제로 적힌 위치. 항목의 evidence 와 다른 페이지일 수 있다. ⑤ 경보가 '설명서 몇 쪽 이 칸' 을 가리켜야 하므로 숫자마다 따로 둔다"
+              }
+            }
+          }
+        },
+        "documents_required": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "④ 필요 서류. type=reference 항목에서 쓴다"
+        },
+        "forbidden_examples": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "type=forbidden 에서 실제 금지 표현 예시. L2 임베딩과 L3 판정의 기준",
+          "examples": [["원금은 100% 보장됩니다", "무조건 다 받으실 수 있어요"]]
+        },
+        "approved_at": { "type": "string", "format": "date-time" },
+        "approved_by": { "type": "string" }
+      },
+
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "required" } }, "required": ["type"] },
+          "then": { "required": ["axis"], "properties": { "axis": { "const": "omission" } } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "forbidden" } }, "required": ["type"] },
+          "then": {
+            "required": ["axis", "forbidden_examples"],
+            "properties": { "axis": { "const": "commission" } }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "reference" } }, "required": ["type"] },
+          "then": { "not": { "required": ["axis"] } }
+        }
+      ]
+    }
+  }
+}

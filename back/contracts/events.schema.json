@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guitteum.local/contracts/events.schema.json",
+  "title": "귀띔 세션 이벤트",
+  "description": "영구 저장물. append-only. 증빙·trace 재생·재접속 복구·감사의 원본. 수정하지 않고 supersedes 로 이력을 잇는다.",
+
+  "type": "object",
+  "required": ["schema_version", "event_id", "session_id", "seq_in_session", "occurred_at", "pack_version", "kind"],
+  "unevaluatedProperties": false,
+
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "description": "스키마를 바꾸면 올린다. 과거 이벤트를 읽기 위해 처음부터 넣는다."
+    },
+    "event_id": { "$ref": "#/$defs/id" },
+    "session_id": { "$ref": "#/$defs/id" },
+    "seq_in_session": {
+      "type": "integer", "minimum": 0,
+      "description": "세션 내 단조 증가. trace 재생 순서의 기준."
+    },
+    "occurred_at": {
+      "type": "string", "format": "date-time",
+      "description": "밀리초 포함 ISO 8601. 예 2026-09-07T11:02:14.318Z"
+    },
+    "pack_version": {
+      "$ref": "#/$defs/packVersion",
+      "description": "모든 이벤트에 넣는다. 낱개로 해석돼야 하고, 과거 판정을 당시 규정 기준으로 재현하려면 필수."
+    },
+    "kind": {
+      "enum": ["session_started", "utterance", "verdict", "alert", "assist", "session_ended"]
+    },
+    "supersedes": {
+      "anyOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }],
+      "default": null,
+      "description": "이 이벤트가 대체하는 앞선 이벤트. verdict 와 assist 에서 쓴다."
+    }
+  },
+
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "session_started" } } },
+      "then": { "required": ["session_started"], "properties": { "session_started": { "$ref": "#/$defs/sessionStarted" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "utterance" } } },
+      "then": { "required": ["utterance"], "properties": { "utterance": { "$ref": "#/$defs/utterance" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "verdict" } } },
+      "then": { "required": ["verdict"], "properties": { "verdict": { "$ref": "#/$defs/verdict" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "alert" } } },
+      "then": { "required": ["alert"], "properties": { "alert": { "$ref": "#/$defs/alert" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "assist" } } },
+      "then": { "required": ["assist"], "properties": { "assist": { "$ref": "#/$defs/assist" } } }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "session_ended" } } },
+      "then": { "required": ["session_ended"], "properties": { "session_ended": { "$ref": "#/$defs/sessionEnded" } } }
+    }
+  ],
+
+  "$defs": {
+    "id": {
+      "type": "string", "minLength": 8, "maxLength": 64,
+      "description": "ULID 권장. 시간 정렬이 되고 충돌하지 않는다."
+    },
+    "packVersion": {
+      "type": "string",
+      "pattern": "^[A-Z]{3,4}-\\d{4}\\.\\d{2}-v\\d+$",
+      "examples": ["DEP-2026.08-v3", "LOAN-2026.08-v2"]
+    },
+    "itemCode": {
+      "type": "string",
+      "pattern": "^[A-Z]{3,4}-[A-Z]{3}-\\d{3}$",
+      "description": "{상품군}-{근거유형}-{연번}. 팩 버전이 올라가도 코드는 안정적이어야 과거 판정을 추적할 수 있다.",
+      "examples": ["DEP-INT-002", "DEP-DIC-001", "LOAN-BAN-002"]
+    },
+    "axis": {
+      "enum": ["omission", "commission", "comprehension"],
+      "description": "3방향 검증. 누락 · 금지 발언 · 이해"
+    },
+    "evidence": {
+      "type": "object",
+      "description": "근거. P4 에 따라 인용 문자열이 원문에 실재해야 항목이 존재한다.",
+      "required": ["doc_id", "page", "span"],
+      "additionalProperties": false,
+      "properties": {
+        "doc_id": { "type": "string", "examples": ["05_상품설명서_정기예금"] },
+        "page": { "type": "integer", "minimum": 1 },
+        "span": { "type": "string", "minLength": 1, "description": "원문 인용 문자열 그대로" },
+        "bbox": {
+          "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4,
+          "description": "[x1,y1,x2,y2] PDF 포인트. pypdfium2 문자 좌표. 문장 하이라이트용"
+        },
+        "legal_basis": { "type": "string", "examples": ["금융소비자보호법 §19①"] }
+      }
+    },
+
+    "sessionStarted": {
+      "type": "object",
+      "required": ["mode", "product"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": ["live", "replay", "trace", "text"],
+          "description": "게이트웨이 이후 동일 경로. trace 는 STT·LLM 미호출"
+        },
+        "product": {
+          "type": "object",
+          "required": ["code", "name", "category"],
+          "additionalProperties": false,
+          "properties": {
+            "code": { "type": "string" },
+            "name": { "type": "string" },
+            "category": { "enum": ["deposit", "loan"] }
+          }
+        },
+        "customer_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": { "enum": ["general", "professional"], "default": "general", "description": "일반금융소비자 / 전문금융소비자. 설명의무 범위가 다르다" },
+            "tags": {
+              "type": "array", "items": { "enum": ["elderly", "foreigner", "first_time", "low_literacy"] },
+              "description": "취약계층 강화 절차 판단용. 로드맵 ⑨ 에서 사용"
+            }
+          }
+        },
+        "item_count": { "type": "integer", "minimum": 0, "description": "이 팩의 필수 항목 수" },
+        "preset_id": { "type": "string", "description": "심사용 프리셋에서 시작한 경우" }
+      }
+    },
+
+    "utterance": {
+      "type": "object",
+      "description": "확정 발화만. partial 은 저장하지 않는다.",
+      "required": ["speaker", "text", "t_ms"],
+      "additionalProperties": false,
+      "properties": {
+        "speaker": { "enum": ["teller", "customer", "system"] },
+        "text": { "type": "string", "description": "PII 마스킹 후. 주민번호·계좌·전화·카드번호는 저장 전에 가린다" },
+        "t_ms": { "type": "integer", "minimum": 0, "description": "세션 시작 기준 오프셋. 리포트 타임스탬프와 발화 재생에 쓴다" },
+        "duration_ms": { "type": "integer", "minimum": 0 },
+        "stt_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "speaker_confidence": {
+          "type": "number", "minimum": 0, "maximum": 1,
+          "description": "화자 배정 신뢰도. 낮으면 P3 에 따라 미고지 쪽으로 남긴다"
+        }
+      }
+    },
+
+    "verdict": {
+      "type": "object",
+      "required": ["item_code", "axis", "state", "decided_by"],
+      "additionalProperties": false,
+      "properties": {
+        "item_code": { "$ref": "#/$defs/itemCode" },
+        "axis": { "$ref": "#/$defs/axis" },
+        "state": {
+          "enum": ["unmet", "partial", "met", "waived", "clean", "suspected", "violated", "explained", "confirmed"],
+          "description": "축에 따라 허용 값이 다르다. 아래 allOf 제약 참조"
+        },
+        "decided_by": {
+          "enum": ["L1", "L2", "L3", "human"],
+          "description": "L1 규칙 · L2 의미검색 · L3 심판 · 사람. waived 는 human 만"
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "missing_elements": {
+          "type": "array", "items": { "type": "string" },
+          "description": "요건 요소 중 아직 안 나온 것. 넛지 문구의 재료"
+        },
+        "utterance_ref": { "$ref": "#/$defs/id", "description": "이 판정을 유발한 발화" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "waive_reason": { "type": "string", "description": "state=waived 일 때 사람이 남긴 사유" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "axis": { "const": "omission" } }, "required": ["axis"] },
+          "then": { "properties": { "state": { "enum": ["unmet", "partial", "met", "waived"] } } }
+        },
+        {
+          "if": { "properties": { "axis": { "const": "commission" } }, "required": ["axis"] },
+          "then": { "properties": { "state": { "enum": ["clean", "suspected", "violated"] } } }
+        },
+        {
+          "if": { "properties": { "axis": { "const": "comprehension" } }, "required": ["axis"] },
+          "then": { "properties": { "state": { "enum": ["explained", "confirmed"] } } }
+        },
+        {
+          "if": { "properties": { "state": { "const": "waived" } }, "required": ["state"] },
+          "then": { "required": ["waive_reason"], "properties": { "decided_by": { "const": "human" } } }
+        }
+      ]
+    },
+
+    "alert": {
+      "type": "object",
+      "description": "은행원에게 즉시 보여야 하는 것. 우선순위는 severity 로 표현한다.",
+      "required": ["alert_type", "severity", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "alert_type": {
+          "enum": ["forbidden_phrase", "number_mismatch", "risk_signal", "term_density"],
+          "description": "금지 발언 · ⑤ 숫자 오류 · ⑦ 위험 신호 · ⑧ 용어 밀도"
+        },
+        "severity": {
+          "enum": ["critical", "warning", "info"],
+          "description": "critical=위험 신호(다른 것을 밀어냄) · warning=금지·숫자 · info=용어 밀도"
+        },
+        "message": {
+          "type": "string",
+          "description": "고객이 화면을 볼 수 있다는 전제로 쓴다. 비난 금지. '잘못 말했습니다' 가 아니라 '설명서 기준 확인'"
+        },
+        "item_code": { "$ref": "#/$defs/itemCode" },
+        "comparison": {
+          "type": "object",
+          "description": "⑤ 숫자 오류용. 말한 것과 문서의 값을 나란히",
+          "required": ["said", "reference"],
+          "additionalProperties": false,
+          "properties": {
+            "said": { "type": "string", "examples": ["0.5%"] },
+            "reference": { "type": "string", "examples": ["연 0.10%"] },
+            "condition": { "type": "string", "examples": ["1개월 미만"] }
+          }
+        },
+        "utterance_ref": { "$ref": "#/$defs/id" },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "acknowledged": {
+          "type": "boolean", "default": false,
+          "description": "은행원이 확인함으로 기록. 위험 신호의 후속 조치는 은행 절차이며 MVP 범위 밖"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "alert_type": { "const": "number_mismatch" } }, "required": ["alert_type"] },
+          "then": { "required": ["comparison", "evidence"] }
+        },
+        {
+          "if": { "properties": { "alert_type": { "const": "risk_signal" } }, "required": ["alert_type"] },
+          "then": { "properties": { "severity": { "const": "critical" } } }
+        }
+      ]
+    },
+
+    "assist": {
+      "type": "object",
+      "description": "은행원에게 건네는 문장. outcome 은 나중에 supersedes 로 갱신한다.",
+      "required": ["assist_type", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "assist_type": {
+          "enum": ["nudge", "rephrase", "answer", "briefing", "documents"],
+          "description": "넛지=놓친 항목 알림 · rephrase=⑥-B 즉석 재진술 · answer=①⑩ 역질문 즉답 · briefing=② · documents=④"
+        },
+        "text": { "type": "string", "description": "은행원이 그대로 읽거나 참고할 문장" },
+        "item_code": { "$ref": "#/$defs/itemCode" },
+        "trigger": {
+          "enum": ["missing_item", "customer_reask", "term_density", "customer_question", "teller_typed", "manual_button", "session_start"],
+          "description": "왜 떴는지. ⑥-B 는 customer_reask·term_density·manual_button 세 트리거"
+        },
+        "source_utterance_ref": {
+          "$ref": "#/$defs/id",
+          "description": "rephrase 는 이 발화를 다시 쓴 것이다. 새 정보를 만들지 않았음을 이 참조로 확인한다"
+        },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "outcome": {
+          "enum": ["adopted", "ignored"],
+          "description": "은행원이 이 표현을 실제로 썼는지. 판정 엔진이 후속 발화에서 확인한다. 처음 발행 시에는 없음"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "assist_type": { "const": "answer" } }, "required": ["assist_type"] },
+          "then": { "required": ["evidence"], "description": "답변은 근거 없이 내보내지 않는다 (P4)" }
+        },
+        {
+          "if": { "properties": { "assist_type": { "const": "rephrase" } }, "required": ["assist_type"] },
+          "then": { "required": ["source_utterance_ref"] }
+        }
+      ]
+    },
+
+    "sessionEnded": {
+      "type": "object",
+      "required": ["reason", "duration_ms", "summary"],
+      "additionalProperties": false,
+      "properties": {
+        "reason": { "enum": ["normal", "aborted", "timeout"] },
+        "duration_ms": { "type": "integer", "minimum": 0 },
+        "summary": {
+          "type": "object",
+          "description": "이벤트를 접어 만든 집계. 파생물이므로 언제든 다시 계산할 수 있다",
+          "required": ["items_total", "met", "partial", "unmet"],
+          "additionalProperties": false,
+          "properties": {
+            "items_total": { "type": "integer", "minimum": 0 },
+            "met": { "type": "integer", "minimum": 0 },
+            "partial": { "type": "integer", "minimum": 0 },
+            "unmet": { "type": "integer", "minimum": 0 },
+            "waived": { "type": "integer", "minimum": 0 },
+            "violations": { "type": "integer", "minimum": 0 },
+            "alerts": { "type": "integer", "minimum": 0 },
+            "assists_adopted": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    }
+  }
+}

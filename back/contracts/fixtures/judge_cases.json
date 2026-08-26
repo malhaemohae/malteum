@@ -1,0 +1,203 @@
+{
+  "_about": "M2 판정 엔진의 계약 테스트. 입력 발화와 기대 출력의 쌍이다. 구현이 바뀌어도 이 표가 통과해야 한다. tier 는 성능 계약이고 max_ms 는 상한이다.",
+  "pack": "rulepack_DEP-2026.08-v3.json",
+  "cases": [
+    {
+      "name": "L1 키워드 3개 전부 일치 → met",
+      "why": "L1 만으로 확정되는 경로. LLM 을 부르지 않아야 한다. 이게 깨지면 지연 예산 전체가 무너진다",
+      "state_before": { "DEP-INT-001": "unmet" },
+      "utterance": {
+        "speaker": "teller",
+        "text": "이자율은 기간별 이자율에 우대이자율을 더해서 적용됩니다. 우대조건을 채우시면 연 0.3% 더 붙습니다.",
+        "t_ms": 21400
+      },
+      "expect": {
+        "tier": "L1",
+        "max_ms": 5,
+        "verdicts": [
+          { "item_code": "DEP-INT-001", "axis": "omission", "state": "met", "decided_by": "L1", "missing_elements": [] }
+        ],
+        "alerts": [],
+        "assists": []
+      }
+    },
+    {
+      "name": "요건 요소 일부만 → partial + 누락 목록",
+      "why": "partial 의 missing_elements 가 넛지 문구의 재료다. 여기서 빠진 요소 이름이 그대로 화면에 나간다",
+      "state_before": { "DEP-INT-002": "unmet" },
+      "utterance": { "speaker": "teller", "text": "중도해지하시면 이자가 좀 줄어듭니다.", "t_ms": 30000 },
+      "expect": {
+        "tier": "L3",
+        "max_ms": 1500,
+        "verdicts": [
+          {
+            "item_code": "DEP-INT-002",
+            "axis": "omission",
+            "state": "partial",
+            "missing_elements": ["적용 이율", "차감률 또는 산출식"]
+          }
+        ],
+        "alerts": [],
+        "assists": [{ "assist_type": "nudge", "item_code": "DEP-INT-002", "trigger": "missing_item" }]
+      }
+    },
+    {
+      "name": "숫자 불일치 → 경보. 항목 상태는 별개로 판정",
+      "why": "숫자가 틀렸다는 것과 항목을 설명했다는 것은 다른 축이다. 경보만 뜨고 항목은 partial 로 남는다. 두 개를 한 값으로 뭉치면 리포트가 사실을 잃는다",
+      "state_before": { "DEP-INT-002": "unmet" },
+      "utterance": { "speaker": "teller", "text": "중도해지하시면 0.5% 정도는 받으세요.", "t_ms": 35200 },
+      "expect": {
+        "tier": "L1",
+        "max_ms": 5,
+        "verdicts": [{ "item_code": "DEP-INT-002", "axis": "omission", "state": "partial" }],
+        "alerts": [
+          {
+            "alert_type": "number_mismatch",
+            "severity": "warning",
+            "item_code": "DEP-INT-002",
+            "comparison": { "said": "0.5%", "reference": "연 0.10%", "condition": "1개월 미만" },
+            "evidence_required": true
+          }
+        ],
+        "assists": []
+      }
+    },
+    {
+      "name": "숫자 일치 → 경보 없음",
+      "why": "위 케이스의 대칭. 정답과 같은 숫자에 경보가 뜨면 은행원이 경보를 무시하기 시작한다. 오탐 0 이 이 기능의 생존 조건이다",
+      "state_before": { "DEP-INT-002": "partial" },
+      "utterance": {
+        "speaker": "teller",
+        "text": "한 달 안에 해지하시면 연 0.10% 입니다. 그 뒤로는 기본이자율에서 경과기간별 차감률을 빼서 계산하고 최저 연 0.10% 입니다.",
+        "t_ms": 135200
+      },
+      "expect": {
+        "tier": "L3",
+        "max_ms": 1500,
+        "verdicts": [{ "item_code": "DEP-INT-002", "axis": "omission", "state": "met", "missing_elements": [] }],
+        "alerts": [],
+        "assists": []
+      }
+    },
+    {
+      "name": "단정 표현 → L1 suspected, L3 violated",
+      "why": "잠정 판정을 먼저 내고 L3 가 고치는 두 단계 경로. 화면은 즉시 뜨고 기록은 정정된다. supersedes 가 이 두 판정을 잇는다",
+      "state_before": { "DEP-BAN-001": "clean" },
+      "utterance": { "speaker": "teller", "text": "우대금리는 무조건 다 받으실 수 있어요.", "t_ms": 110500 },
+      "expect": {
+        "tier": "L3",
+        "max_ms": 1500,
+        "verdicts": [
+          { "item_code": "DEP-BAN-001", "axis": "commission", "state": "suspected", "decided_by": "L1", "ver": 1 },
+          { "item_code": "DEP-BAN-001", "axis": "commission", "state": "violated", "decided_by": "L3", "ver": 2, "supersedes_previous": true }
+        ],
+        "alerts": [{ "alert_type": "forbidden_phrase", "severity": "warning", "item_code": "DEP-BAN-001" }],
+        "assists": []
+      }
+    },
+    {
+      "name": "인용된 금지 표현 → 위반 아님",
+      "why": "고객이 '무조건 다 준다고 들었는데요' 라고 말한 것은 은행원의 발언이 아니다. 화자를 무시하고 표현만 잡으면 즉시 오탐이 된다",
+      "state_before": { "DEP-BAN-001": "clean" },
+      "utterance": { "speaker": "customer", "text": "우대금리는 무조건 다 받을 수 있다고 들었는데요?", "t_ms": 95000 },
+      "expect": {
+        "tier": "L1",
+        "max_ms": 5,
+        "verdicts": [],
+        "alerts": [],
+        "assists": []
+      }
+    },
+    {
+      "name": "고객 되물음 → 재진술 제안. 이해는 explained 로만",
+      "why": "되물음은 이해하지 못했다는 신호이지 설명하지 않았다는 증거가 아니다. 그래서 omission 상태는 건드리지 않고 comprehension 만 explained 로 남긴다",
+      "state_before": { "DEP-INT-001": "met" },
+      "utterance": { "speaker": "customer", "text": "네? 우대이자율이 뭐예요?", "t_ms": 70100 },
+      "expect": {
+        "tier": "L2",
+        "max_ms": 20,
+        "verdicts": [{ "item_code": "DEP-INT-001", "axis": "comprehension", "state": "explained" }],
+        "alerts": [],
+        "assists": [
+          {
+            "assist_type": "rephrase",
+            "item_code": "DEP-INT-001",
+            "trigger": "customer_reask",
+            "source_utterance_ref_required": true,
+            "from_plain_language": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "고객 확인 응답 → confirmed",
+      "why": "explained 에서 confirmed 로 가는 유일한 경로. 참고 정보일 뿐이므로 이 값이 리포트의 근거가 되지는 않는다",
+      "state_before": { "DEP-INT-001": "explained" },
+      "utterance": { "speaker": "customer", "text": "아, 조건 채우면 더 준다는 거네요. 알겠습니다.", "t_ms": 84000 },
+      "expect": {
+        "tier": "L3",
+        "max_ms": 1500,
+        "verdicts": [{ "item_code": "DEP-INT-001", "axis": "comprehension", "state": "confirmed" }],
+        "alerts": [],
+        "assists": []
+      }
+    },
+    {
+      "name": "위험 신호 → critical. 다른 경보를 밀어낸다",
+      "why": "critical 은 하나뿐이고 화면 우선순위 최상위다. 같은 발화에 다른 경보가 있어도 이것이 먼저 보여야 한다",
+      "state_before": {},
+      "utterance": { "speaker": "customer", "text": "아들이 알아보라고 해서요. 돈은 아들 계좌로 보내면 돼요.", "t_ms": 120000 },
+      "expect": {
+        "tier": "L2",
+        "max_ms": 20,
+        "verdicts": [],
+        "alerts": [{ "alert_type": "risk_signal", "severity": "critical" }],
+        "assists": []
+      }
+    },
+    {
+      "name": "화자 신뢰도 낮음 → 미고지 쪽으로 남긴다",
+      "why": "P3 fail-safe. 은행원이 말했는지 확실하지 않으면 met 로 올리지 않는다. 잘못된 met 는 잘못된 unmet 보다 위험하다",
+      "state_before": { "DEP-PRO-001": "unmet" },
+      "utterance": {
+        "speaker": "teller",
+        "text": "예금자보호는 5천만원까지 됩니다.",
+        "t_ms": 140000,
+        "speaker_confidence": 0.41
+      },
+      "expect": {
+        "tier": "L1",
+        "max_ms": 5,
+        "verdicts": [{ "item_code": "DEP-PRO-001", "axis": "omission", "state": "unmet" }],
+        "alerts": [],
+        "assists": []
+      }
+    },
+    {
+      "name": "근거 없는 질문 → 답하지 않는다",
+      "why": "P4. 팩에 없는 것을 물으면 만들어 내지 않고 답을 비운다. 여기서 빈 값을 돌려주지 않으면 환각이 화면에 뜬다",
+      "state_before": {},
+      "ask": "이 예금 들면 주택청약 가점이 올라가나요?",
+      "expect": {
+        "tier": "L2",
+        "max_ms": 20,
+        "answer": null,
+        "fallback": "근거를 찾지 못했습니다. 담당 부서 확인이 필요합니다."
+      }
+    },
+    {
+      "name": "무관한 발화 → 아무 이벤트도 만들지 않는다",
+      "why": "대부분의 발화가 이 경우다. 빈 결과를 정상으로 다루지 않으면 이벤트 로그가 잡음으로 가득 찬다",
+      "state_before": {},
+      "utterance": { "speaker": "teller", "text": "네, 잠시만 기다려 주세요. 조회해 보겠습니다.", "t_ms": 48000 },
+      "expect": { "tier": "L1", "max_ms": 5, "verdicts": [], "alerts": [], "assists": [] }
+    },
+    {
+      "name": "waived 는 사람만. 사유 없으면 거절",
+      "why": "면제는 판정이 아니라 사람의 결정이다. 엔진이 스스로 waived 를 만들 수 있으면 감사 기록의 의미가 사라진다",
+      "state_before": { "DEP-LIM-001": "unmet" },
+      "mark_waived": { "item_code": "DEP-LIM-001", "reason": "" },
+      "expect": { "rejected": true, "reason": "waive_reason 필수" }
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guitteum.local/contracts/ws_protocol.schema.json",
+  "title": "귀띔 WebSocket 프로토콜",
+  "description": "M1 gateway 와 M4 web 사이. 단일 wss 소켓에 오디오 업링크와 이벤트 다운링크를 함께 태운다. 휘발성이며 화면을 그리기 위한 형태다. 저장물은 events.schema.json 을 따른다.",
+
+  "$comment": "오디오 프레임은 JSON 이 아니라 바이너리 프레임으로 보낸다. 레이아웃은 $defs/audioFrame 의 설명 참조.",
+
+  "oneOf": [{ "$ref": "#/$defs/c2s" }, { "$ref": "#/$defs/s2c" }],
+
+  "$defs": {
+    "audioFrame": {
+      "description": "바이너리 프레임 (JSON 아님). 앞 4바이트가 빅엔디언 unsigned 시퀀스, 그 뒤가 16kHz mono PCM16 100ms = 3,200바이트. 헤더 오버헤드 0.125%. JSON base64 로 감싸면 33% 늘어나므로 쓰지 않는다. 시퀀스는 재접속 시 손실 구간 판정에 쓴다."
+    },
+
+    "c2s": {
+      "type": "object",
+      "required": ["t"],
+      "unevaluatedProperties": false,
+      "properties": { "t": { "enum": ["hello", "resume", "text_utterance", "ask", "assist_request", "mark_waived", "acknowledge", "end", "pong"] } },
+      "allOf": [
+        {
+          "if": { "properties": { "t": { "const": "hello" } } },
+          "then": {
+            "required": ["mode"],
+            "properties": {
+              "mode": { "enum": ["live", "replay", "trace", "text"] },
+              "product_code": { "type": "string" },
+              "preset_id": { "type": "string", "description": "프리셋으로 시작하면 product·customer 를 서버가 채운다" },
+              "customer_profile": {
+                "type": "object",
+                "properties": {
+                  "type": { "enum": ["general", "professional"] },
+                  "tags": { "type": "array", "items": { "type": "string" } }
+                }
+              },
+              "session_id": { "type": "string", "description": "이어 붙일 세션. 없으면 서버가 만든다" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "resume" } } },
+          "then": {
+            "required": ["session_id", "from_seq"],
+            "properties": {
+              "session_id": { "type": "string" },
+              "from_seq": { "type": "integer", "minimum": 0, "description": "마지막으로 받은 s2c seq. 서버는 그 다음부터 다시 보낸다" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "text_utterance" } } },
+          "then": {
+            "required": ["text"],
+            "properties": {
+              "text": { "type": "string", "minLength": 1 },
+              "speaker": { "enum": ["teller", "customer"], "default": "teller", "description": "text 모드에서 화자를 명시. STT 가 없으니 클라이언트가 알려준다" }
+            },
+            "$comment": "text 모드와 ⑪ 수동 진행에서 쓴다. STT 없이 판정 경로를 그대로 탄다."
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "ask" } } },
+          "then": {
+            "required": ["question"],
+            "properties": { "question": { "type": "string", "minLength": 1 } },
+            "$comment": "⑩ 텍스트 질의. 발화가 아니라 은행원의 질문이므로 utterance 로 저장하지 않는다."
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "assist_request" } } },
+          "then": {
+            "required": ["assist_type"],
+            "properties": {
+              "assist_type": { "enum": ["rephrase", "documents", "briefing"] },
+              "item_code": { "type": "string" }
+            },
+            "$comment": "⑥-B 수동 버튼. 자동 트리거가 놓쳤을 때 사람이 보완한다 (P3 방향)."
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "mark_waived" } } },
+          "then": {
+            "required": ["item_code", "reason"],
+            "properties": {
+              "item_code": { "type": "string" },
+              "reason": { "type": "string", "minLength": 1 }
+            },
+            "$comment": "waived 는 사람만 설정한다. 사유 없이는 받지 않는다."
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "acknowledge" } } },
+          "then": {
+            "required": ["alert_ref"],
+            "properties": { "alert_ref": { "type": "string" } },
+            "$comment": "경보 확인함. 특히 ⑦ 위험 신호의 기록."
+          }
+        }
+      ]
+    },
+
+    "s2c": {
+      "type": "object",
+      "required": ["t", "seq"],
+      "unevaluatedProperties": false,
+      "properties": {
+        "t": { "enum": ["ready", "partial", "utterance", "verdict", "alert", "assist", "progress", "ended", "error", "ping"] },
+        "seq": {
+          "type": "integer", "minimum": 0,
+          "description": "연결 단위 단조 증가. 재접속 재개 지점의 기준. 저장물에는 넣지 않는다"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "t": { "const": "ready" } } },
+          "then": {
+            "required": ["session_id", "pack_version", "items"],
+            "properties": {
+              "session_id": { "type": "string" },
+              "pack_version": { "type": "string" },
+              "mode": { "enum": ["live", "replay", "trace", "text"] },
+              "items": {
+                "type": "array",
+                "description": "체크리스트 초기 상태. 화면이 이걸로 우측 패널을 그린다",
+                "items": {
+                  "type": "object",
+                  "required": ["item_code", "name", "axis", "state"],
+                  "properties": {
+                    "item_code": { "type": "string" },
+                    "name": { "type": "string" },
+                    "axis": { "enum": ["omission", "commission", "comprehension"] },
+                    "state": { "type": "string" },
+                    "required": { "type": "boolean", "default": true },
+                    "plain_language": { "type": "array", "items": { "type": "string" }, "description": "⑥-A 쉬운 말. 미리 승인된 문장이므로 화면이 바로 쓴다" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "partial" } } },
+          "then": {
+            "required": ["text"],
+            "properties": {
+              "text": { "type": "string" },
+              "speaker": { "enum": ["teller", "customer", "unknown"] }
+            },
+            "$comment": "중간 전사. 저장하지 않는다. 화면에 흘려 보내 시스템이 듣고 있음을 보여준다."
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "utterance" } } },
+          "then": {
+            "required": ["event_id", "speaker", "text", "t_ms"],
+            "properties": {
+              "event_id": { "type": "string", "description": "events 의 event_id. 화면이 근거 조회에 쓴다" },
+              "speaker": { "enum": ["teller", "customer", "system"] },
+              "text": { "type": "string" },
+              "t_ms": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "verdict" } } },
+          "then": {
+            "required": ["event_id", "item_code", "axis", "state", "ver"],
+            "properties": {
+              "event_id": { "type": "string" },
+              "item_code": { "type": "string" },
+              "axis": { "enum": ["omission", "commission", "comprehension"] },
+              "state": { "type": "string" },
+              "ver": {
+                "type": "integer", "minimum": 1,
+                "description": "항목별 판정 버전. L1·L2 가 ver 1 로 먼저 그리고 L3 가 ver 2 로 고친다. 프런트는 큰 ver 만 채택해 순서 뒤바뀜을 흡수한다"
+              },
+              "decided_by": { "enum": ["L1", "L2", "L3", "human"] },
+              "missing_elements": { "type": "array", "items": { "type": "string" } },
+              "evidence_ref": { "type": "string", "description": "⑭ 근거 원문 오버레이를 열 때 쓰는 참조" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "alert" } } },
+          "then": {
+            "required": ["event_id", "alert_type", "severity", "message"],
+            "properties": {
+              "event_id": { "type": "string" },
+              "alert_type": { "enum": ["forbidden_phrase", "number_mismatch", "risk_signal", "term_density"] },
+              "severity": { "enum": ["critical", "warning", "info"] },
+              "message": { "type": "string", "description": "고객이 봐도 무해한 문구" },
+              "item_code": { "type": "string" },
+              "comparison": {
+                "type": "object",
+                "properties": {
+                  "said": { "type": "string" },
+                  "reference": { "type": "string" },
+                  "condition": { "type": "string" }
+                }
+              },
+              "evidence_ref": { "type": "string" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "assist" } } },
+          "then": {
+            "required": ["event_id", "assist_type", "text", "ver"],
+            "properties": {
+              "event_id": { "type": "string" },
+              "assist_type": { "enum": ["nudge", "rephrase", "answer", "briefing", "documents"] },
+              "text": { "type": "string" },
+              "ver": { "type": "integer", "minimum": 1 },
+              "item_code": { "type": "string" },
+              "evidence_ref": { "type": "string" },
+              "outcome": { "enum": ["adopted", "ignored"] }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "progress" } } },
+          "then": {
+            "required": ["met", "items_total"],
+            "properties": {
+              "met": { "type": "integer", "minimum": 0 },
+              "partial": { "type": "integer", "minimum": 0 },
+              "items_total": { "type": "integer", "minimum": 0 },
+              "remaining": { "type": "array", "items": { "type": "string" }, "description": "미고지 항목 이름. 넛지 띠에 나열한다" },
+              "term_density": { "enum": ["low", "normal", "high"], "description": "⑧. 경보가 아니라 상태 게이지" }
+            },
+            "$comment": "집계는 서버가 한다. 프런트가 이벤트를 접지 않게 해서 상태 계산 로직이 두 곳에 생기는 것을 막는다."
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "ended" } } },
+          "then": {
+            "required": ["session_id", "summary"],
+            "properties": {
+              "session_id": { "type": "string" },
+              "summary": { "type": "object" },
+              "report_url": { "type": "string" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "error" } } },
+          "then": {
+            "required": ["code", "message"],
+            "properties": {
+              "code": {
+                "enum": ["stt_unavailable", "pack_not_found", "invalid_message", "session_expired", "rate_limited", "internal"],
+                "description": "stt_unavailable 이면 프런트가 text 모드 전환을 제안한다 (3층 폴백)"
+              },
+              "message": { "type": "string" },
+              "retryable": { "type": "boolean", "default": false }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "ping" } } },
+          "then": {
+            "$comment": "하트비트. 터널링의 idle timeout 과 NAT 테이블 만료를 함께 막는다. 30초 간격 권장. 클라이언트는 pong 으로 답한다."
+          }
+        }
+      ]
+    }
+  }
+}

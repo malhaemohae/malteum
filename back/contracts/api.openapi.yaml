@@ -1,0 +1,868 @@
+openapi: 3.1.0
+
+info:
+  title: 귀띔 REST API
+  version: "0.1.0"
+  description: |
+    M1 gateway 가 제공하고 M4 web 이 호출한다. 실시간 스트림은 WebSocket 이 담당하고
+    여기에는 조회·업로드·승인·산출물만 둔다.
+
+    경계 규칙
+    - 상태를 계산해서 주는 쪽은 항상 서버다. 프런트가 이벤트를 접지 않는다
+    - 판정을 만드는 경로는 여기에 없다. 판정은 WebSocket 또는 replay 처리로만 생긴다
+    - 모든 응답에 pack_version 이 붙는다. 어느 규정 기준인지 화면에 상시 표기한다
+
+servers:
+  - url: /api
+    description: 단일 호스트 동일 오리진
+
+tags:
+  - name: system
+    description: 상태 확인. 대회 URL 개방 기간의 감시 대상
+  - name: packs
+    description: 규정 팩 조회와 발행
+  - name: sessions
+    description: 세션 목록·요약·이벤트·리포트
+  - name: evidence
+    description: 근거 원문 조회 (기능 ⑭)
+  - name: documents
+    description: 문서 업로드와 추출 검수
+  - name: presets
+    description: 심사용 사전 구성
+
+paths:
+
+  /health:
+    get:
+      tags: [system]
+      summary: 살아있는지
+      description: 하트비트가 이 응답을 본다. 인증 없이 열어 둔다
+      security: []
+      responses:
+        "200":
+          description: 정상
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, version, checks]
+                properties:
+                  status: { enum: [ok, degraded] }
+                  version: { type: string }
+                  checks:
+                    type: object
+                    description: 부분 장애를 구분한다. stt 가 죽어도 text 모드는 살아 있다
+                    properties:
+                      db: { enum: [ok, fail] }
+                      stt: { enum: [ok, fail, unconfigured] }
+                      llm: { enum: [ok, fail, unconfigured] }
+                      embedding: { enum: [ok, fail] }
+
+  /presets:
+    get:
+      tags: [presets]
+      summary: 심사용 프리셋 목록
+      security: []
+      description: |
+        심사위원이 로그인·설정 없이 바로 시연에 들어갈 수 있게 미리 굳혀 둔 조합.
+        상품·고객 유형·오디오 또는 대본이 한 덩어리로 묶여 있다
+      responses:
+        "200":
+          description: 목록
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [presets]
+                properties:
+                  presets:
+                    type: array
+                    items: { $ref: "#/components/schemas/Preset" }
+
+  /packs:
+    get:
+      tags: [packs]
+      summary: 규정 팩 목록
+      security: []
+      parameters:
+        - name: product_code
+          in: query
+          schema: { type: string }
+        - name: latest_only
+          in: query
+          description: 상품별 최신 버전만
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          description: 목록
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [packs]
+                properties:
+                  packs:
+                    type: array
+                    items: { $ref: "#/components/schemas/PackSummary" }
+
+  /packs/{pack_version}:
+    get:
+      tags: [packs]
+      summary: 팩 상세
+      security: []
+      description: rulepack.schema.json 을 그대로 반환한다. 항목·요건 요소·근거·쉬운 말이 모두 들어 있다
+      parameters:
+        - $ref: "#/components/parameters/PackVersion"
+      responses:
+        "200":
+          description: rulepack.schema.json 형식
+          content:
+            application/json:
+              schema:
+                type: object
+                description: contracts/rulepack.schema.json 참조
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /packs/{pack_version}/briefing:
+    get:
+      tags: [packs]
+      summary: 상담 전 브리핑 (기능 ②)
+      security: []
+      description: |
+        세션 시작 전에 한 번 읽는 요약. 팩 발행 시 미리 만들어 캐시하므로 실시간 LLM 호출이 없다.
+        캐시가 비어 있으면 즉석 생성하고 저장한다
+      parameters:
+        - $ref: "#/components/parameters/PackVersion"
+        - name: customer_type
+          in: query
+          schema: { enum: [general, professional], default: general }
+      responses:
+        "200":
+          description: 브리핑
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pack_version, must_say, must_not_say, generated_at]
+                properties:
+                  pack_version: { $ref: "#/components/schemas/PackVersion" }
+                  must_say:
+                    type: array
+                    description: 반드시 말할 항목. 순서는 상담 흐름 기준
+                    items:
+                      type: object
+                      required: [item_code, name, elements]
+                      properties:
+                        item_code: { $ref: "#/components/schemas/ItemCode" }
+                        name: { type: string }
+                        elements: { type: array, items: { type: string } }
+                        plain_language: { type: array, items: { type: string } }
+                  must_not_say:
+                    type: array
+                    items:
+                      type: object
+                      required: [item_code, name, examples]
+                      properties:
+                        item_code: { $ref: "#/components/schemas/ItemCode" }
+                        name: { type: string }
+                        examples: { type: array, items: { type: string } }
+                  documents_required: { type: array, items: { type: string } }
+                  generated_at: { type: string, format: date-time }
+                  cached: { type: boolean }
+
+  /packs/publish:
+    post:
+      tags: [packs]
+      summary: 팩 발행
+      description: |
+        M3 가 호출한다. 승인 완료 항목만 담아 새 버전으로 굳힌다.
+        기존 버전은 절대 덮어쓰지 않는다. 진행 중 세션이 그 버전을 보고 있을 수 있다
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: contracts/rulepack.schema.json 형식 그대로
+      responses:
+        "201":
+          description: 발행됨
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pack_version, item_count]
+                properties:
+                  pack_version: { $ref: "#/components/schemas/PackVersion" }
+                  item_count: { type: integer }
+                  embedding_indexed:
+                    type: integer
+                    description: pgvector 에 색인된 항목 수
+        "409":
+          description: 같은 pack_version 이 이미 있음
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          description: 근거 스팬이 원문과 불일치하는 항목이 있음 (P4 위반)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Error"
+                  - type: object
+                    properties:
+                      rejected_items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            item_code: { $ref: "#/components/schemas/ItemCode" }
+                            reason: { type: string }
+
+  /sessions:
+    get:
+      tags: [sessions]
+      summary: 세션 목록
+      security: []
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20, maximum: 100 }
+        - name: cursor
+          in: query
+          description: 이전 응답의 next_cursor
+          schema: { type: string }
+        - name: mode
+          in: query
+          schema: { enum: [live, replay, trace, text] }
+      responses:
+        "200":
+          description: 목록
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sessions]
+                properties:
+                  sessions:
+                    type: array
+                    items: { $ref: "#/components/schemas/SessionSummary" }
+                  next_cursor: { type: [string, "null"] }
+    post:
+      tags: [sessions]
+      summary: 세션 생성
+      security: []
+      description: |
+        WebSocket hello 로도 만들 수 있다. 이 경로는 replay 나 trace 처럼 소켓 없이 시작하는 경우에 쓴다.
+        반환된 session_id 로 ws 에 붙거나 진행 상황을 조회한다
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mode]
+              properties:
+                mode: { enum: [live, replay, trace, text] }
+                preset_id: { type: string }
+                product_code: { type: string }
+                pack_version: { $ref: "#/components/schemas/PackVersion" }
+                customer_profile:
+                  type: object
+                  properties:
+                    type: { enum: [general, professional], default: general }
+                    tags: { type: array, items: { type: string } }
+                source_session_id:
+                  type: string
+                  description: mode=trace 일 때 재생 대상
+                audio_ref:
+                  type: string
+                  description: mode=replay 일 때 업로드된 오디오 참조
+      responses:
+        "201":
+          description: 생성됨
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [session_id, pack_version, ws_url]
+                properties:
+                  session_id: { type: string }
+                  pack_version: { $ref: "#/components/schemas/PackVersion" }
+                  ws_url:
+                    type: string
+                    description: 이 세션에 붙을 WebSocket 주소
+
+  /sessions/{session_id}:
+    get:
+      tags: [sessions]
+      summary: 세션 요약
+      security: []
+      description: 이벤트를 접어 만든 파생 상태. 원본이 아니다
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: 요약
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /sessions/{session_id}/events:
+    get:
+      tags: [sessions]
+      summary: 이벤트 원본
+      security: []
+      description: |
+        trace 모드 재생의 입력이고 감사의 원본이다. seq_in_session 오름차순.
+        정정 이력이 필요한 쪽이 감사이므로 include_superseded 기본값은 true 다
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - name: from_seq
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
+        - name: kind
+          in: query
+          schema:
+            type: array
+            items: { enum: [session_started, utterance, verdict, alert, assist, session_ended] }
+        - name: include_superseded
+          in: query
+          schema: { type: boolean, default: true }
+      responses:
+        "200":
+          description: 이벤트 배열
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [session_id, events]
+                properties:
+                  session_id: { type: string }
+                  events:
+                    type: array
+                    description: 각 원소는 contracts/events.schema.json 을 만족한다
+                    items: { type: object }
+                  truncated:
+                    type: boolean
+                    description: 페이지 한계에 걸렸는지
+
+  /sessions/{session_id}/report:
+    get:
+      tags: [sessions]
+      summary: 리포트 데이터
+      security: []
+      description: 화면 렌더용. PDF 와 같은 내용을 JSON 으로 준다
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: 리포트
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Report" }
+
+  /sessions/{session_id}/report.pdf:
+    get:
+      tags: [sessions]
+      summary: 리포트 PDF
+      security: []
+      description: 증빙으로 내려받는 형태. 근거 인용과 출처·스냅샷 일자를 포함한다
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: PDF
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+
+  /sessions/{session_id}/audio:
+    post:
+      tags: [sessions]
+      summary: 오디오 업로드 (replay 용)
+      security: []
+      description: 파일로 재생한다. live 와 게이트웨이 이후 경로가 같다
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "202":
+          description: 처리 시작
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  audio_ref: { type: string }
+                  duration_ms: { type: integer }
+
+  /evidence/{evidence_ref}:
+    get:
+      tags: [evidence]
+      summary: 근거 원문 (기능 ⑭)
+      security: []
+      description: |
+        판정·경보·지원에 붙은 evidence_ref 를 풀어 원문 위치를 준다.
+        화면은 page_image_url 위에 bbox 를 덧그린다. 외부 링크로 보내지 않고 좌표를 주는 이유는
+        원문 렌더를 우리 서버가 통제해 문서가 개정돼도 과거 근거가 그대로 보이게 하기 위함이다
+      parameters:
+        - name: evidence_ref
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: 근거
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [doc_id, page, span, page_image_url]
+                properties:
+                  doc_id: { type: string }
+                  doc_title: { type: string }
+                  publisher: { type: string }
+                  snapshot_date: { type: string, format: date }
+                  page: { type: integer }
+                  span: { type: string }
+                  bbox:
+                    type: array
+                    items: { type: number }
+                    minItems: 4
+                    maxItems: 4
+                  legal_basis: { type: string }
+                  page_image_url: { type: string }
+                  context:
+                    type: string
+                    description: 스팬 주변 문단. 앞뒤 맥락 확인용
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /documents:
+    get:
+      tags: [documents]
+      summary: 문서 목록
+      security: []
+      responses:
+        "200":
+          description: 목록
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [documents]
+                properties:
+                  documents:
+                    type: array
+                    items: { $ref: "#/components/schemas/Document" }
+    post:
+      tags: [documents]
+      summary: 문서 업로드
+      description: |
+        업로드하면 OpenDataLoader 로 구조를 뜨고 pypdfium2 로 문자 좌표를 뜬다.
+        응답은 접수만 하고 추출은 비동기다. 26쪽 기준 1초대이지만 큰 문서가 요청을 막지 않게 한다
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, doc_id, publisher, snapshot_date]
+              properties:
+                file: { type: string, format: binary }
+                doc_id: { type: string }
+                title: { type: string }
+                publisher: { type: string }
+                url: { type: string }
+                snapshot_date: { type: string, format: date }
+      responses:
+        "202":
+          description: 접수됨. 추출 진행 중
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  doc_id: { type: string }
+                  status: { enum: [extracting] }
+
+  /documents/{doc_id}/extraction:
+    get:
+      tags: [documents]
+      summary: 추출 결과
+      description: |
+        검수 화면의 입력. 표는 셀 구조를 유지한 채로 준다.
+        평문으로 납작하게 만들면 라벨과 값의 짝이 깨져 숫자 검증의 정답이 오염된다
+      parameters:
+        - $ref: "#/components/parameters/DocId"
+      responses:
+        "200":
+          description: 추출 결과
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [doc_id, status]
+                properties:
+                  doc_id: { type: string }
+                  status: { enum: [extracting, ready, failed] }
+                  page_count: { type: integer }
+                  blocks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        block_id: { type: string }
+                        page: { type: integer }
+                        kind: { enum: [heading, paragraph, list_item, table, figure] }
+                        text: { type: string }
+                        bbox: { type: array, items: { type: number } }
+                        table:
+                          type: object
+                          description: kind=table 일 때만. 행·열 구조를 유지한다
+                          properties:
+                            rows: { type: integer }
+                            cols: { type: integer }
+                            cells:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  r: { type: integer }
+                                  c: { type: integer }
+                                  text: { type: string }
+                  error: { type: string }
+
+  /documents/{doc_id}/pages/{page}.png:
+    get:
+      tags: [documents]
+      summary: 페이지 렌더
+      security: []
+      description: ⑭ 오버레이의 배경. pypdfium2 렌더 결과를 캐시한다
+      parameters:
+        - $ref: "#/components/parameters/DocId"
+        - name: page
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+        - name: scale
+          in: query
+          description: 1 이면 72dpi 기준
+          schema: { type: number, default: 2 }
+      responses:
+        "200":
+          description: PNG
+          content:
+            image/png:
+              schema: { type: string, format: binary }
+
+  /documents/{doc_id}/candidates:
+    get:
+      tags: [documents]
+      summary: 항목 후보
+      description: |
+        추출 결과에서 뽑은 규정 항목 후보. 아직 팩이 아니다.
+        사람이 승인해야 팩에 들어간다. 이 경계가 P4 를 지키는 지점이다
+      parameters:
+        - $ref: "#/components/parameters/DocId"
+      responses:
+        "200":
+          description: 후보 목록
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [candidates]
+                properties:
+                  candidates:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        candidate_id: { type: string }
+                        suggested_code: { $ref: "#/components/schemas/ItemCode" }
+                        name: { type: string }
+                        type: { enum: [required, forbidden, reference] }
+                        requirement_elements: { type: array, items: { type: string } }
+                        evidence:
+                          type: object
+                          properties:
+                            page: { type: integer }
+                            span: { type: string }
+                            bbox: { type: array, items: { type: number } }
+                        span_verified:
+                          type: boolean
+                          description: 인용 문자열이 원문에 실재하는지 기계가 대조한 결과. false 면 승인 버튼이 잠긴다
+                        status: { enum: [pending, approved, rejected] }
+
+  /documents/{doc_id}/candidates/{candidate_id}/approve:
+    post:
+      tags: [documents]
+      summary: 후보 승인
+      description: 사람이 누른다. span_verified 가 false 인 후보는 400 으로 거절한다
+      parameters:
+        - $ref: "#/components/parameters/DocId"
+        - name: candidate_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approved_by]
+              properties:
+                approved_by: { type: string }
+                edits:
+                  type: object
+                  description: 검수자가 고친 내용
+                  properties:
+                    name: { type: string }
+                    requirement_elements: { type: array, items: { type: string } }
+                    l1_patterns: { type: array, items: { type: object } }
+                    plain_language: { type: array, items: { type: string } }
+      responses:
+        "200":
+          description: 승인됨
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  candidate_id: { type: string }
+                  status: { enum: [approved] }
+                  approved_at: { type: string, format: date-time }
+        "400":
+          description: 근거 미검증 상태에서 승인 시도
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+components:
+
+  parameters:
+    SessionId:
+      name: session_id
+      in: path
+      required: true
+      schema: { type: string }
+    PackVersion:
+      name: pack_version
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/PackVersion" }
+    DocId:
+      name: doc_id
+      in: path
+      required: true
+      schema: { type: string }
+
+  responses:
+    NotFound:
+      description: 없음
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        쓰기 경로에만 요구한다. 심사위원이 로그인 없이 시연할 수 있어야 하므로
+        조회·세션 시작은 security 를 비워 두고, 문서 업로드·후보 승인·팩 발행만 토큰을 요구한다.
+        토큰은 환경변수 한 개로 관리한다 (MVP 범위. 사용자 계정 체계 없음)
+
+  schemas:
+
+    PackVersion:
+      type: string
+      pattern: "^[A-Z]{3,4}-\\d{4}\\.\\d{2}-v\\d+$"
+      examples: ["DEP-2026.08-v3"]
+
+    ItemCode:
+      type: string
+      pattern: "^[A-Z]{3,4}-[A-Z]{3}-\\d{3}$"
+      examples: ["DEP-INT-002"]
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          description: ws_protocol 의 error.code 와 같은 집합을 쓴다. 두 경로에서 코드가 갈라지면 프런트가 분기를 두 번 짠다
+          enum:
+            [
+              stt_unavailable,
+              pack_not_found,
+              invalid_message,
+              session_expired,
+              rate_limited,
+              internal,
+              not_found,
+              validation_failed,
+              conflict,
+            ]
+        message: { type: string }
+        retryable: { type: boolean, default: false }
+        detail: { type: object }
+
+    Preset:
+      type: object
+      required: [preset_id, label, mode, product_code, pack_version]
+      properties:
+        preset_id: { type: string }
+        label: { type: string, examples: ["정기예금 · 중도해지 이자율 누락"] }
+        description: { type: string }
+        mode: { enum: [live, replay, trace, text] }
+        product_code: { type: string }
+        pack_version: { $ref: "#/components/schemas/PackVersion" }
+        customer_profile:
+          type: object
+          properties:
+            type: { enum: [general, professional] }
+            tags: { type: array, items: { type: string } }
+        audio_ref: { type: string }
+        script_ref: { type: string, description: text 모드용 대본 }
+        expected_highlights:
+          type: array
+          description: 이 프리셋에서 무엇이 보일 예정인지. 심사위원이 무엇을 볼지 미리 알 수 있게
+          items: { type: string }
+
+    PackSummary:
+      type: object
+      required: [pack_version, product, published_at, item_count]
+      properties:
+        pack_version: { $ref: "#/components/schemas/PackVersion" }
+        product:
+          type: object
+          properties:
+            code: { type: string }
+            name: { type: string }
+            category: { enum: [deposit, loan] }
+        published_at: { type: string, format: date-time }
+        item_count: { type: integer }
+        embedding:
+          type: object
+          properties:
+            model: { type: string }
+            dim: { type: integer }
+        source_count: { type: integer }
+
+    SessionSummary:
+      type: object
+      required: [session_id, mode, pack_version, started_at, status]
+      properties:
+        session_id: { type: string }
+        mode: { enum: [live, replay, trace, text] }
+        pack_version: { $ref: "#/components/schemas/PackVersion" }
+        product_name: { type: string }
+        started_at: { type: string, format: date-time }
+        ended_at: { type: [string, "null"], format: date-time }
+        status: { enum: [running, ended, aborted, timeout] }
+        met: { type: integer }
+        items_total: { type: integer }
+        violations: { type: integer }
+
+    SessionDetail:
+      allOf:
+        - $ref: "#/components/schemas/SessionSummary"
+        - type: object
+          properties:
+            duration_ms: { type: integer }
+            items:
+              type: array
+              description: supersede 되지 않은 마지막 판정만
+              items:
+                type: object
+                required: [item_code, name, axis, state]
+                properties:
+                  item_code: { $ref: "#/components/schemas/ItemCode" }
+                  name: { type: string }
+                  axis: { enum: [omission, commission, comprehension] }
+                  state: { type: string }
+                  decided_by: { enum: [L1, L2, L3, human] }
+                  missing_elements: { type: array, items: { type: string } }
+                  waive_reason: { type: string }
+                  evidence_ref: { type: string }
+                  first_seen_t_ms: { type: integer }
+            alerts:
+              type: array
+              items:
+                type: object
+                properties:
+                  event_id: { type: string }
+                  alert_type: { enum: [forbidden_phrase, number_mismatch, risk_signal, term_density] }
+                  severity: { enum: [critical, warning, info] }
+                  message: { type: string }
+                  t_ms: { type: integer }
+                  acknowledged: { type: boolean }
+
+    Report:
+      type: object
+      required: [session_id, pack_version, generated_at, sections]
+      properties:
+        session_id: { type: string }
+        pack_version: { $ref: "#/components/schemas/PackVersion" }
+        generated_at: { type: string, format: date-time }
+        sources:
+          type: array
+          description: 상시 표기 대상. 어느 문서 어느 시점 기준인지
+          items:
+            type: object
+            properties:
+              doc_id: { type: string }
+              title: { type: string }
+              publisher: { type: string }
+              snapshot_date: { type: string, format: date }
+        sections:
+          type: object
+          properties:
+            summary: { type: object }
+            omission: { type: array, items: { type: object } }
+            commission: { type: array, items: { type: object } }
+            comprehension: { type: array, items: { type: object } }
+            timeline:
+              type: array
+              description: t_ms 순서로 무엇이 언제 일어났는지
+              items:
+                type: object
+                properties:
+                  t_ms: { type: integer }
+                  kind: { type: string }
+                  label: { type: string }
+                  evidence_ref: { type: string }
+        disclaimer:
+          type: string
+          description: |
+            이해 축은 참고 정보이며 근거가 아니라는 문구를 리포트에 항상 넣는다.
+            판정의 성질을 산출물 자체가 밝히지 않으면 오해를 부른다
+
+    Document:
+      type: object
+      required: [doc_id, title, publisher, snapshot_date, status]
+      properties:
+        doc_id: { type: string }
+        title: { type: string }
+        publisher: { type: string }
+        url: { type: string }
+        snapshot_date: { type: string, format: date }
+        page_count: { type: integer }
+        status: { enum: [extracting, ready, failed] }
+        candidate_count: { type: integer }
+        approved_count: { type: integer }
+
+security:
+  - bearerAuth: []
