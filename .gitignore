@@ -1,0 +1,33 @@
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+
+# docker / env
+.env
+.env.*
+!.env.example
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# assets (규정 PDF·오디오는 저장소에 넣지 않는다. 임한빈에게 받아 로컬에 둔다)
+assets/03_규정문서/*.pdf
+assets/scenarios/*/audio.wav
