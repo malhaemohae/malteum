@@ -2,7 +2,7 @@
 
 from engine.adapters.pack_source.fake import FakePackSource
 from engine.build import build_engine
-from engine.tests.conftest import PACK_VERSION
+from tests.engine.conftest import PACK_VERSION
 
 
 def test_fold_scenario_a_matches_summary(pack_json, scenario_a):

@@ -47,7 +47,7 @@ known-first-party = ["server", "engine", "rulepack", "contracts"]
 # pytest
 # ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
-testpaths = ["server/tests", "engine/tests", "rulepack/tests"]
+testpaths = ["tests"]           # tests/{server,engine,rulepack}/ 담당별 하위 폴더
 pythonpath = ["."]
 
 # ---------------------------------------------------------------------------

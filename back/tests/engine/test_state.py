@@ -1,7 +1,7 @@
 from contracts.engine_contract import JudgeResult, VerdictPayload
 from engine.adapters.pack_source.fake import FakePackSource
 from engine.build import build_engine
-from engine.tests.conftest import PACK_VERSION
+from tests.engine.conftest import PACK_VERSION
 
 
 def _engine(pack_json):

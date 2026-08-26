@@ -8,7 +8,7 @@ uv 프로젝트. `server`·`engine`·`rulepack`은 이 폴더를 cwd로 import�
 uv sync                      # 의존성
 uv run ruff check . && uv run ruff format --check .
 uv run lint-imports          # 모듈 경계
-uv run pytest                # server/tests · engine/tests · rulepack/tests
+uv run pytest                # tests/{server,engine,rulepack}
 scripts/gen_models.sh        # contracts 스키마 → server/generated/  (--check: CI)
 ```
 
