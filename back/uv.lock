@@ -391,7 +391,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.13" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "jsonschema", specifier = ">=4.23" },
-    { name = "opendataloader-pdf", specifier = ">=2.3" },
+    { name = "opendataloader-pdf", specifier = "==2.3.0" },
     { name = "pgvector", specifier = ">=0.3" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "pydantic", specifier = ">=2.8" },
@@ -472,11 +472,11 @@ wheels = [
 
 [[package]]
 name = "opendataloader-pdf"
-version = "2.5.5"
+version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/14/a9/a4efdee1ef5543d6f247e42589e39f2e4a3aa625b6d9812d21e161f8e4b7/opendataloader_pdf-2.5.5.tar.gz", hash = "sha256:936fe60ad4145af4e7414f94a6084032e247821e4772450040e1da40dae8ed7f", size = 22589447, upload-time = "2026-08-25T11:15:36.265Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/94/89/7904cbff3befb0219b30486d80254409cb4f14b82364f7d7c763f3e4687f/opendataloader_pdf-2.3.0.tar.gz", hash = "sha256:4abb0737c70b6b6a42b04748945b598f3776d2af7bb26ed275ed1e1f26629ee2", size = 22474091, upload-time = "2026-04-21T12:16:04.512Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/27/a801925bab1b3eb27932773a1499446bc098ba7bd6228234155c0424a64c/opendataloader_pdf-2.5.5-py3-none-any.whl", hash = "sha256:451072940b3032e0c16c747c431c535d1a079b5a046ce1791da870f2c9c699b4", size = 22602967, upload-time = "2026-08-25T11:15:33.665Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/a4/e8b350bbea4f56d990dbf6b599c7cfb43c5ed3914b0d9efab6ac62c24474/opendataloader_pdf-2.3.0-py3-none-any.whl", hash = "sha256:1a6245d3f774dab2414ae759b1fc04edfad2f6e17b3c9f9b386b74a58604e20d", size = 22487135, upload-time = "2026-04-21T12:16:01.724Z" },
 ]
 
 [[package]]

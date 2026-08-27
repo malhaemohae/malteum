@@ -9,7 +9,7 @@ dependencies = [
     "pydantic>=2.8",
     "pydantic-settings>=2.4",
     "jsonschema>=4.23",
-    "opendataloader-pdf>=2.3",      # M3 구조 추출 (JDK 21 필요)
+    "opendataloader-pdf==2.3.0",    # M3 구조 추출 (JDK 21 필요). 파서 버전이 팩에 기록되므로 정확히 고정
     "pypdfium2>=4.30",              # 문자 좌표·페이지 렌더
     "pyyaml>=6.0",
     "sqlalchemy>=2.0",
