@@ -1,7 +1,7 @@
 openapi: 3.1.0
 
 info:
-  title: 귀띔 REST API
+  title: 말틈 REST API
   version: "0.1.0"
   description: |
     M1 gateway 가 제공하고 M4 web 이 호출한다. 실시간 스트림은 WebSocket 이 담당하고

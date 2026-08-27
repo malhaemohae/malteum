@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://guitteum.local/contracts/rulepack.schema.json",
-  "title": "귀띔 규정 팩",
+  "$id": "https://malteum.local/contracts/rulepack.schema.json",
+  "title": "말틈 규정 팩",
   "description": "M3 rulepack 이 만들고 M2 engine 이 읽는다. 불변 발행물이며 수정하지 않고 새 버전을 낸다. 세션이 pack_version 을 고정해 과거 판정을 재현한다.",
 
   "type": "object",

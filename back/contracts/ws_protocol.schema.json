@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://guitteum.local/contracts/ws_protocol.schema.json",
-  "title": "귀띔 WebSocket 프로토콜",
+  "$id": "https://malteum.local/contracts/ws_protocol.schema.json",
+  "title": "말틈 WebSocket 프로토콜",
   "description": "M1 gateway 와 M4 web 사이. 단일 wss 소켓에 오디오 업링크와 이벤트 다운링크를 함께 태운다. 휘발성이며 화면을 그리기 위한 형태다. 저장물은 events.schema.json 을 따른다.",
 
   "$comment": "오디오 프레임은 JSON 이 아니라 바이너리 프레임으로 보낸다. 레이아웃은 $defs/audioFrame 의 설명 참조.",

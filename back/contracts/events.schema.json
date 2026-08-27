@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://guitteum.local/contracts/events.schema.json",
-  "title": "귀띔 세션 이벤트",
+  "$id": "https://malteum.local/contracts/events.schema.json",
+  "title": "말틈 세션 이벤트",
   "description": "영구 저장물. append-only. 증빙·trace 재생·재접속 복구·감사의 원본. 수정하지 않고 supersedes 로 이력을 잇는다.",
 
   "type": "object",
