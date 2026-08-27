@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     version: str = "0.1.0"
     database_url: str = "postgresql+psycopg://app:app@localhost:5432/app"
     pack_dir: Path = BACK_DIR / "contracts" / "fixtures"
-    default_pack_version: str = "DEP-2026.08-v3"
+    default_pack_version: str = "DEP-2026.08-v4"
     ws_ping_interval_s: float = 30.0
 
 

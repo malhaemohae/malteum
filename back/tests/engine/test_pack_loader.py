@@ -14,7 +14,7 @@ def test_fixture_pack_loads(pack_json):
     assert pack.embedding_dim == 384
     assert len(pack.items) == 9
     assert [it.code for it in pack.required_items()] == [
-        "DEP-INT-001", "DEP-INT-002", "DEP-INT-003", "DEP-PRO-001", "DEP-TAX-001", "DEP-LIM-001",
+        "DEP-INT-002", "DEP-INT-003", "DEP-INT-004", "DEP-LIM-001", "DEP-LON-001",
     ]  # fmt: skip
     assert [it.code for it in pack.forbidden_items()] == ["DEP-BAN-001", "DEP-BAN-002"]
     assert pack.item("DEP-DOC-001").type == "reference"
@@ -23,10 +23,10 @@ def test_fixture_pack_loads(pack_json):
 
 def test_items_carry_evidence_and_patterns(pack_json):
     pack = load_pack(FakePackSource(pack_json), PACK_VERSION)
-    it = pack.item("DEP-INT-001")
+    it = pack.item("DEP-INT-004")
     assert isinstance(it.evidence, Evidence)
-    assert it.evidence.page == 1 and len(it.evidence.bbox) == 4
-    assert ("keyword", "기간별 이자율") in it.l1_patterns
+    assert it.evidence.page == 2 and len(it.evidence.bbox) == 4
+    assert ("keyword", "우대이자율") in it.l1_patterns
     assert it.plain_language
 
 

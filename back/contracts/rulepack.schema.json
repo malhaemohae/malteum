@@ -13,7 +13,7 @@
     "pack_version": {
       "type": "string",
       "pattern": "^[A-Z]{3,4}-\\d{4}\\.\\d{2}-v\\d+$",
-      "examples": ["DEP-2026.08-v3"]
+      "examples": ["DEP-2026.08-v4", "MTG-2026.09-v1"]
     },
     "product": {
       "type": "object",
@@ -57,6 +57,12 @@
         }
       }
     },
+    "jargon_terms": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "⑧ 용어 밀도 게이지가 세는 전문용어 목록. 상품마다 다르므로 팩 전역에 둔다. 발행 때 문서에서 뽑고 사람이 승인하며, 실시간 판단 없이 이 목록 대조로만 센다 (게이지는 결정적이어야 함)",
+      "examples": [["차감률", "우대이자율", "만기후이자율", "예금담보대출", "비과세종합저축"]]
+    },
     "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/item" } }
   },
 
@@ -91,12 +97,12 @@
           "type": "string",
           "pattern": "^[A-Z]{3,4}-[A-Z]{3}-\\d{3}$",
           "description": "{상품군}-{근거유형}-{연번}. 팩 버전이 올라가도 코드는 유지해야 과거 판정을 추적할 수 있다",
-          "examples": ["DEP-INT-002", "DEP-DIC-001", "LOAN-BAN-002", "DEP-DOC-001"]
+          "examples": ["DEP-INT-002", "DEP-RSK-001", "MTG-INT-001", "MTG-BAN-001"]
         },
         "name": { "type": "string", "examples": ["중도해지 이자율"] },
         "type": {
-          "enum": ["required", "forbidden", "reference"],
-          "description": "required=필수 고지 · forbidden=금지 발언 · reference=참고(필요 서류 등, 판정 대상 아님)"
+          "enum": ["required", "forbidden", "reference", "risk"],
+          "description": "required=필수 고지 · forbidden=금지 발언(은행원 발화 대상) · reference=참고(필요 서류 등, 판정 대상 아님) · risk=위험 신호(고객 발화 대상. 판정이 아니라 경보만 만든다. forbidden 으로 우회하면 고객의 말이 은행원의 위반으로 표시되어 P6 위반)"
         },
         "axis": {
           "enum": ["omission", "commission"],
@@ -183,6 +189,12 @@
           "description": "type=forbidden 에서 실제 금지 표현 예시. L2 임베딩과 L3 판정의 기준",
           "examples": [["원금은 100% 보장됩니다", "무조건 다 받으실 수 있어요"]]
         },
+        "risk_examples": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "type=risk 에서 고객 발화의 위험 신호 예시. L2 임베딩과 L3 판정의 기준. 매칭 결과는 severity=critical 인 risk_signal 경보가 되고 verdict 는 만들지 않는다",
+          "examples": [["아들이 알아보라고 해서요", "돈은 다른 사람 계좌로 보내면 돼요"]]
+        },
         "approved_at": { "type": "string", "format": "date-time" },
         "approved_by": { "type": "string" }
       },
@@ -202,6 +214,13 @@
         {
           "if": { "properties": { "type": { "const": "reference" } }, "required": ["type"] },
           "then": { "not": { "required": ["axis"] } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "risk" } }, "required": ["type"] },
+          "then": {
+            "required": ["risk_examples"],
+            "not": { "required": ["axis"] }
+          }
         }
       ]
     }

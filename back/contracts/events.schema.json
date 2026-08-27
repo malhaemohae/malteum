@@ -72,13 +72,13 @@
     "packVersion": {
       "type": "string",
       "pattern": "^[A-Z]{3,4}-\\d{4}\\.\\d{2}-v\\d+$",
-      "examples": ["DEP-2026.08-v3", "LOAN-2026.08-v2"]
+      "examples": ["DEP-2026.08-v4", "MTG-2026.09-v1"]
     },
     "itemCode": {
       "type": "string",
       "pattern": "^[A-Z]{3,4}-[A-Z]{3}-\\d{3}$",
       "description": "{상품군}-{근거유형}-{연번}. 팩 버전이 올라가도 코드는 안정적이어야 과거 판정을 추적할 수 있다.",
-      "examples": ["DEP-INT-002", "DEP-DIC-001", "LOAN-BAN-002"]
+      "examples": ["DEP-INT-002", "DEP-RSK-001", "MTG-INT-001"]
     },
     "axis": {
       "enum": ["omission", "commission", "comprehension"],

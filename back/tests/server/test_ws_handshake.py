@@ -24,7 +24,7 @@ def test_hello_ready_ping_pong_end():
         check_s2c(ready)
         assert ready["t"] == "ready" and ready["seq"] == 0
         assert ready["session_id"] == "FIXT-SESS-0A"
-        assert ready["pack_version"] == "DEP-2026.08-v3"
+        assert ready["pack_version"] == "DEP-2026.08-v4"
         # 초기 체크리스트가 fixture 와 같다. plain_language 는 fixture 가 축약본이라 포함만 본다
         strip = lambda it: {k: v for k, v in it.items() if k != "plain_language"}  # noqa: E731
         assert [strip(i) for i in ready["items"]] == [strip(i) for i in fixture_ready["items"]]
@@ -43,8 +43,8 @@ def test_hello_ready_ping_pong_end():
             ended = sock.receive_json()
         check_s2c(ended)
         assert ended["t"] == "ended"
-        assert ended["summary"]["items_total"] == 6
-        assert ended["summary"]["unmet"] == 6
+        assert ended["summary"]["items_total"] == 5
+        assert ended["summary"]["unmet"] == 5
 
 
 def test_invalid_message_gets_error_not_disconnect():

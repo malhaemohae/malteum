@@ -67,6 +67,16 @@ class AssistRequest(_Base):
     item_code: str | None = None
 
 
+class MarkMet(_Base):
+    """⑪ 수동 체크. 사람이 항목을 직접 met 로 올린다. 서버는 decided_by=human verdict 로 기록하며, 사람 결정은 L3 가 뒤집지 않는다. undo 는 human 이 만든 met 만 무를 수 있다. 엔진(L1~L3)이 만든 met 는 사람도 엔진도 되돌리지 않는다 (P3: met→unmet 자동 되돌림 금지 유지)."""
+
+    t: Literal["mark_met"]
+    item_code: str
+    undo: Annotated[
+        bool, Field(description="true 면 자기가 올린 human met 를 무른다 (실수 클릭 복구)")
+    ] = False
+
+
 class MarkWaived(_Base):
     """waived 는 사람만 설정한다. 사유 없이는 받지 않는다."""
 
@@ -282,7 +292,16 @@ class Ping(_Base):
 
 
 C2s = Annotated[
-    Hello | Resume | TextUtterance | Ask | AssistRequest | MarkWaived | Acknowledge | End | Pong,
+    Hello
+    | Resume
+    | TextUtterance
+    | Ask
+    | AssistRequest
+    | MarkMet
+    | MarkWaived
+    | Acknowledge
+    | End
+    | Pong,
     Field(discriminator="t"),
 ]
 S2c = Annotated[
@@ -297,6 +316,7 @@ C2S_TYPES: tuple[str, ...] = (
     "text_utterance",
     "ask",
     "assist_request",
+    "mark_met",
     "mark_waived",
     "acknowledge",
     "end",

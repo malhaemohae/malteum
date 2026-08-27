@@ -17,7 +17,7 @@
       "type": "object",
       "required": ["t"],
       "unevaluatedProperties": false,
-      "properties": { "t": { "enum": ["hello", "resume", "text_utterance", "ask", "assist_request", "mark_waived", "acknowledge", "end", "pong"] } },
+      "properties": { "t": { "enum": ["hello", "resume", "text_utterance", "ask", "assist_request", "mark_met", "mark_waived", "acknowledge", "end", "pong"] } },
       "allOf": [
         {
           "if": { "properties": { "t": { "const": "hello" } } },
@@ -76,6 +76,20 @@
               "item_code": { "type": "string" }
             },
             "$comment": "⑥-B 수동 버튼. 자동 트리거가 놓쳤을 때 사람이 보완한다 (P3 방향)."
+          }
+        },
+        {
+          "if": { "properties": { "t": { "const": "mark_met" } } },
+          "then": {
+            "required": ["item_code"],
+            "properties": {
+              "item_code": { "type": "string" },
+              "undo": {
+                "type": "boolean", "default": false,
+                "description": "true 면 자기가 올린 human met 를 무른다 (실수 클릭 복구)"
+              }
+            },
+            "$comment": "⑪ 수동 체크. 사람이 항목을 직접 met 로 올린다. 서버는 decided_by=human verdict 로 기록하며, 사람 결정은 L3 가 뒤집지 않는다. undo 는 human 이 만든 met 만 무를 수 있다. 엔진(L1~L3)이 만든 met 는 사람도 엔진도 되돌리지 않는다 (P3: met→unmet 자동 되돌림 금지 유지)."
           }
         },
         {
