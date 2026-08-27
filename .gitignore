@@ -28,6 +28,8 @@ pnpm-debug.log*
 .vscode/
 *.swp
 
-# assets (규정 PDF·오디오는 저장소에 넣지 않는다. 임한빈에게 받아 로컬에 둔다)
-assets/03_규정문서/*.pdf
+# assets
+#   규정 PDF 는 레포에 넣는다. rulepack 테스트가 원문을 직접 열어 근거 스팬이
+#   실재하는지 대조하므로(P4), 원문이 없으면 CI 에서 그 검증이 아예 안 돌아간다.
+#   7종 3MB 이고 전부 공개 자료(법령·당국 가이드라인·은행 공시 상품설명서)다.
 assets/scenarios/*/audio.wav
