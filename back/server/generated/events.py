@@ -1,4 +1,4 @@
-"""귀띔 세션 이벤트
+"""말틈 세션 이벤트
 
 scripts/gen_models.py 가 contracts/events.schema.json 에서 생성. 수동 편집 금지.
 """

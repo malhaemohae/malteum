@@ -240,6 +240,10 @@ class JudgeResult:
     verdicts: tuple[VerdictPayload, ...] = ()
     alerts: tuple[AlertPayload, ...] = ()
     assists: tuple[AssistPayload, ...] = ()
+    needs_refine: bool = False
+    """True 면 L1·L2 가 잠정 판정만 냈으니 M1 이 refine() 을 비동기로 예약해야 한다.
+    이 신호가 없으면 M1 은 매 발화마다 refine 을 부르거나(낭비) 안 부르거나(정정 누락)
+    둘 중 하나를 임의로 정하게 된다."""
     trace: TierTrace = field(default_factory=TierTrace)
 
 

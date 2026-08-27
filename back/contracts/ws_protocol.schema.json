@@ -35,7 +35,8 @@
                 }
               },
               "session_id": { "type": "string", "description": "이어 붙일 세션. 없으면 서버가 만든다" }
-            }
+            },
+            "$comment": "replay·trace 는 hello 를 받은 서버가 ready 직후 자동으로 재생을 시작한다. 별도 시작 메시지는 없다."
           }
         },
         {
@@ -122,7 +123,7 @@
         "t": { "enum": ["ready", "partial", "utterance", "verdict", "alert", "assist", "progress", "ended", "error", "ping"] },
         "seq": {
           "type": "integer", "minimum": 0,
-          "description": "연결 단위 단조 증가. 재접속 재개 지점의 기준. 저장물에는 넣지 않는다"
+          "description": "세션 단위 단조 증가. 재접속해도 이어진다 (연결 단위로 리셋되면 resume 의 from_seq 가 무의미해짐). 서버는 세션별 s2c 로그를 유지해 from_seq 이후를 재전송한다. 저장물에는 넣지 않는다"
         }
       },
       "allOf": [
@@ -239,7 +240,7 @@
             "properties": {
               "met": { "type": "integer", "minimum": 0 },
               "partial": { "type": "integer", "minimum": 0 },
-              "items_total": { "type": "integer", "minimum": 0 },
+              "items_total": { "type": "integer", "minimum": 0, "description": "필수(required) 항목 수만. 금지·위험 항목은 집계에 안 들어간다. ready 의 items 개수(금지 포함)와 다르니 프런트가 이 값을 분모로 쓴다" },
               "remaining": { "type": "array", "items": { "type": "string" }, "description": "미고지 항목 이름. 넛지 띠에 나열한다" },
               "term_density": { "enum": ["low", "normal", "high"], "description": "⑧. 경보가 아니라 상태 게이지" }
             },

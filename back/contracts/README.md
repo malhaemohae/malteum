@@ -35,6 +35,8 @@ M3 ──rulepack──▶ M2 ◀──engine_contract── M1 ──ws_protoco
 | `evidence_ref` 정의 | **근거를 품은 이벤트의 `event_id`.** 근거는 이벤트 안에 저장되므로 별도 저장소를 만들지 않는다. REST `/evidence/{ref}` 도 같은 값을 받는다 |
 | 팩 코드 프리픽스 | 상품군 기준. `DEP` 예·적금 · `MTG` 주택담보대출. `LOAN` 은 대출 전체를 뜻해 쓰지 않는다 (신용대출 확장 시 충돌). 프리픽스는 과거 판정 추적 때문에 한번 정하면 바꾸지 않는다 |
 | 사람 결정의 우선권 | `mark_met`·`mark_waived` 로 만든 human 판정은 L3 가 뒤집지 않는다. 엔진이 만든 met 는 사람도 엔진도 unmet 로 되돌리지 않는다 (P3) |
+| `t_ms` 부여 주체 | **M1 이 세션 시작 기준 오프셋으로 찍는다.** live·replay 는 오디오 타임라인, text 는 수신 시각 기준 |
+| refine 호출 규약 | `judge()` 가 `needs_refine=True` 를 돌려주면 M1 이 `refine()` 을 비동기로 예약한다. False 면 부르지 않는다 |
 
 ## 동결 규칙
 
@@ -52,7 +54,7 @@ M3 ──rulepack──▶ M2 ◀──engine_contract── M1 ──ws_protoco
 | 수명 | 연결이 끊기면 사라짐 | 불변 · 영구 |
 | 방향 | 있음 (`c2s`/`s2c`) | 없음. 일어난 사실 |
 | 목적 | 화면 그리기 | 증빙 · 재생 · 복구 · 감사 |
-| `seq` | 연결 단위 순번 (재접속에 필요) | 없음 (`seq_in_session` 이 대신) |
+| `seq` | 세션 단위 순번. 재접속해도 이어짐 (resume 근거) | 없음 (`seq_in_session` 이 대신) |
 | `pack_version` | 세션 시작 시 1회 | **모든 이벤트에** (낱개로 해석돼야 함) |
 | partial 전사 | 보냄 | **저장 안 함** |
 | 오디오 프레임 | 보냄 (바이너리) | 저장 안 함 |
