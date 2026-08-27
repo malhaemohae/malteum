@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "scope": "예금 신규와 개인 신용대출",
+  "sources": [
+    {
+      "id": "law-fcp-act",
+      "category": 1,
+      "title": "금융소비자보호법 현행",
+      "url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&lsId=013704",
+      "mode": "html",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.law.go.kr"]
+    },
+    {
+      "id": "law-bank-act-article-30-2",
+      "category": 1,
+      "title": "은행법 제30조의2 현행",
+      "url": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=02&joNo=0030&lsiSeq=282001&urlMode=lsScJoRltInfoR",
+      "mode": "html",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.law.go.kr"]
+    },
+    {
+      "id": "fsc-supervisory-rules",
+      "category": 2,
+      "title": "금융위원회 감독규정 목록",
+      "url": "https://www.fsc.go.kr/po040200",
+      "mode": "html",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fsc.go.kr"]
+    },
+    {
+      "id": "fsc-deposit-protection",
+      "category": 2,
+      "title": "예금보호한도 1억원 공식 자료",
+      "url": "https://www.fsc.go.kr/no010101/85200",
+      "mode": "html",
+      "impacts": ["deposit"],
+      "allowed_hosts": ["www.fsc.go.kr"]
+    },
+    {
+      "id": "fsc-stress-dsr",
+      "category": 2,
+      "title": "2026년 스트레스 DSR 운영 공식 자료",
+      "url": "https://www.fsc.go.kr/no010101/86914",
+      "mode": "html",
+      "impacts": ["loan"],
+      "allowed_hosts": ["www.fsc.go.kr"]
+    },
+    {
+      "id": "fss-supervisory-law-info",
+      "category": 3,
+      "title": "금융감독법규정보",
+      "url": "https://www.fss.or.kr/fss/job/lrgInfoMain/intro.do?menuNo=200485",
+      "mode": "html",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "fss-financial-guidance",
+      "category": 3,
+      "title": "금융행정지도",
+      "url": "https://www.fss.or.kr/fss/main/contents.do?menuNo=200490",
+      "mode": "html",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "fss-bank-work-materials",
+      "category": 4,
+      "title": "은행업무자료",
+      "url": "https://www.fss.or.kr/fss/bbs/B0000090/list.do?menuNo=200119",
+      "mode": "fss_board",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "fss-bank-terms",
+      "category": 4,
+      "title": "은행약관",
+      "url": "https://www.fss.or.kr/fss/bbs/B0000093/list.do?menuNo=200122",
+      "mode": "fss_board",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "fss-fcp-materials",
+      "category": 5,
+      "title": "금소법업무자료",
+      "url": "https://www.fss.or.kr/fss/bbs/B0000111/list.do?menuNo=200139",
+      "mode": "fss_board",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "fss-fcp-faq",
+      "category": 5,
+      "title": "금소법 FAQ",
+      "url": "https://www.fss.or.kr/fss/bbs/B0000112/list.do?menuNo=200140",
+      "mode": "fss_board",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "fss-fcp-guides",
+      "category": 5,
+      "title": "금소법 안내자료",
+      "url": "https://www.fss.or.kr/fss/bbs/B0000113/list.do?menuNo=200141",
+      "mode": "fss_board",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "fss-press-releases",
+      "category": 6,
+      "title": "금융감독원 보도자료",
+      "url": "https://www.fss.or.kr/fss/bbs/B0000188/list.do?menuNo=200218",
+      "mode": "fss_board",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "fss-open-api-surface",
+      "category": 6,
+      "title": "금융감독정보 Open API 안내",
+      "url": "https://www.fss.or.kr/fss/api/apiInquiryBodoInfo/view.do?menuNo=200281",
+      "mode": "html",
+      "impacts": ["deposit", "loan"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "fss-standard-deposit-terms-pdf",
+      "category": 7,
+      "title": "예금거래기본약관 2024-09-27 개정",
+      "url": "https://www.fss.or.kr/fss/cmmn/file/fileDown.do?menuNo=200122&atchFileId=9184193e4d6845c4961958d8dc6de78f&fileSn=2&bbsId=",
+      "mode": "pdf",
+      "impacts": ["deposit"],
+      "allowed_hosts": ["www.fss.or.kr"]
+    },
+    {
+      "id": "woori-household-credit-terms-pdf",
+      "category": 7,
+      "title": "우리은행 은행여신거래기본약관 가계용",
+      "url": "https://spot.wooribank.com/pot/bbs?cmd=download&BOARD_ID=B00179&ARTICLE_ID=3303&ATTACH_ID=28132",
+      "mode": "pdf",
+      "impacts": ["loan"],
+      "allowed_hosts": ["spot.wooribank.com"]
+    },
+    {
+      "id": "shinhan-term-deposit-product-pdf",
+      "category": 7,
+      "title": "신한 정기예금 상품설명서 후보",
+      "url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
+      "mode": "pdf",
+      "impacts": ["deposit"],
+      "allowed_hosts": ["img.shinhan.com"]
+    },
+    {
+      "id": "hana-household-loan-product-pdf",
+      "category": 7,
+      "title": "하나은행 가계대출 상품설명서 후보",
+      "url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "mode": "pdf",
+      "impacts": ["loan"],
+      "allowed_hosts": ["image.kebhana.com"]
+    }
+  ]
+}
