@@ -9,6 +9,8 @@ dependencies = [
     "pydantic>=2.8",
     "pydantic-settings>=2.4",
     "jsonschema>=4.23",
+    "opendataloader-pdf==2.3.0",    # M3 구조 추출 (JDK 21 필요). 파서 버전이 팩에 기록되므로 정확히 고정
+    "pypdfium2>=4.30",              # 문자 좌표·페이지 렌더
     "pyyaml>=6.0",
     "sqlalchemy>=2.0",
     "alembic>=1.13",
@@ -41,7 +43,7 @@ extend-exclude = ["server/generated", "contracts"]   # 생성 파일·계약 원
 select = ["E", "F", "I", "B", "UP"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["server", "engine", "rulepack", "contracts"]
+known-first-party = ["server", "engine", "rulepack", "regwatch", "contracts"]
 
 # ---------------------------------------------------------------------------
 # pytest
@@ -56,7 +58,7 @@ pythonpath = ["."]
 #   contracts 는 __init__ 없는 namespace 패키지라 root 가 아니라 외부 모듈로 본다
 # ---------------------------------------------------------------------------
 [tool.importlinter]
-root_packages = ["server", "engine", "rulepack"]
+root_packages = ["server", "engine", "rulepack", "regwatch"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -76,3 +78,15 @@ name = "rulepack 은 server·engine 을 모른다"
 type = "forbidden"
 source_modules = ["rulepack"]
 forbidden_modules = ["server", "engine"]
+
+[[tool.importlinter.contracts]]
+name = "regwatch 는 독립이다 (다른 모듈을 모르고, 아무도 regwatch 를 모른다)"
+type = "forbidden"
+source_modules = ["regwatch"]
+forbidden_modules = ["server", "engine", "rulepack"]
+
+[[tool.importlinter.contracts]]
+name = "server·engine·rulepack 은 regwatch 를 모른다"
+type = "forbidden"
+source_modules = ["server", "engine", "rulepack"]
+forbidden_modules = ["regwatch"]

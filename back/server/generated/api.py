@@ -145,6 +145,12 @@ class Sections(BaseModel):
     omission: list[dict[str, Any]] | None = None
     commission: list[dict[str, Any]] | None = None
     comprehension: list[dict[str, Any]] | None = None
+    risk_signals: Annotated[
+        list[dict[str, Any]] | None,
+        Field(
+            description='위험 신호 경보와 은행원 확인(acknowledged) 기록. 10.3 의 "경보 + 확인 기록까지" 약속의 자리'
+        ),
+    ] = None
     timeline: Annotated[
         list[TimelineItem] | None, Field(description="t_ms 순서로 무엇이 언제 일어났는지")
     ] = None

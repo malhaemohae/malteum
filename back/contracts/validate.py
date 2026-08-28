@@ -30,11 +30,23 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
 FIX = os.path.join(HERE, "fixtures")
-DOCS = os.path.join(ROOT, "03_규정문서")
 
-PACK_FIXTURE = "rulepack_DEP-2026.08-v3.json"
+def _find_docs() -> str:
+    """규정 PDF 폴더를 찾는다. 팀 레포(back/contracts → assets/03_규정문서)와
+    개인 작업장(contracts → 03_규정문서) 어느 배치에서도 돌아야 한다."""
+    cur = HERE
+    for _ in range(4):
+        cur = os.path.dirname(cur)
+        for cand in ("assets/03_규정문서", "03_규정문서"):
+            d = os.path.join(cur, *cand.split("/"))
+            if os.path.isdir(d):
+                return d
+    return os.path.join(os.path.dirname(HERE), "03_규정문서")
+
+DOCS = _find_docs()
+
+PACK_FIXTURE = "rulepack_DEP-2026.08-v4.json"
 
 # 축별 허용 상태. events.schema.json 의 allOf 제약과 같은 표를 여기에도 둔다.
 # 두 곳에 두는 이유는 스키마가 없을 때도 이 검사가 돌아야 하기 때문이다.
@@ -200,11 +212,11 @@ def layer_cross(pack, events, ws, cases):
             errors.append(f"[교차] ws[{i}] verdict: {m['axis']} 축에 {m['state']} 없음")
 
     # ws ready 의 항목 집합이 팩의 판정 대상과 같은가.
-    # reference 항목은 판정 대상이 아니므로 빠져 있어야 한다.
+    # reference(참고)와 risk(경보 전용)는 체크리스트 항목이 아니므로 빠져 있어야 한다.
     ready = next((m for m in ws if m["t"] == "ready"), None)
     if ready:
         got = {it["item_code"] for it in ready["items"]}
-        want = {c for c, it in codes.items() if it["type"] != "reference"}
+        want = {c for c, it in codes.items() if it["type"] not in ("reference", "risk")}
         if got != want:
             errors.append(f"[교차] ws ready 항목 집합 불일치. 빠짐 {sorted(want - got)} 여분 {sorted(got - want)}")
 

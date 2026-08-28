@@ -1,7 +1,7 @@
 openapi: 3.1.0
 
 info:
-  title: 귀띔 REST API
+  title: 말틈 REST API
   version: "0.1.0"
   description: |
     M1 gateway 가 제공하고 M4 web 이 호출한다. 실시간 스트림은 WebSocket 이 담당하고
@@ -413,9 +413,14 @@ paths:
       summary: 근거 원문 (기능 ⑭)
       security: []
       description: |
-        판정·경보·지원에 붙은 evidence_ref 를 풀어 원문 위치를 준다.
+        판정·경보·지원에 붙은 evidence_ref(= 근거를 품은 이벤트의 event_id)를 풀어 원문 위치를 준다.
         화면은 page_image_url 위에 bbox 를 덧그린다. 외부 링크로 보내지 않고 좌표를 주는 이유는
-        원문 렌더를 우리 서버가 통제해 문서가 개정돼도 과거 근거가 그대로 보이게 하기 위함이다
+        원문 렌더를 우리 서버가 통제해 문서가 개정돼도 과거 근거가 그대로 보이게 하기 위함이다.
+
+        좌표 변환 (M4 가 이대로 계산한다): bbox 는 PDF 포인트 단위이고 원점이 왼쪽 아래다.
+        페이지 이미지는 원점이 왼쪽 위이므로 세로축을 뒤집는다. 이미지가 scale 배율로
+        렌더됐을 때 하이라이트 사각형은
+        left = x1*scale · top = (page_size[1] - y2)*scale · width = (x2-x1)*scale · height = (y2-y1)*scale
       parameters:
         - name: evidence_ref
           in: path
@@ -428,7 +433,7 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [doc_id, page, span, page_image_url]
+                required: [doc_id, page, span, page_image_url, page_size]
                 properties:
                   doc_id: { type: string }
                   doc_title: { type: string }
@@ -443,6 +448,12 @@ paths:
                     maxItems: 4
                   legal_basis: { type: string }
                   page_image_url: { type: string }
+                  page_size:
+                    type: array
+                    items: { type: number }
+                    minItems: 2
+                    maxItems: 2
+                    description: "[width, height] PDF 포인트. 세로축 뒤집기에 height 가 필요해서 반드시 준다"
                   context:
                     type: string
                     description: 스팬 주변 문단. 앞뒤 맥락 확인용
@@ -834,6 +845,10 @@ components:
             omission: { type: array, items: { type: object } }
             commission: { type: array, items: { type: object } }
             comprehension: { type: array, items: { type: object } }
+            risk_signals:
+              type: array
+              description: 위험 신호 경보와 은행원 확인(acknowledged) 기록. 10.3 의 "경보 + 확인 기록까지" 약속의 자리
+              items: { type: object }
             timeline:
               type: array
               description: t_ms 순서로 무엇이 언제 일어났는지

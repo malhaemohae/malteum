@@ -1,0 +1,517 @@
+from __future__ import annotations
+
+import json
+from copy import deepcopy
+from pathlib import Path
+
+import pytest
+
+from rulepack.adapters import AdapterError, OpenAICompatibleAdapter
+from rulepack.cli import _java_major, _require_java17, main
+from rulepack.compiler import (
+    CompileError,
+    approval_digest,
+    approval_signature,
+    compile_pack,
+    compile_synthetic_pack,
+    publish_immutable,
+)
+from rulepack.pipeline import build_product_bundle, canonical_json, count_exact_span
+from rulepack.source_manifest import build_run_manifest
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+from rulepack import paths  # noqa: E402
+
+RULES = paths.config_dir(REPO_ROOT) / "candidate_rules.json"
+TEST_APPROVAL_KEY = "test-approval-key-that-is-at-least-32-bytes"
+
+
+@pytest.fixture(scope="module")
+def bundles(tmp_path_factory: pytest.TempPathFactory):
+    work = tmp_path_factory.mktemp("pipeline")
+    return {
+        product: build_product_bundle(REPO_ROOT, product, RULES, work / product)
+        for product in ("deposit", "loan")
+    }
+
+
+def _approval(
+    bundle: dict, code: str, approved_by: str = "test-reviewer", *, signed: bool = False
+) -> dict:
+    approval = {
+        "approved_by": approved_by,
+        "approved_at": "2026-08-26T00:00:00Z",
+        "item_codes": [code],
+        "bundle_sha256": approval_digest(bundle),
+    }
+    if signed:
+        approval["approval_signature"] = approval_signature(approval, TEST_APPROVAL_KEY)
+    return approval
+
+
+def _confirmed_audit(bundle: dict, code: str) -> dict:
+    item = next(item for item in bundle["items"] if item["code"] == code)
+    doc_id = item["evidence"]["doc_id"]
+    source = next(source for source in bundle["sources"] if source["doc_id"] == doc_id)
+    return {
+        "default": {"status": "unverified"},
+        "candidates": {
+            code: {
+                "status": "confirmed",
+                "source_doc_id": doc_id,
+                "source_sha256": source["sha256"],
+            }
+        },
+    }
+
+
+def _without_publication_blocker(bundle: dict, code: str) -> dict:
+    changed = deepcopy(bundle)
+    item = next(item for item in changed["items"] if item["code"] == code)
+    item.pop("publication_blocker", None)
+    return changed
+
+
+def test_two_product_build_is_deterministic_and_isolates_rejections(bundles) -> None:
+    deposit = bundles["deposit"]
+    loan = bundles["loan"]
+    assert canonical_json(deposit) == canonical_json(json.loads(canonical_json(deposit)))
+    assert canonical_json(loan) == canonical_json(json.loads(canonical_json(loan)))
+    assert any(item["status"] == "rejected" for item in deposit["items"])
+    assert any(item["status"] == "rejected" for item in loan["items"])
+    assert any(item["status"] == "evidence_verified" for item in deposit["items"])
+    assert any(item["status"] == "evidence_verified" for item in loan["items"])
+    assert all(
+        item.get("evidence", {}).get("bbox")
+        for bundle in bundles.values()
+        for item in bundle["items"]
+        if item["status"] == "evidence_verified"
+    )
+
+
+def test_risk_signal_is_review_required_instead_of_forced_into_schema_type(bundles) -> None:
+    risks = [
+        item
+        for bundle in bundles.values()
+        for item in bundle["items"]
+        if item.get("candidate_kind") == "risk_signal"
+    ]
+    assert risks
+    assert {item["status"] for item in risks} == {"review_required"}
+    assert {item["reason_code"] for item in risks} == {"contract_gap_risk_type"}
+
+
+def test_loan_third_party_repayment_risk_uses_current_article_20(bundles) -> None:
+    item = next(item for item in bundles["loan"]["items"] if item["code"] == "LOAN-RSK-001")
+    assert item["legal_basis"][0]["article"] == "제20조"
+
+
+def test_exact_span_counter_detects_real_duplicate() -> None:
+    pdf = paths.docs_dir(REPO_ROOT) / "01_금융소비자보호법.pdf"
+    assert count_exact_span(pdf, "금융소비자", 11) > 1
+
+
+def test_ambiguous_span_routes_to_manual_review(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr("rulepack.pipeline.count_exact_span", lambda *_: 2)
+    bundle = build_product_bundle(REPO_ROOT, "deposit", RULES, tmp_path / "ambiguous")
+    ambiguous = [item for item in bundle["items"] if item["reason_code"] == "evidence_ambiguous"]
+    assert ambiguous
+    assert {item["status"] for item in ambiguous} == {"review_required"}
+
+
+def test_compile_refuses_missing_approval_unverified_and_stale_source(
+    bundles, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("RULEPACK_APPROVAL_HMAC_KEY", TEST_APPROVAL_KEY)
+    with pytest.raises(CompileError, match="승인"):
+        compile_pack(REPO_ROOT, bundles["deposit"], {}, "DEP-2026.08-v1")
+
+    unverified = _without_publication_blocker(bundles["deposit"], "DEP-INT-002")
+    with pytest.raises(CompileError, match="unverified_source"):
+        compile_pack(
+            REPO_ROOT,
+            unverified,
+            _approval(unverified, "DEP-INT-002", signed=True),
+            "DEP-2026.08-v1",
+        )
+
+    with pytest.raises(CompileError, match="stale_source"):
+        compile_pack(
+            REPO_ROOT,
+            bundles["deposit"],
+            _approval(bundles["deposit"], "DEP-PRO-001", signed=True),
+            "DEP-2026.08-v1",
+        )
+
+    spoofed = deepcopy(unverified)
+    next(item for item in spoofed["items"] if item["code"] == "DEP-INT-002")["freshness"] = (
+        "confirmed"
+    )
+    with pytest.raises(CompileError, match="unverified_source"):
+        compile_pack(
+            REPO_ROOT, spoofed, _approval(spoofed, "DEP-INT-002", signed=True), "DEP-2026.08-v1"
+        )
+
+
+def test_approval_signature_and_digest_block_spoofing(
+    bundles, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("RULEPACK_APPROVAL_HMAC_KEY", TEST_APPROVAL_KEY)
+    unsigned = _approval(bundles["deposit"], "DEP-INT-002")
+    with pytest.raises(CompileError, match="서명"):
+        compile_pack(REPO_ROOT, bundles["deposit"], unsigned, "DEP-2026.08-v1")
+
+    approval = _approval(bundles["deposit"], "DEP-INT-002", signed=True)
+    changed = deepcopy(bundles["deposit"])
+    next(item for item in changed["items"] if item["code"] == "DEP-INT-002")["plain_language"] = [
+        "바꿔치기"
+    ]
+    with pytest.raises(CompileError, match="승인 후"):
+        compile_pack(REPO_ROOT, changed, approval, "DEP-2026.08-v1")
+
+    duplicate = _approval(bundles["deposit"], "DEP-INT-002")
+    duplicate["item_codes"] *= 2
+    duplicate["approval_signature"] = approval_signature(duplicate, TEST_APPROVAL_KEY)
+    with pytest.raises(CompileError, match="중복"):
+        compile_pack(REPO_ROOT, bundles["deposit"], duplicate, "DEP-2026.08-v1")
+
+
+def test_synthetic_compile_is_enveloped_and_cannot_publish(bundles, tmp_path: Path) -> None:
+    envelope = compile_synthetic_pack(
+        REPO_ROOT,
+        bundles["deposit"],
+        _approval(bundles["deposit"], "DEP-INT-002", "real-reviewer"),
+        "DEP-2026.08-v1",
+    )
+    assert envelope["artifact_kind"] == "synthetic_dry_run"
+    assert envelope["production_publishable"] is False
+    with pytest.raises(CompileError, match="attestation"):
+        publish_immutable(envelope, tmp_path)
+    with pytest.raises(CompileError, match="attestation"):
+        publish_immutable(envelope["pack"], tmp_path)
+
+
+def test_confirmed_signed_approval_compiles_and_publish_is_immutable(
+    bundles, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _without_publication_blocker(bundles["deposit"], "DEP-INT-002")
+    monkeypatch.setenv("RULEPACK_APPROVAL_HMAC_KEY", TEST_APPROVAL_KEY)
+    monkeypatch.setattr(
+        "rulepack.compiler._load_source_audit", lambda _: _confirmed_audit(bundle, "DEP-INT-002")
+    )
+    compiled = compile_pack(
+        REPO_ROOT, bundle, _approval(bundle, "DEP-INT-002", signed=True), "DEP-2026.08-v1"
+    )
+    assert publish_immutable(compiled, tmp_path) == "created"
+    assert publish_immutable(compiled, tmp_path) == "no_op"
+
+    changed_bundle = deepcopy(bundle)
+    changed_bundle["product"]["name"] = "다른 이름"
+    changed = compile_pack(
+        REPO_ROOT,
+        changed_bundle,
+        _approval(changed_bundle, "DEP-INT-002", signed=True),
+        "DEP-2026.08-v1",
+    )
+    with pytest.raises(CompileError, match="다른 내용"):
+        publish_immutable(changed, tmp_path)
+
+    with pytest.raises(CompileError, match="schema"):
+        compile_pack(REPO_ROOT, bundle, _approval(bundle, "DEP-INT-002", signed=True), "../escape")
+
+
+def test_real_confirmed_legal_candidate_compiles_without_audit_stub(
+    bundles, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = bundles["deposit"]
+    monkeypatch.setenv("RULEPACK_APPROVAL_HMAC_KEY", TEST_APPROVAL_KEY)
+
+    compiled = compile_pack(
+        REPO_ROOT,
+        bundle,
+        _approval(bundle, "DEP-BAN-001", signed=True),
+        "DEP-2026.08-v10",
+    )
+
+    assert [item["code"] for item in compiled["pack"]["items"]] == ["DEP-BAN-001"]
+
+
+def test_confirmed_audit_must_reference_candidate_evidence_source(
+    bundles, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = bundles["deposit"]
+    unrelated = next(
+        source for source in bundle["sources"] if source["doc_id"] == "03_예금거래기본약관"
+    )
+    wrong_audit = {
+        "default": {"status": "unverified"},
+        "candidates": {
+            "DEP-BAN-001": {
+                "status": "confirmed",
+                "source_doc_id": unrelated["doc_id"],
+                "source_sha256": unrelated["sha256"],
+            }
+        },
+    }
+    monkeypatch.setenv("RULEPACK_APPROVAL_HMAC_KEY", TEST_APPROVAL_KEY)
+    monkeypatch.setattr("rulepack.compiler._load_source_audit", lambda _: wrong_audit)
+
+    with pytest.raises(CompileError, match="source_audit_candidate_mismatch"):
+        compile_pack(
+            REPO_ROOT, bundle, _approval(bundle, "DEP-BAN-001", signed=True), "DEP-2026.08-v11"
+        )
+
+
+def test_source_refresh_classifies_every_non_fixture_candidate() -> None:
+    rules = json.loads(RULES.read_text(encoding="utf-8"))
+    audit = json.loads(
+        (paths.config_dir(REPO_ROOT) / "source_audit.json").read_text(encoding="utf-8")
+    )
+    candidate_codes = {
+        item["code"]
+        for items in rules["products"].values()
+        for item in items
+        if "-REJ-" not in item["code"]
+    }
+
+    assert candidate_codes == set(audit["candidates"])
+    status_counts = {
+        status: sum(record["status"] == status for record in audit["candidates"].values())
+        for status in ("confirmed", "unverified", "conflict")
+    }
+    refresh = json.loads(
+        (paths.default_artifacts_dir(REPO_ROOT) / "source_refresh_20260826.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert refresh["candidate_summary"] == {
+        **status_counts,
+        "excluded_negative_fixtures": 2,
+    }
+
+
+def test_unreplaced_product_documents_keep_publication_blockers(bundles) -> None:
+    product_doc_ids = {"05_상품설명서_정기예금", "06_상품설명서_가계대출"}
+    product_items = [
+        item
+        for bundle in bundles.values()
+        for item in bundle["items"]
+        if item["evidence"]["doc_id"] in product_doc_ids and "-REJ-" not in item["code"]
+    ]
+
+    assert product_items
+    assert all(item.get("publication_blocker") for item in product_items)
+    assert {item["freshness"] for item in product_items} <= {"unverified", "conflict"}
+
+
+def test_compile_revalidates_tampered_bbox_numeric_value_unit_condition_and_doc_id(bundles) -> None:
+    for field, value, message in (
+        ("value", "999", "라벨·값"),
+        ("unit", "개월", "라벨·값"),
+        ("condition", "무관한 조건", "조건"),
+    ):
+        changed = deepcopy(bundles["deposit"])
+        item = next(item for item in changed["items"] if item["code"] == "DEP-LIM-001")
+        item["numeric_facts"][0][field] = value
+        with pytest.raises(CompileError, match=message):
+            compile_synthetic_pack(
+                REPO_ROOT,
+                changed,
+                _approval(changed, "DEP-LIM-001", "synthetic-reviewer"),
+                "DEP-2026.08-v2",
+            )
+
+    bbox_changed = deepcopy(bundles["deposit"])
+    item = next(item for item in bbox_changed["items"] if item["code"] == "DEP-LIM-001")
+    item["evidence"]["bbox"] = [0, 0, 1, 1]
+    with pytest.raises(CompileError, match="bbox"):
+        compile_synthetic_pack(
+            REPO_ROOT,
+            bbox_changed,
+            _approval(bbox_changed, "DEP-LIM-001", "synthetic-reviewer"),
+            "DEP-2026.08-v2",
+        )
+
+    source_changed = deepcopy(bundles["deposit"])
+    item = next(item for item in source_changed["items"] if item["code"] == "DEP-INT-002")
+    item["evidence"]["doc_id"] = "../outside"
+    with pytest.raises(CompileError, match="출처 없는 doc_id"):
+        compile_synthetic_pack(
+            REPO_ROOT,
+            source_changed,
+            _approval(source_changed, "DEP-INT-002", "synthetic-reviewer"),
+            "DEP-2026.08-v2",
+        )
+
+
+def test_new_version_keeps_code_for_same_semantic_item(
+    bundles, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _without_publication_blocker(bundles["deposit"], "DEP-INT-002")
+    monkeypatch.setenv("RULEPACK_APPROVAL_HMAC_KEY", TEST_APPROVAL_KEY)
+    monkeypatch.setattr(
+        "rulepack.compiler._load_source_audit", lambda _: _confirmed_audit(bundle, "DEP-INT-002")
+    )
+    first = compile_pack(
+        REPO_ROOT, bundle, _approval(bundle, "DEP-INT-002", signed=True), "DEP-2026.08-v1"
+    )
+    assert publish_immutable(first, tmp_path) == "created"
+
+    changed_bundle = deepcopy(bundle)
+    item = next(item for item in changed_bundle["items"] if item["code"] == "DEP-INT-002")
+    item["code"] = "DEP-INT-999"
+    changed_approval = _approval(changed_bundle, "DEP-INT-999", signed=True)
+    monkeypatch.setattr(
+        "rulepack.compiler._load_source_audit",
+        lambda _: _confirmed_audit(changed_bundle, "DEP-INT-999"),
+    )
+    changed = compile_pack(REPO_ROOT, changed_bundle, changed_approval, "DEP-2026.08-v2")
+    with pytest.raises(CompileError, match="code"):
+        publish_immutable(changed, tmp_path)
+
+
+def test_failed_adapter_item_does_not_contaminate_batch(tmp_path: Path) -> None:
+    class PartiallyFailingAdapter:
+        model = "partial-failure-test"
+
+        def extract(self, prompt: str, schema: dict) -> dict:
+            del schema
+            payload = json.loads(prompt)
+            candidate = payload["candidate"]
+            if candidate["code"] == "DEP-INT-002":
+                return {}
+            return candidate
+
+    bundle = build_product_bundle(
+        REPO_ROOT, "deposit", RULES, tmp_path / "partial", PartiallyFailingAdapter()
+    )
+    failed = next(item for item in bundle["items"] if item["code"] == "DEP-INT-002")
+    succeeded = next(item for item in bundle["items"] if item["code"] == "DEP-INT-001")
+    assert failed["status"] == "review_required"
+    assert failed["reason_code"] == "llm_extraction_failed"
+    assert succeeded["status"] == "evidence_verified"
+
+
+@pytest.mark.parametrize("body", [b'{"choices":[]}', b"\xff"])
+def test_openai_adapter_converts_malformed_provider_response_to_adapter_error(
+    monkeypatch: pytest.MonkeyPatch,
+    body: bytes,
+) -> None:
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return None
+
+        def read(self) -> bytes:
+            return body
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key-not-logged")
+    monkeypatch.setattr(
+        "rulepack.adapters.urllib.request.urlopen", lambda *_args, **_kwargs: Response()
+    )
+    adapter = OpenAICompatibleAdapter(
+        "https://example.invalid/v1/chat/completions", "test-model", max_attempts=1
+    )
+    with pytest.raises(AdapterError, match="구조화 후보 추출 실패"):
+        adapter.extract("prompt", {"type": "object"})
+
+
+@pytest.mark.parametrize(
+    ("output", "expected"),
+    [
+        ('java version "1.8.0_402"', 8),
+        ('openjdk version "11.0.24"', 11),
+        ('openjdk version "17.0.20"', 17),
+    ],
+)
+def test_java_major_parser(output: str, expected: int) -> None:
+    assert _java_major(output) == expected
+
+
+@pytest.mark.parametrize("output", ['java version "1.8.0_402"', 'openjdk version "11.0.24"'])
+def test_strict_java_gate_rejects_versions_below_17(output: str) -> None:
+    with pytest.raises(RuntimeError, match="Java 17"):
+        _require_java17(output)
+
+
+def test_candidate_evidence_from_adapter_is_the_value_p4_checks(tmp_path: Path) -> None:
+    class AlteredEvidenceAdapter:
+        model = "altered-evidence-test"
+
+        def extract(self, prompt: str, schema: dict) -> dict:
+            del schema
+            candidate = json.loads(prompt)["candidate"]
+            if candidate["code"] == "DEP-INT-002":
+                candidate["evidence"]["span"] = "모델이 만든 원문에 없는 인용"
+            return candidate
+
+    bundle = build_product_bundle(
+        REPO_ROOT, "deposit", RULES, tmp_path / "altered", AlteredEvidenceAdapter()
+    )
+    altered = next(item for item in bundle["items"] if item["code"] == "DEP-INT-002")
+    assert altered["status"] == "rejected"
+    assert altered["reason_code"] == "evidence_not_found_or_page_mismatch"
+
+
+def test_candidate_must_link_to_a_chunk_that_was_in_its_prompt(tmp_path: Path) -> None:
+    class WrongChunkAdapter:
+        model = "wrong-chunk-test"
+
+        def extract(self, prompt: str, schema: dict) -> dict:
+            del schema
+            candidate = json.loads(prompt)["candidate"]
+            if candidate["code"] == "DEP-INT-002":
+                candidate["source_chunk_id"] = "not-in-prompt"
+            return candidate
+
+    bundle = build_product_bundle(
+        REPO_ROOT, "deposit", RULES, tmp_path / "wrong-chunk", WrongChunkAdapter()
+    )
+    altered = next(item for item in bundle["items"] if item["code"] == "DEP-INT-002")
+    assert altered["status"] == "review_required"
+    assert altered["reason_code"] == "candidate_chunk_mismatch"
+
+
+def test_cli_connects_approved_compile_and_immutable_publish(
+    bundles, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bundle = _without_publication_blocker(bundles["deposit"], "DEP-INT-002")
+    monkeypatch.setenv("RULEPACK_APPROVAL_HMAC_KEY", TEST_APPROVAL_KEY)
+    monkeypatch.setattr(
+        "rulepack.compiler._load_source_audit", lambda _: _confirmed_audit(bundle, "DEP-INT-002")
+    )
+    approval = _approval(bundle, "DEP-INT-002", signed=True)
+    bundle_path = tmp_path / "bundle.json"
+    approval_path = tmp_path / "approval.json"
+    bundle_path.write_text(json.dumps(bundle, ensure_ascii=False), encoding="utf-8")
+    approval_path.write_text(json.dumps(approval, ensure_ascii=False), encoding="utf-8")
+
+    common = [
+        "--repo-root",
+        str(REPO_ROOT),
+        "--output",
+        str(tmp_path / "published"),
+        "--bundle",
+        str(bundle_path),
+        "--approval",
+        str(approval_path),
+        "--version",
+        "DEP-2026.08-v9",
+    ]
+    assert main(["compile", *common]) == 0
+    assert main(["publish", *common]) == 0
+    assert (tmp_path / "published" / "compiled_DEP-2026.08-v9.json").is_file()
+    assert (tmp_path / "published" / "rulepack_DEP-2026.08-v9.json").is_file()
+
+
+def test_run_manifest_has_no_unmapped_source_ids() -> None:
+    run = build_run_manifest(REPO_ROOT)
+    known = {source.doc_id for source in run.sources}
+    rules = json.loads(RULES.read_text(encoding="utf-8"))
+    used = {rule["doc_id"] for items in rules["products"].values() for rule in items}
+    assert used <= known

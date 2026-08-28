@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
-PACK_VERSION = "DEP-2026.08-v3"
+PACK_VERSION = "DEP-2026.08-v4"
 
 
 @pytest.fixture(scope="session")

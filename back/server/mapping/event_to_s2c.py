@@ -10,8 +10,9 @@ from engine.types import RulePack, SessionState
 def ready(session_id: str, pack: RulePack, state: SessionState, mode: str) -> dict[str, Any]:
     items = []
     for it in pack.items:
-        s = state.state_of(it.code)
-        if s is None:  # reference 항목은 체크리스트에 없다
+        axis = "commission" if it.type == "forbidden" else "omission"
+        s = state.state_of(it.code, axis)
+        if s is None:  # reference·risk 항목은 체크리스트에 없다
             continue
         item: dict[str, Any] = {
             "item_code": it.code,

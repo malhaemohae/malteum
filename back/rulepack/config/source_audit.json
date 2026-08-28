@@ -1,0 +1,188 @@
+{
+  "audit_version": "2026-08-26",
+  "default": {
+    "status": "unverified",
+    "reason": "공식 1차 출처와 후보별 시행 기준 대조 미완료"
+  },
+  "candidates": {
+    "DEP-INT-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "05_상품설명서_정기예금",
+      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
+      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
+      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+    },
+    "DEP-INT-002": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "05_상품설명서_정기예금",
+      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
+      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
+      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+    },
+    "DEP-INT-003": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "05_상품설명서_정기예금",
+      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
+      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
+      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+    },
+    "DEP-PRO-001": {
+      "status": "conflict",
+      "publication_blocker": "stale_source",
+      "source_doc_id": "05_상품설명서_정기예금",
+      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
+      "checked_at": "2026-08-26",
+      "official_url": "https://www.fsc.go.kr/no010101/85200",
+      "reason": "상품설명서의 5천만원과 2025-09-01 시행 예금보호한도 1억원이 충돌"
+    },
+    "DEP-TAX-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "05_상품설명서_정기예금",
+      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
+      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
+      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+    },
+    "DEP-LIM-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "05_상품설명서_정기예금",
+      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
+      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
+      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+    },
+    "DEP-DOC-001": {
+      "status": "confirmed",
+      "source_doc_id": "03_예금거래기본약관",
+      "source_sha256": "126ac2b135444466e52592598cd66bd39ecb92d14336efdbf291c5001027d01b",
+      "checked_at": "2026-08-26",
+      "official_url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/예금거래기본약관(개정후).pdf",
+      "reason": "공식 게시 파일과 로컬 원천의 SHA-256 및 페이지 수가 일치"
+    },
+    "DEP-BAN-001": {
+      "status": "confirmed",
+      "source_doc_id": "01_금융소비자보호법",
+      "source_sha256": "b56cdf92197ae2fc43c727d6a060d31028cad1ff40a4f72f912575cc36f04a10",
+      "checked_at": "2026-08-26",
+      "official_url": "https://law.go.kr/LSW/lsLawLinkInfo.do?chrClsCd=010202&lsJoLnkSeq=1013177269",
+      "reason": "현행 금융소비자보호법 제21조제1호와 로컬 원문 span 일치 확인"
+    },
+    "DEP-RSK-001": {
+      "status": "confirmed",
+      "source_doc_id": "03_예금거래기본약관",
+      "source_sha256": "126ac2b135444466e52592598cd66bd39ecb92d14336efdbf291c5001027d01b",
+      "checked_at": "2026-08-26",
+      "official_url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/예금거래기본약관(개정후).pdf",
+      "reason": "공식 게시 파일과 로컬 원천의 SHA-256 및 페이지 수가 일치"
+    },
+    "LOAN-INT-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+    },
+    "LOAN-RDR-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+    },
+    "LOAN-ARR-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+    },
+    "LOAN-PRE-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+    },
+    "LOAN-DSR-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+    },
+    "LOAN-WDR-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+    },
+    "LOAN-CIC-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+    },
+    "LOAN-DOC-001": {
+      "status": "unverified",
+      "publication_blocker": "source_replacement_required",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
+      "checked_at": "2026-08-26",
+      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+    },
+    "LOAN-BAN-001": {
+      "status": "confirmed",
+      "source_doc_id": "01_금융소비자보호법",
+      "source_sha256": "b56cdf92197ae2fc43c727d6a060d31028cad1ff40a4f72f912575cc36f04a10",
+      "checked_at": "2026-08-26",
+      "official_url": "https://law.go.kr/LSW/lsLawLinkInfo.do?chrClsCd=010202&lsJoLnkSeq=1013177269",
+      "reason": "현행 금융소비자보호법 제21조제1호와 로컬 원문 span 일치 확인"
+    },
+    "LOAN-RSK-001": {
+      "status": "confirmed",
+      "source_doc_id": "01_금융소비자보호법",
+      "source_sha256": "b56cdf92197ae2fc43c727d6a060d31028cad1ff40a4f72f912575cc36f04a10",
+      "checked_at": "2026-08-26",
+      "official_url": "https://www.law.go.kr/lsLinkCommonInfo.do?lsJoLnkSeq=1029913371",
+      "reason": "현행 금융소비자보호법 제20조와 로컬 원문 span 일치 확인"
+    }
+  }
+}

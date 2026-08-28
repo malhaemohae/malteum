@@ -33,7 +33,7 @@ async def test_submit_utterance_persists_and_publishes_with_supersedes():
     registry = SessionRegistry(engine)
     store = MemoryEventStore()
     pipeline = Pipeline(engine, store)
-    session = registry.open("DEP-2026.08-v3", "text", session_id="FIXT-SESS-0B")
+    session = registry.open("DEP-2026.08-v4", "text", session_id="FIXT-SESS-0B")
     sent = []
 
     async def publish(m):

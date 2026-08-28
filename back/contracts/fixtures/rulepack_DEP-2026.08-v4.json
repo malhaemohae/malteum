@@ -1,0 +1,356 @@
+{
+  "schema_version": "1",
+  "pack_version": "DEP-2026.08-v4",
+  "product": {
+    "code": "SHB-MYPLUS-TD",
+    "name": "신한 My플러스 정기예금",
+    "category": "deposit"
+  },
+  "published_at": "2026-08-26T09:00:00.000Z",
+  "published_by": "M3",
+  "embedding": {
+    "model": "intfloat/multilingual-e5-small",
+    "dim": 384,
+    "normalized": true
+  },
+  "jargon_terms": [
+    "차감률", "우대이자율", "기본이자율", "만기후이자율",
+    "예금담보대출", "선입선출법", "비과세종합저축", "실명확인증표"
+  ],
+  "sources": [
+    {
+      "doc_id": "05_상품설명서_정기예금",
+      "title": "신한 My플러스 정기예금 상품설명서",
+      "publisher": "신한은행",
+      "url": "https://img.shinhan.com/sbank2016/seol/20230823000001510002LC000030.PDF",
+      "snapshot_date": "2026-08-23",
+      "page_count": 7,
+      "note": "준법감시인 사전심사필 제2023-15689-1호. 게시본 기준이며 현행 고시 이율과 다를 수 있다"
+    },
+    {
+      "doc_id": "01_금융소비자보호법",
+      "title": "금융소비자 보호에 관한 법률",
+      "publisher": "법제처",
+      "url": "https://www.law.go.kr/LSW/lsPdfPrint.do?lsiSeq=252409&efYd=20231012",
+      "snapshot_date": "2026-08-23",
+      "page_count": 31
+    },
+    {
+      "doc_id": "02_설명의무_이행_가이드라인",
+      "title": "금융상품 설명의무의 합리적 이행을 위한 가이드라인",
+      "publisher": "금융위원회·금융감독원",
+      "url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=76243&fileTy=ATTACH&fileNo=2",
+      "snapshot_date": "2026-08-23",
+      "page_count": 20,
+      "note": "설명 요청 시 거짓·왜곡·누락 금지의 근거. 해지 상담은 §19①의 설명 요청 분기로 발동한다"
+    },
+    {
+      "doc_id": "03_예금거래기본약관",
+      "title": "예금거래기본약관",
+      "publisher": "은행연합회 표준약관 제10012호",
+      "url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/",
+      "snapshot_date": "2026-08-23",
+      "page_count": 9,
+      "note": "씨티은행 게시본. 해지 절차·필요 서류의 근거"
+    },
+    {
+      "doc_id": "07_제2차_금융분야_보이스피싱_대책",
+      "title": "제2차 금융분야 보이스피싱 대책",
+      "publisher": "금융위원회",
+      "url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=79511&fileTy=ATTACH&fileNo=4",
+      "snapshot_date": "2026-08-23",
+      "page_count": 18,
+      "note": "지연이체·입금계좌지정 등 기존 방어 장치가 창구거래 미적용임을 보이는 근거. 해지 후 이체가 위험 신호의 주 무대"
+    }
+  ],
+  "items": [
+    {
+      "code": "DEP-INT-002",
+      "name": "중도해지 이자율",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["만기 전 해지 시 불이익", "적용 이율", "차감률 또는 산출식"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제19조제1항", "note": "해지 상담은 설명 요청 분기로 발동. 가이드라인: 거짓·왜곡·누락 금지" }
+      ],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 5,
+        "span": "만기 전 해지할 경우 약정한 이자율보다 낮은 중도해지이자율이 적용됩니다.",
+        "bbox": [74.2, 467.8, 467.6, 479.7]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "중도해지", "element": "만기 전 해지 시 불이익" },
+        { "kind": "keyword", "value": "중도해지이자율", "element": "적용 이율" },
+        { "kind": "keyword", "value": "차감률", "element": "차감률 또는 산출식" },
+        { "kind": "numeric", "value": "0.10", "element": "적용 이율" }
+      ],
+      "numeric_facts": [
+        {
+          "label": "중도해지 이자율",
+          "value": "0.10",
+          "unit": "%",
+          "condition": "1개월 미만",
+          "tolerance": 0,
+          "evidence": {
+            "doc_id": "05_상품설명서_정기예금",
+            "page": 3,
+            "span": "○ 1개월 미만: 연 0.10%",
+            "bbox": [152.8, 763.8, 278.8, 774.4]
+          }
+        },
+        {
+          "label": "중도해지 이자율 최저",
+          "value": "0.10",
+          "unit": "%",
+          "condition": "산출식 적용 후 하한",
+          "tolerance": 0
+        }
+      ],
+      "plain_language": [
+        "만기까지 두지 않고 중간에 찾으시면, 처음 약속한 이자가 아니라 훨씬 낮은 이자로 계산됩니다.",
+        "한 달도 안 돼서 찾으시면 연 0.10%만 붙습니다."
+      ],
+      "approved_at": "2026-08-26T08:10:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-INT-003",
+      "name": "만기 후 이자율",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["만기 후 이율이 별도 적용됨", "경과기간별 차등", "하한"],
+      "legal_basis": [{ "law": "금융소비자보호법", "article": "제19조제1항" }],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 3,
+        "span": "○ 만기 후 1개월 이내: 만기일 당시의 가입기간에 해당하는 일반정기예금",
+        "bbox": [156.6, 309.3, 515.7, 320.3]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "만기후이자율", "element": "만기 후 이율이 별도 적용됨" },
+        { "kind": "keyword", "value": "만기 후", "element": "만기 후 이율이 별도 적용됨" }
+      ],
+      "numeric_facts": [
+        {
+          "label": "만기 후 이자율",
+          "value": "0.10",
+          "unit": "%",
+          "condition": "만기 후 6개월 초과",
+          "tolerance": 0,
+          "evidence": {
+            "doc_id": "05_상품설명서_정기예금",
+            "page": 3,
+            "span": "○ 만기 후 6개월 초과: 연 0.10%",
+            "bbox": [156.6, 224.8, 324.5, 235.7]
+          }
+        }
+      ],
+      "plain_language": [
+        "만기가 지나서 그대로 두시면 원래 이자율이 아니라 훨씬 낮은 이자율로 바뀝니다. 시간이 더 지나면 더 낮아집니다."
+      ],
+      "approved_at": "2026-08-26T08:11:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-INT-004",
+      "name": "중도해지 시 우대이자율 미적용",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["우대이자율 미적용", "기본이자율 기준 계산"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제19조제1항", "note": "해지로 잃는 것의 핵심. 중도해지 상담에서 가장 자주 틀리는 지점" }
+      ],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 2,
+        "span": "※ 계약기간 만기 전 중도해지한 계좌에 대해서는 적용하지 않습니다.",
+        "bbox": [153.4, 566.3, 488.8, 577.2]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "우대이자율", "element": "우대이자율 미적용" },
+        { "kind": "keyword", "value": "기본이자율", "element": "기본이자율 기준 계산" }
+      ],
+      "plain_language": [
+        "중간에 해지하시면 조건을 채워서 더 받기로 한 이자는 못 받으시고, 기본 이자로만 계산됩니다."
+      ],
+      "approved_at": "2026-08-26T08:12:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-LIM-001",
+      "name": "일부해지 대안",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["일부해지 가능", "횟수 한도"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제19조제1항", "note": "전액 해지 전에 안내할 대안. 법정 열거 항목이 아니라 팩 발행 주체가 필수로 정한 항목" }
+      ],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 5,
+        "span": "일부해지 횟수는 2회를 초과할 수 없습니다.",
+        "bbox": [74.4, 444.9, 301.4, 456.7]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "일부해지", "element": "일부해지 가능" },
+        { "kind": "regex", "value": "2\\s*회", "element": "횟수 한도" }
+      ],
+      "numeric_facts": [
+        { "label": "일부해지 횟수", "value": "2", "unit": "회", "tolerance": 0 }
+      ],
+      "plain_language": [
+        "전부 깨지 않고 필요한 만큼만 먼저 빼실 수 있습니다. 최대 두 번까지 됩니다."
+      ],
+      "approved_at": "2026-08-26T08:13:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-LON-001",
+      "name": "예금담보대출 대안",
+      "type": "required",
+      "axis": "omission",
+      "requirement_elements": ["예금담보대출 가능", "한도"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제19조제1항", "note": "법정 열거 항목이 아니라 팩 발행 주체가 필수로 정한 항목. 해지 손실을 피하는 대안이라 소비자보호 관점에서 필수화" }
+      ],
+      "evidence": {
+        "doc_id": "05_상품설명서_정기예금",
+        "page": 6,
+        "span": "예금담보대출 O 납입액의 100%까지 가능",
+        "bbox": [65.4, 546.2, 374.5, 558.2]
+      },
+      "l1_patterns": [
+        { "kind": "keyword", "value": "예금담보대출", "element": "예금담보대출 가능" },
+        { "kind": "keyword", "value": "담보로", "element": "예금담보대출 가능" },
+        { "kind": "regex", "value": "100\\s*%", "element": "한도" }
+      ],
+      "numeric_facts": [
+        {
+          "label": "예금담보대출 한도",
+          "value": "100",
+          "unit": "%",
+          "condition": "납입액 대비",
+          "tolerance": 0,
+          "evidence": {
+            "doc_id": "05_상품설명서_정기예금",
+            "page": 6,
+            "span": "예금담보대출 O 납입액의 100%까지 가능",
+            "bbox": [65.4, 546.2, 374.5, 558.2]
+          }
+        }
+      ],
+      "plain_language": [
+        "해지하지 않고 이 예금을 담보로 잡아서, 넣으신 금액만큼 대출을 받는 방법도 있습니다."
+      ],
+      "approved_at": "2026-08-26T08:14:00.000Z",
+      "approved_by": "reviewer-1"
+    },
+    {
+      "code": "DEP-BAN-001",
+      "name": "단정적 판단 제공",
+      "type": "forbidden",
+      "axis": "commission",
+      "requirement_elements": ["불확실한 사항에 대한 단정", "확실하다고 오인시키는 표현"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제21조제1호", "note": "부당권유행위 금지" }
+      ],
+      "evidence": {
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+        "bbox": [61.3, 170.0, 554.2, 181.6],
+        "legal_basis": "금융소비자보호법 제21조제1호"
+      },
+      "forbidden_examples": [
+        "지금 해지 안 하고 두시면 무조건 이득이에요",
+        "원금은 100% 보장됩니다",
+        "손실은 절대 없습니다",
+        "이 금리는 앞으로도 계속 유지됩니다"
+      ],
+      "l1_patterns": [
+        { "kind": "regex", "value": "무조건|절대\\s*(안|없|아니)|100\\s*%\\s*보장|확실(히|하)", "element": "확실하다고 오인시키는 표현" }
+      ],
+      "approved_at": "2026-08-26T08:15:00.000Z",
+      "approved_by": "reviewer-2"
+    },
+    {
+      "code": "DEP-BAN-002",
+      "name": "사실과 다른 내용 알림",
+      "type": "forbidden",
+      "axis": "commission",
+      "requirement_elements": ["상품 내용의 사실과 다른 설명"],
+      "legal_basis": [
+        { "law": "금융소비자보호법", "article": "제21조제2호", "note": "부당권유행위 금지. 설명 요청에 대한 거짓·왜곡 응답은 가이드라인이 직접 금지" }
+      ],
+      "evidence": {
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "2. 금융상품의 내용을 사실과 다르게 알리는 행위",
+        "bbox": [60.7, 138.0, 320.7, 149.4],
+        "legal_basis": "금융소비자보호법 제21조제2호"
+      },
+      "forbidden_examples": [
+        "만기 지나도 지금 금리가 그대로 계속 붙어요",
+        "중도해지해도 약정 이자 그대로 나옵니다",
+        "일부해지는 몇 번이든 가능합니다"
+      ],
+      "l1_patterns": [],
+      "approved_at": "2026-08-26T08:16:00.000Z",
+      "approved_by": "reviewer-2"
+    },
+    {
+      "code": "DEP-RSK-001",
+      "name": "대리 해지·제3자 계좌 위험 신호",
+      "type": "risk",
+      "requirement_elements": ["제3자 지시에 따른 해지·이체", "제3자 계좌로 자금 이동 요청", "통장·접근매체 양도 언급"],
+      "legal_basis": [
+        { "law": "전자금융거래법", "article": "제6조제3항", "note": "접근매체 양도·양수 금지" },
+        { "law": "통신사기피해환급법", "article": "제2조", "note": "전기통신금융사기 정의. 해지 후 이체는 창구 방어 장치가 없는 구간" }
+      ],
+      "evidence": {
+        "doc_id": "07_제2차_금융분야_보이스피싱_대책",
+        "page": 18,
+        "span": "입금되며, 입금 30분前 취소 가능(창구거래 未적용)",
+        "bbox": [96.0, 617.9, 437.2, 635.9],
+        "legal_basis": "제2차 금융분야 보이스피싱 대책 (지연이체서비스 창구거래 미적용)"
+      },
+      "risk_examples": [
+        "해지한 돈은 딸이 알려준 계좌로 바로 보내 주세요",
+        "아들이 알아보라고 해서요. 돈은 아들 계좌로 보내면 돼요",
+        "직원분이 시키는 대로 하라고 전화가 왔어요",
+        "통장을 잠깐 빌려주기로 했어요",
+        "미국에 있는 남자친구한테 보내야 해요"
+      ],
+      "l1_patterns": [
+        { "kind": "regex", "value": "(아들|딸|지인|그\\s*분)[이가]?\\s*알려준|(아들|딸|지인)\\s*(계좌|통장)|통장.{0,6}(빌려|양도)|시키는\\s*대로", "element": "제3자 계좌로 자금 이동 요청" }
+      ],
+      "approved_at": "2026-08-26T08:17:00.000Z",
+      "approved_by": "reviewer-2"
+    },
+    {
+      "code": "DEP-DOC-001",
+      "name": "해지 시 필요 서류",
+      "type": "reference",
+      "requirement_elements": ["본인 확인", "해지청구서"],
+      "legal_basis": [
+        { "law": "금융실명거래 및 비밀보장에 관한 법률", "article": "제3조" }
+      ],
+      "evidence": {
+        "doc_id": "03_예금거래기본약관",
+        "page": 3,
+        "span": "② 통장을 교부하지 않은 무통방식의 경우에는 실명확인증표를 통해 본인임을 확인하고, 신고한 비밀번",
+        "bbox": [54.5, 392.3, 540.3, 402.7],
+        "legal_basis": "예금거래기본약관 제17조"
+      },
+      "documents_required": [
+        "실명확인증표 (주민등록증 또는 운전면허증 또는 여권)",
+        "통장 (무통방식은 실명확인증표로 본인 확인)",
+        "지급 또는 해지청구서 (인감 날인 또는 서명)",
+        "대리 해지 시 위임장·가족관계증명서·대리인과 예금주 신분증, 예금주 본인 통화 확인"
+      ],
+      "approved_at": "2026-08-26T08:18:00.000Z",
+      "approved_by": "reviewer-1"
+    }
+  ]
+}

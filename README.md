@@ -11,8 +11,10 @@
 │   ├── contracts/    계약 정본 (임한빈 작성, 8/28 동결). 네 모듈의 유일한 접점
 │   ├── server/       M1 gateway (노순혁)  FastAPI · WebSocket · STT 어댑터 · 이벤트 저장 · 엔진 호출
 │   ├── engine/       M2 engine  (허현준)  판정 L1→L2→L3 · assist · 상태 접기. WebSocket·DB 를 모른다
-│   └── rulepack/     M3 rulepack (임한빈) 규정 PDF → 팩 JSON → postgres 적재
+│   ├── rulepack/     M3 rulepack (임한빈) 규정 PDF → 팩 JSON → postgres 적재
+│   └── regwatch/     규정 개정 일일 감시 (임한빈). 완전 독립, 표준 라이브러리만
 ├── db/               init.sql (pgvector 확장)
+├── docs/기획/         핵심기획안 (md·PDF) · 현장검증 인터뷰 · 검증 기록 · 와이어프레임. 구현의 컨텍스트
 ├── assets/           03_규정문서/ (PDF, git 제외) · scenarios/<id>/ (manifest·audio·trace)
 └── compose.yaml      postgres16+pgvector · server
 ```
