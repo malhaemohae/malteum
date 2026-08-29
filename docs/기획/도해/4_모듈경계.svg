@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520" font-family="'IBM Plex Sans KR', 'Malgun Gothic', sans-serif" viewBox="0 0 1000 520" role="img" aria-label="contracts 디렉토리의 스키마 네 개를 8월 28일에 동결하고, M4 web과 M1 gateway는 WebSocket 프로토콜로, M1과 M2 engine은 함수 시그니처로, M2와 M3 rulepack은 규정 팩 스키마로만 만나는 모듈 경계도">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520" font-family="'IBM Plex Sans KR', 'Malgun Gothic', sans-serif" viewBox="0 0 1000 520" role="img" aria-label="back/contracts 디렉토리의 스키마 네 개를 8월 28일에 동결하고, M4 front와 M1 back/server는 WebSocket 프로토콜로, M1과 M2 back/engine은 함수 시그니처로, M2와 M3 back/rulepack은 규정 팩 스키마로만 만나는 모듈 경계도">
       <defs>
         <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0 0 L10 5 L0 10 z" fill="#15242B" fill-opacity=".55"></path>
@@ -7,7 +7,7 @@
 
       <!-- contracts -->
       <rect x="30" y="34" width="940" height="92" rx="3" fill="#FFFFFF" stroke="#0F6055" stroke-width="1.8"></rect>
-      <text x="46" y="26" font-size="10.5" font-family="'IBM Plex Mono', Consolas, monospace" letter-spacing=".08em" fill="#0F6055">contracts/ · 8월 28일 동결 · 이후 변경은 전원 합의</text>
+      <text x="46" y="26" font-size="10.5" font-family="'IBM Plex Mono', Consolas, monospace" letter-spacing=".08em" fill="#0F6055">back/contracts/ · 8월 28일 동결 · 이후 변경은 전원 합의</text>
       <rect x="50" y="56" width="210" height="50" rx="2" fill="#EEF3F2" stroke="#15242B" stroke-opacity=".3"></rect>
       <text x="155" y="86" text-anchor="middle" font-size="10.5" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B">ws_protocol.schema.json</text>
       <rect x="280" y="56" width="210" height="50" rx="2" fill="#EEF3F2" stroke="#15242B" stroke-opacity=".3"></rect>
@@ -19,25 +19,25 @@
 
       <!-- 모듈 4개 -->
       <rect x="30" y="180" width="440" height="120" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".4"></rect>
-      <text x="52" y="210" font-size="13" font-weight="600" fill="#15242B">M4 web</text>
+      <text x="52" y="210" font-size="13" font-weight="600" fill="#15242B">M4 front</text>
       <text x="52" y="232" font-size="10.5" fill="#15242B" opacity=".68">6화면 + 근거 오버레이 · WebSocket 클라이언트</text>
       <text x="52" y="250" font-size="10.5" fill="#15242B" opacity=".68">AudioWorklet · 프리셋</text>
       <text x="52" y="278" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".55">Next.js · 상태관리 라이브러리 없음</text>
 
       <rect x="530" y="180" width="440" height="120" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".4"></rect>
-      <text x="552" y="210" font-size="13" font-weight="600" fill="#15242B">M1 gateway</text>
+      <text x="552" y="210" font-size="13" font-weight="600" fill="#15242B">M1 back/server</text>
       <text x="552" y="232" font-size="10.5" fill="#15242B" opacity=".68">세션 게이트웨이 · 오디오 프레임 · STT 어댑터</text>
       <text x="552" y="250" font-size="10.5" fill="#15242B" opacity=".68">3+1 실행 모드 · 재접속 · 하트비트</text>
       <text x="552" y="278" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".55">FastAPI · 인프라·배포 겸임</text>
 
       <rect x="530" y="360" width="440" height="120" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".4"></rect>
-      <text x="552" y="390" font-size="13" font-weight="600" fill="#15242B">M2 engine</text>
+      <text x="552" y="390" font-size="13" font-weight="600" fill="#15242B">M2 back/engine</text>
       <text x="552" y="412" font-size="10.5" fill="#15242B" opacity=".68">L1 규칙 · L2 임베딩 검색 · L3 심판</text>
       <text x="552" y="430" font-size="10.5" fill="#15242B" opacity=".68">3방향 상태 머신 · 판정 캐시</text>
       <text x="552" y="458" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".55">팩을 읽기만 한다</text>
 
       <rect x="30" y="360" width="440" height="120" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".4"></rect>
-      <text x="52" y="390" font-size="13" font-weight="600" fill="#15242B">M3 rulepack</text>
+      <text x="52" y="390" font-size="13" font-weight="600" fill="#15242B">M3 back/rulepack</text>
       <text x="52" y="412" font-size="10.5" fill="#15242B" opacity=".68">OpenDataLoader 청킹 · LLM 추출 · 스팬 대조</text>
       <text x="52" y="430" font-size="10.5" fill="#15242B" opacity=".68">pypdfium2 좌표 · 팩 발행 · 금지·위험 팩</text>
       <text x="52" y="458" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".55">팩을 만들기만 한다</text>
