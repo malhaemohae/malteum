@@ -164,7 +164,9 @@ def _schema_item(
     for key in ("numeric_facts", "documents_required", "forbidden_examples", "risk_examples"):
         if key in item:
             result[key] = item[key]
-    result["l1_patterns"] = []
+    # L1 정규식 판정의 기준. 설정(candidate_rules)에서 오고, 없으면 그 항목은
+    # L1 을 건너뛰어 L2·L3 로 간다.
+    result["l1_patterns"] = item.get("l1_patterns", [])
     # 접두어는 벡터를 만든 구현이 정한다. 모델이 바뀌면 벡터도 바뀌므로
     # 식별자가 같으면 어느 모델 것인지 구분되지 않는다.
     result["embedding_id"] = f"{model.id_prefix}:{item['code']}"
@@ -238,6 +240,9 @@ def _compile_pack(
         "published_at": approval["approved_at"],
         "published_by": approval["approved_by"],
         "embedding": {"model": model.name, "dim": model.dim, "normalized": model.normalized},
+        # ⑧ 용어 밀도 게이지가 세는 목록. 상품마다 다르므로 설정에서 가져온다.
+        # 실시간 판단 없이 이 목록 대조로만 세므로 게이지가 결정적이다.
+        "jargon_terms": bundle.get("jargon_terms", []),
         "sources": [
             {
                 key: source[key]

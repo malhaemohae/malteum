@@ -623,3 +623,32 @@ def test_config_mismatch_says_which_file(tmp_path: Path) -> None:
     rules = paths.config_dir(REPO_ROOT) / "candidate_rules.json"
     with pytest.raises(PipelineError, match="products.json 에 없는 상품"):
         build_product_bundle(REPO_ROOT, "nonexistent", rules, tmp_path / "x")
+
+
+def test_pack_carries_l1_patterns_and_jargon_terms_from_config(bundles) -> None:
+    """L1 패턴과 용어 목록은 설정에서 와서 팩까지 실려야 한다.
+
+    둘 다 컴파일러가 조용히 빈 값으로 뭉갤 수 있는 자리다. 실제로 `l1_patterns`
+    는 `result["l1_patterns"] = []` 로 고정돼 있어, 설정에 정규식을 아무리 적어도
+    팩에는 안 실렸다. 그러면 L1(정규식) 층이 통째로 놀고 모든 판정이 L2·L3 로
+    내려가 지연과 비용만 늘어난다. 빈 값은 예외를 내지 않으므로 테스트로만 잡힌다.
+    """
+    envelope = compile_synthetic_pack(
+        REPO_ROOT,
+        bundles["deposit"],
+        _approval(bundles["deposit"], "DEP-INT-002", "real-reviewer"),
+        "DEP-2026.08-v1",
+    )
+    pack = envelope["pack"]
+
+    products = json.loads(
+        (paths.config_dir(REPO_ROOT) / "products.json").read_text(encoding="utf-8")
+    )
+    assert pack["jargon_terms"] == products["deposit"]["jargon_terms"]
+    assert pack["jargon_terms"], "용어 밀도 게이지가 셀 대상이 하나도 없음"
+
+    from_bundle = {i["code"]: i.get("l1_patterns", []) for i in bundles["deposit"]["items"]}
+    carried = {i["code"]: i["l1_patterns"] for i in pack["items"] if i["l1_patterns"]}
+    assert carried, "L1 판정이 쓸 패턴이 팩에 하나도 안 실렸음"
+    for code, patterns in carried.items():
+        assert patterns == from_bundle[code]

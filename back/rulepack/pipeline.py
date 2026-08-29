@@ -81,6 +81,7 @@ CANDIDATE_OUTPUT_SCHEMA: dict[str, Any] = {
         "documents_required": {"type": "array", "items": {"type": "string"}},
         "forbidden_examples": {"type": "array", "items": {"type": "string"}},
         "risk_examples": {"type": "array", "items": {"type": "string"}},
+        "l1_patterns": {"type": "array"},
     },
     "additionalProperties": False,
 }
@@ -115,7 +116,13 @@ def _candidate_from_rule(rule: dict[str, Any], chunk_id: str, model: str) -> dic
         "prompt_version": "candidate-v1",
         "model": model,
     }
-    for key in ("numeric_facts", "documents_required", "forbidden_examples", "risk_examples"):
+    for key in (
+        "numeric_facts",
+        "documents_required",
+        "forbidden_examples",
+        "risk_examples",
+        "l1_patterns",
+    ):
         if key in rule:
             candidate[key] = rule[key]
     return candidate
@@ -333,6 +340,9 @@ def build_product_bundle(
             "name": product_config["name"],
             "category": product,
         },
+        # ⑧ 용어 밀도 게이지가 쓰는 목록. product 는 계약이 세 필드로 못박아
+        # 두어(additionalProperties false) 여기 따로 싣는다.
+        "jargon_terms": product_config.get("jargon_terms", []),
         "parser": {"name": run.parser.name, "version": run.parser.version},
         "sources": [
             {
