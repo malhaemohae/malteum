@@ -304,12 +304,6 @@ def build_product_bundle(
                 reason_code=rule["manual_review_reason"],
                 reason="exact span은 있으나 요구 요건 전체의 의미 근거가 부족함",
             )
-        elif candidate["candidate_kind"] == "risk_signal":
-            candidate.update(
-                status="review_required",
-                reason_code="contract_gap_risk_type",
-                reason="현행 schema에 위험 신호 type이 없음",
-            )
         else:
             candidate.update(status="evidence_verified", reason_code=None, reason=None)
         candidate["preview_ref"] = f"{evidence['doc_id']}.pdf#page={evidence['page']}"

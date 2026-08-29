@@ -90,7 +90,15 @@ def test_two_product_build_is_deterministic_and_isolates_rejections(bundles) -> 
     )
 
 
-def test_risk_signal_is_review_required_instead_of_forced_into_schema_type(bundles) -> None:
+def test_risk_signal_uses_risk_type_and_never_forbidden(bundles) -> None:
+    """위험 신호는 `risk` 로 나가야 하고 `forbidden` 으로 우회하면 안 된다.
+
+    위험 신호는 고객 발화 대상이라 경보만 만든다. `forbidden` 으로 밀어넣으면
+    고객이 한 말이 은행원의 위반으로 표시되어 P6 위반이 된다.
+
+    계약에 `risk` 가 없던 8/26 에는 검토 대기로 묶는 것이 그 보호였다. v0.4
+    (`79ce386`, 8/27)가 type 을 추가해 이제 정상 발행된다 (2026-08-29).
+    """
     risks = [
         item
         for bundle in bundles.values()
@@ -98,8 +106,11 @@ def test_risk_signal_is_review_required_instead_of_forced_into_schema_type(bundl
         if item.get("candidate_kind") == "risk_signal"
     ]
     assert risks
-    assert {item["status"] for item in risks} == {"review_required"}
-    assert {item["reason_code"] for item in risks} == {"contract_gap_risk_type"}
+    assert {item["type"] for item in risks} == {"risk"}
+    assert {item["status"] for item in risks} == {"evidence_verified"}
+    # axis 는 required(omission)·forbidden(commission) 에만 붙는다. 위험 신호에
+    # axis 가 생기면 판정 축이 있다는 뜻이라 경보 전용이라는 성격과 어긋난다.
+    assert not [item for item in risks if item.get("axis")]
 
 
 def test_loan_third_party_repayment_risk_uses_current_article_20(bundles) -> None:
