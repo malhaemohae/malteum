@@ -75,6 +75,7 @@ CANDIDATE_OUTPUT_SCHEMA: dict[str, Any] = {
         },
         "documents_required": {"type": "array", "items": {"type": "string"}},
         "forbidden_examples": {"type": "array", "items": {"type": "string"}},
+        "risk_examples": {"type": "array", "items": {"type": "string"}},
     },
     "additionalProperties": False,
 }
@@ -109,7 +110,7 @@ def _candidate_from_rule(rule: dict[str, Any], chunk_id: str, model: str) -> dic
         "prompt_version": "candidate-v1",
         "model": model,
     }
-    for key in ("numeric_facts", "documents_required", "forbidden_examples"):
+    for key in ("numeric_facts", "documents_required", "forbidden_examples", "risk_examples"):
         if key in rule:
             candidate[key] = rule[key]
     return candidate
