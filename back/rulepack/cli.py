@@ -13,10 +13,18 @@ from . import paths
 from .compiler import approval_digest, compile_pack, compile_synthetic_pack, publish_immutable
 from .pipeline import build_product_bundle, canonical_json
 
-PINNED_DEPENDENCIES = {
-    "jsonschema": "4.26.0",
-    "pypdfium2": "5.13.0",
-    "opendataloader-pdf": "2.3.0",
+# 값은 허용 표기 묶음이다. 한 패키지가 플랫폼마다 다른 문자열로 같은 빌드를
+# 부르는 경우가 있어 하나로 못박으면 그 플랫폼에서 늘 실패한다.
+PINNED_DEPENDENCIES: dict[str, tuple[str, ...]] = {
+    "jsonschema": ("4.26.0",),
+    "pypdfium2": ("5.13.0",),
+    "opendataloader-pdf": ("2.3.0",),
+    # 임베딩 벡터가 팩에 묶이므로 이 셋이 바뀌면 같은 항목도 다른 벡터가 된다.
+    "sentence-transformers": ("5.1.2",),
+    # macOS 휠에는 로컬 버전 접미사(`+cpu`)가 없다. 둘 다 같은 CPU 빌드라
+    # 벡터가 달라지지 않는다. `uv.lock` 이 darwin 에만 접미사 없는 것을 준다.
+    "torch": ("2.9.1+cpu", "2.9.1"),
+    "transformers": ("4.57.6",),
 }
 
 
@@ -95,9 +103,9 @@ def build_all(repo_root: Path, output: Path, work: Path) -> dict:
 def _strict_checks(repo_root: Path) -> dict[str, object]:
     installed = {name: importlib.metadata.version(name) for name in PINNED_DEPENDENCIES}
     mismatches = {
-        name: {"expected": expected, "actual": installed[name]}
-        for name, expected in PINNED_DEPENDENCIES.items()
-        if installed[name] != expected
+        name: {"allowed": list(allowed), "actual": installed[name]}
+        for name, allowed in PINNED_DEPENDENCIES.items()
+        if installed[name] not in allowed
     }
     if mismatches:
         raise RuntimeError(f"고정 의존성 버전 불일치: {mismatches}")
@@ -124,7 +132,7 @@ def _strict_checks(repo_root: Path) -> dict[str, object]:
     if contracts.returncode != 0:
         raise RuntimeError("contracts/validate.py 실패: " + contracts.stdout + contracts.stderr)
     return {
-        "dependency_versions_exact": True,
+        "dependency_versions_pinned": True,
         "java_major": java_major,
         "contracts_validate_exit_code": contracts.returncode,
     }
