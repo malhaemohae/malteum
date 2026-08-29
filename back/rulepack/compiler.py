@@ -12,6 +12,7 @@ from typing import Any
 import jsonschema
 
 from . import paths
+from .embedding import DeterministicFakeEmbedding, EmbeddingModel
 from .pipeline import _load_find_span, canonical_json, count_exact_span
 from .source_manifest import build_run_manifest
 
@@ -143,7 +144,9 @@ def _revalidate_candidate(repo_root: Path, item: dict[str, Any], sources: dict[s
             raise CompileError(f"numeric_fact 조건 연결 오류: {item['code']}")
 
 
-def _schema_item(item: dict[str, Any], approval: dict[str, Any]) -> dict[str, Any]:
+def _schema_item(
+    item: dict[str, Any], approval: dict[str, Any], model: EmbeddingModel
+) -> dict[str, Any]:
     result = {
         key: item[key]
         for key in (
@@ -158,11 +161,13 @@ def _schema_item(item: dict[str, Any], approval: dict[str, Any]) -> dict[str, An
     }
     if item.get("axis"):
         result["axis"] = item["axis"]
-    for key in ("numeric_facts", "documents_required", "forbidden_examples"):
+    for key in ("numeric_facts", "documents_required", "forbidden_examples", "risk_examples"):
         if key in item:
             result[key] = item[key]
     result["l1_patterns"] = []
-    result["embedding_id"] = f"e5:{item['code']}"
+    # 접두어는 벡터를 만든 구현이 정한다. 모델이 바뀌면 벡터도 바뀌므로
+    # 식별자가 같으면 어느 모델 것인지 구분되지 않는다.
+    result["embedding_id"] = f"{model.id_prefix}:{item['code']}"
     result["approved_at"] = approval["approved_at"]
     result["approved_by"] = approval["approved_by"]
     return result
@@ -188,6 +193,7 @@ def _compile_pack(
     version: str,
     *,
     allow_unverified: bool,
+    model: EmbeddingModel,
 ) -> dict[str, Any]:
     required = {"approved_by", "approved_at", "item_codes", "bundle_sha256"}
     if (
@@ -223,7 +229,7 @@ def _compile_pack(
         _revalidate_candidate(repo_root, item, sources)
         if not allow_unverified:
             _verify_confirmed_freshness(code, item["evidence"]["doc_id"], sources, audit)
-        selected.append(_schema_item(item, approval))
+        selected.append(_schema_item(item, approval, model))
 
     pack = {
         "schema_version": "1",
@@ -231,7 +237,7 @@ def _compile_pack(
         "product": bundle["product"],
         "published_at": approval["approved_at"],
         "published_by": approval["approved_by"],
-        "embedding": {"model": "intfloat/multilingual-e5-small", "dim": 384, "normalized": True},
+        "embedding": {"model": model.name, "dim": model.dim, "normalized": model.normalized},
         "sources": [
             {
                 key: source[key]
@@ -246,10 +252,15 @@ def _compile_pack(
 
 
 def compile_pack(
-    repo_root: Path, bundle: dict[str, Any], approval: dict[str, Any], version: str
+    repo_root: Path,
+    bundle: dict[str, Any],
+    approval: dict[str, Any],
+    version: str,
+    model: EmbeddingModel | None = None,
 ) -> dict[str, Any]:
     """운영 컴파일. 최신성이 confirmed인 승인 항목만 허용함."""
-    pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=False)
+    model = model or DeterministicFakeEmbedding()
+    pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=False, model=model)
     attestation_payload = {
         "artifact_kind": "production_compiled",
         "approval_signature": approval["approval_signature"],
@@ -268,10 +279,15 @@ def compile_pack(
 
 
 def compile_synthetic_pack(
-    repo_root: Path, bundle: dict[str, Any], approval: dict[str, Any], version: str
+    repo_root: Path,
+    bundle: dict[str, Any],
+    approval: dict[str, Any],
+    version: str,
+    model: EmbeddingModel | None = None,
 ) -> dict[str, Any]:
     """스키마 경로 검증 전용. 반환 envelope는 운영 publish 입력이 될 수 없음."""
-    pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=True)
+    model = model or DeterministicFakeEmbedding()
+    pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=True, model=model)
     return {"artifact_kind": "synthetic_dry_run", "production_publishable": False, "pack": pack}
 
 
