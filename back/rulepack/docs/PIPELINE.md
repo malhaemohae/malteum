@@ -71,7 +71,37 @@ python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run]
 
 ## 임베딩
 
-`embedding.py` 의 `EmbeddingModel` 을 따르는 구현이 벡터를 만든다. 지금은 `DeterministicFakeEmbedding` 하나뿐이고, 실제 모델은 선택이 끝나면 같은 Protocol 로 붙인다.
+`embedding.py` 의 `EmbeddingModel` 을 따르는 구현이 벡터를 만든다.
+
+| 구현 | 쓰는 곳 |
+| --- | --- |
+| `E5SmallEmbedding` | 운영. `intfloat/multilingual-e5-small` (117M · 384차원 · MIT) |
+| `DeterministicFakeEmbedding` | 모델 없이 경로만 돌려볼 때 |
+
+나중에 외부 임베딩 API 로 갈아탈 때도 같은 Protocol 을 구현하면 되고, 팩 구조와 적재·테이블은 손대지 않는다. 적재는 팩이 적은 `embedding.model` 로 구현을 고르므로, 모르는 이름이면 멈춘다.
+
+### 왜 이 모델인가
+
+기획안 375줄이 정한 것이고, 2026-08-30 에 실측으로 확인했다.
+
+| 항목 | 실측 |
+| --- | --- |
+| 문장 1개 인코딩 (CPU, 배치 없음) | 중앙값 7.0ms · p95 8.9ms · 최대 10.0ms |
+| 기획안 L2 지연 예산 | 5~20ms. 통과 |
+| 검색 1순위 적중 | 대출 발화 5건 중 4건 |
+| 설치 용량 | `.venv` 150MB → 887MB (CPU 휠) |
+
+한국어 정확도 1위는 KURE-v1(NDCG@10 0.695, 568M)이지만 bge-m3 계열이라 CPU 에서 30ms 를 넘어 지연 예산을 못 맞춘다. L2 는 프리필터이고 최종 판정권이 L3 에 있으므로 정확도보다 지연을 지키는 쪽을 골랐다.
+
+빗나간 1건은 "금리 깎아달라고 할 수 있나요"였는데, 대상인 `LOAN-RDR-001` 이 `evidence_scope_mismatch` 로 아직 발행 대상이 아니라 후보에 없었다. 모델 문제가 아니다.
+
+### CPU 로 고정한 이유
+
+벡터를 만드는 곳(M3 오프라인 배치)과 쓰는 곳(M2 실시간 L2)이 다르다. 쓰는 쪽이 자체 서버라 GPU 를 가정할 수 없고, 만드는 쪽만 GPU 를 쓰면 부동소수점 연산 순서가 달라져 `verify --strict` 의 결정적 재실행 검사가 흔들린다. CI 에도 GPU 가 없다.
+
+### 접두어
+
+E5 계열은 입력에 `query:` 또는 `passage:` 를 붙여 학습했다. 팩 항목은 검색 대상이라 `passage:`, 실시간 발화는 `query:` 를 쓴다. 빼면 학습 분포와 어긋나 유사도가 나빠진다.
 
 팩의 `embedding.model` · `dim` 은 **실제로 벡터를 만든 구현이 스스로 밝힌 값**이다. 상수로 박아 두면 벡터를 만든 적도 없는 모델 이름이 팩에 남는다. 2026-08-29 이전이 `intfloat/multilingual-e5-small` 을 그렇게 적고 있었다.
 

@@ -18,6 +18,7 @@ sys.path.insert(0, str(REPO_ROOT / "back" / "scripts"))
 
 from rulepack.embedding import (  # noqa: E402
     DeterministicFakeEmbedding,
+    E5SmallEmbedding,
     EmbeddingError,
     embedding_text,
 )
@@ -214,3 +215,31 @@ def test_pack_is_immutable_without_replace(conn) -> None:
             for table in ("item_embedding", "pack_item", "pack"):
                 cur.execute(f"delete from {table} where pack_version = %s", (pack["pack_version"],))
             conn.commit()
+
+
+def test_e5_declares_contract_values() -> None:
+    """팩에 적히는 값이라 바뀌면 과거 팩과 어긋난다."""
+    model = E5SmallEmbedding()
+
+    assert model.name == "intfloat/multilingual-e5-small"
+    assert model.dim == 384
+    assert model.id_prefix == "e5"
+    assert model.normalized is True
+
+
+def test_e5_rejects_unknown_prefix() -> None:
+    """E5 는 query·passage 접두어로 학습됐다. 다른 값은 학습 분포와 어긋난다."""
+    with pytest.raises(EmbeddingError):
+        E5SmallEmbedding(prefix="document")
+
+
+def test_model_for_picks_by_declared_name() -> None:
+    """팩이 적은 모델로 구현을 고른다. 아무 구현으로나 만들면 팩과 다른 값이 들어간다."""
+    from load_pack import LoadError, model_for
+
+    assert model_for(
+        {"embedding": {"model": "intfloat/multilingual-e5-small", "dim": 384}}
+    ).name == ("intfloat/multilingual-e5-small")
+    assert model_for({"embedding": {"model": "deterministic-fake", "dim": 8}}).dim == 8
+    with pytest.raises(LoadError, match="모르는 임베딩 모델"):
+        model_for({"embedding": {"model": "some-future-api", "dim": 1536}})

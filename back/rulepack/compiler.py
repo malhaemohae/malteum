@@ -12,7 +12,7 @@ from typing import Any
 import jsonschema
 
 from . import paths
-from .embedding import DeterministicFakeEmbedding, EmbeddingModel
+from .embedding import E5SmallEmbedding, EmbeddingModel
 from .pipeline import _load_find_span, canonical_json, count_exact_span
 from .source_manifest import build_run_manifest
 
@@ -259,7 +259,7 @@ def compile_pack(
     model: EmbeddingModel | None = None,
 ) -> dict[str, Any]:
     """운영 컴파일. 최신성이 confirmed인 승인 항목만 허용함."""
-    model = model or DeterministicFakeEmbedding()
+    model = model or E5SmallEmbedding()
     pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=False, model=model)
     attestation_payload = {
         "artifact_kind": "production_compiled",
@@ -286,7 +286,7 @@ def compile_synthetic_pack(
     model: EmbeddingModel | None = None,
 ) -> dict[str, Any]:
     """스키마 경로 검증 전용. 반환 envelope는 운영 publish 입력이 될 수 없음."""
-    model = model or DeterministicFakeEmbedding()
+    model = model or E5SmallEmbedding()
     pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=True, model=model)
     return {"artifact_kind": "synthetic_dry_run", "production_publishable": False, "pack": pack}
 

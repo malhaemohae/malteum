@@ -6,8 +6,13 @@
 하고, 코드 어딘가에 상수로 박아 두면 안 된다. 박아 두면 벡터를 만든 적도 없는
 모델 이름이 팩에 남는다 (2026-08-29 이전이 그랬다).
 
-지금은 결정적 fake 하나만 있다. 실제 모델은 선택이 끝나면 같은 Protocol 로
-붙인다. 붙이는 쪽은 `encode` 와 세 속성만 채우면 되고 나머지는 안 바뀐다.
+구현이 둘이다. `E5SmallEmbedding` 이 운영용이고 `DeterministicFakeEmbedding`
+은 모델 없이 경로를 돌려보는 용도다. 나중에 외부 임베딩 API 로 갈아탈 때도 같은
+Protocol 을 구현하면 되고, 팩·적재·테이블은 손대지 않는다.
+
+CPU 로 돌린다. 벡터를 만드는 곳(M3 오프라인 배치)과 쓰는 곳(M2 실시간 L2)이
+다른데, 쓰는 쪽이 자체 서버라 GPU 를 가정할 수 없다. 만드는 쪽만 GPU 를 쓰면
+부동소수점 연산 순서가 달라져 `verify --strict` 의 결정적 재실행 검사가 흔들린다.
 """
 
 from __future__ import annotations
@@ -75,6 +80,49 @@ class DeterministicFakeEmbedding:
         if norm == 0:
             raise EmbeddingError("영벡터가 나왔음")
         return [v / norm for v in values]
+
+
+class E5SmallEmbedding:
+    """`intfloat/multilingual-e5-small`. 기획안이 정한 운영 모델.
+
+    117M 파라미터 · 12레이어 · 384차원 · MIT. 한국어 정확도 1위는 KURE-v1
+    (568M)이지만 그 계열은 CPU 에서 30ms 를 넘어 L2 지연 예산(5~20ms)을 못
+    맞춘다. L2 는 프리필터이고 최종 판정권이 L3 에 있으므로, 정확도보다 지연을
+    지키는 쪽을 골랐다 (기획안 375줄).
+
+    E5 계열은 입력에 `query:` 또는 `passage:` 접두어를 붙여 학습했다. 팩 항목은
+    검색 대상이라 `passage:`, 실시간 발화는 `query:` 를 쓴다. 접두어를 빼면
+    학습 분포와 어긋나 유사도가 나빠진다.
+    """
+
+    name = "intfloat/multilingual-e5-small"
+    id_prefix = "e5"
+    normalized = True
+    dim = 384
+
+    def __init__(self, prefix: str = "passage") -> None:
+        if prefix not in ("query", "passage"):
+            raise EmbeddingError("prefix 는 query 또는 passage 여야 함")
+        self.prefix = prefix
+        self._model: Any = None
+
+    def _load(self) -> Any:
+        # 지연 로딩. 모델을 안 쓰는 경로(build·verify)에서 500MB 를 읽지 않는다.
+        if self._model is None:
+            try:
+                from sentence_transformers import SentenceTransformer
+            except ImportError as exc:  # noqa: BLE001
+                raise EmbeddingError("sentence-transformers 가 필요함") from exc
+            self._model = SentenceTransformer(self.name, device="cpu")
+        return self._model
+
+    def encode(self, texts: list[str]) -> list[list[float]]:
+        if not texts:
+            return []
+        model = self._load()
+        prefixed = [f"{self.prefix}: {text}" for text in texts]
+        vectors = model.encode(prefixed, normalize_embeddings=True, show_progress_bar=False)
+        return [[float(x) for x in vector] for vector in vectors]
 
 
 def embedding_text(item: dict[str, Any]) -> str:

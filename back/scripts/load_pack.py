@@ -36,6 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from rulepack.embedding import (  # noqa: E402
     DeterministicFakeEmbedding,
+    E5SmallEmbedding,
     EmbeddingModel,
     embedding_text,
 )
@@ -55,6 +56,20 @@ def dsn_from_env() -> str:
     """
     url = os.environ.get("APP_DATABASE_URL", DEFAULT_DSN)
     return url.replace("postgresql+psycopg://", "postgresql://", 1)
+
+
+def model_for(pack: dict[str, Any]) -> EmbeddingModel:
+    """팩이 적은 모델 이름으로 구현을 고른다.
+
+    팩마다 다른 모델로 만들어졌을 수 있고, 적재는 그것을 그대로 재현해야 한다.
+    모르는 이름이면 멈춘다. 아무 구현으로나 벡터를 만들면 팩이 말하는 것과 다른
+    값이 DB 에 들어간다.
+    """
+    declared = pack["embedding"]
+    for candidate in (E5SmallEmbedding(), DeterministicFakeEmbedding(dim=declared["dim"])):
+        if candidate.name == declared["model"]:
+            return candidate
+    raise LoadError(f"모르는 임베딩 모델: {declared['model']}. 구현을 먼저 붙여야 함")
 
 
 def unwrap(document: dict[str, Any]) -> dict[str, Any]:
@@ -190,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
 
     document = json.loads(args.pack.read_text(encoding="utf-8"))
     pack = unwrap(document)
-    model = DeterministicFakeEmbedding(dim=pack["embedding"]["dim"])
+    model = model_for(pack)
 
     if args.dry_run:
         _, items, vectors = rows(pack, model, encode=False)

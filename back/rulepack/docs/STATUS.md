@@ -31,6 +31,7 @@
 - 2026-08-29 위험 신호 2건을 `risk` type 으로 발행. 계약 v0.4 가 이미 채운 공백을 코드가 뒤늦게 따라감
 - 2026-08-29 `pack` · `pack_item` · `item_embedding` 테이블 추가
 - 2026-08-29 임베딩 어댑터와 `scripts/load_pack.py` 추가. 팩이 실제로 벡터를 만든 구현을 기록하게 됨
+- 2026-08-30 임베딩 모델을 `intfloat/multilingual-e5-small` 로 확정. CPU 중앙값 7.0ms 로 L2 지연 예산 통과
 - 2026-08-29 `risk` 항목에 `risk_examples` 부여. 계약이 요구하는데 빠져 있어 운영 컴파일이 막혔음
 
 ## 되짚는 법
