@@ -3,6 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+# entities import 는 모델을 Base.metadata 에 등록시킨다. 이 줄이 없으면
+# autogenerate 가 빈 마이그레이션을 만든다.
+import server.database.entities  # noqa: F401
 from server.bootstrap.settings import get_settings
 from server.database.base import Base
 
