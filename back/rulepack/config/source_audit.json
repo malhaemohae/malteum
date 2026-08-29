@@ -1,5 +1,5 @@
 {
-  "audit_version": "2026-08-26",
+  "audit_version": "2026-08-29",
   "default": {
     "status": "unverified",
     "reason": "공식 1차 출처와 후보별 시행 기준 대조 미완료"
@@ -89,84 +89,60 @@
       "reason": "공식 게시 파일과 로컬 원천의 SHA-256 및 페이지 수가 일치"
     },
     "LOAN-INT-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
-      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-08-29",
+      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
     },
     "LOAN-RDR-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
-      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-08-29",
+      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
     },
     "LOAN-ARR-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
-      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-08-29",
+      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
     },
     "LOAN-PRE-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
-      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-08-29",
+      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
     },
     "LOAN-DSR-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
-      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-08-29",
+      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
     },
     "LOAN-WDR-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
-      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-08-29",
+      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
     },
     "LOAN-CIC-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
-      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-08-29",
+      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
     },
     "LOAN-DOC-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "edc618931682dd7876e115f17a9ef75e62ace42180e8d1a353cd7714aa9f3f3a",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
-      "replacement_candidate_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "reason": "공식 2025.01 개정 후보와 로컬 2023.12 원천의 해시 및 페이지 수가 달라 원천 교체 필요"
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-08-29",
+      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
     },
     "LOAN-BAN-001": {
       "status": "confirmed",

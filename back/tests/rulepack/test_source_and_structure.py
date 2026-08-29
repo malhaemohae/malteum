@@ -19,7 +19,8 @@ def test_run_manifest_fixes_all_seven_sources_and_parser_identity() -> None:
     assert run.parser.name == "opendataloader-pdf"
     assert run.parser.version == "2.3.0"
     assert len(run.sources) == 7
-    assert sum(source.page_count for source in run.sources) == 120
+    # 06 가계대출 설명서를 2025.01 개정본(24쪽)으로 교체하며 26 -> 24 로 줄었다
+    assert sum(source.page_count for source in run.sources) == 118
 
     for source in run.sources:
         expected = hashlib.sha256(source.path.read_bytes()).hexdigest()

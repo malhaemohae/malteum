@@ -282,29 +282,48 @@ def test_source_refresh_classifies_every_non_fixture_candidate() -> None:
         status: sum(record["status"] == status for record in audit["candidates"].values())
         for status in ("confirmed", "unverified", "conflict")
     }
-    refresh = json.loads(
-        (paths.default_artifacts_dir(REPO_ROOT) / "source_refresh_20260826.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    # 감사 기록은 시점마다 새 파일로 쌓인다. 요약이 맞아야 하는 대상은 늘 최신본이다.
+    latest = sorted(paths.default_artifacts_dir(REPO_ROOT).glob("source_refresh_*.json"))[-1]
+    refresh = json.loads(latest.read_text(encoding="utf-8"))
     assert refresh["candidate_summary"] == {
         **status_counts,
         "excluded_negative_fixtures": 2,
     }
 
 
-def test_unreplaced_product_documents_keep_publication_blockers(bundles) -> None:
-    product_doc_ids = {"05_상품설명서_정기예금", "06_상품설명서_가계대출"}
-    product_items = [
+def _items_from(bundles, doc_id: str) -> list[dict]:
+    return [
         item
         for bundle in bundles.values()
         for item in bundle["items"]
-        if item["evidence"]["doc_id"] in product_doc_ids and "-REJ-" not in item["code"]
+        if item["evidence"]["doc_id"] == doc_id and "-REJ-" not in item["code"]
     ]
 
-    assert product_items
-    assert all(item.get("publication_blocker") for item in product_items)
-    assert {item["freshness"] for item in product_items} <= {"unverified", "conflict"}
+
+def test_unreplaced_product_documents_keep_publication_blockers(bundles) -> None:
+    """원천을 아직 못 바꾼 상품 문서는 발행이 막혀 있어야 한다.
+
+    정기예금 설명서는 공식 후보 자체가 심의 만료라 교체할 대상이 없다. 이 가드가
+    풀리면 옛 원천으로 만든 항목이 그대로 발행된다.
+    """
+    items = _items_from(bundles, "05_상품설명서_정기예금")
+
+    assert items
+    assert all(item.get("publication_blocker") for item in items)
+    assert {item["freshness"] for item in items} <= {"unverified", "conflict"}
+
+
+def test_replaced_product_document_clears_publication_blockers(bundles) -> None:
+    """교체를 마친 상품 문서는 차단이 풀려야 한다.
+
+    가계대출 설명서를 2025.01 개정본으로 갈고 `source_audit.json` 을 새 해시로
+    올린 결과다. 교체를 되돌리거나 감사 갱신을 빠뜨리면 여기서 잡힌다 (2026-08-29).
+    """
+    items = _items_from(bundles, "06_상품설명서_가계대출")
+
+    assert items
+    assert not [item for item in items if item.get("publication_blocker")]
+    assert all(item["freshness"] == "confirmed" for item in items)
 
 
 def test_compile_revalidates_tampered_bbox_numeric_value_unit_condition_and_doc_id(bundles) -> None:
