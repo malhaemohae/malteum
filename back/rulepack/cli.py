@@ -14,8 +14,8 @@ from .compiler import approval_digest, compile_pack, compile_synthetic_pack, pub
 from .pipeline import build_product_bundle, canonical_json
 
 PINNED_DEPENDENCIES = {
-    "jsonschema": "4.25.1",
-    "pypdfium2": "4.30.0",
+    "jsonschema": "4.26.0",
+    "pypdfium2": "5.13.0",
     "opendataloader-pdf": "2.3.0",
 }
 

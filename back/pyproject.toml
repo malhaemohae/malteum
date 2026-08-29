@@ -8,9 +8,9 @@ dependencies = [
     "uvicorn[standard]>=0.30",
     "pydantic>=2.8",
     "pydantic-settings>=2.4",
-    "jsonschema>=4.23",
+    "jsonschema==4.26.0",         # rulepack 이 정확 일치를 요구 (cli.PINNED_DEPENDENCIES)
     "opendataloader-pdf==2.3.0",    # M3 구조 추출 (JDK 21 필요). 파서 버전이 팩에 기록되므로 정확히 고정
-    "pypdfium2>=4.30",              # 문자 좌표·페이지 렌더
+    "pypdfium2==5.13.0",            # 문자 좌표·페이지 렌더. 좌표가 팩 span 에 들어가므로 정확히 고정
     "pyyaml>=6.0",
     "sqlalchemy>=2.0",
     "alembic>=1.13",
