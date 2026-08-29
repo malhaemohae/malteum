@@ -571,3 +571,29 @@ def test_status_doc_matches_actual_counts(bundles) -> None:
         row = re.search(rf"\| {label} \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|", doc)
         assert row, f"STATUS.md 에 {label} 행이 없음"
         assert tuple(int(g) for g in row.groups()) == actual, f"{label} 판정 표가 실물과 다름"
+
+
+def test_item_type_matches_who_the_article_binds(bundles) -> None:
+    """항목 type 은 근거 조문이 누구를 구속하는지와 맞아야 한다.
+
+    `forbidden` 은 은행원 발화, `risk` 는 고객 발화다. 뒤집히면 둘 중 하나가
+    난다. 은행원의 위반이 경보로만 처리되어 판정에서 빠지거나, 고객이 한 말이
+    은행원의 위반으로 표시되어 P6 를 어긴다.
+
+    금소법 제20조는 "금융상품판매업자등은 ... 해서는 아니 된다" 로 은행원을
+    구속한다. 예금거래기본약관 제6조는 "거래처는 ... 할 수 있다" 로 고객의
+    행위를 적는다. 실제로 `LOAN-RSK-001` 이 제20조를 근거로 두고 `risk` 로
+    분류돼 있었다 (2026-08-30).
+    """
+    은행원_구속 = {("금융소비자보호법", "제20조"), ("금융소비자보호법", "제21조")}
+    고객_행위 = {("예금거래기본약관", "제6조")}
+
+    for bundle in bundles.values():
+        for item in bundle["items"]:
+            basis = {(b["law"], b["article"]) for b in item["legal_basis"]}
+            if basis & 은행원_구속:
+                assert item["type"] != "risk", (
+                    f"{item['code']}: 은행원을 구속하는 조문인데 고객 발화(risk)로 분류됨"
+                )
+            if basis & 고객_행위 and item["type"] == "risk":
+                assert not item.get("axis"), f"{item['code']}: risk 에 axis 가 붙음"
