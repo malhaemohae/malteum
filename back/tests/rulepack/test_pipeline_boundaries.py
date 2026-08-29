@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from copy import deepcopy
 from pathlib import Path
 
@@ -545,3 +546,28 @@ def test_run_manifest_has_no_unmapped_source_ids() -> None:
     rules = json.loads(RULES.read_text(encoding="utf-8"))
     used = {rule["doc_id"] for items in rules["products"].values() for rule in items}
     assert used <= known
+
+
+def test_status_doc_matches_actual_counts(bundles) -> None:
+    """`docs/STATUS.md` 의 판정 표가 실제 build 결과와 같아야 한다.
+
+    문서의 숫자를 손으로 적으면 코드가 바뀔 때마다 조용히 어긋난다. 낡은 문서는
+    틀린 정보보다 나쁘므로 기계가 대조한다 (2026-08-29).
+    """
+    doc = (REPO_ROOT / "back" / "rulepack" / "docs" / "STATUS.md").read_text(encoding="utf-8")
+
+    for product, label in (("deposit", "예금 신규"), ("loan", "신용대출")):
+        items = bundles[product]["items"]
+        actual = (
+            sum(
+                1
+                for i in items
+                if i["status"] == "evidence_verified" and not i.get("publication_blocker")
+            ),
+            sum(1 for i in items if i["status"] == "review_required"),
+            sum(1 for i in items if i.get("publication_blocker")),
+            sum(1 for i in items if i["status"] == "rejected"),
+        )
+        row = re.search(rf"\| {label} \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|", doc)
+        assert row, f"STATUS.md 에 {label} 행이 없음"
+        assert tuple(int(g) for g in row.groups()) == actual, f"{label} 판정 표가 실물과 다름"
