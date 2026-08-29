@@ -1,0 +1,18 @@
+# 줄바꿈은 저장소에서 LF 하나로 통일한다.
+#   core.autocrlf 는 사람마다 값이 달라, 같은 파일이 누구는 CRLF 누구는 LF 로
+#   체크아웃된다. 그러면 고치지도 않은 파일이 변경으로 잡힌다. 실제로
+#   scripts/gen_models.sh 를 돌릴 때마다 server/generated/ 가 그렇게 잡혔다.
+* text=auto eol=lf
+
+# 바이너리는 손대지 않는다. 규정 PDF 는 rulepack 이 원문 SHA-256 을 고정하므로
+# 한 바이트라도 바뀌면 근거 스팬 대조가 깨지고 팩 발행이 막힌다.
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.wav  binary
+*.hwpx binary
+*.pptx binary
+*.docx binary
+
+# 셸 스크립트는 LF 여야 실행된다. CRLF 면 bash 가 끝의 CR 을 인자로 읽는다.
+*.sh   text eol=lf
