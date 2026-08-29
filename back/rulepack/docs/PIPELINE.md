@@ -61,6 +61,8 @@ uv run python -m rulepack.cli verify --strict  # 결정성 · 고정 의존성 �
 
 테이블은 `back/server/database/entities/pack.py` 가 정의하고 alembic 이 만든다. rulepack 은 `server` 를 import 할 수 없으므로 적재 스크립트는 그 모델을 쓰지 않고 SQL 로 넣는다.
 
+발행은 `publish` 가 `artifacts/rulepack_<version>.json` 을 쓴다. M2 는 이 파일 이름 하나로 M3 와 만난다(`engine/adapters/pack_source/file.py`). 서로의 코드를 안 보고도 연결되는 지점이라 이름이 바뀌면 조용히 끊긴다.
+
 적재는 `scripts/load_pack.py` 가 한다.
 
 ```bash

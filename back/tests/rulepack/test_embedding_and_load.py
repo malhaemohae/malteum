@@ -243,3 +243,56 @@ def test_model_for_picks_by_declared_name() -> None:
     assert model_for({"embedding": {"model": "deterministic-fake", "dim": 8}}).dim == 8
     with pytest.raises(LoadError, match="모르는 임베딩 모델"):
         model_for({"embedding": {"model": "some-future-api", "dim": 1536}})
+
+
+def test_published_pack_is_readable_by_engine(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """M3 가 발행한 팩을 M2 의 로더가 그대로 읽어야 한다.
+
+    두 모듈은 서로의 코드를 모르고 `rulepack_<version>.json` 파일 이름 하나로
+    만난다. 발행 쪽 이름이 바뀌면 읽는 쪽이 조용히 못 찾는다. `publish` 는
+    이 세션 전까지 한 번도 실행된 적이 없었다 (2026-08-30).
+    """
+    from engine.adapters.pack_source.file import FilePackSource
+    from engine.pack.loader import load_pack
+    from rulepack import paths
+    from rulepack.compiler import approval_digest, approval_signature, compile_pack
+    from rulepack.pipeline import build_product_bundle
+
+    key = "test-approval-key-that-is-at-least-32-bytes"
+    monkeypatch.setenv("RULEPACK_APPROVAL_HMAC_KEY", key)
+    rules = paths.config_dir(REPO_ROOT) / "candidate_rules.json"
+    bundle = build_product_bundle(REPO_ROOT, "loan", rules, tmp_path / "work")
+    codes = [
+        i["code"]
+        for i in bundle["items"]
+        if i["status"] == "evidence_verified" and not i.get("publication_blocker")
+    ]
+    approval = {
+        "approved_by": "pytest",
+        "approved_at": "2026-08-30T00:00:00Z",
+        "item_codes": codes,
+        "bundle_sha256": approval_digest(bundle),
+    }
+    approval["approval_signature"] = approval_signature(approval, key)
+
+    from rulepack.compiler import publish_immutable
+
+    compiled = compile_pack(REPO_ROOT, bundle, approval, "LOAN-2026.08-v9")
+    assert publish_immutable(compiled, tmp_path / "out") == "created"
+
+    # 발행 쪽이 쓴 이름을 읽는 쪽이 그대로 찾는다.
+    pack = load_pack(FilePackSource(tmp_path / "out"), "LOAN-2026.08-v9")
+    assert len(pack.items) == len(codes)
+
+
+def test_publish_rejects_non_production_artifact(tmp_path: Path) -> None:
+    """검증용 dry-run 산출물은 발행되면 안 된다."""
+    from rulepack.compiler import CompileError, publish_immutable
+
+    with pytest.raises(CompileError, match="attestation"):
+        publish_immutable(
+            {"artifact_kind": "synthetic_dry_run", "production_publishable": False, "pack": {}},
+            tmp_path / "out",
+        )
