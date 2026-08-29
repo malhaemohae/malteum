@@ -54,6 +54,16 @@ def _read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _products(repo_root: Path) -> list[str]:
+    """상품 목록의 진실 원천은 `config/products.json` 이다.
+
+    코드에 박아 두면 상품을 늘릴 때 설정과 코드를 둘 다 고쳐야 하고, 한쪽만
+    고치면 조용히 빠진다 (2026-08-30).
+    """
+    doc = _read_json(paths.config_dir(repo_root) / "products.json")
+    return sorted(doc)
+
+
 def build_all(repo_root: Path, output: Path, work: Path) -> dict:
     rules = paths.config_dir(repo_root) / "candidate_rules.json"
     work.parent.mkdir(parents=True, exist_ok=True)
@@ -61,7 +71,7 @@ def build_all(repo_root: Path, output: Path, work: Path) -> dict:
         run_work = Path(run_dir)
         bundles = {
             product: build_product_bundle(repo_root, product, rules, run_work / product)
-            for product in ("deposit", "loan")
+            for product in _products(repo_root)
         }
     for product, bundle in bundles.items():
         _write(output / f"review_{product}.json", bundle)
@@ -89,7 +99,9 @@ def build_all(repo_root: Path, output: Path, work: Path) -> dict:
     _write(
         output / "run_manifest.json",
         {
-            "parser": bundles["deposit"]["parser"],
+            # parser 는 상품이 아니라 실행 단위의 속성이라 아무 번들에서 꺼내도 같다.
+            # 상품 이름을 박으면 상품 이름이 바뀔 때 여기서만 KeyError 로 죽는다.
+            "parser": next(iter(bundles.values()))["parser"],
             "sources": {
                 source["doc_id"]: source
                 for bundle in bundles.values()
@@ -138,6 +150,17 @@ def _strict_checks(repo_root: Path) -> dict[str, object]:
     }
 
 
+def _synthetic_version(bundle: dict) -> str:
+    """dry-run 팩 버전. 계약이 `^[A-Z]{3,4}-\d{4}\.\d{2}-v\d+$` 를 강제한다.
+
+    접두어는 항목 코드에서 딴다. 상품이 늘어도 코드를 안 고치게 하려는 것이고,
+    이 버전은 검증 전용이라 운영 발행물이 되지 못한다.
+    """
+    code = bundle["items"][0]["code"]
+    prefix = code.split("-", 1)[0]
+    return f"{prefix}-2026.08-v1"
+
+
 def verify(repo_root: Path, output: Path, strict: bool = False) -> dict:
     with (
         tempfile.TemporaryDirectory(prefix="rulepack_verify_") as first_dir,
@@ -147,22 +170,22 @@ def verify(repo_root: Path, output: Path, strict: bool = False) -> dict:
         second = build_all(repo_root, Path(second_dir) / "artifacts", Path(second_dir) / "work")
         if canonical_json(first) != canonical_json(second):
             raise RuntimeError("결정적 재실행 불일치")
-    approvals = {
-        product: {
+    # 검증용 항목은 번들에서 고른다. 코드에 박으면 그 항목이 폐기·보류로 바뀔 때
+    # dry-run 이 통째로 실패하고, 원인이 계약이 아니라 이 목록이 낡은 것이 된다.
+    dry_run = {}
+    for product, bundle in first.items():
+        codes = [item["code"] for item in bundle["items"] if item["status"] == "evidence_verified"]
+        if not codes:
+            raise RuntimeError(f"{product}: 근거 검증을 통과한 항목이 없어 dry-run 을 못 만듦")
+        approval = {
             "approved_by": "synthetic-reviewer",
             "approved_at": "2026-08-26T00:00:00Z",
-            "item_codes": [code],
-            "bundle_sha256": approval_digest(first[product]),
+            "item_codes": [codes[0]],
+            "bundle_sha256": approval_digest(bundle),
         }
-        for product, code in (("deposit", "DEP-INT-002"), ("loan", "LOAN-ARR-001"))
-    }
-    versions = {"deposit": "DEP-2026.08-v1", "loan": "LOAN-2026.08-v1"}
-    dry_run = {
-        product: compile_synthetic_pack(
-            repo_root, first[product], approvals[product], versions[product]
+        dry_run[product] = compile_synthetic_pack(
+            repo_root, bundle, approval, _synthetic_version(bundle)
         )
-        for product in approvals
-    }
     for product, envelope in dry_run.items():
         _write(output / "dry_run" / f"synthetic_{product}.json", envelope)
     summary = {

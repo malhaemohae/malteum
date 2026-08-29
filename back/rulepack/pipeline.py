@@ -13,6 +13,11 @@ from .adapters import CandidateExtractor, DeterministicRuleAdapter, extract_batc
 from .source_manifest import build_run_manifest
 from .structure import StructureChunk, build_chunks_from_structure, extract_documents
 
+
+class PipelineError(ValueError):
+    """상품 설정이 서로 어긋남."""
+
+
 CANDIDATE_OUTPUT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "required": [
@@ -188,6 +193,13 @@ def build_product_bundle(
         (paths.config_dir(repo_root) / "products.json").read_text(encoding="utf-8")
     )
     rules_doc = json.loads(rules_path.read_text(encoding="utf-8"))
+    # 상품 목록(products.json)과 후보 규칙(candidate_rules.json)은 따로 관리된다.
+    # 한쪽에만 추가하면 KeyError 로 죽는데, 그 메시지로는 어느 파일이 빠졌는지
+    # 알 수 없다 (2026-08-30).
+    if product not in products:
+        raise PipelineError(f"products.json 에 없는 상품: {product}")
+    if product not in rules_doc["products"]:
+        raise PipelineError(f"candidate_rules.json 에 후보 규칙이 없는 상품: {product}")
     product_config = products[product]
     selected = [source for source in run.sources if source.doc_id in product_config["document_ids"]]
     documents = extract_documents(selected, work_dir / "structure")

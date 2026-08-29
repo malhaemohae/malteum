@@ -597,3 +597,29 @@ def test_item_type_matches_who_the_article_binds(bundles) -> None:
                 )
             if basis & 고객_행위 and item["type"] == "risk":
                 assert not item.get("axis"), f"{item['code']}: risk 에 axis 가 붙음"
+
+
+def test_product_list_comes_from_config_not_code() -> None:
+    """상품 목록의 진실 원천은 `config/products.json` 이다.
+
+    코드에 박아 두면 상품을 늘릴 때 설정과 코드를 둘 다 고쳐야 하고, 한쪽만
+    고치면 조용히 빠진다. 실제로 `cli.py` 가 `("deposit", "loan")` 을 박고
+    있었다 (2026-08-30).
+    """
+    from rulepack.cli import _products
+
+    config = json.loads((paths.config_dir(REPO_ROOT) / "products.json").read_text(encoding="utf-8"))
+    assert _products(REPO_ROOT) == sorted(config)
+
+
+def test_config_mismatch_says_which_file(tmp_path: Path) -> None:
+    """상품 설정 두 개가 어긋나면 어느 파일이 빠졌는지 말해야 한다.
+
+    `products.json` 에만 있고 `candidate_rules.json` 에 규칙이 없으면 전에는
+    맨 KeyError 로 죽어 원인을 알 수 없었다.
+    """
+    from rulepack.pipeline import PipelineError, build_product_bundle
+
+    rules = paths.config_dir(REPO_ROOT) / "candidate_rules.json"
+    with pytest.raises(PipelineError, match="products.json 에 없는 상품"):
+        build_product_bundle(REPO_ROOT, "nonexistent", rules, tmp_path / "x")
