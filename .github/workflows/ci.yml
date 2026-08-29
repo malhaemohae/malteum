@@ -12,6 +12,22 @@ jobs:
     defaults:
       run:
         working-directory: back
+    services:
+      # rulepack 의 팩 적재(scripts/load_pack.py)를 실제로 돌려 본다. 없으면 그
+      # 테스트가 조용히 건너뛰어 적재 경로가 검증되지 않는다.
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app -d app"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       # rulepack 의 구조 추출(OpenDataLoader)이 java 를 호출한다
@@ -23,11 +39,26 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --frozen
+      # 임베딩 모델(multilingual-e5-small, 약 0.5GB)을 매 실행마다 받지 않는다.
+      # 모델을 바꾸면 키가 달라져 새로 받는다.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ runner.os }}-e5-small-v1
+      # compose 의 db/init.sql 은 서비스 컨테이너에 안 걸리므로 여기서 켠다.
+      - run: psql "$APP_DATABASE_URL" -c 'create extension if not exists vector'
+        env:
+          APP_DATABASE_URL: postgresql://app:app@localhost:5432/app
+      - run: uv run alembic upgrade head
+        env:
+          APP_DATABASE_URL: postgresql+psycopg://app:app@localhost:5432/app
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run lint-imports
       - run: scripts/gen_models.sh --check
       - run: uv run pytest -q
+        env:
+          APP_DATABASE_URL: postgresql+psycopg://app:app@localhost:5432/app
       # 파이프라인 실행. 테스트만으로는 안 잡히는 것이 있다.
       #   build  : 실제 출력 경로에 쓰는 경로 해석(paths.find_repo_root)
       #   verify : build 를 두 번 돌려 결정성 확인 + 고정 의존성·java·계약 검증
