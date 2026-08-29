@@ -1,7 +1,7 @@
 {
   "deposit": {
-    "code": "SHB-MYPLUS-TD",
-    "name": "신한 My플러스 정기예금",
+    "code": "ICBC-KRW-TD",
+    "name": "ICBC 원화정기예금",
     "document_ids": [
       "01_금융소비자보호법",
       "02_설명의무_이행_가이드라인",

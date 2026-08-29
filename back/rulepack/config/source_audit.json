@@ -1,68 +1,52 @@
 {
-  "audit_version": "2026-08-29",
+  "audit_version": "2026-08-30",
   "default": {
     "status": "unverified",
     "reason": "공식 1차 출처와 후보별 시행 기준 대조 미완료"
   },
   "candidates": {
     "DEP-INT-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "05_상품설명서_정기예금",
-      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
-      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
-      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+      "source_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "checked_at": "2026-08-30",
+      "reason": "심의 유효기간 내 현행 원화정기예금 설명서로 교체 완료. 2025-09-01 시행 예금자보호한도 1억원 반영본"
     },
     "DEP-INT-002": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "05_상품설명서_정기예금",
-      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
-      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
-      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+      "source_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "checked_at": "2026-08-30",
+      "reason": "심의 유효기간 내 현행 원화정기예금 설명서로 교체 완료. 2025-09-01 시행 예금자보호한도 1억원 반영본"
     },
     "DEP-INT-003": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "05_상품설명서_정기예금",
-      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
-      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
-      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+      "source_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "checked_at": "2026-08-30",
+      "reason": "심의 유효기간 내 현행 원화정기예금 설명서로 교체 완료. 2025-09-01 시행 예금자보호한도 1억원 반영본"
     },
     "DEP-PRO-001": {
-      "status": "conflict",
-      "publication_blocker": "stale_source",
+      "status": "confirmed",
       "source_doc_id": "05_상품설명서_정기예금",
-      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
-      "checked_at": "2026-08-26",
+      "source_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "checked_at": "2026-08-30",
       "official_url": "https://www.fsc.go.kr/no010101/85200",
-      "reason": "상품설명서의 5천만원과 2025-09-01 시행 예금보호한도 1억원이 충돌"
+      "reason": "심의 유효기간 내 현행 원화정기예금 설명서로 교체 완료. 2025-09-01 시행 예금자보호한도 1억원 반영본"
     },
     "DEP-TAX-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "05_상품설명서_정기예금",
-      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
-      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
-      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+      "source_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "checked_at": "2026-08-30",
+      "reason": "심의 유효기간 내 현행 원화정기예금 설명서로 교체 완료. 2025-09-01 시행 예금자보호한도 1억원 반영본"
     },
     "DEP-LIM-001": {
-      "status": "unverified",
-      "publication_blocker": "source_replacement_required",
+      "status": "confirmed",
       "source_doc_id": "05_상품설명서_정기예금",
-      "source_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
-      "checked_at": "2026-08-26",
-      "replacement_candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
-      "replacement_candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
-      "reason": "로컬 상품설명서와 공식 후보 파일이 다르고 후보 자체의 심의 유효기간도 만료되어 현행 원천 교체 필요"
+      "source_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "checked_at": "2026-08-30",
+      "reason": "심의 유효기간 내 현행 원화정기예금 설명서로 교체 완료. 2025-09-01 시행 예금자보호한도 1억원 반영본"
     },
     "DEP-DOC-001": {
       "status": "confirmed",

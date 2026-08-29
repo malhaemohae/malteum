@@ -15,7 +15,7 @@ def test_fold_scenario_a_matches_summary(pack_json, scenario_a):
     # supersedes 체인: EV-0006 partial → EV-0019 met
     assert state.state_of("DEP-INT-002").state == "partial"  # 이율 정정 후에도 차감률 미고지
     assert state.state_of("DEP-INT-002").ver == 2
-    assert state.state_of("DEP-BAN-002", "commission").state == "violated"
+    assert state.state_of("DEP-BAN-001", "commission").state == "violated"
     assert state.state_of("DEP-INT-003").state == "met"
 
     ended = next(e for e in scenario_a if e["kind"] == "session_ended")

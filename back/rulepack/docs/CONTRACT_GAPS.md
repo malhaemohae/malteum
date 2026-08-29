@@ -1,6 +1,6 @@
 # 계약 공백
 
-계약이 침묵하거나 모순이라 rulepack 이 혼자 못 정하는 지점. 기준일 2026-08-29.
+계약이 침묵하거나 모순이라 rulepack 이 혼자 못 정하는 지점. 기준일 2026-08-30.
 
 ## 해결됨
 
@@ -20,7 +20,6 @@
 - 남는 보호: `test_publisher_comes_from_manifest_not_code` 가 코드에 기관명을 다시 박는 것을 막고, `test_manifest_row_needs_publisher_column` 이 열이 사라졌을 때 조용히 다른 칸을 읽는 것을 막음
 
 ## 남아 있음
-
 
 ### 근거의 의미 범위 부족
 

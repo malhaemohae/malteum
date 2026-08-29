@@ -80,6 +80,13 @@ def _korean_small_number(value: int) -> str:
 
 
 def _numeric_tokens(value: str, unit: str) -> set[str]:
+    """원문에 나올 수 있는 표기를 모은다.
+
+    금액은 한국어 문서에서 여러 모양으로 적힌다. `100000000원` · `100,000,000원`
+    · `1억원` · `1억 원`. 억 단위를 안 다루면 1억을 `10천만원` 으로 만들어 어느
+    원문과도 안 맞는다. 예금자보호 한도가 5천만원이던 때는 안 드러났고, 2025-09-01
+    시행 1억원 원천으로 갈아타면서 드러났다 (2026-08-30).
+    """
     tokens = {f"{value}{unit}"}
     try:
         number = Decimal(value)
@@ -89,7 +96,17 @@ def _numeric_tokens(value: str, unit: str) -> set[str]:
         integer = int(number)
         tokens.add(f"{integer:,}{unit}")
         if unit == "원" and integer > 0 and integer % 10_000 == 0:
-            tokens.add(f"{_korean_small_number(integer // 10_000)}만원")
+            # 억과 만을 함께 분해한다. 억의 배수만 따로 다루면 1억 5천만원이
+            # 만 단위로 떨어져 `15천만원` 이 된다.
+            eok, rest = divmod(integer, 100_000_000)
+            man = rest // 10_000
+            parts = []
+            if eok:
+                parts.append(f"{_korean_small_number(eok)}억")
+            if man:
+                parts.append(f"{_korean_small_number(man)}만")
+            head = " ".join(parts)
+            tokens.update({f"{head}원", f"{head} 원"})
     return tokens
 
 

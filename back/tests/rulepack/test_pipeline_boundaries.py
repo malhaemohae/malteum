@@ -141,30 +141,18 @@ def test_compile_refuses_missing_approval_unverified_and_stale_source(
     with pytest.raises(CompileError, match="승인"):
         compile_pack(REPO_ROOT, bundles["deposit"], {}, "DEP-2026.08-v1")
 
-    unverified = _without_publication_blocker(bundles["deposit"], "DEP-INT-002")
-    with pytest.raises(CompileError, match="unverified_source"):
-        compile_pack(
-            REPO_ROOT,
-            unverified,
-            _approval(unverified, "DEP-INT-002", signed=True),
-            "DEP-2026.08-v1",
-        )
-
+    # 원천을 전부 현행본으로 갈아 실제 conflict 항목이 없어졌다(2026-08-30).
+    # 규칙 자체는 지켜야 하므로 항목을 그 상태로 만들어 검사한다.
+    stale = deepcopy(bundles["deposit"])
+    target = next(item for item in stale["items"] if item["code"] == "DEP-PRO-001")
+    target["freshness"] = "conflict"
+    target["publication_blocker"] = "stale_source"
     with pytest.raises(CompileError, match="stale_source"):
         compile_pack(
             REPO_ROOT,
-            bundles["deposit"],
-            _approval(bundles["deposit"], "DEP-PRO-001", signed=True),
+            stale,
+            _approval(stale, "DEP-PRO-001", signed=True),
             "DEP-2026.08-v1",
-        )
-
-    spoofed = deepcopy(unverified)
-    next(item for item in spoofed["items"] if item["code"] == "DEP-INT-002")["freshness"] = (
-        "confirmed"
-    )
-    with pytest.raises(CompileError, match="unverified_source"):
-        compile_pack(
-            REPO_ROOT, spoofed, _approval(spoofed, "DEP-INT-002", signed=True), "DEP-2026.08-v1"
         )
 
 
@@ -312,30 +300,19 @@ def _items_from(bundles, doc_id: str) -> list[dict]:
     ]
 
 
-def test_unreplaced_product_documents_keep_publication_blockers(bundles) -> None:
-    """원천을 아직 못 바꾼 상품 문서는 발행이 막혀 있어야 한다.
+def test_current_sources_have_no_publication_blockers(bundles) -> None:
+    """원천을 전부 현행본으로 갈았으므로 상품 문서 기반 항목이 막히면 안 된다.
 
-    정기예금 설명서는 공식 후보 자체가 심의 만료라 교체할 대상이 없다. 이 가드가
-    풀리면 옛 원천으로 만든 항목이 그대로 발행된다.
+    2026-08-30 에 정기예금 설명서를 심의 유효기간 내 현행본(1억원 한도 반영)으로
+    교체하며 마지막 차단이 풀렸다. 감사 갱신을 빠뜨리거나 원천을 되돌리면
+    `source_audit_hash_mismatch` 로 다시 막히고 여기서 잡힌다.
     """
-    items = _items_from(bundles, "05_상품설명서_정기예금")
-
-    assert items
-    assert all(item.get("publication_blocker") for item in items)
-    assert {item["freshness"] for item in items} <= {"unverified", "conflict"}
-
-
-def test_replaced_product_document_clears_publication_blockers(bundles) -> None:
-    """교체를 마친 상품 문서는 차단이 풀려야 한다.
-
-    가계대출 설명서를 2025.01 개정본으로 갈고 `source_audit.json` 을 새 해시로
-    올린 결과다. 교체를 되돌리거나 감사 갱신을 빠뜨리면 여기서 잡힌다 (2026-08-29).
-    """
-    items = _items_from(bundles, "06_상품설명서_가계대출")
-
-    assert items
-    assert not [item for item in items if item.get("publication_blocker")]
-    assert all(item["freshness"] == "confirmed" for item in items)
+    for doc_id in ("05_상품설명서_정기예금", "06_상품설명서_가계대출"):
+        items = _items_from(bundles, doc_id)
+        assert items, f"{doc_id} 를 근거로 쓰는 항목이 없음"
+        blocked = [i["code"] for i in items if i.get("publication_blocker")]
+        assert not blocked, f"{doc_id}: 아직 막힌 항목 {blocked}"
+        assert {i["freshness"] for i in items} == {"confirmed"}
 
 
 def test_compile_revalidates_tampered_bbox_numeric_value_unit_condition_and_doc_id(bundles) -> None:
@@ -345,13 +322,13 @@ def test_compile_revalidates_tampered_bbox_numeric_value_unit_condition_and_doc_
         ("condition", "무관한 조건", "조건"),
     ):
         changed = deepcopy(bundles["deposit"])
-        item = next(item for item in changed["items"] if item["code"] == "DEP-LIM-001")
+        item = next(item for item in changed["items"] if item["code"] == "DEP-PRO-001")
         item["numeric_facts"][0][field] = value
         with pytest.raises(CompileError, match=message):
             compile_synthetic_pack(
                 REPO_ROOT,
                 changed,
-                _approval(changed, "DEP-LIM-001", "synthetic-reviewer"),
+                _approval(changed, "DEP-PRO-001", "synthetic-reviewer"),
                 "DEP-2026.08-v2",
             )
 
@@ -623,6 +600,39 @@ def test_config_mismatch_says_which_file(tmp_path: Path) -> None:
     rules = paths.config_dir(REPO_ROOT) / "candidate_rules.json"
     with pytest.raises(PipelineError, match="products.json 에 없는 상품"):
         build_product_bundle(REPO_ROOT, "nonexistent", rules, tmp_path / "x")
+
+
+def test_freshness_gate_reads_audit_not_bundle() -> None:
+    """최신성 판정은 번들이 아니라 `source_audit.json` 을 본다.
+
+    번들의 `freshness` 를 손대도 발행이 열리면 안 된다. 감사 기록이 진실 원천이고
+    번들은 그것을 옮겨 적은 사본이다. 2026-08-30 에 원천을 전부 현행본으로 갈아
+    실제 `unverified` 항목이 없어졌으므로 감사를 직접 만들어 검사한다.
+    """
+    from rulepack.compiler import _verify_confirmed_freshness
+
+    sources = {"05_상품설명서_정기예금": type("S", (), {"sha256": "abc"})()}
+
+    with pytest.raises(CompileError, match="unverified_source"):
+        _verify_confirmed_freshness("DEP-INT-002", "05_상품설명서_정기예금", sources, {})
+
+    audit = {
+        "candidates": {
+            "DEP-INT-002": {
+                "status": "unverified",
+                "source_doc_id": "05_상품설명서_정기예금",
+                "source_sha256": "abc",
+            }
+        }
+    }
+    with pytest.raises(CompileError, match="unverified_source"):
+        _verify_confirmed_freshness("DEP-INT-002", "05_상품설명서_정기예금", sources, audit)
+
+    # 감사가 confirmed 여도 원천 해시가 어긋나면 막는다.
+    audit["candidates"]["DEP-INT-002"]["status"] = "confirmed"
+    audit["candidates"]["DEP-INT-002"]["source_sha256"] = "다른해시"
+    with pytest.raises(CompileError, match="source_audit_hash_mismatch"):
+        _verify_confirmed_freshness("DEP-INT-002", "05_상품설명서_정기예금", sources, audit)
 
 
 def test_pack_carries_l1_patterns_and_jargon_terms_from_config(bundles) -> None:
