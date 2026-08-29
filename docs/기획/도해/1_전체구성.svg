@@ -26,15 +26,15 @@
       <text x="303" y="138" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" letter-spacing=".08em" fill="#15242B" opacity=".55">실시간 (온라인)</text>
 
       <rect x="310" y="148" width="172" height="46" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
-      <text x="396" y="169" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M4 web</text>
+      <text x="396" y="169" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M4 front</text>
       <text x="396" y="185" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">6화면 + 오버레이</text>
 
       <rect x="500" y="148" width="170" height="46" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
-      <text x="585" y="169" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M1 gateway</text>
+      <text x="585" y="169" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M1 back/server</text>
       <text x="585" y="185" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">세션 · STT 어댑터</text>
 
       <rect x="310" y="210" width="360" height="44" rx="2" fill="#FFFFFF" stroke="#0F6055" stroke-width="1.6"></rect>
-      <text x="490" y="230" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M2 engine</text>
+      <text x="490" y="230" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M2 back/engine</text>
       <text x="490" y="246" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">L1 · L2 · L3 · 상태 머신</text>
 
       <!-- 저장 (양쪽에서 접근) -->
@@ -51,7 +51,7 @@
       <text x="303" y="380" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" letter-spacing=".08em" fill="#15242B" opacity=".55">오프라인 배치 (P1)</text>
 
       <rect x="310" y="392" width="360" height="50" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
-      <text x="490" y="412" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M3 rulepack</text>
+      <text x="490" y="412" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M3 back/rulepack</text>
       <text x="490" y="428" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">OpenDataLoader · 추출 · 스팬 대조 · pypdfium2 좌표 · 발행</text>
 
       <!-- 외부 -->
