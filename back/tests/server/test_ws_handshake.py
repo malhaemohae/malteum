@@ -17,7 +17,8 @@ def _client() -> TestClient:
 
 
 def test_hello_ready_ping_pong_end():
-    fixture_ready = next(m for m in json.load(open(FIX / "ws_messages.json")) if m["t"] == "ready")
+    messages = json.loads((FIX / "ws_messages.json").read_text(encoding="utf-8"))
+    fixture_ready = next(m for m in messages if m["t"] == "ready")
     with _client() as client, client.websocket_connect("/ws") as sock:
         sock.send_json({"t": "hello", "mode": "replay", "session_id": "FIXT-SESS-0A"})
         ready = sock.receive_json()

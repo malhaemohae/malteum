@@ -68,3 +68,42 @@ def test_structure_rejects_oversized_pdf_before_parser_call(tmp_path: Path) -> N
 
     with pytest.raises(ManifestError, match="크기 제한"):
         extract_documents([source], tmp_path, max_file_bytes=1)
+
+
+def test_find_repo_root_skips_back_dir(tmp_path: Path) -> None:
+    """팀 레포 배치에서 back/ 이 아니라 그 위를 루트로 잡는다.
+
+    back/contracts 가 있어 계약 폴더만 보면 back/ 이 먼저 걸린다. 그러면
+    규정 원천을 back/assets 에서 찾다 LayoutError 로 죽는다 (2026-08-29).
+    """
+    root = tmp_path / "repo"
+    (root / "back" / "contracts").mkdir(parents=True)
+    (root / "back" / "rulepack").mkdir(parents=True)
+    (root / "assets" / "03_규정문서").mkdir(parents=True)
+    assert paths.find_repo_root(root / "back" / "rulepack") == root
+
+
+def test_find_repo_root_personal_layout(tmp_path: Path) -> None:
+    """개인 작업장 배치도 그대로 잡힌다."""
+    root = tmp_path / "work"
+    (root / "contracts").mkdir(parents=True)
+    (root / "rulepack" / "src").mkdir(parents=True)
+    (root / "03_규정문서").mkdir(parents=True)
+    assert paths.find_repo_root(root / "rulepack" / "src") == root
+
+
+def test_find_repo_root_raises_when_sources_missing(tmp_path: Path) -> None:
+    """계약만 있고 규정 원천이 없으면 루트로 인정하지 않는다."""
+    root = tmp_path / "half"
+    (root / "back" / "contracts").mkdir(parents=True)
+    with pytest.raises(paths.LayoutError):
+        paths.find_repo_root(root / "back" / "contracts")
+
+
+def test_repo_root_matches_cli_default() -> None:
+    """CLI 기본값이 테스트가 쓰는 루트와 같아야 한다.
+
+    테스트는 parents[3] 하드코딩, CLI 는 find_repo_root() 를 쓴다. 둘이
+    갈라지면 테스트는 통과하는데 CLI 만 죽는다. 실제로 그랬다 (2026-08-29).
+    """
+    assert paths.find_repo_root() == REPO_ROOT
