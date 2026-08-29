@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from contracts.engine_contract import DecisionCache, Embedder, LlmJudge, VectorIndex
+from contracts.engine_contract import ChunkIndex, DecisionCache, Embedder, LlmJudge, VectorIndex
 from engine.engine import RuleEngine
 from engine.pack.source import PackSource
 
@@ -11,7 +11,8 @@ def build_engine(
     pack_source: PackSource,
     embedder: Embedder | None = None,
     index: VectorIndex | None = None,
+    chunks: ChunkIndex | None = None,
     llm: LlmJudge | None = None,
     cache: DecisionCache | None = None,
 ) -> RuleEngine:
-    return RuleEngine(pack_source, embedder, index, llm, cache)
+    return RuleEngine(pack_source, embedder, index, chunks, llm, cache)
