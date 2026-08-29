@@ -28,3 +28,8 @@ jobs:
       - run: uv run lint-imports
       - run: scripts/gen_models.sh --check
       - run: uv run pytest -q
+      # 파이프라인 실행. 테스트만으로는 안 잡히는 것이 있다.
+      #   build  : 실제 출력 경로에 쓰는 경로 해석(paths.find_repo_root)
+      #   verify : build 를 두 번 돌려 결정성 확인 + 고정 의존성·java·계약 검증
+      - run: uv run python -m rulepack.cli build
+      - run: uv run python -m rulepack.cli verify --strict
