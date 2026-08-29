@@ -17,6 +17,8 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pgvector>=0.3",
     "python-ulid>=4.0.1",
+    "langgraph>=1.2.11",
+    "litellm>=1.98.0",
 ]
 
 [dependency-groups]
