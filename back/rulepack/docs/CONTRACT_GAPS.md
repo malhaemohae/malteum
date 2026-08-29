@@ -12,14 +12,15 @@
 - 남는 보호: `forbidden` 으로 우회하면 고객이 한 말이 은행원의 위반으로 표시되어 P6 위반. `test_risk_signal_uses_risk_type_and_never_forbidden` 이 이를 막음
 - 반대 방향 오류도 실재했음(2026-08-30). `LOAN-RSK-001` 이 금소법 제20조를 근거로 두고 `risk` 로 분류돼 있었는데, 그 조문은 "금융상품판매업자등은 ... 해서는 아니 된다" 로 은행원을 구속한다. 은행원의 위반이 경보로만 나가고 판정에서 빠지던 것을 `forbidden` 으로 정정. `test_item_type_matches_who_the_article_binds` 가 두 방향을 다 막음
 
+### MANIFEST publisher 열 부재 (2026-08-30 해소)
+
+- 옛 상태: `MANIFEST.md` 에 "발행 기관" 열이 있는데도 `source_manifest.py` 가 코드 안 `_PUBLISHERS` 매핑을 썼음. 원천을 늘리려면 코드를 같이 고쳐야 했음
+- 해소: 표의 발행 기관 열을 파싱하게 바꿈. 계약 변경은 필요 없었음
+- 그때 드러난 것: 하드코딩이 표준약관 2건의 발행 기관을 게시한 은행으로 적고 있었음. 예금거래기본약관과 은행여신거래기본약관의 발행 기관은 **은행연합회**이고 씨티은행·우리은행은 게시처다. 팩의 `publisher` 는 화면에 출처로 표시되므로 실제 오표기였음
+- 남는 보호: `test_publisher_comes_from_manifest_not_code` 가 코드에 기관명을 다시 박는 것을 막고, `test_manifest_row_needs_publisher_column` 이 열이 사라졌을 때 조용히 다른 칸을 읽는 것을 막음
+
 ## 남아 있음
 
-### MANIFEST publisher 열 부재
-
-- 재현: `assets/03_규정문서/MANIFEST.md` 에 "발행 기관" 열은 있으나, `source_manifest.py` 가 그것을 읽지 않고 코드 안 `_PUBLISHERS` 매핑을 씀
-- 영향: 계약이 요구하는 `publisher` 를 manifest 만으로 읽을 수 없음. 원천이 늘면 코드를 같이 고쳐야 함
-- 현재 처리: 명시적 `doc_id` 매핑으로 보완하고 실행 manifest 에 기록
-- 최소 변경안: `source_manifest.py` 가 MANIFEST 표의 "발행 기관" 열을 파싱하게 바꾸면 코드 수정 없이 원천을 늘릴 수 있음. contracts 변경은 불필요
 
 ### 근거의 의미 범위 부족
 

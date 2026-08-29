@@ -40,21 +40,12 @@ class RunManifest:
     sources: tuple[SourceRecord, ...]
 
 
-_PUBLISHERS = {
-    "01_금융소비자보호법": "법제처",
-    "02_설명의무_이행_가이드라인": "금융위원회·금융감독원",
-    "03_예금거래기본약관": "한국씨티은행",
-    "04_은행여신거래기본약관_가계용": "우리은행",
-    "05_상품설명서_정기예금": "신한은행",
-    "06_상품설명서_가계대출": "하나은행",
-    "07_제2차_금융분야_보이스피싱_대책": "금융위원회",
-}
-
 _SNAPSHOT_RE = re.compile(r"수집 확인\s+(\d{4}-\d{2}-\d{2})")
-# 제목 링크 앞의 칸은 1개(분류)였다가 발행 기관 열이 추가되어 2개가 됨 (2026-08-27).
-# 위치가 아니라 "링크가 나오는 칸"을 찾도록 1~2칸을 허용한다.
+# MANIFEST 표: | 파일 | 분류 | 발행 기관 | 문서(링크) | 규모 | 상태 | 무엇의 근거 |
+# 발행 기관을 표에서 읽는다. 코드에 매핑을 두면 원천을 늘릴 때마다 코드를 같이
+# 고쳐야 하고, 표와 코드가 어긋나도 아무도 모른다 (2026-08-30).
 _ROW_RE = re.compile(
-    r"^\|\s*`(?P<filename>[^`]+\.pdf)`\s*\|(?:[^|]*\|){1,2}\s*"
+    r"^\|\s*`(?P<filename>[^`]+\.pdf)`\s*\|[^|]*\|\s*(?P<publisher>[^|]+?)\s*\|\s*"
     r"\[(?P<title>[^]]+)]\((?P<url>https?://.+)\)\s*\|\s*"
     r"(?P<pages>\d+)p\s*/",
     re.MULTILINE,
@@ -113,7 +104,7 @@ def build_run_manifest(
             SourceRecord(
                 doc_id=doc_id,
                 title=row.group("title"),
-                publisher=_PUBLISHERS[doc_id],
+                publisher=row.group("publisher"),
                 url=row.group("url"),
                 snapshot_date=snapshot_date,
                 page_count=actual_pages,
