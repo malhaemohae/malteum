@@ -23,7 +23,7 @@ RC + 리뷰 큐  ← 자동 실행의 정상 종점
     │  compiler.py           원천 · 최신성 재검증 · RC digest · HMAC 승인 결합
     ▼
 attested 팩 JSON
-    │  scripts/load_pack.py  (미구현)
+    │  scripts/load_pack.py  팩 JSON → SQL. 임베딩은 어댑터가 만든다
     ▼
 postgres  pack · pack_item · item_embedding
 ```
@@ -60,5 +60,21 @@ uv run python -m rulepack.cli verify --strict  # 결정성 · 고정 의존성 �
 ## DB 적재
 
 테이블은 `back/server/database/entities/pack.py` 가 정의하고 alembic 이 만든다. rulepack 은 `server` 를 import 할 수 없으므로 적재 스크립트는 그 모델을 쓰지 않고 SQL 로 넣는다.
+
+적재는 `scripts/load_pack.py` 가 한다.
+
+```bash
+python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run]
+```
+
+`compile` 이 낸 envelope 만 받는다. `verify` 의 dry-run 산출물은 `production_publishable` 이 거짓이라 거절한다. 같은 `pack_version` 을 두 번 넣는 것도 막는다. 팩은 불변 발행물이라 새 버전을 내는 것이 원칙이고, 덮어쓰려면 `--replace` 를 명시해야 한다.
+
+## 임베딩
+
+`embedding.py` 의 `EmbeddingModel` 을 따르는 구현이 벡터를 만든다. 지금은 `DeterministicFakeEmbedding` 하나뿐이고, 실제 모델은 선택이 끝나면 같은 Protocol 로 붙인다.
+
+팩의 `embedding.model` · `dim` 은 **실제로 벡터를 만든 구현이 스스로 밝힌 값**이다. 상수로 박아 두면 벡터를 만든 적도 없는 모델 이름이 팩에 남는다. 2026-08-29 이전이 `intfloat/multilingual-e5-small` 을 그렇게 적고 있었다.
+
+무엇을 인코딩하는가는 `embedding_text` 가 정한다. 항목 이름 · 요구 요건 · 쉬운 말을 합치고 근거 원문은 넣지 않는다. 법령 문장은 표현이 상담 발화와 멀어 검색을 흐린다.
 
 `item_embedding.vector` 에는 차원을 박지 않았다. 계약이 "차원을 팩에 묶는다. 컬럼에 차원을 박으면 교체 때 마이그레이션이 필요해진다"고 정했기 때문이다. 대신 pgvector 인덱스를 못 만들어 지금은 전체 스캔이다. 항목이 수천 건대가 되면 차원별 분리를 다시 본다.

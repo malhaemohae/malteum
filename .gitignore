@@ -42,4 +42,6 @@ back/rulepack/artifacts/review_*.json
 back/rulepack/artifacts/run_manifest.json
 back/rulepack/artifacts/verification_summary.json
 back/rulepack/artifacts/dry_run/
+back/rulepack/artifacts/compiled_*.json
+back/rulepack/artifacts/published/
 back/rulepack/work/
