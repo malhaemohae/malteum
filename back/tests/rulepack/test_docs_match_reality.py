@@ -12,9 +12,12 @@
 from __future__ import annotations
 
 import re
+from functools import cache
 from pathlib import Path
 
 import pytest
+
+from rulepack import paths
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DOCS = sorted((REPO_ROOT / "back" / "rulepack" / "docs").glob("*.md")) + [
@@ -26,28 +29,42 @@ SEARCH_ROOTS = (
     REPO_ROOT,
     REPO_ROOT / "back",
     REPO_ROOT / "back" / "rulepack",
-    REPO_ROOT / "back" / "rulepack" / "config",
+    paths.config_dir(REPO_ROOT),
     REPO_ROOT / "back" / "rulepack" / "docs",
     REPO_ROOT / "back" / "scripts",
-    REPO_ROOT / "back" / "contracts",
-    REPO_ROOT / "assets" / "03_규정문서",
+    paths.contracts_dir(REPO_ROOT),
+    paths.docs_dir(REPO_ROOT),
 )
 
 # 2026-08-30 에 M1 의 rule_packs·pack_embeddings 로 통합하며 걷어낸 이름.
 # 이력 절 밖에서 이 이름이 나오면 그 문단이 낡은 것이다.
 REMOVED_TABLES = ("pack", "pack_item", "item_embedding")
 
+# 원천 감사 기록. 이 문서의 판정 표가 사라지면 쪽수 대조가 조용히 없어지므로
+# 최소 한 줄을 요구한다. 이름을 바꾸면 아래 단언이 그 자리에서 깨진다.
+SOURCE_AUDIT_DOC = REPO_ROOT / "back" / "rulepack" / "docs" / "SOURCES.md"
+
 _HISTORY_HEADING = re.compile(r"최근 변경|해결됨|교체 기록")
 _FILE_REF = re.compile(r"`([\w/.가-힣-]+\.(?:py|json|md|sql|yml|toml))`")
 _BACKTICK = re.compile(r"`([^`\n]+)`")
+
+
+@cache
+def _prose(doc: Path) -> str:
+    """이력 절을 걷어낸 현재 서술. 문서마다 한 번만 읽고 훑는다."""
+    return _current_prose(doc.read_text(encoding="utf-8"))
 
 
 def _current_prose(text: str) -> str:
     """이력을 적는 절을 걷어낸 나머지. 지금 상태를 설명하는 부분만 남는다."""
     kept: list[str] = []
     skip_at_level: int | None = None
+    in_fence = False
     for line in text.splitlines():
-        heading = re.match(r"^(#+)\s+(.*)$", line)
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+        # 셸 주석(`# 후보 생성`)을 제목으로 읽으면 건너뛰기 상태가 뒤집힌다.
+        heading = None if in_fence else re.match(r"^(#+)\s+(.*)$", line)
         if heading:
             level = len(heading.group(1))
             if skip_at_level is not None and level <= skip_at_level:
@@ -65,7 +82,7 @@ def test_docs_reference_files_that_exist(doc: Path) -> None:
     missing = sorted(
         {
             ref
-            for ref in _FILE_REF.findall(_current_prose(doc.read_text(encoding="utf-8")))
+            for ref in _FILE_REF.findall(_prose(doc))
             if not any((root / ref).exists() for root in SEARCH_ROOTS)
         }
     )
@@ -77,13 +94,14 @@ def test_docs_do_not_name_removed_tables(doc: Path) -> None:
     """걷어낸 테이블 이름을 현재 서술이 가리키면 안 된다.
 
     `pack_version` 처럼 살아 있는 이름과 겹치지 않도록 백틱 안이 정확히 그
-    이름일 때만 잡는다.
+    이름이거나 `이름.열` 일 때만 잡는다. 열까지 붙은 표기를 안 보다가
+    `item_embedding.vector` 가 검사를 빠져나간 적이 있다 (2026-08-31).
     """
     named = sorted(
         {
             token
-            for token in _BACKTICK.findall(_current_prose(doc.read_text(encoding="utf-8")))
-            if token.strip() in REMOVED_TABLES
+            for token in _BACKTICK.findall(_prose(doc))
+            if token.strip().split(".")[0] in REMOVED_TABLES
         }
     )
     assert not named, (
@@ -95,10 +113,7 @@ def test_docs_do_not_name_removed_tables(doc: Path) -> None:
 
 def test_removed_tables_really_are_gone() -> None:
     """위 목록이 낡지 않았는지 본다. 되살아난 이름을 계속 막고 있으면 거짓 실패가 난다."""
-    import server.database.entities  # noqa: F401
-    from server.database.base import Base
-
-    alive = sorted(set(REMOVED_TABLES) & set(Base.metadata.tables))
+    alive = sorted(set(REMOVED_TABLES) & set(_real_tables()))
     assert not alive, f"{alive} 은 실제로 존재하는 테이블이다. REMOVED_TABLES 에서 빼야 한다"
 
 
@@ -117,7 +132,7 @@ def test_docs_cite_item_codes_that_exist(doc: Path, bundles) -> None:
     못 잡았다.
     """
     real = {item["code"] for bundle in bundles.values() for item in bundle["items"]}
-    cited = set(_ITEM_CODE.findall(_current_prose(doc.read_text(encoding="utf-8"))))
+    cited = set(_ITEM_CODE.findall(_prose(doc)))
     gone = sorted(cited - real)
     assert not gone, (
         f"{doc.name} 이 없는 항목 코드를 가리킨다: {gone}. "
@@ -135,7 +150,7 @@ def test_docs_state_real_embedding_dimension(doc: Path) -> None:
     from rulepack.embedding import E5SmallEmbedding
 
     model = E5SmallEmbedding()
-    text = _current_prose(doc.read_text(encoding="utf-8"))
+    text = _prose(doc)
     stated = {int(value) for value in _DIMENSION.findall(text)}
     wrong = sorted(stated - {model.dim})
     assert not wrong, f"{doc.name} 이 {wrong}차원이라 적었지만 구현은 {model.dim}차원"
@@ -148,16 +163,14 @@ def test_documented_commands_actually_parse(doc: Path) -> None:
     사용법은 손으로 적는 자리라 옵션 이름이 바뀌어도 아무도 모른다. 실제 파서에
     넣어 보면 없는 옵션과 빠진 인자가 그 자리에서 드러난다.
     """
-    import sys
-
-    sys.path.insert(0, str(REPO_ROOT / "back" / "scripts"))
     from load_pack import build_parser as load_pack_parser
 
     from rulepack.cli import build_parser as cli_parser
 
     text = doc.read_text(encoding="utf-8")
+    blocks = _BASH_BLOCK.findall(text)
     checked = 0
-    for block in _BASH_BLOCK.findall(text):
+    for block in blocks:
         for raw in block.splitlines():
             line = _PLACEHOLDER.sub("PLACEHOLDER.json", raw.split("#", 1)[0])
             line = line.replace("[", "").replace("]", "").strip()
@@ -177,7 +190,7 @@ def test_documented_commands_actually_parse(doc: Path) -> None:
                 ) from exc
             checked += 1
     # 산문에서 스크립트를 언급만 하는 문서도 있다. 실행 블록이 있을 때만 요구한다.
-    runnable = [b for b in _BASH_BLOCK.findall(text) if "rulepack.cli" in b or "load_pack.py" in b]
+    runnable = [b for b in blocks if "rulepack.cli" in b or "load_pack.py" in b]
     assert checked or not runnable, f"{doc.name} 의 실행 블록을 하나도 검사하지 못했다"
 
 
@@ -201,7 +214,7 @@ def test_docs_reference_real_table_columns(doc: Path) -> None:
     정본이라는 서술이 그런 자리다. 저장 구조를 바꾸면 이 표기가 먼저 낡는다.
     """
     tables = _real_tables()
-    text = _current_prose(doc.read_text(encoding="utf-8"))
+    text = _prose(doc)
     wrong = sorted(
         f"{table}.{column}"
         for table, column in _QUALIFIED.findall(text)
@@ -217,7 +230,7 @@ def test_documented_sql_targets_real_tables(doc: Path) -> None:
     복사해 쓰라고 적어 둔 SQL 이라 낡으면 그대로 실행돼 실패한다.
     """
     tables = _real_tables()
-    text = doc.read_text(encoding="utf-8")
+    text = _prose(doc)
     gone = sorted(
         {
             table
@@ -233,6 +246,8 @@ _PAGES = re.compile(r"(\d+)\s*쪽")
 _KINDS = re.compile(r"(\d+)\s*종")
 # 원천을 세는 문맥에서만 'N종' 을 검사한다. "계약 fixture 4종" 은 원천 수가 아니다.
 _SOURCE_CONTEXT = re.compile(r"규정\s*(?:PDF|문서)|\.pdf")
+# 쪽수를 세는 줄인지. 근거 인용의 페이지 번호("근거 3쪽")와 구분한다.
+_SOURCE_LINE = re.compile(r"설명서|약관|원천|PDF|pdf|가이드라인|대책|보호법")
 
 
 @pytest.mark.parametrize("doc", DOCS, ids=lambda p: p.name)
@@ -245,7 +260,10 @@ def test_docs_state_real_page_counts(doc: Path, run_manifest) -> None:
     """
     real = {source.page_count for source in run_manifest.sources}
     stated = {
-        int(value) for value in _PAGES.findall(_current_prose(doc.read_text(encoding="utf-8")))
+        int(value)
+        for line in _prose(doc).splitlines()
+        if _SOURCE_LINE.search(line)
+        for value in _PAGES.findall(line)
     }
     wrong = sorted(stated - real)
     assert not wrong, (
@@ -261,7 +279,7 @@ def test_docs_state_real_source_count(doc: Path, run_manifest) -> None:
     wrong = sorted(
         {
             int(value)
-            for line in _current_prose(doc.read_text(encoding="utf-8")).splitlines()
+            for line in _prose(doc).splitlines()
             if _SOURCE_CONTEXT.search(line)
             for value in _KINDS.findall(line)
             if int(value) != real
@@ -293,15 +311,15 @@ def test_doc_tables_state_the_right_page_count(doc: Path, run_manifest) -> None:
     그래서 정기예금(4쪽)을 24쪽이라 적어도 가계대출이 24쪽이라 통과했다. 표는
     한 줄에 이름과 쪽수가 함께 있어 그 연결이 확실하다.
     """
-    text = _current_prose(doc.read_text(encoding="utf-8"))
+    text = _prose(doc)
     checked = 0
     for row in _TABLE_ROW.findall(text):
         cells = [cell.strip() for cell in row.split("|")]
         if len(cells) < 2 or set(cells[0]) <= {"-", " "}:
             continue  # 헤더 구분선
         pages = {int(value) for value in _PAGES.findall(row)}
-        if not pages:
-            continue  # 쪽수를 안 적은 줄은 연결할 필요가 없다
+        if not pages or not _SOURCE_LINE.search(row):
+            continue  # 쪽수가 없거나 원천 이야기가 아닌 줄은 연결할 필요가 없다
         found = _matching_source(cells[0], run_manifest.sources)
         assert len(found) == 1, (
             f"{doc.name} 의 표에서 `{cells[0]}` 이 어느 원천인지 정하지 못했다"
@@ -316,5 +334,5 @@ def test_doc_tables_state_the_right_page_count(doc: Path, run_manifest) -> None:
     # 표를 통째로 지우면 검사가 조용히 사라진다. SOURCES 는 원천 감사 기록이라
     # 원천별 판정 표가 반드시 있어야 하므로, 거기서는 최소 한 줄을 요구한다.
     # (`쪽` 은 "어느 쪽" 처럼 일반 명사로도 쓰여 글자만 보고 판단하면 안 된다.)
-    if doc.name == "SOURCES.md":
-        assert checked, "SOURCES.md 의 원천별 판정 표에서 쪽수를 한 줄도 대조하지 못했다"
+    if doc == SOURCE_AUDIT_DOC:
+        assert checked, f"{doc.name} 의 원천별 판정 표에서 쪽수를 한 줄도 대조하지 못했다"
