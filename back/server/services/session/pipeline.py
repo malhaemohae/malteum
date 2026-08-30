@@ -10,7 +10,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from typing import Any
 
-from contracts.engine_contract import Engine, JudgeResult, Utterance
+from contracts.engine_contract import Engine, JudgeResult, Utterance, VerdictPayload
 from server.mapping import event_to_s2c, payload_to_event
 from server.services.event import envelope
 from server.services.event.store import EventStore
@@ -97,6 +97,68 @@ class Pipeline:
             await publish(event_to_s2c.from_event(event, session.state, ver))
         if result.verdicts:
             await publish(event_to_s2c.progress(session.pack, session.state))
+
+    async def human_verdict(
+        self,
+        session: Session,
+        item_code: str,
+        state: str,
+        publish: Publish,
+        waive_reason: str | None = None,
+    ) -> None:
+        """사람이 직접 찍은 판정. 엔진을 거치지 않는다.
+
+        기획 7.1 ⑪: 수동 체크리스트는 STT 없이 도는 3층 폴백이고 **사람 결정은 엔진이
+        못 뒤집는다.** 축은 omission 이다. 계약의 상태 enum 상 waived 가 그 축에만 있고,
+        체크리스트가 세는 것도 필수 고지 항목이다.
+        """
+        payload = VerdictPayload(
+            item_code=item_code,
+            axis="omission",
+            state=state,  # type: ignore[arg-type]  계약 enum 은 스키마가 검증한다
+            decided_by="human",
+            waive_reason=waive_reason,
+        )
+        key = (item_code, "omission")
+        event = self._wrap(
+            session,
+            "verdict",
+            payload_to_event.verdict_body(payload),
+            supersedes=session.latest_event_by_item.get(key),
+        )
+        session.latest_event_by_item[key] = event["event_id"]
+        self.store.append(event)
+        session.state = self.engine.apply(session.state, JudgeResult(verdicts=(payload,)))
+        await publish(event_to_s2c.from_event(event, session.state))
+        await publish(event_to_s2c.progress(session.pack, session.state))
+
+    async def acknowledge(self, session: Session, alert_ref: str, publish: Publish) -> bool:
+        """경보 확인 기록. 같은 alert 를 acknowledged=true 로 다시 발행한다.
+
+        기획 10.3: 위험 신호는 "경보 + 확인 기록까지" 가 MVP 범위다. append-only 라
+        원본을 고치지 않고 supersedes 로 잇는다.
+        """
+        events = self.store.of_session(session.session_id)
+        original = next(
+            (e for e in events if e["event_id"] == alert_ref and e["kind"] == "alert"), None
+        )
+        if original is None:
+            return False
+        body = {**original["alert"], "acknowledged": True}
+        event = self._wrap(session, "alert", body, supersedes=alert_ref)
+        self.store.append(event)
+        await publish(event_to_s2c.from_event(event, session.state))
+        return True
+
+    def previous_state(self, session: Session, item_code: str) -> str | None:
+        """지금 판정이 supersede 한 앞선 판정의 상태. mark_met 되돌리기가 쓴다."""
+        head_id = session.latest_event_by_item.get((item_code, "omission"))
+        if head_id is None:
+            return None
+        events = {e["event_id"]: e for e in self.store.of_session(session.session_id)}
+        head = events.get(head_id)
+        previous = events.get(head.get("supersedes") or "") if head else None
+        return previous["verdict"]["state"] if previous else None
 
     def start(self, session: Session, mode: str, product: dict, customer_type: str) -> dict:
         event = self._persist(

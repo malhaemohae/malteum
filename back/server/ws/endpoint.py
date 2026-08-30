@@ -15,6 +15,7 @@ from server.services.event.envelope import ID_MAX, ID_MIN, valid_id
 from server.services.session.pipeline import Pipeline
 from server.services.session.replay import replay
 from server.ws.connection import Connection
+from server.ws.handlers import human
 from server.ws.protocol import InvalidMessage, parse_c2s
 
 router = APIRouter()
@@ -113,7 +114,23 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 )
                 registry.close(session.session_id)
                 break
-            else:  # ask·assist_request·mark_waived·acknowledge — ws/handlers/ 가 생기면
+            elif msg.t == "mark_met":
+                problem = await human.mark_met(
+                    session, pipeline, msg.item_code, bool(msg.undo), conn.send
+                )
+                if problem:
+                    await conn.send(_error("invalid_message", problem))
+            elif msg.t == "mark_waived":
+                problem = await human.mark_waived(
+                    session, pipeline, msg.item_code, msg.reason, conn.send
+                )
+                if problem:
+                    await conn.send(_error("invalid_message", problem))
+            elif msg.t == "acknowledge":
+                problem = await human.acknowledge(session, pipeline, msg.alert_ref, conn.send)
+                if problem:
+                    await conn.send(_error("invalid_message", problem))
+            else:  # ask·assist_request — engine 의 assist 가 붙으면
                 await conn.send(_error("internal", f"{msg.t} 는 아직 없습니다."))
     except WebSocketDisconnect:
         pass
