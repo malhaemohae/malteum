@@ -1,6 +1,6 @@
 # 파이프라인 구조
 
-규정 PDF 에서 팩 JSON 까지. 기준일 2026-08-29.
+규정 PDF 에서 팩 JSON 까지. 기준일 2026-08-30.
 
 ## 데이터 흐름
 
@@ -23,9 +23,9 @@ RC + 리뷰 큐  ← 자동 실행의 정상 종점
     │  compiler.py           원천 · 최신성 재검증 · RC digest · HMAC 승인 결합
     ▼
 attested 팩 JSON
-    │  scripts/load_pack.py  팩 JSON → SQL. 임베딩은 어댑터가 만든다
+    │  scripts/load_pack.py  팩 JSON → M1 의 ORM 모델. 임베딩은 어댑터가 만든다
     ▼
-postgres  pack · pack_item · item_embedding
+postgres  rule_packs(doc 정본) · pack_embeddings(검색면)
 ```
 
 ## 모듈별 책임
@@ -42,7 +42,8 @@ postgres  pack · pack_item · item_embedding
 
 ## 경계
 
-- import 는 `contracts` 와 DB 드라이버만. `server` · `engine` 은 금지(import-linter 가 강제)
+- `back/rulepack/` 안에서는 import 가 `contracts` 와 DB 드라이버만. `server` · `engine` 은 금지(import-linter 가 강제)
+- 적재 스크립트는 `back/scripts/` 라 그 계약 밖이고, M1 의 테이블 모델을 그대로 쓴다
 - 인용 좌표는 `contracts/find_span.py` 하나로 뜬다. 다른 구현을 쓰면 `validate.py` 3층에서 실패하는 팩이 나온다
 - 팩은 불변 발행물. 수정하지 않고 새 `pack_version` 을 낸다. 항목 `code` 는 버전이 올라가도 유지한다
 - 근거 `span` 이 원문에 실재하지 않는 항목은 팩에 넣지 않는다(P4)
