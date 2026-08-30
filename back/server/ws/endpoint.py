@@ -63,7 +63,9 @@ async def ws_endpoint(socket: WebSocket) -> None:
                     "name": session.pack.product_name,
                     "category": "deposit",
                 }
-                pipeline.start(session, session.mode, product, customer_type)
+                if not session.restored:
+                    # 되살린 세션은 session_started 가 이미 있다. 다시 쓰면 seq 가 겹친다
+                    pipeline.start(session, session.mode, product, customer_type)
                 await conn.send(
                     ready(session.session_id, session.pack, session.state, session.mode)
                 )

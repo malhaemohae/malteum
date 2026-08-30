@@ -33,7 +33,9 @@ def ready(session_id: str, pack: RulePack, state: SessionState, mode: str) -> di
     }
 
 
-def from_event(event: dict[str, Any], state: SessionState) -> dict[str, Any] | None:
+def from_event(
+    event: dict[str, Any], state: SessionState, assist_ver: int = 1
+) -> dict[str, Any] | None:
     kind = event["kind"]
     body = event[kind]
     if kind == "utterance":
@@ -77,7 +79,8 @@ def from_event(event: dict[str, Any], state: SessionState) -> dict[str, Any] | N
             "event_id": event["event_id"],
             "assist_type": body["assist_type"],
             "text": body["text"],
-            "ver": 1,
+            # 계약: 같은 assist 를 outcome 채워 다시 발행한다. 화면은 ver 이 큰 것만 채택한다
+            "ver": assist_ver,
         }
         for k in ("item_code", "outcome"):
             if k in body:

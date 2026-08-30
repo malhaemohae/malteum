@@ -15,6 +15,7 @@ from engine.engine import RuleEngine
 from server.mapping import event_to_s2c, payload_to_event
 from server.services.event import envelope
 from server.services.event.store import EventStore
+from server.services.session import chains
 from server.services.session.projection import NullSessionProjection, SessionProjection
 from server.services.session.registry import Session
 
@@ -33,8 +34,8 @@ class Pipeline:
         # sessions 투영은 이벤트를 접어 만든 파생물이다. 없어도 정본은 온전하다
         self.projection = projection or NullSessionProjection()
 
-    def _persist(self, session: Session, kind: str, body: dict, supersedes: str | None = None):
-        event = envelope.wrap(
+    def _wrap(self, session: Session, kind: str, body: dict, supersedes: str | None = None):
+        return envelope.wrap(
             session_id=session.session_id,
             pack_version=session.pack.pack_version,
             seq_in_session=session.take_seq(),
@@ -42,6 +43,9 @@ class Pipeline:
             body=body,
             supersedes=supersedes,
         )
+
+    def _persist(self, session: Session, kind: str, body: dict, supersedes: str | None = None):
+        event = self._wrap(session, kind, body, supersedes)
         self.store.append(event)
         return event
 
@@ -57,23 +61,41 @@ class Pipeline:
         return result
 
     async def apply_result(self, session: Session, result: JudgeResult, publish: Publish) -> None:
+        """한 판정에서 나온 이벤트를 한 번에 저장하고, 저장된 뒤에 내보낸다.
+
+        낱개로 저장하면 중간에 실패했을 때 verdict 만 남고 alert 는 없는 절반짜리 기록이
+        생긴다. 감사의 원본이 절반이면 리포트도 절반이 된다.
+        """
         if not (result.verdicts or result.alerts or result.assists):
             return
         session.state = self.engine.apply(session.state, result)
+        pending: list[tuple[dict, int]] = []  # (이벤트, assist 회차)
+
         for v in result.verdicts:
             key = (v.item_code, v.axis)
-            ev = self._persist(
-                session, "verdict", payload_to_event.verdict_body(v),
+            event = self._wrap(
+                session,
+                "verdict",
+                payload_to_event.verdict_body(v),
                 supersedes=session.latest_event_by_item.get(key),
-            )  # fmt: skip
-            session.latest_event_by_item[key] = ev["event_id"]
-            await publish(event_to_s2c.from_event(ev, session.state))
+            )
+            session.latest_event_by_item[key] = event["event_id"]
+            pending.append((event, 1))
+
         for a in result.alerts:
-            ev = self._persist(session, "alert", payload_to_event.alert_body(a))
-            await publish(event_to_s2c.from_event(ev, session.state))
+            pending.append((self._wrap(session, "alert", payload_to_event.alert_body(a)), 1))
+
         for s in result.assists:
-            ev = self._persist(session, "assist", payload_to_event.assist_body(s))
-            await publish(event_to_s2c.from_event(ev, session.state))
+            body = payload_to_event.assist_body(s)
+            key = chains.assist_key(body)
+            supersedes, ver = session.assist_ver(key)
+            event = self._wrap(session, "assist", body, supersedes=supersedes)
+            session.latest_assist[key] = (event["event_id"], ver)
+            pending.append((event, ver))
+
+        self.store.append_many([e for e, _ in pending])
+        for event, ver in pending:
+            await publish(event_to_s2c.from_event(event, session.state, ver))
         if result.verdicts:
             await publish(event_to_s2c.progress(session.pack, session.state))
 

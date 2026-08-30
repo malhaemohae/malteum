@@ -24,6 +24,7 @@ from typing import Any
 from engine.engine import RuleEngine
 from engine.types import RulePack
 from server.mapping import event_to_s2c
+from server.services.session import chains
 
 Publish = Callable[[dict[str, Any]], Awaitable[Any]]
 
@@ -50,7 +51,8 @@ async def replay(
     publish: Publish,
 ) -> None:
     """원본 이벤트를 순서대로 s2c 로 바꿔 보낸다. 상태는 매 시점까지 접어 만든다."""
-    ordered = sorted(events, key=lambda e: e["seq_in_session"])
+    ordered = chains.by_seq(events)
+    assist_vers = chains.assist_versions(ordered)
     previous: dict[str, Any] | None = None
     for i, event in enumerate(ordered):
         if previous is not None:
@@ -58,7 +60,7 @@ async def replay(
         previous = event
         # 그 시점까지의 상태. 실시간 경로와 같은 fold 를 써야 두 값이 갈라지지 않는다
         state = engine.fold(ordered[: i + 1])
-        message = event_to_s2c.from_event(event, state)
+        message = event_to_s2c.from_event(event, state, assist_vers.get(event["event_id"], 1))
         if message is not None:
             await publish(message)
         if event["kind"] == "verdict":
