@@ -35,7 +35,7 @@ def _ensure_java_on_path() -> None:
             os.environ["PATH"] = str(home / "bin") + os.pathsep + os.environ.get("PATH", "")
             return
     raise ManifestError(
-        "java 를 찾지 못함. JDK 21 을 설치하거나 JAVA_HOME 을 설정하라. "
+        "java 를 찾지 못함. JDK 17 이상을 설치하거나 JAVA_HOME 을 설정하라. "
         "빠른 설치: pip install install-jdk 후 python -c \"import jdk; jdk.install('21')\""
     )
 

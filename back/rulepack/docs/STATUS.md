@@ -45,4 +45,4 @@ uv run python -m rulepack.cli build            # 후보 생성. artifacts/review
 uv run python -m rulepack.cli verify --strict  # 결정성·고정 의존성·java·계약 검증
 ```
 
-JDK 21 과 `uv` 가 필요하다. 산출물은 `.gitignore` 로 추적하지 않는다. 같은 원천·코드·파서 버전이면 같은 값이 나오므로 레포에 둘 이유가 없다.
+JDK 17 이상(CI 는 21)과 `uv` 가 필요하다. 산출물은 `.gitignore` 로 추적하지 않는다. 같은 원천·코드·파서 버전이면 같은 값이 나오므로 레포에 둘 이유가 없다.

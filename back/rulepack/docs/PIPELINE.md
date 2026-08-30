@@ -9,7 +9,7 @@ assets/03_규정문서/*.pdf  (7종)
     │  source_manifest.py    MANIFEST 파싱 · SHA-256 · page_count · 파서 버전 고정
     ▼
 구조 JSON
-    │  structure.py          OpenDataLoader 로 표 · 병합셀 · 제목 계층 복원 (JDK 21)
+    │  structure.py          OpenDataLoader 로 표 · 병합셀 · 제목 계층 복원 (JDK 17+)
     ▼
 상품별 chunk
     │  pipeline.py           config/candidate_rules.json 을 근거로 후보 생성

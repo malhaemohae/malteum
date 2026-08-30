@@ -33,6 +33,12 @@ import 경계는 `back/pyproject.toml`의 import-linter가 강제한다: `server
 
 ## 시작
 
+필요한 것: Python 3.12 · uv · Docker · **JDK 17 이상**.
+
+JDK 는 rulepack 의 구조 추출이 OpenDataLoader(java)를 부르기 때문에 필요하다. 없으면
+`make test` 가 rulepack 테스트에서 멈춘다. `pip install install-jdk` 후
+`python -c "import jdk; jdk.install('21')"` 로 받으면 된다. CI 는 temurin 21 을 쓴다.
+
 ```bash
 cd back && uv sync                       # 파이썬 3.12 · 의존성
 make test                                # ruff · lint-imports · pytest
