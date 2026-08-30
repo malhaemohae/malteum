@@ -9,7 +9,6 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from contracts.engine_contract import Utterance
 from engine.pack.source import PackNotFound
 from server.mapping.event_to_s2c import ready
-from server.services.event.store import MemoryEventStore
 from server.services.session.pipeline import Pipeline
 from server.ws.connection import Connection
 from server.ws.protocol import InvalidMessage, parse_c2s
@@ -21,10 +20,9 @@ router = APIRouter()
 async def ws_endpoint(socket: WebSocket) -> None:
     app = socket.app
     settings = app.state.settings
-    registry = app.state.registry
-    if not hasattr(app.state, "event_store"):
-        app.state.event_store = MemoryEventStore()
-    pipeline = Pipeline(app.state.engine, app.state.event_store)
+    runtime = app.state.runtime
+    registry = runtime.registry
+    pipeline = Pipeline(runtime.engine, runtime.event_store, runtime.projection)
 
     await socket.accept()
     conn = Connection(socket, settings.ws_ping_interval_s)

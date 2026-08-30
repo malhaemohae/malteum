@@ -13,7 +13,7 @@ FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
 
 
 def _client() -> TestClient:
-    return TestClient(create_app(Settings(ws_ping_interval_s=0.05)))
+    return TestClient(create_app(Settings(ws_ping_interval_s=0.05, event_store="memory")))
 
 
 def test_hello_ready_ping_pong_end():

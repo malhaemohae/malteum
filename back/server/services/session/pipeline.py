@@ -15,15 +15,23 @@ from engine.engine import RuleEngine
 from server.mapping import event_to_s2c, payload_to_event
 from server.services.event import envelope
 from server.services.event.store import EventStore
+from server.services.session.projection import NullSessionProjection, SessionProjection
 from server.services.session.registry import Session
 
 Publish = Callable[[dict[str, Any]], Awaitable[Any]]
 
 
 class Pipeline:
-    def __init__(self, engine: RuleEngine, store: EventStore) -> None:
+    def __init__(
+        self,
+        engine: RuleEngine,
+        store: EventStore,
+        projection: SessionProjection | None = None,
+    ) -> None:
         self.engine = engine
         self.store = store
+        # sessions 투영은 이벤트를 접어 만든 파생물이다. 없어도 정본은 온전하다
+        self.projection = projection or NullSessionProjection()
 
     def _persist(self, session: Session, kind: str, body: dict, supersedes: str | None = None):
         event = envelope.wrap(
@@ -70,7 +78,7 @@ class Pipeline:
             await publish(event_to_s2c.progress(session.pack, session.state))
 
     def start(self, session: Session, mode: str, product: dict, customer_type: str) -> dict:
-        return self._persist(
+        event = self._persist(
             session,
             "session_started",
             {
@@ -80,12 +88,16 @@ class Pipeline:
                 "item_count": len(session.pack.required_items()),
             },
         )
+        self.projection.opened(event)
+        return event
 
     def end(self, session: Session, duration_ms: int, reason: str = "normal") -> dict:
         events = self.store.of_session(session.session_id)
         summary = self.engine.summarize(session.state, session.pack, events)
-        return self._persist(
+        event = self._persist(
             session,
             "session_ended",
             {"reason": reason, "duration_ms": duration_ms, "summary": summary},
         )
+        self.projection.ended(event)
+        return event

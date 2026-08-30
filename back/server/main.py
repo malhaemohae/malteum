@@ -17,7 +17,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        app.state.engine, app.state.registry = build_runtime(settings)
+        app.state.runtime = build_runtime(settings)
         yield
 
     app = FastAPI(title=settings.display_name, version=settings.version, lifespan=lifespan)
