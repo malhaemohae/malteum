@@ -16,6 +16,9 @@ class Session:
     session_id: str
     pack: RulePack
     state: SessionState
+    mode: Mode = "text"
+    # mode=trace 일 때 재생할 원본 세션. 계약상 POST /sessions 로만 지정된다
+    source_session_id: str | None = None
     next_seq: int = 0
     latest_event_by_item: dict[tuple[str, str], str] = field(default_factory=dict)
     t0_ms: int = 0
@@ -42,11 +45,18 @@ class SessionRegistry:
         mode: Mode,
         customer_type: Literal["general", "professional"] = "general",
         session_id: str | None = None,
+        source_session_id: str | None = None,
     ) -> Session:
         session_id = session_id or new_id()
         pack = self.pack(pack_version)
         state = self.engine.initial_state(session_id, pack, mode, customer_type)
-        session = Session(session_id=session_id, pack=pack, state=state)
+        session = Session(
+            session_id=session_id,
+            pack=pack,
+            state=state,
+            mode=mode,
+            source_session_id=source_session_id,
+        )
         self._sessions[session_id] = session
         return session
 

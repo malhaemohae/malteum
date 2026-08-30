@@ -37,7 +37,15 @@ def from_event(event: dict[str, Any], state: SessionState) -> dict[str, Any] | N
     kind = event["kind"]
     body = event[kind]
     if kind == "utterance":
-        return {"t": "utterance", "event_id": event["event_id"], **body}
+        # 이벤트 본문에는 duration_ms·stt_confidence·speaker_confidence 가 더 있다.
+        # 화면이 쓰는 넷만 보낸다 (계약: 이벤트를 그대로 전송하지 않는다)
+        return {
+            "t": "utterance",
+            "event_id": event["event_id"],
+            "speaker": body["speaker"],
+            "text": body["text"],
+            "t_ms": body["t_ms"],
+        }
     if kind == "verdict":
         item = next(
             s for s in state.items if (s.item_code, s.axis) == (body["item_code"], body["axis"])

@@ -92,7 +92,8 @@ class Pipeline:
         return event
 
     def end(self, session: Session, duration_ms: int, reason: str = "normal") -> dict:
-        events = self.store.of_session(session.session_id)
+        # trace 는 원본 세션의 이벤트로 요약한다. 자기 봉투만으로는 상담 내용이 없다
+        events = self.store.of_session(session.source_session_id or session.session_id)
         summary = self.engine.summarize(session.state, session.pack, events)
         event = self._persist(
             session,

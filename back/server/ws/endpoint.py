@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import time
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -10,6 +11,7 @@ from contracts.engine_contract import Utterance
 from engine.pack.source import PackNotFound
 from server.mapping.event_to_s2c import ready
 from server.services.session.pipeline import Pipeline
+from server.services.session.replay import replay
 from server.ws.connection import Connection
 from server.ws.protocol import InvalidMessage, parse_c2s
 
@@ -27,6 +29,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
     await socket.accept()
     conn = Connection(socket, settings.ws_ping_interval_s)
     session = None
+    trace: asyncio.Task | None = None
     started_at = time.monotonic()
     try:
         while True:
@@ -39,23 +42,35 @@ async def ws_endpoint(socket: WebSocket) -> None:
 
             if msg.t == "hello":
                 customer_type = (msg.customer_profile and msg.customer_profile.type) or "general"
-                try:
-                    session = registry.open(
-                        settings.default_pack_version, msg.mode, customer_type, msg.session_id
-                    )
-                except PackNotFound:
-                    await conn.send(
-                        {"t": "error", "code": "pack_not_found", "message": "규정 팩이 없습니다."}
-                    )
-                    continue
+                # POST /sessions 로 미리 연 세션이면 그것을 잇는다. trace 의 재생 대상이 거기 있다
+                session = registry.get(msg.session_id) if msg.session_id else None
+                if session is None:
+                    try:
+                        session = registry.open(
+                            settings.default_pack_version, msg.mode, customer_type, msg.session_id
+                        )
+                    except PackNotFound:
+                        await conn.send(
+                            {
+                                "t": "error",
+                                "code": "pack_not_found",
+                                "message": "규정 팩이 없습니다.",
+                            }
+                        )
+                        continue
                 product = {
                     "code": session.pack.product_code,
                     "name": session.pack.product_name,
                     "category": "deposit",
                 }
-                pipeline.start(session, msg.mode, product, customer_type)
-                await conn.send(ready(session.session_id, session.pack, session.state, msg.mode))
+                pipeline.start(session, session.mode, product, customer_type)
+                await conn.send(
+                    ready(session.session_id, session.pack, session.state, session.mode)
+                )
                 conn.start_heartbeat()
+                if session.mode == "trace":
+                    # 계약: ready 직후 서버가 스스로 재생을 시작한다. 시작 메시지는 없다
+                    trace = asyncio.create_task(_start_trace(session, pipeline, conn))
             elif msg.t == "pong":
                 pass
             elif session is None:
@@ -95,4 +110,17 @@ async def ws_endpoint(socket: WebSocket) -> None:
     except WebSocketDisconnect:
         pass
     finally:
+        if trace is not None:
+            trace.cancel()
         await conn.close()
+
+
+async def _start_trace(session, pipeline: Pipeline, conn: Connection) -> None:
+    """원본 세션의 이벤트를 다시 흘린다. STT·LLM 을 부르지 않는다."""
+    events = pipeline.store.of_session(session.source_session_id or "")
+    if not events:
+        await conn.send({"t": "error", "code": "not_found", "message": "재생할 이벤트가 없습니다."})
+        return
+    await replay(pipeline.engine, session.pack, events, conn.send)
+    # 재생이 끝난 시점의 상태를 세션에 반영해 둔다. end 의 요약이 원본과 맞아야 한다
+    session.state = pipeline.engine.fold(events)
