@@ -30,8 +30,8 @@ async def test_submit_utterance_persists_and_publishes_with_supersedes():
     l1 = VerdictPayload(item_code="DEP-INT-002", axis="omission", state="partial", decided_by="L1")
     l3 = VerdictPayload(item_code="DEP-INT-002", axis="omission", state="met", decided_by="L3")
     engine = StubEngine([(l1,), (l3,)])
-    registry = SessionRegistry(engine)
     store = MemoryEventStore()
+    registry = SessionRegistry(engine, store)
     pipeline = Pipeline(engine, store)
     session = registry.open("DEP-2026.08-v4", "text", session_id="FIXT-SESS-0B")
     sent = []

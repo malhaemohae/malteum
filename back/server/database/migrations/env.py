@@ -4,6 +4,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from server.bootstrap.settings import get_settings
+from server.database import entities  # noqa: F401  Base.metadata 를 채운다
 from server.database.base import Base
 
 # this is the Alembic Config object, which provides
@@ -20,6 +21,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
+# 접속 주소의 정본은 settings 한 곳이다. alembic.ini 에 적지 않는다
 config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
 # other values from the config, defined by the needs of env.py,
