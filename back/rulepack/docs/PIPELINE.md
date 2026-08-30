@@ -79,7 +79,15 @@ python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run] [--unsig
 
 `verify` 의 dry-run 산출물은 `production_publishable` 이 거짓이라 거절한다. 같은 `pack_version` 을 두 번 넣는 것도 막는다. 팩은 불변 발행물이라 새 버전을 내는 것이 원칙이고, 덮어쓰려면 `--replace` 를 명시해야 한다. 적재에는 `RULEPACK_APPROVAL_HMAC_KEY` 가 필요하다(`--unsigned` 일 때는 불필요).
 
-`scripts/seed_pack.py`(M1) 도 같은 테이블에 넣지만 벡터를 만들지 않는다. `load_pack.py` 가 무결성 검증·임베딩 생성까지 하는 상위집합이라, 둘을 하나로 합칠지는 M1 과 협의할 사항이다.
+M1 이 개발용으로 두었던 `scripts/seed_pack.py` 는 2026-08-30 에 이 스크립트로 흡수했다. 같은 테이블에 서로 다른 방식으로 넣으면, 어느 쪽으로 넣었느냐에 따라 `pack_embeddings` 가 비거나 차서 L2 검색이 되고 안 되고가 갈린다. 에러가 아니라 결과가 조용히 비는 종류라 원인을 찾기 어렵다.
+
+흡수하면서 그쪽의 계약 스키마 검증과 여러 팩 한 번에 넣기를 가져왔다. 개발용 경로는 `--unsigned` 가 대신한다.
+
+```bash
+python scripts/load_pack.py                      # pack_dir 의 rulepack_*.json 전부 (--unsigned 필요)
+python scripts/load_pack.py DEP-2026.08-v4       # 버전 지정
+python scripts/load_pack.py artifacts/compiled_DEP-2026.08-v4.json   # envelope
+```
 
 ### 로컬 검증 뒤 정리
 

@@ -380,3 +380,40 @@ def test_load_rejects_unsigned_pack_and_tampered_envelope(
     no_sig["compiler_attestation"] = ""
     with pytest.raises(LoadError, match="무결성 검증 실패"):
         unwrap(no_sig)
+
+
+def test_load_rejects_pack_that_breaks_contract() -> None:
+    """계약을 어긴 팩은 DB 에 들어가면 안 된다.
+
+    `compile` 이 이미 검사하지만 그건 발행 시점 이야기다. 손으로 만든 팩이나 옛
+    버전을 넣는 경로가 남아 있으므로 넣기 직전에 다시 본다. M1 의 `seed_pack.py`
+    가 하던 검사를 흡수한 것 (2026-08-30).
+    """
+    import json
+
+    from load_pack import LoadError, check_contract
+
+    real = json.loads(
+        (REPO_ROOT / "back" / "contracts" / "fixtures" / "rulepack_DEP-2026.08-v4.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    check_contract(real)  # 발행된 팩은 통과한다
+
+    with pytest.raises(LoadError, match="rulepack.schema.json"):
+        check_contract({"pack_version": "BAD-2026.08-v1", "items": []})
+
+
+def test_resolve_targets_published_packs_only(tmp_path: Path) -> None:
+    """인자 없이 부르면 발행물 전부가 대상이다. compile 중간 산출물은 아니다."""
+    from load_pack import resolve
+
+    for name in ("rulepack_DEP-2026.08-v1.json", "rulepack_LOAN-2026.08-v1.json"):
+        (tmp_path / name).write_text("{}", encoding="utf-8")
+    (tmp_path / "compiled_DEP-2026.08-v1.json").write_text("{}", encoding="utf-8")
+
+    assert [p.name for p in resolve(None, tmp_path)] == [
+        "rulepack_DEP-2026.08-v1.json",
+        "rulepack_LOAN-2026.08-v1.json",
+    ]
+    assert resolve("DEP-2026.08-v1", tmp_path) == [tmp_path / "rulepack_DEP-2026.08-v1.json"]

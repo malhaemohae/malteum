@@ -51,6 +51,7 @@ from rulepack.embedding import (  # noqa: E402
 # `root_packages` 밖이라 이 import 는 모듈 경계를 어기지 않는다.
 from server.database.entities import PackEmbedding, RulePack  # noqa: E402
 
+BACK = Path(__file__).resolve().parent.parent
 DEFAULT_DSN = "postgresql+psycopg://app:app@localhost:5432/app"
 
 
@@ -101,6 +102,34 @@ def unwrap(document: dict[str, Any], *, allow_unsigned: bool = False) -> dict[st
         return verified_pack(document)
     except CompileError as exc:
         raise LoadError(f"팩 무결성 검증 실패: {exc}") from exc
+
+
+def check_contract(pack: dict[str, Any]) -> None:
+    """팩이 `rulepack.schema.json` 을 만족하는지 본다.
+
+    `compile` 이 이미 검사하지만 그건 발행 시점 이야기다. 손으로 만든 팩이나 옛
+    버전을 넣을 때는 그 믿음이 성립하지 않으므로 넣기 직전에 다시 본다.
+    """
+    from jsonschema import Draft202012Validator
+
+    schema = json.loads((BACK / "contracts" / "rulepack.schema.json").read_text(encoding="utf-8"))
+    errors = sorted(Draft202012Validator(schema).iter_errors(pack), key=lambda e: list(e.path))
+    if errors:
+        joined = "\n  ".join(f"{list(e.path)}: {e.message}" for e in errors[:5])
+        raise LoadError(f"팩이 rulepack.schema.json 을 만족하지 않음:\n  {joined}")
+
+
+def resolve(target: str | None, pack_dir: Path) -> list[Path]:
+    """인자를 적재 대상 파일 목록으로 바꾼다.
+
+    없으면 `pack_dir` 의 발행물 전부, 버전만 주면 그 이름의 파일, 경로면 그대로.
+    """
+    if target is None:
+        return sorted(pack_dir.glob("rulepack_*.json"))
+    path = Path(target)
+    if path.suffix == ".json":
+        return [path if path.is_absolute() else (Path.cwd() / path).resolve()]
+    return [pack_dir / f"rulepack_{target}.json"]
 
 
 def rows(
@@ -193,7 +222,11 @@ def load(pack: dict[str, Any], url: str, model: EmbeddingModel, replace: bool = 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="팩 JSON 을 postgres 에 적재")
-    parser.add_argument("pack", type=Path, help="compile 산출물 또는 팩 JSON")
+    parser.add_argument(
+        "pack",
+        nargs="?",
+        help="compile 산출물 · 팩 파일 경로 · 팩 버전. 없으면 pack_dir 의 rulepack_*.json 전부",
+    )
     parser.add_argument(
         "--replace", action="store_true", help="같은 버전이 있으면 지우고 다시 넣음"
     )
@@ -205,37 +238,31 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    document = json.loads(args.pack.read_text(encoding="utf-8"))
-    pack = unwrap(document, allow_unsigned=args.unsigned)
-    model = model_for(pack)
+    from server.bootstrap.settings import get_settings
 
-    if args.dry_run:
-        _, embeddings = rows(pack, model, encode=False)
-        print(
-            json.dumps(
-                {
-                    "pack_version": pack["pack_version"],
-                    "items": len(pack["items"]),
-                    "embeddings": len(embeddings),
-                    "dry_run": True,
-                },
-                ensure_ascii=False,
-            )
-        )
-        return 0
+    paths = resolve(args.pack, Path(get_settings().pack_dir))
+    if not paths:
+        raise LoadError(f"적재할 팩을 찾지 못함: {get_settings().pack_dir}/rulepack_*.json")
 
-    embedding_count = load(pack, dsn_from_env(), model, replace=args.replace)
-    print(
-        json.dumps(
-            {
-                "pack_version": pack["pack_version"],
-                "items": len(pack["items"]),
-                "embeddings": embedding_count,
+    for path in paths:
+        if not path.exists():
+            raise LoadError(f"팩 파일이 없음: {path}")
+        pack = unwrap(json.loads(path.read_text(encoding="utf-8")), allow_unsigned=args.unsigned)
+        check_contract(pack)
+        model = model_for(pack)
+        result: dict[str, Any] = {
+            "pack_version": pack["pack_version"],
+            "items": len(pack["items"]),
+        }
+        if args.dry_run:
+            _, embeddings = rows(pack, model, encode=False)
+            result |= {"embeddings": len(embeddings), "dry_run": True}
+        else:
+            result |= {
+                "embeddings": load(pack, dsn_from_env(), model, replace=args.replace),
                 "loaded": True,
-            },
-            ensure_ascii=False,
-        )
-    )
+            }
+        print(json.dumps(result, ensure_ascii=False))
     return 0
 
 
