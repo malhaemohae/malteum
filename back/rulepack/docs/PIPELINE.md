@@ -59,7 +59,11 @@ uv run python -m rulepack.cli verify --strict  # 결정성 · 고정 의존성 �
 
 ## DB 적재
 
-테이블은 `back/server/database/entities/pack.py` 가 정의하고 alembic 이 만든다. 적재 스크립트는 그 모델을 쓰지 않고 SQL 로 넣는다. 발행 도구가 상담 서버의 모델에 붙으면 두 배포가 한 몸이 되기 때문이다. `scripts/` 는 import-linter 의 `root_packages` 밖이라 린터가 막지는 않고, 설계 의도로 지키는 경계다.
+테이블은 M1 이 정의한다(`back/server/database/entities/rulepack.py` · 근거는 `db/SCHEMA.md`). `rule_packs.doc` JSONB 한 칸이 팩 정본이고 나머지 열은 조회용 사본이다. 적재 스크립트는 그 모델을 import 하지 않고 SQL 로 넣는다. 발행 도구가 상담 서버의 모델에 붙으면 두 배포가 한 몸이 되기 때문이다. `scripts/` 는 import-linter 의 `root_packages` 밖이라 린터가 막지는 않고, 설계 의도로 지키는 경계다.
+
+항목을 열로 펼치지 않는 이유가 둘이다. M2 가 `SELECT doc` 한 줄로 팩을 그대로 돌려받아야 하고, 열로 펼치면 `published_at` 이 timestamptz 를 왕복하며 표기가 바뀌어(`2026-08-30T00:00:00Z` → `2026-08-30 00:00:00+00`) `pack_sha256` 대조가 깨진다. JSONB 는 바이트를 보존한다. M3 가 따로 만들었던 `pack`·`pack_item`·`item_embedding` 은 이 검증을 통과하지 못해 2026-08-30 에 걷어냈다.
+
+`pack_embeddings` 는 항목 하나당 여러 행이 된다. 금지·위험 예시와 쉬운 말이 각각 검색면이 되어야 L2 가 발화를 넓게 잡는다. 예금 팩 9항목이 24행이 된다. `jargon_terms` 는 넣지 않는다. 용어 밀도 게이지는 목록 대조로만 세므로 벡터가 필요 없고, 팩 전역이라 붙일 `item_code` 도 없다.
 
 발행은 `publish` 가 `artifacts/rulepack_<version>.json` 을 쓴다. M2 는 이 파일 이름 하나로 M3 와 만난다(`engine/adapters/pack_source/file.py`). 서로의 코드를 안 보고도 연결되는 지점이라 이름이 바뀌면 조용히 끊긴다.
 
@@ -75,6 +79,8 @@ python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run] [--unsig
 
 `verify` 의 dry-run 산출물은 `production_publishable` 이 거짓이라 거절한다. 같은 `pack_version` 을 두 번 넣는 것도 막는다. 팩은 불변 발행물이라 새 버전을 내는 것이 원칙이고, 덮어쓰려면 `--replace` 를 명시해야 한다. 적재에는 `RULEPACK_APPROVAL_HMAC_KEY` 가 필요하다(`--unsigned` 일 때는 불필요).
 
+`scripts/seed_pack.py`(M1) 도 같은 테이블에 넣지만 벡터를 만들지 않는다. `load_pack.py` 가 무결성 검증·임베딩 생성까지 하는 상위집합이라, 둘을 하나로 합칠지는 M1 과 협의할 사항이다.
+
 ### 로컬 검증 뒤 정리
 
 적재를 시험해 보려고 넣은 팩은 끝나면 지운다. 안 지우면 다음 원천 교체 뒤에도 옛 팩이 DB 에 남고, `postgres.py` 어댑터가 붙는 순간 만료된 기준을 읽게 된다. 실제로 2026-08-30 에 심의 만료 원천으로 만든 항목 3개짜리 팩이 남아 있었다.
@@ -82,9 +88,7 @@ python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run] [--unsig
 `published_by` 로 구분한다. 사람이 승인한 발행물이 아니면 `local-verification` 처럼 그렇게 적고, 확인이 끝나면 지운다. FK 가 `RESTRICT` 라 자식부터 지워야 한다.
 
 ```sql
-delete from item_embedding where pack_version = '<버전>';
-delete from pack_item    where pack_version = '<버전>';
-delete from pack         where pack_version = '<버전>';
+delete from rule_packs where pack_version = '<버전>';  -- pack_embeddings 는 CASCADE
 ```
 
 ## 임베딩

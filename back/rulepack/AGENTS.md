@@ -1,6 +1,6 @@
 # back/rulepack — M3 rulepack (임한빈)
 
-규정 PDF → `contracts/rulepack.schema.json`을 만족하는 팩 JSON → postgres(`pack`·`pack_item`·`item_embedding`) 적재. 파이프라인 설계·폴더 구성·권한은 담당자가 정한다.
+규정 PDF → `contracts/rulepack.schema.json`을 만족하는 팩 JSON → postgres(`rule_packs`·`pack_embeddings`) 적재. 테이블은 M1 이 `db/SCHEMA.md` 에서 정의하고, M3 는 그 위에 넣는 쪽이다. 파이프라인 설계·폴더 구성·권한은 담당자가 정한다.
 
 ## 허용 import
 

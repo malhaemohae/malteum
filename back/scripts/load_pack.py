@@ -99,21 +99,22 @@ def unwrap(document: dict[str, Any], *, allow_unsigned: bool = False) -> dict[st
         raise LoadError(f"팩 무결성 검증 실패: {exc}") from exc
 
 
-def _jsonb(value: Any) -> str | None:
-    """JSONB 열에 넣을 값. 팩에 없던 필드는 SQL null 로 남긴다.
-
-    `json.dumps(None)` 은 문자열 `"null"` 이라 JSON null 로 저장된다. 그러면
-    "그 필드가 없었다" 와 "값이 null 이었다" 를 나중에 구분할 수 없다.
-    """
-    if value is None:
-        return None
-    return json.dumps(value, ensure_ascii=False)
-
-
 def rows(
     pack: dict[str, Any], model: EmbeddingModel, *, encode: bool = True
-) -> tuple[tuple, list[tuple], list[tuple]]:
-    """팩을 테이블 세 벌의 행으로 편다."""
+) -> tuple[tuple, list[tuple]]:
+    """팩을 `rule_packs` 한 행과 `pack_embeddings` 여러 행으로 편다.
+
+    `rule_packs.doc` 이 정본이고 나머지 열은 조회용 사본이다(`db/SCHEMA.md` 2절).
+    항목을 열로 펼치지 않는 이유가 둘 있다. M2 가 `SELECT doc` 한 줄로 팩을 그대로
+    돌려받아야 하고, 열로 펼치면 `published_at` 이 timestamptz 를 왕복하며 표기가
+    바뀌어(`2026-08-30T00:00:00Z` → `2026-08-30 00:00:00+00`) `pack_sha256` 대조가
+    깨진다. JSONB 는 바이트를 보존한다.
+
+    임베딩은 항목 하나당 여러 행이 된다. 금지·위험 예시와 쉬운 말이 각각 검색면이
+    되어야 L2 가 발화를 넓게 잡는다. `jargon_terms` 는 넣지 않는다. 용어 밀도
+    게이지는 목록 대조로만 세므로 벡터가 필요 없고, 팩 전역이라 붙일 `item_code`
+    도 없다.
+    """
     declared = pack["embedding"]
     if declared["model"] != model.name or declared["dim"] != model.dim:
         raise LoadError(
@@ -124,7 +125,6 @@ def rows(
     product = pack["product"]
     head = (
         pack["pack_version"],
-        str(pack["schema_version"]),
         product["code"],
         product["name"],
         product["category"],
@@ -132,79 +132,68 @@ def rows(
         pack.get("published_by"),
         declared["model"],
         declared["dim"],
-        declared.get("normalized", True),
-        _jsonb(pack["sources"]),
-        _jsonb(pack.get("jargon_terms", [])),
+        json.dumps(pack, ensure_ascii=False),
     )
 
-    items: list[tuple] = []
-    vectors: list[tuple] = []
-    texts = [embedding_text(item) for item in pack["items"]]
+    slots: list[tuple[str, str | None, str, int, str]] = []
+    for item in pack["items"]:
+        code, embedding_id = item["code"], item.get("embedding_id")
+        slots.append((code, embedding_id, "item", 0, embedding_text(item)))
+        for key, source in (
+            ("forbidden_examples", "forbidden_example"),
+            ("risk_examples", "risk_example"),
+            ("plain_language", "plain_language"),
+        ):
+            for ordinal, body in enumerate(item.get(key) or []):
+                slots.append((code, embedding_id, source, ordinal, str(body)))
+
     # dry-run 은 행 수만 세므로 모델(약 0.5GB)을 올리지 않는다. 그때 벡터 자리는
     # None 이라 그 결과를 DB 에 넣으면 안 된다.
-    encoded = model.encode(texts) if (texts and encode) else [None] * len(texts)
-    for item, vector in zip(pack["items"], encoded, strict=True):
-        items.append(
-            (
-                pack["pack_version"],
-                item["code"],
-                item["name"],
-                item["type"],
-                item.get("axis"),
-                _jsonb(item["requirement_elements"]),
-                _jsonb(item["legal_basis"]),
-                _jsonb(item["evidence"]),
-                _jsonb(item.get("l1_patterns")),
-                item.get("embedding_id"),
-                _jsonb(item.get("plain_language")),
-                _jsonb(item.get("numeric_facts")),
-                _jsonb(item.get("documents_required")),
-                _jsonb(item.get("forbidden_examples")),
-                _jsonb(item.get("risk_examples")),
-                item["approved_at"],
-                item.get("approved_by"),
-            )
+    texts = [slot[4] for slot in slots]
+    vectors = model.encode(texts) if (texts and encode) else [None] * len(texts)
+    embeddings = [
+        (
+            pack["pack_version"],
+            code,
+            embedding_id,
+            source,
+            ordinal,
+            body,
+            vector,
+            model.name,
+            model.dim,
         )
-        if item.get("embedding_id"):
-            vectors.append((pack["pack_version"], item["embedding_id"], vector))
-    return head, items, vectors
+        for (code, embedding_id, source, ordinal, body), vector in zip(slots, vectors, strict=True)
+    ]
+    return head, embeddings
+
+
+_HEAD_SQL = (
+    "insert into rule_packs (pack_version, product_code, product_name, product_category,"
+    " published_at, published_by, embedding_model, embedding_dim, doc)"
+    " values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+)
+_EMBEDDING_SQL = (
+    "insert into pack_embeddings (pack_version, item_code, embedding_id, source, ordinal,"
+    " body_text, embedding, model, dim) values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+)
 
 
 def load(pack: dict[str, Any], dsn: str, model: EmbeddingModel, replace: bool = False) -> int:
-    """한 트랜잭션으로 넣는다. 중간에 실패하면 아무것도 안 남는다."""
-    head, items, vectors = rows(pack, model)
+    """팩 한 벌을 넣는다. 같은 버전이 있으면 `replace` 없이는 거절한다."""
+    head, embeddings = rows(pack, model)
     version = pack["pack_version"]
-
     with psycopg.connect(dsn) as conn, conn.cursor() as cur:
-        cur.execute("select 1 from pack where pack_version = %s", (version,))
+        cur.execute("select 1 from rule_packs where pack_version = %s", (version,))
         if cur.fetchone():
             if not replace:
                 raise LoadError(f"{version} 이 이미 있음. 팩은 불변이라 새 버전을 내는 것이 원칙")
-            # FK 가 RESTRICT 라 자식부터 지운다.
-            cur.execute("delete from item_embedding where pack_version = %s", (version,))
-            cur.execute("delete from pack_item where pack_version = %s", (version,))
-            cur.execute("delete from pack where pack_version = %s", (version,))
-
-        cur.execute(
-            "insert into pack (pack_version, schema_version, product_code, product_name,"
-            " product_category, published_at, published_by, embedding_model, embedding_dim,"
-            " embedding_normalized, sources, jargon_terms)"
-            " values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-            head,
-        )
-        cur.executemany(
-            "insert into pack_item (pack_version, code, name, type, axis, requirement_elements,"
-            " legal_basis, evidence, l1_patterns, embedding_id, plain_language, numeric_facts,"
-            " documents_required, forbidden_examples, risk_examples, approved_at, approved_by)"
-            " values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-            items,
-        )
-        cur.executemany(
-            "insert into item_embedding (pack_version, embedding_id, vector) values (%s,%s,%s)",
-            [(v, eid, str(vec)) for v, eid, vec in vectors],
-        )
+            # pack_embeddings 의 FK 가 CASCADE 라 머리만 지우면 따라 지워진다.
+            cur.execute("delete from rule_packs where pack_version = %s", (version,))
+        cur.execute(_HEAD_SQL, head)
+        cur.executemany(_EMBEDDING_SQL, embeddings)
         conn.commit()
-    return len(items)
+    return len(embeddings)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -226,13 +215,13 @@ def main(argv: list[str] | None = None) -> int:
     model = model_for(pack)
 
     if args.dry_run:
-        _, items, vectors = rows(pack, model, encode=False)
+        _, embeddings = rows(pack, model, encode=False)
         print(
             json.dumps(
                 {
                     "pack_version": pack["pack_version"],
-                    "items": len(items),
-                    "vectors": len(vectors),
+                    "items": len(pack["items"]),
+                    "embeddings": len(embeddings),
                     "dry_run": True,
                 },
                 ensure_ascii=False,
@@ -240,10 +229,15 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
 
-    count = load(pack, dsn_from_env(), model, replace=args.replace)
+    embedding_count = load(pack, dsn_from_env(), model, replace=args.replace)
     print(
         json.dumps(
-            {"pack_version": pack["pack_version"], "items": count, "loaded": True},
+            {
+                "pack_version": pack["pack_version"],
+                "items": len(pack["items"]),
+                "embeddings": embedding_count,
+                "loaded": True,
+            },
             ensure_ascii=False,
         )
     )

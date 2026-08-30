@@ -98,9 +98,9 @@ def conn():
     try:
         with psycopg.connect(_dsn(), connect_timeout=3) as connection:
             with connection.cursor() as cur:
-                cur.execute("select to_regclass('pack')")
+                cur.execute("select to_regclass('rule_packs')")
                 if cur.fetchone()[0] is None:
-                    pytest.skip("pack 테이블 없음. alembic upgrade head 가 필요함")
+                    pytest.skip("rule_packs 테이블 없음. alembic upgrade head 가 필요함")
             yield connection
     except Exception as exc:  # noqa: BLE001
         pytest.skip(f"postgres 에 붙지 못함: {type(exc).__name__}")
@@ -132,8 +132,18 @@ def test_load_rejects_model_mismatch() -> None:
 
 
 def test_load_pack_roundtrip(conn) -> None:
-    """적재한 팩을 다시 읽어 같은 값인지 본다."""
+    """적재한 팩을 다시 읽어 한 글자도 안 달라졌는지 본다.
+
+    `rule_packs.doc` 이 정본이다. 항목을 열로 펼쳐 담으면 `published_at` 이
+    timestamptz 를 왕복하며 표기가 바뀌고(`...T00:00:00Z` → `... 00:00:00+00`)
+    `pack_sha256` 대조가 깨진다. 2026-08-30 에 저장 스키마를 서버 쪽으로 통합한
+    판단의 근거가 이것이라, 그 보장을 여기서 지킨다.
+    """
+    import hashlib
+
     from load_pack import load
+
+    from rulepack.pipeline import canonical_json
 
     model = DeterministicFakeEmbedding(dim=8)
     pack = {
@@ -158,35 +168,35 @@ def test_load_pack_roundtrip(conn) -> None:
             }
         ],
     }
+    before = hashlib.sha256(canonical_json(pack).encode("utf-8")).hexdigest()
     try:
-        assert load(pack, _dsn(), model, replace=True) == 1
+        # 항목 1행 + risk_examples 1행. 예시도 각각 검색면이 된다.
+        assert load(pack, _dsn(), model, replace=True) == 2
         with conn.cursor() as cur:
             conn.rollback()
             cur.execute(
-                "select product_category, embedding_model from pack where pack_version = %s",
-                (pack["pack_version"],),
-            )
-            assert cur.fetchone() == ("deposit", "deterministic-fake")
-            cur.execute(
-                "select type, axis, risk_examples, numeric_facts from pack_item"
+                "select product_category, embedding_model, doc from rule_packs"
                 " where pack_version = %s",
                 (pack["pack_version"],),
             )
-            row = cur.fetchone()
-            assert row[0] == "risk"
-            assert row[1] is None
-            assert row[2] == ["대신 입금할게요"]
-            # 팩에 없던 필드는 JSON null 이 아니라 SQL null 이어야 한다.
-            assert row[3] is None
+            category, embedding_model, doc = cur.fetchone()
+            assert (category, embedding_model) == ("deposit", "deterministic-fake")
+            assert hashlib.sha256(canonical_json(doc).encode("utf-8")).hexdigest() == before
+            assert doc["published_at"] == pack["published_at"]
+
             cur.execute(
-                "select vector_dims(vector) from item_embedding where pack_version = %s",
+                "select source, ordinal, body_text, vector_dims(embedding) from pack_embeddings"
+                " where pack_version = %s order by source, ordinal",
                 (pack["pack_version"],),
             )
-            assert cur.fetchone()[0] == model.dim
+            got = cur.fetchall()
+            assert [(row[0], row[1]) for row in got] == [("item", 0), ("risk_example", 0)]
+            assert got[1][2] == "대신 입금할게요"
+            assert {row[3] for row in got} == {model.dim}
     finally:
         with conn.cursor() as cur:
-            for table in ("item_embedding", "pack_item", "pack"):
-                cur.execute(f"delete from {table} where pack_version = %s", (pack["pack_version"],))
+            # pack_embeddings 의 FK 가 CASCADE 라 머리만 지우면 따라 지워진다.
+            cur.execute("delete from rule_packs where pack_version = %s", (pack["pack_version"],))
             conn.commit()
 
 
@@ -212,8 +222,7 @@ def test_pack_is_immutable_without_replace(conn) -> None:
     finally:
         with conn.cursor() as cur:
             conn.rollback()
-            for table in ("item_embedding", "pack_item", "pack"):
-                cur.execute(f"delete from {table} where pack_version = %s", (pack["pack_version"],))
+            cur.execute("delete from rule_packs where pack_version = %s", (pack["pack_version"],))
             conn.commit()
 
 

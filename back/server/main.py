@@ -8,7 +8,7 @@ from fastapi import FastAPI
 
 from server.bootstrap.settings import Settings, get_settings
 from server.bootstrap.startup import build_runtime
-from server.routers import health
+from server.routers import evidence, health, packs, sessions
 from server.ws import endpoint as ws_endpoint
 
 
@@ -17,12 +17,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        app.state.engine, app.state.registry = build_runtime(settings)
+        app.state.runtime = build_runtime(settings)
         yield
 
     app = FastAPI(title=settings.display_name, version=settings.version, lifespan=lifespan)
     app.state.settings = settings
     app.include_router(health.router, prefix="/api")
+    app.include_router(sessions.router, prefix="/api")
+    app.include_router(packs.router, prefix="/api")
+    app.include_router(evidence.router, prefix="/api")
     app.include_router(ws_endpoint.router)
     return app
 
