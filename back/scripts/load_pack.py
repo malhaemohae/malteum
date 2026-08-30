@@ -181,14 +181,12 @@ def load(pack: dict[str, Any], url: str, model: EmbeddingModel, replace: bool = 
         if existing is not None:
             if not replace:
                 raise LoadError(f"{version} 이 이미 있음. 팩은 불변이라 새 버전을 내는 것이 원칙")
-            # pack_embeddings 의 FK 가 CASCADE 라 머리만 지우면 따라 지워진다.
+            # delete-orphan 과 DB 의 ON DELETE CASCADE 가 임베딩까지 함께 지운다.
             session.delete(existing)
             session.flush()
+        # 관계로 묶어 두면 SQLAlchemy 가 머리를 먼저 넣는다.
+        head.embeddings = embeddings
         session.add(head)
-        # 두 모델 사이에 relationship 이 없어 SQLAlchemy 가 삽입 순서를 모른다.
-        # flush 로 머리를 먼저 넣지 않으면 자식이 FK 위반으로 튕긴다.
-        session.flush()
-        session.add_all(embeddings)
         session.commit()
     return len(embeddings)
 

@@ -22,7 +22,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from server.database.base import Base
 
@@ -44,6 +44,13 @@ class RulePack(Base):
     doc: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)  # 정본
     loaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    # 자식을 선언해 두면 SQLAlchemy 가 삽입 순서를 스스로 잡고, 팩을 지울 때
+    # 임베딩도 함께 간다. passive_deletes 는 자식을 하나씩 SELECT 해서 지우는
+    # 대신 DB 의 ON DELETE CASCADE 에 맡긴다.
+    embeddings: Mapped[list[PackEmbedding]] = relationship(
+        back_populates="pack", cascade="all, delete-orphan", passive_deletes=True
     )
 
     __table_args__ = (
@@ -72,6 +79,8 @@ class PackEmbedding(Base):
     embedding: Mapped[list[float]] = mapped_column(Vector(), nullable=False)
     model: Mapped[str] = mapped_column(Text, nullable=False)
     dim: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    pack: Mapped[RulePack] = relationship(back_populates="embeddings")
 
     __table_args__ = (
         CheckConstraint(
