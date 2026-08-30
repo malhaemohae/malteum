@@ -10,6 +10,7 @@ from engine.engine import RuleEngine
 from server.bootstrap.settings import Settings
 from server.database.session import make_sessions
 from server.services.event.store import EventStore, MemoryEventStore, PostgresEventStore
+from server.services.pack_store import NullPackStore, PackStore, PostgresPackStore
 from server.services.session.projection import (
     NullSessionProjection,
     PostgresSessionProjection,
@@ -24,6 +25,7 @@ class Runtime:
     registry: SessionRegistry
     event_store: EventStore
     projection: SessionProjection
+    pack_store: PackStore
 
 
 def build_runtime(settings: Settings) -> Runtime:
@@ -32,6 +34,7 @@ def build_runtime(settings: Settings) -> Runtime:
         sessions = make_sessions(settings.database_url)
         store: EventStore = PostgresEventStore(sessions)
         projection: SessionProjection = PostgresSessionProjection(sessions)
+        packs: PackStore = PostgresPackStore(sessions)
     else:
-        store, projection = MemoryEventStore(), NullSessionProjection()
-    return Runtime(engine, SessionRegistry(engine), store, projection)
+        store, projection, packs = MemoryEventStore(), NullSessionProjection(), NullPackStore()
+    return Runtime(engine, SessionRegistry(engine), store, projection, packs)

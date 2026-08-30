@@ -10,6 +10,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Protocol
 
+from sqlalchemy import select
+from sqlalchemy import tuple_ as sa_tuple
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
 
@@ -22,6 +24,11 @@ _STATUS = {"normal": "ended", "aborted": "aborted", "timeout": "timeout"}
 class SessionProjection(Protocol):
     def opened(self, event: dict[str, Any]) -> None: ...
     def ended(self, event: dict[str, Any]) -> None: ...
+    def page(
+        self, limit: int, mode: str | None, cursor: tuple[datetime, str] | None
+    ) -> list[dict[str, Any]]:
+        """started_at 내림차순 한 쪽. `/sessions` 목록이 쓴다."""
+        ...
 
 
 class NullSessionProjection:
@@ -29,6 +36,11 @@ class NullSessionProjection:
 
     def opened(self, event: dict[str, Any]) -> None: ...
     def ended(self, event: dict[str, Any]) -> None: ...
+
+    def page(
+        self, limit: int, mode: str | None, cursor: tuple[datetime, str] | None
+    ) -> list[dict[str, Any]]:
+        return []
 
 
 class PostgresSessionProjection:
@@ -65,3 +77,35 @@ class PostgresSessionProjection:
             row.met = summary.get("met")
             row.items_total = summary.get("items_total", row.items_total)
             row.violations = summary.get("violations")
+
+    def page(
+        self, limit: int, mode: str | None, cursor: tuple[datetime, str] | None
+    ) -> list[dict[str, Any]]:
+        stmt = select(SessionRow).order_by(
+            SessionRow.started_at.desc(), SessionRow.session_id.desc()
+        )
+        if mode:
+            stmt = stmt.where(SessionRow.mode == mode)
+        if cursor:  # (started_at, session_id) 튜플 비교로 같은 시각도 안 건너뛴다
+            started, sid = cursor
+            stmt = stmt.where(
+                sa_tuple(SessionRow.started_at, SessionRow.session_id) < sa_tuple(started, sid)
+            )
+        with self._sessions() as db:
+            rows = list(db.scalars(stmt.limit(limit)))
+        return [_summary(r) for r in rows]
+
+
+def _summary(row: SessionRow) -> dict[str, Any]:
+    return {
+        "session_id": row.session_id,
+        "mode": row.mode,
+        "pack_version": row.pack_version,
+        "product_name": row.product_name,
+        "started_at": row.started_at,
+        "ended_at": row.ended_at,
+        "status": row.status,
+        "met": row.met,
+        "items_total": row.items_total,
+        "violations": row.violations,
+    }
