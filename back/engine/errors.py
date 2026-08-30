@@ -20,3 +20,9 @@ def warn_dummy(message: str) -> None:
     text = f"[DUMMY] {message}"
     log.warning(text)
     warnings.warn(text, DummyPathWarning, stacklevel=2)
+
+
+class LlmUnavailable(RuntimeError):
+    """실물 LLM·임베딩 호출 실패(네트워크, 형식 오류 재시도 소진).
+
+    refine 은 잠정 판정 유지로 흡수하고 그 결과를 캐시하지 않는다."""

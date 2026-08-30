@@ -7,10 +7,14 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACK_DIR = Path(__file__).resolve().parents[2]
+ROOT_DIR = BACK_DIR.parent
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="APP_", extra="ignore")
+    # 루트 .env 하나에 compose 변수와 APP_ 변수를 함께 둔다. back/.env 가 있으면 그쪽이 덮어쓴다
+    model_config = SettingsConfigDict(
+        env_file=(ROOT_DIR / ".env", BACK_DIR / ".env"), env_prefix="APP_", extra="ignore"
+    )
 
     display_name: str = "말틈"
     version: str = "0.1.0"
@@ -18,6 +22,15 @@ class Settings(BaseSettings):
     pack_dir: Path = BACK_DIR / "contracts" / "fixtures"
     default_pack_version: str = "DEP-2026.08-v4"
     ws_ping_interval_s: float = 30.0
+    # 실물 어댑터. LLM_MODEL 이 비면 refine(L3) 생략, EMBEDDING_MODEL 이 비면 L2 생략
+    llm_provider: str = "openrouter"  # LiteLLM provider 이름: openrouter · anthropic · openai …
+    llm_api_key: str | None = None
+    llm_model: str | None = None  # provider 공식 표기 그대로. 예: qwen/qwen3-32b
+    embedding_model: str | None = None  # 같은 provider·키. 예: qwen/qwen3-embedding-0.6b
+    embedding_dim: int = 384  # 팩의 embedding.dim 과 같아야 load_pack 이 받는다
+    l3_budget_ms: float = (
+        1500  # 계약 BUDGET_L3_MS. 실물 API 왕복이 넘기면 여기서 완화 (월요일 합의 대상)
+    )
 
 
 def get_settings() -> Settings:

@@ -9,6 +9,7 @@ from collections.abc import Sequence
 from typing import Literal
 
 from contracts.engine_contract import (
+    BUDGET_L3_MS,
     AlertPayload,
     AssistPayload,
     ChunkIndex,
@@ -51,8 +52,10 @@ class RuleEngine:
         cache: DecisionCache | None = None,
         corrector: object | None = None,
         generator: object | None = None,
+        l3_budget_ms: float = BUDGET_L3_MS,
     ) -> None:
         self.pack_source = pack_source
+        self.l3_budget_ms = l3_budget_ms
         self.corrector = corrector
         self.generator = generator
         self._graph = None
@@ -225,7 +228,14 @@ class RuleEngine:
             from engine.graphs.refine.nodes import Deps
 
             self._graph = build_graph(
-                Deps(self.llm, self.cache, self.embedder, self.index, self.corrector)
+                Deps(
+                    self.llm,
+                    self.cache,
+                    self.embedder,
+                    self.index,
+                    self.corrector,
+                    budget_ms=self.l3_budget_ms,
+                )
             )
         return self._graph
 

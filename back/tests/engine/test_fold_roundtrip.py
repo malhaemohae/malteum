@@ -1,8 +1,8 @@
 """시나리오 A 이벤트 27건을 접으면 session_ended.summary 와 같아야 한다."""
 
-from engine.adapters.pack_source.fake import FakePackSource
 from engine.build import build_engine
 from tests.engine.conftest import PACK_VERSION
+from tests.engine.fakes import FakePackSource
 
 
 def test_fold_scenario_a_matches_summary(pack_json, scenario_a):

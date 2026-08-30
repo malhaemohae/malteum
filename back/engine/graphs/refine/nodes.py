@@ -16,7 +16,7 @@ from contracts.engine_contract import (
     TierTrace,
     VectorIndex,
 )
-from engine.errors import log
+from engine.errors import LlmUnavailable, log
 from engine.graphs.refine.state import RefineState
 from engine.tiers.l0_normalize import normalize
 from engine.tiers.l1 import matcher, memory_search
@@ -105,7 +105,7 @@ def make_nodes(deps: Deps):
 
     def cache_lookup(s: RefineState) -> RefineState:
         prompt = prompt_builder.build(
-            s["text"], s["pack"], s["session"], s["candidates"], deps.model
+            s["text"], s["pack"], s["session"], s["candidates"], deps.model, s["utterance"].speaker
         )
         hit = deps.cache.get(prompt.cache_key) if deps.cache is not None else None
         out: RefineState = {"prompt": prompt, "cache_hit": hit is not None}
@@ -128,6 +128,9 @@ def make_nodes(deps: Deps):
             exceeded = False
         except TimeoutError:
             log.warning("L3 예산 %sms 초과 → 잠정 판정 유지", deps.budget_ms)
+            decision, exceeded = JudgeDecision(), True
+        except LlmUnavailable as e:
+            log.warning("L3 호출 실패 → 잠정 판정 유지: %s", e)
             decision, exceeded = JudgeDecision(), True
         return {
             "decision": decision,

@@ -13,13 +13,10 @@ import pytest
 
 from contracts.engine_contract import JudgeDecision, Utterance, VerdictPayload
 from engine.adapters.cache.memory import MemoryDecisionCache
-from engine.adapters.chunk_index.fake import FakeChunkIndex
-from engine.adapters.embedder.fake import FakeEmbedder
-from engine.adapters.llm.fake import ScriptedLlmJudge
-from engine.adapters.pack_source.fake import FakePackSource
 from engine.adapters.vector_index.memory import MemoryVectorIndex
 from engine.build import build_engine
 from tests.engine.conftest import PACK_VERSION
+from tests.engine.fakes import FakeChunkIndex, FakeEmbedder, FakePackSource, ScriptedLlmJudge
 
 PHRASES = {
     "만기 지나도": "DEP-BAN-002",
