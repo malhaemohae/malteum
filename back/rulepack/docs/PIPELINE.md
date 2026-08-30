@@ -59,17 +59,21 @@ uv run python -m rulepack.cli verify --strict  # 결정성 · 고정 의존성 �
 
 ## DB 적재
 
-테이블은 `back/server/database/entities/pack.py` 가 정의하고 alembic 이 만든다. rulepack 은 `server` 를 import 할 수 없으므로 적재 스크립트는 그 모델을 쓰지 않고 SQL 로 넣는다.
+테이블은 `back/server/database/entities/pack.py` 가 정의하고 alembic 이 만든다. 적재 스크립트는 그 모델을 쓰지 않고 SQL 로 넣는다. 발행 도구가 상담 서버의 모델에 붙으면 두 배포가 한 몸이 되기 때문이다. `scripts/` 는 import-linter 의 `root_packages` 밖이라 린터가 막지는 않고, 설계 의도로 지키는 경계다.
 
 발행은 `publish` 가 `artifacts/rulepack_<version>.json` 을 쓴다. M2 는 이 파일 이름 하나로 M3 와 만난다(`engine/adapters/pack_source/file.py`). 서로의 코드를 안 보고도 연결되는 지점이라 이름이 바뀌면 조용히 끊긴다.
 
 적재는 `scripts/load_pack.py` 가 한다.
 
 ```bash
-python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run]
+python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run] [--unsigned]
 ```
 
-`compile` 이 낸 envelope 만 받는다. `verify` 의 dry-run 산출물은 `production_publishable` 이 거짓이라 거절한다. 같은 `pack_version` 을 두 번 넣는 것도 막는다. 팩은 불변 발행물이라 새 버전을 내는 것이 원칙이고, 덮어쓰려면 `--replace` 를 명시해야 한다.
+`compile` 이 낸 envelope 만 받는다. 받으면 `compiler_attestation`(HMAC-SHA256: 비밀키로 만든 짧은 지문)과 `pack_sha256` 을 둘 다 다시 대조한다. 발행과 적재가 같은 검사를 거치게 하는 것이 목적이다.
+
+`publish` 가 쓰는 `rulepack_<version>.json` 은 팩 본문만이라 서명이 없다. 그것을 그대로 받으면 발행 시점부터 DB 에 들어가기 전까지의 구간(아티팩트 저장소·공유 폴더·수동 복사)에서 금액 한 자리를 고쳐도 막을 방법이 없다. 팩은 창구 판정의 기준이라 그 순간 시스템이 틀린 것을 가르치게 된다. 그래서 서명 없는 입력은 `--unsigned` 를 명시해야 들어가고, 그 플래그는 개발용이다.
+
+`verify` 의 dry-run 산출물은 `production_publishable` 이 거짓이라 거절한다. 같은 `pack_version` 을 두 번 넣는 것도 막는다. 팩은 불변 발행물이라 새 버전을 내는 것이 원칙이고, 덮어쓰려면 `--replace` 를 명시해야 한다. 적재에는 `RULEPACK_APPROVAL_HMAC_KEY` 가 필요하다(`--unsigned` 일 때는 불필요).
 
 ## 임베딩
 

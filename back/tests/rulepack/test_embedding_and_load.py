@@ -296,3 +296,72 @@ def test_publish_rejects_non_production_artifact(tmp_path: Path) -> None:
             {"artifact_kind": "synthetic_dry_run", "production_publishable": False, "pack": {}},
             tmp_path / "out",
         )
+
+
+def _signed_envelope(pack: dict, key: str) -> dict:
+    """`compile` 이 내는 것과 같은 모양의 운영 envelope 을 만든다."""
+    import hashlib
+    import hmac
+
+    from rulepack.pipeline import canonical_json
+
+    pack_sha = hashlib.sha256(canonical_json(pack).encode("utf-8")).hexdigest()
+    payload = {
+        "artifact_kind": "production_compiled",
+        "approval_signature": "approval-sig",
+        "pack_sha256": pack_sha,
+    }
+    attestation = hmac.new(
+        key.encode("utf-8"), canonical_json(payload).encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+    return {
+        "artifact_kind": "production_compiled",
+        "production_publishable": True,
+        "approval_signature": "approval-sig",
+        "pack_sha256": pack_sha,
+        "compiler_attestation": attestation,
+        "pack": pack,
+    }
+
+
+def test_load_rejects_unsigned_pack_and_tampered_envelope(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """적재도 발행과 같은 무결성 검사를 거쳐야 한다.
+
+    `publish` 는 팩 본문만 파일로 쓴다. 그것을 그대로 적재하면 발행 시점부터
+    DB 에 들어가기 전까지의 구간에서 금액 한 자리만 고쳐도 아무도 모른다.
+    팩은 창구 판정의 기준이라 그 순간 시스템이 틀린 것을 가르치게 된다.
+    """
+    import json
+
+    from load_pack import LoadError, unwrap
+
+    key = "test-approval-key-that-is-at-least-32-bytes"
+    monkeypatch.setenv("RULEPACK_APPROVAL_HMAC_KEY", key)
+    pack = {
+        "pack_version": "DEP-2026.08-v9",
+        "product": {"code": "X", "name": "X", "category": "deposit"},
+        "items": [{"code": "DEP-PRO-001", "plain_language": ["1억 원까지 보호됩니다."]}],
+    }
+
+    # 서명 없는 팩 본문은 명시적으로 허용해야만 들어간다.
+    with pytest.raises(LoadError, match="서명 없는 팩"):
+        unwrap(pack)
+    assert unwrap(pack, allow_unsigned=True) == pack
+
+    # 서명이 맞으면 팩을 그대로 돌려준다.
+    envelope = _signed_envelope(pack, key)
+    assert unwrap(envelope) == pack
+
+    # 내용을 한 글자만 고쳐도 pack_sha256 대조에서 걸린다.
+    tampered = json.loads(json.dumps(envelope, ensure_ascii=False))
+    tampered["pack"]["items"][0]["plain_language"][0] = "5천만 원까지 보호됩니다."
+    with pytest.raises(LoadError, match="무결성 검증 실패"):
+        unwrap(tampered)
+
+    # attestation 만 지워도 통과하면 안 된다.
+    no_sig = json.loads(json.dumps(envelope, ensure_ascii=False))
+    no_sig["compiler_attestation"] = ""
+    with pytest.raises(LoadError, match="무결성 검증 실패"):
+        unwrap(no_sig)

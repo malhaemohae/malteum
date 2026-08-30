@@ -17,8 +17,8 @@
     덮어쓰면 무엇이 들어 있는지 아무도 확신할 수 없게 된다.
 
 사용
-    python scripts/load_pack.py <팩 또는 envelope JSON> [--replace] [--dry-run]
-    APP_DATABASE_URL 로 접속 대상을 바꾼다.
+    python scripts/load_pack.py <compile envelope> [--replace] [--dry-run] [--unsigned]
+    APP_DATABASE_URL 로 접속 대상, RULEPACK_APPROVAL_HMAC_KEY 로 서명 검증키를 준다.
 """
 
 from __future__ import annotations
@@ -34,6 +34,7 @@ import psycopg
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from rulepack.compiler import CompileError, verified_pack  # noqa: E402
 from rulepack.embedding import (  # noqa: E402
     DeterministicFakeEmbedding,
     E5SmallEmbedding,
@@ -72,18 +73,30 @@ def model_for(pack: dict[str, Any]) -> EmbeddingModel:
     raise LoadError(f"모르는 임베딩 모델: {declared['model']}. 구현을 먼저 붙여야 함")
 
 
-def unwrap(document: dict[str, Any]) -> dict[str, Any]:
-    """envelope 이면 팩을 꺼낸다.
+def unwrap(document: dict[str, Any], *, allow_unsigned: bool = False) -> dict[str, Any]:
+    """envelope 의 서명을 검증하고 팩을 꺼낸다.
 
     `compile` 산출물은 attestation 이 붙은 envelope 이고 팩은 그 안에 있다.
+    `publish` 가 낸 `rulepack_<version>.json` 은 팩 본문만이라 서명이 없다.
+    그것을 그대로 받으면 발행 뒤 DB 에 넣기 전까지의 구간에서 내용을 고쳐도
+    막을 방법이 없으므로, 서명 없는 입력은 `--unsigned` 를 명시해야 들어간다.
+
     dry-run envelope 은 `production_publishable` 이 거짓이라 여기서 막는다.
     """
     if "pack" not in document:
+        if not allow_unsigned:
+            raise LoadError(
+                "서명 없는 팩임. `compile` 이 낸 envelope(`compiled_<version>.json`)을 주거나, "
+                "무결성 검증을 건너뛰려면 --unsigned 를 명시해야 함"
+            )
         return document
     if not document.get("production_publishable"):
         kind = document.get("artifact_kind", "unknown")
         raise LoadError(f"운영 발행물이 아님({kind}). 적재하려면 compile 산출물이어야 함")
-    return document["pack"]
+    try:
+        return verified_pack(document)
+    except CompileError as exc:
+        raise LoadError(f"팩 무결성 검증 실패: {exc}") from exc
 
 
 def _jsonb(value: Any) -> str | None:
@@ -201,10 +214,15 @@ def main(argv: list[str] | None = None) -> int:
         "--replace", action="store_true", help="같은 버전이 있으면 지우고 다시 넣음"
     )
     parser.add_argument("--dry-run", action="store_true", help="행만 만들어 보고 DB 는 안 건드림")
+    parser.add_argument(
+        "--unsigned",
+        action="store_true",
+        help="서명 없는 팩 본문을 받아들임. 무결성 검증을 건너뛰므로 개발용",
+    )
     args = parser.parse_args(argv)
 
     document = json.loads(args.pack.read_text(encoding="utf-8"))
-    pack = unwrap(document)
+    pack = unwrap(document, allow_unsigned=args.unsigned)
     model = model_for(pack)
 
     if args.dry_run:

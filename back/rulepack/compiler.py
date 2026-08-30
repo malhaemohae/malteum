@@ -313,11 +313,18 @@ def compile_synthetic_pack(
     return {"artifact_kind": "synthetic_dry_run", "production_publishable": False, "pack": pack}
 
 
-def publish_immutable(compiled: dict[str, Any], output_dir: Path) -> str:
+def verified_pack(compiled: dict[str, Any]) -> dict[str, Any]:
+    """운영 컴파일 envelope 에서 팩을 꺼낸다. 서명과 내용 해시를 둘 다 대조한다.
+
+    발행과 적재가 같은 검사를 거치게 하려고 함수로 뺐다. 적재 쪽이 이 검사를
+    건너뛰면 발행 시점부터 DB 에 들어가기 전까지의 구간(아티팩트 저장소·공유
+    폴더·수동 복사)에서 팩을 고쳐도 아무도 모른다. 팩은 창구 판정의 기준이라
+    금액 한 자리만 바뀌어도 시스템이 틀린 것을 가르치게 된다 (2026-08-30).
+    """
     if compiled.get("artifact_kind") != "production_compiled" or not compiled.get(
         "production_publishable"
     ):
-        raise CompileError("운영 컴파일 attestation이 없는 산출물은 발행할 수 없음")
+        raise CompileError("운영 컴파일 attestation이 없는 산출물은 쓸 수 없음")
     attestation_payload = {
         "artifact_kind": compiled["artifact_kind"],
         "approval_signature": compiled.get("approval_signature"),
@@ -335,6 +342,11 @@ def publish_immutable(compiled: dict[str, Any], output_dir: Path) -> str:
         canonical_json(pack).encode("utf-8")
     ).hexdigest() != compiled.get("pack_sha256"):
         raise CompileError("컴파일 뒤 pack 내용이 변경됨")
+    return pack
+
+
+def publish_immutable(compiled: dict[str, Any], output_dir: Path) -> str:
+    pack = verified_pack(compiled)
     version = pack.get("pack_version", "")
     if not re.fullmatch(r"[A-Z]{3,4}-\d{4}\.\d{2}-v\d+", version):
         raise CompileError("pack_version 명명 규칙 위반")
