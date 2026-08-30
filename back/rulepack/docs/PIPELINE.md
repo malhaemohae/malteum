@@ -91,9 +91,11 @@ python scripts/load_pack.py artifacts/compiled_DEP-2026.08-v4.json   # envelope
 
 ### 로컬 검증 뒤 정리
 
-적재를 시험해 보려고 넣은 팩은 끝나면 지운다. 안 지우면 다음 원천 교체 뒤에도 옛 팩이 DB 에 남고, `postgres.py` 어댑터가 붙는 순간 만료된 기준을 읽게 된다. 실제로 2026-08-30 에 심의 만료 원천으로 만든 항목 3개짜리 팩이 남아 있었다.
+적재를 시험해 보려고 넣은 팩은 끝나면 지운다. **DB 의 팩이 파일보다 우선하기 때문이다.** `server/services/pack_source.py` 의 `DbThenFilePackSource` 가 DB 를 먼저 보고, 없을 때만 `settings.pack_dir` 의 파일로 내려간다. 그래서 검증용 팩을 남겨 두면 fixture 파일을 아무리 고쳐도 상담 세션 화면은 DB 의 옛 팩을 보여준다. 에러가 아니라 조용히 옛 값이 나오는 종류라 원인을 찾기 어렵다.
 
-`published_by` 로 구분한다. 사람이 승인한 발행물이 아니면 `local-verification` 처럼 그렇게 적고, 확인이 끝나면 지운다. FK 가 `RESTRICT` 라 자식부터 지워야 한다.
+2026-08-30 에 실제로 확인했다. DB 쪽 팩의 쉬운 말만 바꾸고 서버를 새로 띄우자 WS 세션이 그 문장을 그대로 내보냈다. 같은 날 심의 만료 원천으로 만든 항목 3개짜리 팩이 남아 있었는데, 그것도 이 경로로 창구 화면에 나갈 수 있었다.
+
+`published_by` 로 구분한다. 사람이 승인한 발행물이 아니면 `local-verification` 처럼 그렇게 적고, 확인이 끝나면 지운다. 임베딩은 FK 가 `CASCADE` 이고 `RulePack.embeddings` 가 `delete-orphan` 이라 머리만 지우면 따라 간다.
 
 ```sql
 delete from rule_packs where pack_version = '<버전>';  -- pack_embeddings 는 CASCADE
