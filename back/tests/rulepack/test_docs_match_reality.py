@@ -268,3 +268,53 @@ def test_docs_state_real_source_count(doc: Path, run_manifest) -> None:
         }
     )
     assert not wrong, f"{doc.name} 이 원천을 {wrong}종이라 적었지만 실제는 {real}종"
+
+
+_TABLE_ROW = re.compile(r"^\|(.+)\|\s*$", re.MULTILINE)
+
+
+def _matching_source(label: str, sources) -> list:
+    """표 첫 칸의 이름과 맞는 원천을 찾는다.
+
+    문서는 파일명과 다른 순서로 부른다(`정기예금 상품설명서` ↔
+    `05_상품설명서_정기예금`). 이름을 조각으로 쪼개 전부 들어있는지 본다.
+    """
+    parts = [part for part in re.split(r"[\s·()]+", label.strip()) if part]
+    if not parts:
+        return []
+    return [s for s in sources if all(part in s.doc_id.replace("_", "") for part in parts)]
+
+
+@pytest.mark.parametrize("doc", DOCS, ids=lambda p: p.name)
+def test_doc_tables_state_the_right_page_count(doc: Path, run_manifest) -> None:
+    """표에서 쪽수를 적은 줄은 그 문서의 실제 쪽수와 같아야 한다.
+
+    산문에서는 어느 문서 이야기인지 알기 어려워 "없는 쪽수인가" 까지만 본다.
+    그래서 정기예금(4쪽)을 24쪽이라 적어도 가계대출이 24쪽이라 통과했다. 표는
+    한 줄에 이름과 쪽수가 함께 있어 그 연결이 확실하다.
+    """
+    text = _current_prose(doc.read_text(encoding="utf-8"))
+    checked = 0
+    for row in _TABLE_ROW.findall(text):
+        cells = [cell.strip() for cell in row.split("|")]
+        if len(cells) < 2 or set(cells[0]) <= {"-", " "}:
+            continue  # 헤더 구분선
+        pages = {int(value) for value in _PAGES.findall(row)}
+        if not pages:
+            continue  # 쪽수를 안 적은 줄은 연결할 필요가 없다
+        found = _matching_source(cells[0], run_manifest.sources)
+        assert len(found) == 1, (
+            f"{doc.name} 의 표에서 `{cells[0]}` 이 어느 원천인지 정하지 못했다"
+            f"(맞은 개수 {len(found)}). 표기를 파일명과 맞추거나 이 검사를 고쳐야 한다"
+        )
+        assert pages == {found[0].page_count}, (
+            f"{doc.name} 의 표: `{cells[0]}` 을 {sorted(pages)}쪽이라 적었지만 "
+            f"실제 {found[0].doc_id} 는 {found[0].page_count}쪽"
+        )
+        checked += 1
+
+    # 표를 통째로 지우면 검사가 조용히 사라진다. SOURCES 는 원천 감사 기록이라
+    # 원천별 판정 표가 반드시 있어야 하므로, 거기서는 최소 한 줄을 요구한다.
+    # (`쪽` 은 "어느 쪽" 처럼 일반 명사로도 쓰여 글자만 보고 판단하면 안 된다.)
+    if doc.name == "SOURCES.md":
+        assert checked, "SOURCES.md 의 원천별 판정 표에서 쪽수를 한 줄도 대조하지 못했다"
