@@ -1,11 +1,17 @@
-"""세션 REST. 지금은 생성만 있다.
+"""세션 REST. 생성 하나와 조회 넷.
 
-`POST /sessions` 는 소켓 없이 세션을 여는 경로다(api.openapi.yaml). **mode=trace 의
-재생 대상(`source_session_id`)을 지정할 수 있는 유일한 곳**이기도 하다. ws `hello` 에는
-그 필드가 없어서, trace 는 여기서 세션을 만들고 돌려받은 session_id 로 소켓에 붙는다.
+    POST /sessions                    소켓 없이 세션을 연다
+    GET  /sessions                    목록 (mode 필터·커서)
+    GET  /sessions/{id}               이벤트를 접은 파생 상태
+    GET  /sessions/{id}/events        감사의 원본이자 trace 재생의 입력
+    GET  /sessions/{id}/report        증빙 리포트
 
-요청·응답 모델은 계약에 인라인으로 적혀 있어 생성 모델이 없다. 여기서 계약을 옮겨 적되
-필드를 늘리지 않는다.
+`POST /sessions` 는 **mode=trace 의 재생 대상(`source_session_id`)을 지정할 수 있는
+유일한 곳**이다. ws `hello` 에는 그 필드가 없어서, trace 는 여기서 세션을 만들고
+돌려받은 session_id 로 소켓에 붙는다.
+
+조회는 투영이 아니라 이벤트에서 만든다. 요청·응답 모델은 계약에 인라인으로 적혀 있어
+생성 모델이 없는 것만 여기서 옮겨 적고, 나머지는 `server/generated/api.py` 를 쓴다.
 """
 
 from __future__ import annotations

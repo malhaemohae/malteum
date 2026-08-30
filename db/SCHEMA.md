@@ -59,7 +59,7 @@ erDiagram
 
     session_events {
         text        event_id PK "ULID"
-        text        session_id FK
+        text        session_id "FK 없음 — D5"
         int         seq_in_session
         timestamptz occurred_at
         text        pack_version
@@ -79,7 +79,7 @@ erDiagram
 | 컬럼 | 타입 | 근거 |
 | --- | --- | --- |
 | `event_id` | `text` PK | 봉투. `envelope.wrap` 이 찍는 ULID |
-| `session_id` | `text` NOT NULL → `sessions` | |
+| `session_id` | `text` NOT NULL | `sessions` 로의 FK 를 걸지 않는다 (D5) |
 | `seq_in_session` | `int` NOT NULL | `UNIQUE(session_id, seq_in_session)` |
 | `occurred_at` | `timestamptz` NOT NULL | |
 | `pack_version` | `text` NOT NULL | 이벤트가 낱개로 해석돼야 하므로 모든 행에 (계약 README) |

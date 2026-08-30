@@ -1,6 +1,14 @@
-"""발화 한 건의 유일한 합류점. 네 모드(live·replay·text·trace)가 전부 여기로 온다.
+"""세션에 이벤트를 쌓는 곳. 저장·상태 반영·전송이 모두 여기를 지난다.
 
-submit_utterance: 저장(발화) → judge → apply → map → persist → publish.
+    submit_utterance   발화 경로. 저장 → judge → apply → map → publish
+                       live·replay·text 가 여기로 합류한다
+    human_verdict      mark_met·mark_waived. 엔진을 거치지 않는 사람 결정
+    acknowledge        경보 확인. 원본을 supersedes 로 잇는다
+    start · end        세션 봉투와 sessions 투영
+
+trace 는 새 판정을 만들지 않아 `submit_utterance` 를 거치지 않는다. 저장된 이벤트를
+`replay.py` 가 s2c 로 바꿔 흘리고, 이 파일은 그 세션의 봉투만 남긴다.
+
 refine(비동기 L3)은 refiner.py 가 생기면 같은 순서로 큐를 통해 붙는다.
 """
 
