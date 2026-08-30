@@ -59,7 +59,7 @@ uv run python -m rulepack.cli verify --strict  # 결정성 · 고정 의존성 �
 
 ## DB 적재
 
-테이블은 M1 이 정의한다(`back/server/database/entities/rulepack.py` · 근거는 `db/SCHEMA.md`). `rule_packs.doc` JSONB 한 칸이 팩 정본이고 나머지 열은 조회용 사본이다. 적재 스크립트는 그 모델을 import 하지 않고 SQL 로 넣는다. 발행 도구가 상담 서버의 모델에 붙으면 두 배포가 한 몸이 되기 때문이다. `scripts/` 는 import-linter 의 `root_packages` 밖이라 린터가 막지는 않고, 설계 의도로 지키는 경계다.
+테이블은 M1 이 정의한다(`back/server/database/entities/rulepack.py` · 근거는 `db/SCHEMA.md`). `rule_packs.doc` JSONB 한 칸이 팩 정본이고 나머지 열은 조회용 사본이다. 적재 스크립트는 그 모델을 그대로 쓴다. 열을 SQL 로 다시 적으면 계약이 늘 때 스크립트가 조용히 뒤처지고, nullable 열이 추가되면 아무 테스트도 안 깨진 채 그 열만 null 로 남는다. `scripts/` 는 import-linter 의 `root_packages` 밖이라 이 import 는 모듈 경계를 어기지 않는다. 대가는 스크립트가 `server` 패키지에 묶이는 것인데, 발행 도구를 따로 배포할 계획이 없어 지금은 지불할 만하다.
 
 항목을 열로 펼치지 않는 이유가 둘이다. M2 가 `SELECT doc` 한 줄로 팩을 그대로 돌려받아야 하고, 열로 펼치면 `published_at` 이 timestamptz 를 왕복하며 표기가 바뀌어(`2026-08-30T00:00:00Z` → `2026-08-30 00:00:00+00`) `pack_sha256` 대조가 깨진다. JSONB 는 바이트를 보존한다. M3 가 따로 만들었던 `pack`·`pack_item`·`item_embedding` 은 이 검증을 통과하지 못해 2026-08-30 에 걷어냈다.
 

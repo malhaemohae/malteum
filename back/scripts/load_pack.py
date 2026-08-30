@@ -5,11 +5,13 @@
     서버가 떠 있지 않아도 팩을 넣을 수 있어야 한다. 발행은 오프라인 배치이고
     상담 서버의 가동과 무관하다 (`back/rulepack/AGENTS.md`).
 
-왜 ORM 모델을 안 쓰는가
-    테이블 정의는 `server/database/entities/pack.py` 에 있지만, 발행 도구가
-    상담 서버의 모델에 붙으면 두 배포가 한 몸이 된다. `scripts/` 는
-    import-linter 의 `root_packages` 밖이라 린터가 막지는 않는다. 설계 의도로
-    지키는 경계이고, 열이 바뀌면 이 파일도 같이 고쳐야 하는 대가를 진다.
+왜 M1 의 ORM 모델을 쓰는가
+    테이블은 M1 이 소유한다(`server/database/entities/rulepack.py` · `db/SCHEMA.md`).
+    열을 SQL 로 다시 적으면 계약이 늘 때 이 파일이 조용히 뒤처진다. nullable 열이
+    추가되면 아무 테스트도 안 깨지고 그 열만 영원히 null 로 남는다. `scripts/` 는
+    import-linter 의 `root_packages` 밖이라 이 import 는 경계를 어기지 않는다.
+    대가는 이 스크립트가 `server` 패키지에 묶인다는 것인데, 발행 도구를 서버와
+    따로 배포할 계획이 아직 없어 지금은 지불할 만하다 (2026-08-30).
 
 멱등성
     팩은 불변 발행물이라 같은 `pack_version` 을 두 번 넣지 않는다. 이미 있으면
@@ -27,12 +29,14 @@ import argparse
 import json
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import psycopg
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import Session  # noqa: E402
 
 from rulepack.compiler import CompileError, verified_pack  # noqa: E402
 from rulepack.embedding import (  # noqa: E402
@@ -42,7 +46,12 @@ from rulepack.embedding import (  # noqa: E402
     embedding_text,
 )
 
-DEFAULT_DSN = "postgresql://app:app@localhost:5432/app"
+# 테이블 정의는 M1 이 소유한다(`db/SCHEMA.md`). 열을 손으로 다시 적으면 계약이 늘 때
+# 이 파일이 조용히 뒤처지므로 모델을 그대로 쓴다. `scripts/` 는 import-linter 의
+# `root_packages` 밖이라 이 import 는 모듈 경계를 어기지 않는다.
+from server.database.entities import PackEmbedding, RulePack  # noqa: E402
+
+DEFAULT_DSN = "postgresql+psycopg://app:app@localhost:5432/app"
 
 
 class LoadError(RuntimeError):
@@ -50,13 +59,8 @@ class LoadError(RuntimeError):
 
 
 def dsn_from_env() -> str:
-    """`APP_DATABASE_URL` 을 psycopg 가 읽는 형태로 바꾼다.
-
-    server 설정은 SQLAlchemy 용이라 `postgresql+psycopg://` 로 시작한다.
-    psycopg 는 드라이버 접미어를 모른다.
-    """
-    url = os.environ.get("APP_DATABASE_URL", DEFAULT_DSN)
-    return url.replace("postgresql+psycopg://", "postgresql://", 1)
+    """접속 주소. SQLAlchemy 는 `postgresql+psycopg://` 를 그대로 읽는다."""
+    return os.environ.get("APP_DATABASE_URL", DEFAULT_DSN)
 
 
 def model_for(pack: dict[str, Any]) -> EmbeddingModel:
@@ -101,8 +105,8 @@ def unwrap(document: dict[str, Any], *, allow_unsigned: bool = False) -> dict[st
 
 def rows(
     pack: dict[str, Any], model: EmbeddingModel, *, encode: bool = True
-) -> tuple[tuple, list[tuple]]:
-    """팩을 `rule_packs` 한 행과 `pack_embeddings` 여러 행으로 편다.
+) -> tuple[RulePack, list[PackEmbedding]]:
+    """팩을 `RulePack` 한 행과 `PackEmbedding` 여러 행으로 편다.
 
     `rule_packs.doc` 이 정본이고 나머지 열은 조회용 사본이다(`db/SCHEMA.md` 2절).
     항목을 열로 펼치지 않는 이유가 둘 있다. M2 가 `SELECT doc` 한 줄로 팩을 그대로
@@ -123,16 +127,16 @@ def rows(
         )
 
     product = pack["product"]
-    head = (
-        pack["pack_version"],
-        product["code"],
-        product["name"],
-        product["category"],
-        pack["published_at"],
-        pack.get("published_by"),
-        declared["model"],
-        declared["dim"],
-        json.dumps(pack, ensure_ascii=False),
+    head = RulePack(
+        pack_version=pack["pack_version"],
+        product_code=product["code"],
+        product_name=product["name"],
+        product_category=product["category"],
+        published_at=datetime.fromisoformat(pack["published_at"]),
+        published_by=pack.get("published_by"),
+        embedding_model=declared["model"],
+        embedding_dim=declared["dim"],
+        doc=pack,
     )
 
     slots: list[tuple[str, str | None, str, int, str]] = []
@@ -152,47 +156,40 @@ def rows(
     texts = [slot[4] for slot in slots]
     vectors = model.encode(texts) if (texts and encode) else [None] * len(texts)
     embeddings = [
-        (
-            pack["pack_version"],
-            code,
-            embedding_id,
-            source,
-            ordinal,
-            body,
-            vector,
-            model.name,
-            model.dim,
+        PackEmbedding(
+            pack_version=pack["pack_version"],
+            item_code=code,
+            embedding_id=embedding_id,
+            source=source,
+            ordinal=ordinal,
+            body_text=body,
+            embedding=vector,
+            model=model.name,
+            dim=model.dim,
         )
         for (code, embedding_id, source, ordinal, body), vector in zip(slots, vectors, strict=True)
     ]
     return head, embeddings
 
 
-_HEAD_SQL = (
-    "insert into rule_packs (pack_version, product_code, product_name, product_category,"
-    " published_at, published_by, embedding_model, embedding_dim, doc)"
-    " values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-)
-_EMBEDDING_SQL = (
-    "insert into pack_embeddings (pack_version, item_code, embedding_id, source, ordinal,"
-    " body_text, embedding, model, dim) values (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-)
-
-
-def load(pack: dict[str, Any], dsn: str, model: EmbeddingModel, replace: bool = False) -> int:
+def load(pack: dict[str, Any], url: str, model: EmbeddingModel, replace: bool = False) -> int:
     """팩 한 벌을 넣는다. 같은 버전이 있으면 `replace` 없이는 거절한다."""
     head, embeddings = rows(pack, model)
     version = pack["pack_version"]
-    with psycopg.connect(dsn) as conn, conn.cursor() as cur:
-        cur.execute("select 1 from rule_packs where pack_version = %s", (version,))
-        if cur.fetchone():
+    with Session(create_engine(url)) as session:
+        existing = session.get(RulePack, version)
+        if existing is not None:
             if not replace:
                 raise LoadError(f"{version} 이 이미 있음. 팩은 불변이라 새 버전을 내는 것이 원칙")
             # pack_embeddings 의 FK 가 CASCADE 라 머리만 지우면 따라 지워진다.
-            cur.execute("delete from rule_packs where pack_version = %s", (version,))
-        cur.execute(_HEAD_SQL, head)
-        cur.executemany(_EMBEDDING_SQL, embeddings)
-        conn.commit()
+            session.delete(existing)
+            session.flush()
+        session.add(head)
+        # 두 모델 사이에 relationship 이 없어 SQLAlchemy 가 삽입 순서를 모른다.
+        # flush 로 머리를 먼저 넣지 않으면 자식이 FK 위반으로 튕긴다.
+        session.flush()
+        session.add_all(embeddings)
+        session.commit()
     return len(embeddings)
 
 

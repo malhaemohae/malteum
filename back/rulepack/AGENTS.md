@@ -6,6 +6,8 @@
 
 `contracts`와 DB 드라이버(psycopg·sqlalchemy)만. `server`·`engine`은 금지.
 
+이 규칙은 `back/rulepack/` 패키지 안의 코드에 걸린다. 적재 스크립트는 `back/scripts/` 에 있어 import-linter 의 `root_packages` 밖이고, M1 이 소유한 테이블 모델(`server.database.entities`)을 그대로 쓴다.
+
 ## 규칙
 
 - 적재는 REST가 아니라 스크립트(`scripts/load_pack.py`)로 한다. 서버가 떠 있을 필요가 없다.

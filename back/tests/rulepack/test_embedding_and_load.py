@@ -7,7 +7,6 @@ DB 가 필요한 검사는 `psycopg` 로 붙어 보고 실패하면 건너뛴다
 from __future__ import annotations
 
 import math
-import os
 import sys
 from pathlib import Path
 
@@ -88,15 +87,22 @@ def test_pack_records_the_model_that_made_it(tmp_path: Path) -> None:
 
 
 def _dsn() -> str:
-    url = os.environ.get("APP_DATABASE_URL", "postgresql://app:app@localhost:5432/app")
-    return url.replace("postgresql+psycopg://", "postgresql://", 1)
+    """`load()` 에 넘길 SQLAlchemy 접속 주소. 기본값을 두 곳에 적지 않는다."""
+    from load_pack import dsn_from_env
+
+    return dsn_from_env()
+
+
+def _raw_dsn() -> str:
+    """psycopg 로 직접 붙을 때. 드라이버 접미어를 모른다."""
+    return _dsn().replace("postgresql+psycopg://", "postgresql://", 1)
 
 
 @pytest.fixture(scope="module")
 def conn():
     psycopg = pytest.importorskip("psycopg")
     try:
-        with psycopg.connect(_dsn(), connect_timeout=3) as connection:
+        with psycopg.connect(_raw_dsn(), connect_timeout=3) as connection:
             with connection.cursor() as cur:
                 cur.execute("select to_regclass('rule_packs')")
                 if cur.fetchone()[0] is None:
