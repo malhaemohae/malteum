@@ -1,42 +1,75 @@
-"""엔진 조립·팩 캐시. lifespan 에서 한 번."""
+"""엔진·저장·투영 조립. lifespan 에서 한 번.
+
+조립 순서가 있다. 저장소가 먼저 있어야 레지스트리가 재접속을 복원할 수 있고, 팩 저장소가
+먼저 있어야 엔진이 DB 의 팩을 읽는다.
+"""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
+from contracts.engine_contract import Engine
 from engine.adapters.cache.memory import MemoryDecisionCache
 from engine.adapters.pack_source.file import FilePackSource
 from engine.adapters.vector_index.memory import MemoryVectorIndex
 from engine.build import build_engine
-from engine.engine import RuleEngine
+from engine.pack.source import PackSource
 from server.bootstrap.settings import Settings
+from server.database.session import make_sessions
+from server.services.event.store import EventStore, MemoryEventStore, PostgresEventStore
+from server.services.pack_source import DbThenFilePackSource
+from server.services.pack_store import NullPackStore, PackStore, PostgresPackStore
+from server.services.session.projection import (
+    NullSessionProjection,
+    PostgresSessionProjection,
+    SessionProjection,
+)
 from server.services.session.registry import SessionRegistry
 
 
-def build_runtime(settings: Settings) -> tuple[RuleEngine, SessionRegistry]:
-    embedder = index = llm = cache = None
+@dataclass(frozen=True)
+class Runtime:
+    engine: Engine
+    registry: SessionRegistry
+    event_store: EventStore
+    projection: SessionProjection
+    pack_store: PackStore
+    # 팩 원문(rulepack.schema.json 그대로). RulePack dataclass 에는 sources 가 없다
+    pack_source: PackSource
+
+
+def build_runtime(settings: Settings) -> Runtime:
+    if settings.event_store == "postgres":
+        sessions = make_sessions(settings.database_url)
+        store: EventStore = PostgresEventStore(sessions)
+        projection: SessionProjection = PostgresSessionProjection(sessions)
+        packs: PackStore = PostgresPackStore(sessions)
+        source = DbThenFilePackSource(packs, settings.pack_dir)
+    else:
+        store, projection, packs = MemoryEventStore(), NullSessionProjection(), NullPackStore()
+        source = FilePackSource(settings.pack_dir)
+    engine = build_engine(source, l3_budget_ms=settings.l3_budget_ms, **_adapters(settings))
+    return Runtime(engine, SessionRegistry(engine, store), store, projection, packs, source)
+
+
+def _adapters(settings: Settings) -> dict:
+    """실물 LLM·임베딩. 설정이 비면 그 층은 빠지고 engine 이 [DUMMY] 경고로 알린다."""
+    out: dict = {}
     if settings.embedding_model:
         from engine.adapters.embedder.litellm import LiteLlmEmbedder
 
-        embedder = LiteLlmEmbedder(
+        out["embedder"] = LiteLlmEmbedder(
             settings.embedding_model,
             settings.embedding_dim,
             provider=settings.llm_provider,
             api_key=settings.llm_api_key,
         )
-        index = MemoryVectorIndex()
+        out["index"] = MemoryVectorIndex()
     if settings.llm_model:
         from engine.adapters.llm.litellm import LiteLlmJudge
 
-        llm = LiteLlmJudge(
+        out["llm"] = LiteLlmJudge(
             settings.llm_model, provider=settings.llm_provider, api_key=settings.llm_api_key
         )
-        cache = MemoryDecisionCache()
-    engine = build_engine(
-        FilePackSource(settings.pack_dir),
-        embedder,
-        index,
-        None,
-        llm,
-        cache,
-        l3_budget_ms=settings.l3_budget_ms,
-    )
-    return engine, SessionRegistry(engine)
+        out["cache"] = MemoryDecisionCache()
+    return out
