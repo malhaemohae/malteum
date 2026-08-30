@@ -26,6 +26,17 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from server.database.base import Base
 
+# 벡터를 만드는 출처. 적재하는 쪽(`scripts/load_pack.py`)이 이 목록을 그대로 쓴다.
+# `jargon_term` 은 아직 안 쓴다. 용어 밀도 게이지는 목록 대조로만 세므로 벡터가
+# 필요 없고, 팩 전역이라 붙일 `item_code` 도 없다. 자리는 열어 둔다.
+EMBEDDING_SOURCES = (
+    "item",
+    "forbidden_example",
+    "risk_example",
+    "plain_language",
+    "jargon_term",
+)
+
 
 class RulePack(Base):
     """불변 발행물. 고칠 일이 생기면 UPDATE 하지 않고 새 pack_version 을 낸다."""
@@ -84,8 +95,7 @@ class PackEmbedding(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "source IN ('item', 'forbidden_example', 'risk_example', "
-            "'plain_language', 'jargon_term')",
+            "source IN (" + ", ".join(f"'{value}'" for value in EMBEDDING_SOURCES) + ")",
             name="ck_pack_embeddings_source",
         ),
         UniqueConstraint(

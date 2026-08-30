@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import sys
 import tempfile
 from pathlib import Path
 
@@ -17,7 +18,13 @@ from rulepack.pipeline import build_product_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 RULES = paths.config_dir(REPO_ROOT) / "candidate_rules.json"
-TEST_APPROVAL_KEY = "test-approval-key-that-is-at-least-32-bytes"
+
+# `scripts/` 는 패키지가 아니라 import 하려면 경로를 넣어야 한다. 테스트 함수마다
+# 넣으면 같은 경로가 sys.path 앞에 여러 번 쌓이고, 그 뒤 모든 import 해석이
+# `back/scripts/` 를 먼저 뒤진다(거기 smoke.py · gen_models.py 가 있다).
+_SCRIPTS = str(REPO_ROOT / "back" / "scripts")
+if _SCRIPTS not in sys.path:
+    sys.path.insert(0, _SCRIPTS)
 
 
 @pytest.fixture(scope="session")

@@ -7,13 +7,11 @@ DB 가 필요한 검사는 `psycopg` 로 붙어 보고 실패하면 건너뛴다
 from __future__ import annotations
 
 import math
-import sys
 from pathlib import Path
 
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(REPO_ROOT / "back" / "scripts"))
 
 from rulepack.embedding import (  # noqa: E402
     DeterministicFakeEmbedding,

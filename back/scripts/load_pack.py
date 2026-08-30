@@ -27,16 +27,15 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+BACK = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BACK))
 
-from sqlalchemy import create_engine  # noqa: E402
-from sqlalchemy.orm import Session  # noqa: E402
 
 from rulepack.compiler import CompileError, verified_pack  # noqa: E402
 from rulepack.embedding import (  # noqa: E402
@@ -49,33 +48,45 @@ from rulepack.embedding import (  # noqa: E402
 # 테이블 정의는 M1 이 소유한다(`db/SCHEMA.md`). 열을 손으로 다시 적으면 계약이 늘 때
 # 이 파일이 조용히 뒤처지므로 모델을 그대로 쓴다. `scripts/` 는 import-linter 의
 # `root_packages` 밖이라 이 import 는 모듈 경계를 어기지 않는다.
-from server.database.entities import PackEmbedding, RulePack  # noqa: E402
-
-BACK = Path(__file__).resolve().parent.parent
-DEFAULT_DSN = "postgresql+psycopg://app:app@localhost:5432/app"
+from server.bootstrap.settings import get_settings  # noqa: E402
+from server.database.entities import (  # noqa: E402
+    EMBEDDING_SOURCES,
+    PackEmbedding,
+    RulePack,
+)
+from server.database.session import make_sessions  # noqa: E402
 
 
 class LoadError(RuntimeError):
     """적재 실패."""
 
 
+class PackAlreadyLoaded(LoadError):
+    """같은 버전이 이미 있음. 여러 팩을 넣을 때는 이것만 건너뛰고 계속한다."""
+
+
 def dsn_from_env() -> str:
-    """접속 주소. SQLAlchemy 는 `postgresql+psycopg://` 를 그대로 읽는다."""
-    return os.environ.get("APP_DATABASE_URL", DEFAULT_DSN)
+    """접속 주소. `back/.env` 까지 읽는 server 설정을 그대로 쓴다.
+
+    환경변수만 직접 읽으면 `.env` 에 적어 둔 값을 못 봐서, 같은 실행 안에서
+    `pack_dir` 은 설정을 따르고 DB 만 다른 곳을 가리키게 된다.
+    """
+    return get_settings().database_url
+
+
+@lru_cache(maxsize=4)
+def _model(name: str, dim: int) -> EmbeddingModel:
+    """이름·차원마다 구현 하나. 팩마다 새로 만들면 0.5GB 모델을 다시 읽는다."""
+    for candidate in (E5SmallEmbedding(), DeterministicFakeEmbedding(dim=dim)):
+        if candidate.name == name:
+            return candidate
+    raise LoadError(f"모르는 임베딩 모델: {name}. 구현을 먼저 붙여야 함")
 
 
 def model_for(pack: dict[str, Any]) -> EmbeddingModel:
-    """팩이 적은 모델 이름으로 구현을 고른다.
-
-    팩마다 다른 모델로 만들어졌을 수 있고, 적재는 그것을 그대로 재현해야 한다.
-    모르는 이름이면 멈춘다. 아무 구현으로나 벡터를 만들면 팩이 말하는 것과 다른
-    값이 DB 에 들어간다.
-    """
+    """팩이 적은 모델로 구현을 고른다. 아무 구현으로나 만들면 팩과 다른 값이 나온다."""
     declared = pack["embedding"]
-    for candidate in (E5SmallEmbedding(), DeterministicFakeEmbedding(dim=declared["dim"])):
-        if candidate.name == declared["model"]:
-            return candidate
-    raise LoadError(f"모르는 임베딩 모델: {declared['model']}. 구현을 먼저 붙여야 함")
+    return _model(declared["model"], declared["dim"])
 
 
 def unwrap(document: dict[str, Any], *, allow_unsigned: bool = False) -> dict[str, Any]:
@@ -108,15 +119,17 @@ def check_contract(pack: dict[str, Any]) -> None:
     """팩이 `rulepack.schema.json` 을 만족하는지 본다.
 
     `compile` 이 이미 검사하지만 그건 발행 시점 이야기다. 손으로 만든 팩이나 옛
-    버전을 넣을 때는 그 믿음이 성립하지 않으므로 넣기 직전에 다시 본다.
+    버전을 넣을 때는 그 믿음이 성립하지 않으므로 넣기 직전에 다시 본다. 검증은
+    컴파일러 것을 그대로 쓴다. 따로 적으면 한쪽만 느슨해진다. 실제로 사본은
+    `format_checker` 를 안 넘겨 `date-time` 형식을 못 잡고 있었다.
     """
-    from jsonschema import Draft202012Validator
+    from rulepack import paths
+    from rulepack.compiler import _validate_pack_schema
 
-    schema = json.loads((BACK / "contracts" / "rulepack.schema.json").read_text(encoding="utf-8"))
-    errors = sorted(Draft202012Validator(schema).iter_errors(pack), key=lambda e: list(e.path))
-    if errors:
-        joined = "\n  ".join(f"{list(e.path)}: {e.message}" for e in errors[:5])
-        raise LoadError(f"팩이 rulepack.schema.json 을 만족하지 않음:\n  {joined}")
+    try:
+        _validate_pack_schema(paths.find_repo_root(), pack)
+    except CompileError as exc:
+        raise LoadError(f"팩이 rulepack.schema.json 을 만족하지 않음: {exc}") from exc
 
 
 def resolve(target: str | None, pack_dir: Path) -> list[Path]:
@@ -168,48 +181,62 @@ def rows(
         doc=pack,
     )
 
-    slots: list[tuple[str, str | None, str, int, str]] = []
+    embeddings: list[PackEmbedding] = []
     for item in pack["items"]:
-        code, embedding_id = item["code"], item.get("embedding_id")
-        slots.append((code, embedding_id, "item", 0, embedding_text(item)))
-        for key, source in (
-            ("forbidden_examples", "forbidden_example"),
-            ("risk_examples", "risk_example"),
-            ("plain_language", "plain_language"),
-        ):
-            for ordinal, body in enumerate(item.get(key) or []):
-                slots.append((code, embedding_id, source, ordinal, str(body)))
+        bodies = (
+            ("item", [embedding_text(item)]),
+            ("forbidden_example", item.get("forbidden_examples") or []),
+            ("risk_example", item.get("risk_examples") or []),
+            ("plain_language", item.get("plain_language") or []),
+        )
+        for source, values in bodies:
+            if source not in EMBEDDING_SOURCES:  # 모델이 허용하는 출처만
+                raise LoadError(f"모르는 임베딩 출처: {source}")
+            for ordinal, body in enumerate(values):
+                embeddings.append(
+                    PackEmbedding(
+                        pack_version=pack["pack_version"],
+                        item_code=item["code"],
+                        embedding_id=item.get("embedding_id"),
+                        source=source,
+                        ordinal=ordinal,
+                        body_text=str(body),
+                        model=model.name,
+                        dim=model.dim,
+                    )
+                )
 
     # dry-run 은 행 수만 세므로 모델(약 0.5GB)을 올리지 않는다. 그때 벡터 자리는
     # None 이라 그 결과를 DB 에 넣으면 안 된다.
-    texts = [slot[4] for slot in slots]
-    vectors = model.encode(texts) if (texts and encode) else [None] * len(texts)
-    embeddings = [
-        PackEmbedding(
-            pack_version=pack["pack_version"],
-            item_code=code,
-            embedding_id=embedding_id,
-            source=source,
-            ordinal=ordinal,
-            body_text=body,
-            embedding=vector,
-            model=model.name,
-            dim=model.dim,
-        )
-        for (code, embedding_id, source, ordinal, body), vector in zip(slots, vectors, strict=True)
-    ]
+    if encode and embeddings:
+        vectors = model.encode([row.body_text for row in embeddings])
+        for row, vector in zip(embeddings, vectors, strict=True):
+            row.embedding = vector
+
     return head, embeddings
+
+
+@lru_cache(maxsize=4)
+def _sessions(url: str):
+    """접속 주소마다 세션 팩토리 하나. 팩마다 만들면 커넥션 풀이 매번 새로 생긴다.
+
+    직접 `create_engine` 을 부르면 `make_sessions` 가 주는 `pool_pre_ping`(끊긴
+    연결을 조용히 되살림)을 놓친다.
+    """
+    return make_sessions(url)
 
 
 def load(pack: dict[str, Any], url: str, model: EmbeddingModel, replace: bool = False) -> int:
     """팩 한 벌을 넣는다. 같은 버전이 있으면 `replace` 없이는 거절한다."""
     head, embeddings = rows(pack, model)
     version = pack["pack_version"]
-    with Session(create_engine(url)) as session:
+    with _sessions(url)() as session:
         existing = session.get(RulePack, version)
         if existing is not None:
             if not replace:
-                raise LoadError(f"{version} 이 이미 있음. 팩은 불변이라 새 버전을 내는 것이 원칙")
+                raise PackAlreadyLoaded(
+                    f"{version} 이 이미 있음. 팩은 불변이라 새 버전을 내는 것이 원칙"
+                )
             # delete-orphan 과 DB 의 ON DELETE CASCADE 가 임베딩까지 함께 지운다.
             session.delete(existing)
             session.flush()
@@ -240,33 +267,40 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _apply(path: Path, args: argparse.Namespace, *, skip_existing: bool) -> dict[str, Any]:
+    """팩 하나를 처리하고 결과를 낸다. 세 갈래가 같은 모양으로 끝난다."""
+    if not path.exists():
+        raise LoadError(f"팩 파일이 없음: {path}")
+    pack = unwrap(json.loads(path.read_text(encoding="utf-8")), allow_unsigned=args.unsigned)
+    check_contract(pack)
+    model = model_for(pack)
+    base = {"pack_version": pack["pack_version"], "items": len(pack["items"])}
+
+    if args.dry_run:
+        _, embeddings = rows(pack, model, encode=False)
+        return base | {"embeddings": len(embeddings), "dry_run": True}
+    try:
+        loaded = load(pack, dsn_from_env(), model, replace=args.replace)
+    except PackAlreadyLoaded as exc:
+        # 여러 팩을 한 번에 넣을 때 하나가 이미 있다고 나머지까지 멈추면,
+        # 다시 돌려도 첫 팩에서 또 막혀 아무것도 진행되지 않는다.
+        if not skip_existing:
+            raise
+        return base | {"skipped": str(exc)}
+    return base | {"embeddings": loaded, "loaded": True}
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    pack_dir = Path(get_settings().pack_dir)
+    targets = resolve(args.pack, pack_dir)
+    if not targets:
+        raise LoadError(f"적재할 팩을 찾지 못함: {pack_dir}/rulepack_*.json")
 
-    from server.bootstrap.settings import get_settings
-
-    paths = resolve(args.pack, Path(get_settings().pack_dir))
-    if not paths:
-        raise LoadError(f"적재할 팩을 찾지 못함: {get_settings().pack_dir}/rulepack_*.json")
-
-    for path in paths:
-        if not path.exists():
-            raise LoadError(f"팩 파일이 없음: {path}")
-        pack = unwrap(json.loads(path.read_text(encoding="utf-8")), allow_unsigned=args.unsigned)
-        check_contract(pack)
-        model = model_for(pack)
-        result: dict[str, Any] = {
-            "pack_version": pack["pack_version"],
-            "items": len(pack["items"]),
-        }
-        if args.dry_run:
-            _, embeddings = rows(pack, model, encode=False)
-            result |= {"embeddings": len(embeddings), "dry_run": True}
-        else:
-            result |= {
-                "embeddings": load(pack, dsn_from_env(), model, replace=args.replace),
-                "loaded": True,
-            }
+    # 대상을 고르는 방법이 늘어도 이 한 줄만 보면 된다.
+    skip_existing = args.pack is None
+    for path in targets:
+        result = _apply(path, args, skip_existing=skip_existing)
         print(json.dumps(result, ensure_ascii=False))
     return 0
 
