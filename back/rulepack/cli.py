@@ -151,7 +151,7 @@ def _strict_checks(repo_root: Path) -> dict[str, object]:
 
 
 def _synthetic_version(bundle: dict) -> str:
-    """dry-run 팩 버전. 계약이 `^[A-Z]{3,4}-\d{4}\.\d{2}-v\d+$` 를 강제한다.
+    r"""dry-run 팩 버전. 계약이 `^[A-Z]{3,4}-\d{4}\.\d{2}-v\d+$` 를 강제한다.
 
     접두어는 항목 코드에서 딴다. 상품이 늘어도 코드를 안 고치게 하려는 것이고,
     이 버전은 검증 전용이라 운영 발행물이 되지 못한다.
@@ -202,7 +202,8 @@ def verify(repo_root: Path, output: Path, strict: bool = False) -> dict:
     return summary
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """인자 정의. 문서가 적은 사용법이 실제로 파싱되는지 테스트가 이걸로 확인한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=("build", "verify", "compile", "publish"))
     parser.add_argument("--repo-root", type=Path, default=paths.find_repo_root())
@@ -211,6 +212,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--approval", type=Path)
     parser.add_argument("--version")
     parser.add_argument("--strict", action="store_true")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
     args = parser.parse_args(argv)
     root = args.repo_root.resolve()
     output = (args.output or paths.default_artifacts_dir(root)).resolve()

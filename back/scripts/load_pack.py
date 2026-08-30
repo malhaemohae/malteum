@@ -220,7 +220,8 @@ def load(pack: dict[str, Any], url: str, model: EmbeddingModel, replace: bool = 
     return len(embeddings)
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """인자 정의. 문서가 적은 사용법이 실제로 파싱되는지 테스트가 이걸로 확인한다."""
     parser = argparse.ArgumentParser(description="팩 JSON 을 postgres 에 적재")
     parser.add_argument(
         "pack",
@@ -236,7 +237,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="서명 없는 팩 본문을 받아들임. 무결성 검증을 건너뛰므로 개발용",
     )
-    args = parser.parse_args(argv)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
 
     from server.bootstrap.settings import get_settings
 

@@ -28,15 +28,6 @@ RULES = paths.config_dir(REPO_ROOT) / "candidate_rules.json"
 TEST_APPROVAL_KEY = "test-approval-key-that-is-at-least-32-bytes"
 
 
-@pytest.fixture(scope="module")
-def bundles(tmp_path_factory: pytest.TempPathFactory):
-    work = tmp_path_factory.mktemp("pipeline")
-    return {
-        product: build_product_bundle(REPO_ROOT, product, RULES, work / product)
-        for product in ("deposit", "loan")
-    }
-
-
 def _approval(
     bundle: dict, code: str, approved_by: str = "test-reviewer", *, signed: bool = False
 ) -> dict:
