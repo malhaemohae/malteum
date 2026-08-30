@@ -227,3 +227,44 @@ def test_documented_sql_targets_real_tables(doc: Path) -> None:
         }
     )
     assert not gone, f"{doc.name} 의 SQL 이 없는 테이블을 건드린다: {gone}"
+
+
+_PAGES = re.compile(r"(\d+)\s*쪽")
+_KINDS = re.compile(r"(\d+)\s*종")
+# 원천을 세는 문맥에서만 'N종' 을 검사한다. "계약 fixture 4종" 은 원천 수가 아니다.
+_SOURCE_CONTEXT = re.compile(r"규정\s*(?:PDF|문서)|\.pdf")
+
+
+@pytest.mark.parametrize("doc", DOCS, ids=lambda p: p.name)
+def test_docs_state_real_page_counts(doc: Path, run_manifest) -> None:
+    """문서가 말하는 쪽수가 실제 원천 PDF 와 같아야 한다.
+
+    원천을 갈면 쪽수가 바뀐다. 2026-08-29 에 26쪽이 24쪽이 됐고 2026-08-30 에
+    7쪽이 4쪽이 됐다. 문서에 옛 쪽수가 남으면 팀원이 다른 파일을 받은 줄 안다.
+    옛 쪽수를 적는 자리는 이력 절이고 거기는 검사에서 뺀다.
+    """
+    real = {source.page_count for source in run_manifest.sources}
+    stated = {
+        int(value) for value in _PAGES.findall(_current_prose(doc.read_text(encoding="utf-8")))
+    }
+    wrong = sorted(stated - real)
+    assert not wrong, (
+        f"{doc.name} 이 {wrong}쪽이라 적었지만 실제 원천 쪽수는 {sorted(real)} 뿐이다. "
+        "원천을 갈았으면 새 쪽수로 고치고, 옛 쪽수 이야기면 이력 절로 옮긴다"
+    )
+
+
+@pytest.mark.parametrize("doc", DOCS, ids=lambda p: p.name)
+def test_docs_state_real_source_count(doc: Path, run_manifest) -> None:
+    """문서가 말하는 규정 원천 개수가 MANIFEST 와 같아야 한다."""
+    real = len(run_manifest.sources)
+    wrong = sorted(
+        {
+            int(value)
+            for line in _current_prose(doc.read_text(encoding="utf-8")).splitlines()
+            if _SOURCE_CONTEXT.search(line)
+            for value in _KINDS.findall(line)
+            if int(value) != real
+        }
+    )
+    assert not wrong, f"{doc.name} 이 원천을 {wrong}종이라 적었지만 실제는 {real}종"
