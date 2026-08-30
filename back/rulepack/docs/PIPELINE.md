@@ -75,6 +75,18 @@ python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run] [--unsig
 
 `verify` 의 dry-run 산출물은 `production_publishable` 이 거짓이라 거절한다. 같은 `pack_version` 을 두 번 넣는 것도 막는다. 팩은 불변 발행물이라 새 버전을 내는 것이 원칙이고, 덮어쓰려면 `--replace` 를 명시해야 한다. 적재에는 `RULEPACK_APPROVAL_HMAC_KEY` 가 필요하다(`--unsigned` 일 때는 불필요).
 
+### 로컬 검증 뒤 정리
+
+적재를 시험해 보려고 넣은 팩은 끝나면 지운다. 안 지우면 다음 원천 교체 뒤에도 옛 팩이 DB 에 남고, `postgres.py` 어댑터가 붙는 순간 만료된 기준을 읽게 된다. 실제로 2026-08-30 에 심의 만료 원천으로 만든 항목 3개짜리 팩이 남아 있었다.
+
+`published_by` 로 구분한다. 사람이 승인한 발행물이 아니면 `local-verification` 처럼 그렇게 적고, 확인이 끝나면 지운다. FK 가 `RESTRICT` 라 자식부터 지워야 한다.
+
+```sql
+delete from item_embedding where pack_version = '<버전>';
+delete from pack_item    where pack_version = '<버전>';
+delete from pack         where pack_version = '<버전>';
+```
+
 ## 임베딩
 
 `embedding.py` 의 `EmbeddingModel` 을 따르는 구현이 벡터를 만든다.
