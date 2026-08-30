@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from contracts.engine_contract import Engine
 from engine.adapters.pack_source.file import FilePackSource
 from engine.build import build_engine
-from engine.engine import RuleEngine
 from server.bootstrap.settings import Settings
 from server.database.session import make_sessions
 from server.services.event.store import EventStore, MemoryEventStore, PostgresEventStore
@@ -26,7 +26,7 @@ from server.services.session.registry import SessionRegistry
 
 @dataclass(frozen=True)
 class Runtime:
-    engine: RuleEngine
+    engine: Engine
     registry: SessionRegistry
     event_store: EventStore
     projection: SessionProjection

@@ -10,8 +10,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from typing import Any
 
-from contracts.engine_contract import JudgeResult, Utterance
-from engine.engine import RuleEngine
+from contracts.engine_contract import Engine, JudgeResult, Utterance
 from server.mapping import event_to_s2c, payload_to_event
 from server.services.event import envelope
 from server.services.event.store import EventStore
@@ -25,7 +24,7 @@ Publish = Callable[[dict[str, Any]], Awaitable[Any]]
 class Pipeline:
     def __init__(
         self,
-        engine: RuleEngine,
+        engine: Engine,
         store: EventStore,
         projection: SessionProjection | None = None,
     ) -> None:

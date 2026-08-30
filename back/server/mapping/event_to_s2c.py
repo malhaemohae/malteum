@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from engine.types import RulePack, SessionState
+from contracts.engine_contract import RulePack, SessionState
 
 
 def ready(session_id: str, pack: RulePack, state: SessionState, mode: str) -> dict[str, Any]:

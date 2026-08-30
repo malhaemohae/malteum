@@ -21,8 +21,7 @@ from collections.abc import Awaitable, Callable
 from datetime import datetime
 from typing import Any
 
-from engine.engine import RuleEngine
-from engine.types import RulePack
+from contracts.engine_contract import Engine, RulePack
 from server.mapping import event_to_s2c
 from server.services.session import chains
 
@@ -45,7 +44,7 @@ def _gap_seconds(previous: dict[str, Any], current: dict[str, Any]) -> float:
 
 
 async def replay(
-    engine: RuleEngine,
+    engine: Engine,
     pack: RulePack,
     events: list[dict[str, Any]],
     publish: Publish,

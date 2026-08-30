@@ -10,9 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from typing import Literal
 
-from contracts.engine_contract import Mode
-from engine.engine import RuleEngine
-from engine.types import RulePack, SessionState
+from contracts.engine_contract import Engine, Mode, RulePack, SessionState
 from server.services.event.envelope import new_id
 from server.services.event.store import EventStore
 from server.services.session import chains
@@ -44,7 +42,7 @@ class Session:
 
 
 class SessionRegistry:
-    def __init__(self, engine: RuleEngine, store: EventStore) -> None:
+    def __init__(self, engine: Engine, store: EventStore) -> None:
         self.engine = engine
         self.store = store
         self._packs: dict[str, RulePack] = {}
