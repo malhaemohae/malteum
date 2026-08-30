@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any
 
 from engine.adapters.pack_source.file import FilePackSource
-from engine.pack.source import PackNotFound
 from server.services.pack_store import PackStore
 
 
@@ -28,7 +27,4 @@ class DbThenFilePackSource:
         doc = self.store.get(pack_version)
         if doc is not None:
             return doc
-        try:
-            return self.files.read(pack_version)
-        except PackNotFound:
-            raise PackNotFound(pack_version) from None
+        return self.files.read(pack_version)  # 없으면 PackNotFound 가 그대로 올라간다

@@ -26,15 +26,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from server.database.base import Base
 
-CATEGORIES = ("deposit", "loan")
-EMBEDDING_SOURCES = (
-    "item",
-    "forbidden_example",
-    "risk_example",
-    "plain_language",
-    "jargon_term",
-)
-
 
 class RulePack(Base):
     """불변 발행물. 고칠 일이 생기면 UPDATE 하지 않고 새 pack_version 을 낸다."""

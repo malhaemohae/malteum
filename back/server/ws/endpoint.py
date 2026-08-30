@@ -13,6 +13,7 @@ from engine.pack.source import PackNotFound
 from server.mapping.event_to_s2c import ready
 from server.services.event.envelope import ID_MAX, ID_MIN, valid_id
 from server.services.session.pipeline import Pipeline
+from server.services.session.registry import Session
 from server.services.session.replay import replay
 from server.ws.connection import Connection
 from server.ws.handlers import human
@@ -143,7 +144,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
         await conn.close()
 
 
-async def _start_trace(session, pipeline: Pipeline, conn: Connection) -> None:
+async def _start_trace(session: Session, pipeline: Pipeline, conn: Connection) -> None:
     """원본 세션의 이벤트를 다시 흘린다. STT·LLM 을 부르지 않는다.
 
     별도 태스크로 돌기 때문에 예외를 여기서 잡아야 한다. 안 잡으면 화면은 아무 통보도

@@ -34,12 +34,11 @@ def get_pack(pack_version: str, request: Request) -> dict[str, Any]:
 
 
 @router.get("/presets", tags=["presets"])
-def list_presets(request: Request) -> dict[str, list[Any]]:
+def list_presets() -> dict[str, list[Any]]:
     """심사용 프리셋 목록.
 
     원천은 `assets/scenarios/<id>/manifest` 다(최상위 README). 지금 그 폴더가 비어 있고
     manifest 형식도 정해지지 않았다(R5 소유). 형식을 지어내지 않고 빈 목록을 돌려준다.
     프런트는 이 경로에 대고 짤 수 있고, 자산이 들어오면 여기만 채우면 된다.
     """
-    _ = request
     return {"presets": []}

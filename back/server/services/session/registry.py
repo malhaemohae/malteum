@@ -29,7 +29,6 @@ class Session:
     latest_assist: dict[chains.AssistKey, tuple[str, int]] = field(default_factory=dict)
     # 저장된 이벤트에서 되살린 세션. session_started 를 다시 쓰면 안 된다
     restored: bool = False
-    t0_ms: int = 0
 
     def take_seq(self) -> int:
         seq, self.next_seq = self.next_seq, self.next_seq + 1
