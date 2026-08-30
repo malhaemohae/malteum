@@ -101,3 +101,22 @@ def test_transport_error_becomes_llm_unavailable(pack_json, monkeypatch):
     monkeypatch.setattr(adapter.litellm, "completion", boom)
     with pytest.raises(LlmUnavailable, match="ConnectionError"):
         adapter.LiteLlmJudge("openrouter/x").decide(_prompt(pack_json))
+
+
+def test_parser_drops_missing_elements_outside_omission(pack_json):
+    from contracts.engine_contract import JudgeDecision, Utterance, VerdictPayload
+    from engine.tiers.l3 import decision_parser
+    from engine.types import SessionState
+
+    pack = load_pack(FakePackSource(pack_json), PACK_VERSION)
+    state = SessionState("S", PACK_VERSION, "text")
+    utt = Utterance("U1", "teller", "무조건 이득이에요.", 1)
+    d = JudgeDecision(
+        verdicts=(
+            VerdictPayload(
+                "DEP-BAN-001", "commission", "violated", "L3", missing_elements=("단정",)
+            ),
+        )
+    )
+    (v,), _, _, rejected = decision_parser.parse(d, pack, state, utt)
+    assert v.state == "violated" and v.missing_elements == () and rejected == []

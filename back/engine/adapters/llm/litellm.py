@@ -44,8 +44,10 @@ class LiteLlmJudge:
         temperature: float = 0.0,
         timeout_s: float = 30.0,
         max_retries: int = 1,
+        extra_body: dict[str, Any] | None = None,
     ) -> None:
         self.model = register(model, provider, "chat")
+        self.extra_body = extra_body  # provider 전용 옵션 (예: OpenRouter reasoning 끄기)
         self.api_key = api_key
         self.api_base = api_base
         self.temperature = temperature
@@ -69,6 +71,7 @@ class LiteLlmJudge:
                     api_key=self.api_key,
                     api_base=self.api_base,
                     num_retries=0,
+                    extra_body=self.extra_body,
                 )
             except Exception as e:  # litellm 예외 계층이 넓다. 경계에서만 통째로 받는다
                 raise LlmUnavailable(f"{self.model}: {type(e).__name__}: {e}") from e

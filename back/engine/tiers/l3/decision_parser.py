@@ -55,6 +55,8 @@ def parse(
             utterance_ref=v.utterance_ref or ref,
             evidence=item.evidence,
             supersedes=None,
+            # 누락 요소는 omission 에만 뜻이 있다. 모델이 violated 에 사유를 적어 보내는 일이 잦다
+            missing_elements=v.missing_elements if v.axis == "omission" else (),
         )
         verdicts.append(fixed)
         if fixed.axis == "omission" and fixed.state == "partial":
