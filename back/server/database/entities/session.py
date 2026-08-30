@@ -77,9 +77,9 @@ class SessionEvent(Base):
     __tablename__ = "session_events"
 
     event_id: Mapped[str] = mapped_column(Text, primary_key=True)  # ULID. envelope 가 찍는다
-    session_id: Mapped[str] = mapped_column(
-        Text, ForeignKey("sessions.session_id", ondelete="CASCADE"), nullable=False
-    )
+    # sessions 는 이벤트를 접어 만든 파생 투영이다. 정본이 파생물에 FK 로 매이면
+    # 투영을 지울 때 정본이 함께 사라진다. FK 를 걸지 않는다 (db/SCHEMA.md D5)
+    session_id: Mapped[str] = mapped_column(Text, nullable=False)
     seq_in_session: Mapped[int] = mapped_column(Integer, nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     # 이벤트는 낱개로 해석돼야 하므로 모든 행에 둔다 (contracts/README.md)

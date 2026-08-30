@@ -62,7 +62,6 @@ def upgrade() -> None:
         sa.Column("supersedes", sa.Text()),
         sa.Column("schema_version", sa.Text(), nullable=False),
         sa.Column("body", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.ForeignKeyConstraint(["session_id"], ["sessions.session_id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["supersedes"], ["session_events.event_id"]),
         sa.CheckConstraint(
             "kind IN ('session_started', 'utterance', 'verdict', 'alert', "

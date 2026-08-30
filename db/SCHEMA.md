@@ -10,7 +10,7 @@ M1 노순혁 소유. **이 문서가 테이블 구조의 정본이고, 변경은
 ```mermaid
 erDiagram
     rule_packs   ||--o{ pack_embeddings : "팩 1 : 벡터 N"
-    sessions     ||--o{ session_events  : "세션 1 : 이벤트 N"
+    sessions     ..o{ session_events  : "세션 1 : 이벤트 N (FK 없음 — D5)"
     session_events ||--o| session_events : "supersedes"
 
     rule_packs {
@@ -92,6 +92,8 @@ erDiagram
 
 **본문을 컬럼으로 펼치지 않는 이유.** `events.schema.json` 은 kind 마다 본문이 다르고, 계약이 "필드 **추가는 안전**"이라고 명시한다. 컬럼으로 펼치면 계약에 필드가 하나 늘 때마다 마이그레이션이 생긴다. 봉투만 컬럼으로 뽑아 인덱스하고 본문은 JSONB 로 둔다.
 
+`session_id` 에 **FK 를 걸지 않는다**(D5). `sessions` 는 파생 투영이고 이 표가 정본이다.
+
 **저장하지 않는 것** (기획 5.3): 원본 오디오 · 중간 전사(partial) · 실제 개인정보. 확정 발화만 PII 마스킹 후 `utterance` 본문에 들어간다. **오디오·partial 을 위한 컬럼을 만들지 않는다.** 리포트의 "발화 재생"은 저장된 상담 음성이 아니라 시나리오 오디오(`assets/scenarios/<id>/audio.wav`) 재생이다.
 
 ### `sessions` — 파생 투영
@@ -164,6 +166,23 @@ UPDATE 하지 않는다. 고칠 일이 생기면 새 `pack_version` 을 발행�
 ### D4. append-only 강제 — **코드로만**
 
 UPDATE·DELETE 를 막는 트리거를 걸 수 있지만 걸지 않는다. alembic downgrade 와 테스트 정리가 번거로워지고, 저장 경로가 `EventStore.append` 하나뿐이라 코드로 이미 닫혀 있다. 9/4 기능 동결까지의 일정에서 이득보다 마찰이 크다.
+
+### D5. `session_events` → `sessions` FK — **걸지 않는다**
+
+처음에는 `ON DELETE CASCADE` FK 를 걸었다. 저장 계층을 구현하면서 두 가지가 드러났다.
+
+**하나. 정본이 파생물에 매인다.** `sessions` 는 이벤트를 접으면 언제든 다시 만들 수 있는 투영인데,
+FK 가 있으면 투영 행이 먼저 있어야 이벤트를 저장할 수 있다. 순서가 거꾸로다.
+
+**둘. 투영을 지우면 정본이 사라진다.** `CASCADE` 라서 `sessions` 한 행을 지우면 그 세션의 이벤트가
+통째로 날아간다. 파생물을 다시 만들려다 원본을 잃는 구조다. AGENTS.md 원칙 3
+("이벤트가 원본이고 상태는 파생물")과 정면으로 어긋난다.
+
+그래서 FK 를 제거한다. 투영이 없는 이벤트가 생길 수 있지만, 그건 투영을 다시 접으면 메워진다.
+반대 방향(이벤트 없는 투영)은 애초에 만들지 않는다.
+
+`supersedes` 자기참조 FK 는 유지한다. 정본 안에서의 참조이고 갱신 사슬이 끊기면 안 된다.
+`pack_embeddings → rule_packs` 의 CASCADE 도 유지한다. 벡터는 팩의 파생물이므로 방향이 맞다.
 
 ## 4. 첫 리비전에 들어가는 것
 
