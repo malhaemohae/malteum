@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from contracts.engine_contract import Engine
 from engine.adapters.pack_source.file import FilePackSource
 from engine.build import build_engine
+from engine.pack.source import PackSource
 from server.bootstrap.settings import Settings
 from server.database.session import make_sessions
 from server.services.event.store import EventStore, MemoryEventStore, PostgresEventStore
@@ -31,6 +32,8 @@ class Runtime:
     event_store: EventStore
     projection: SessionProjection
     pack_store: PackStore
+    # 팩 원문(rulepack.schema.json 그대로). RulePack dataclass 에는 sources 가 없다
+    pack_source: PackSource
 
 
 def build_runtime(settings: Settings) -> Runtime:
@@ -44,4 +47,4 @@ def build_runtime(settings: Settings) -> Runtime:
         store, projection, packs = MemoryEventStore(), NullSessionProjection(), NullPackStore()
         source = FilePackSource(settings.pack_dir)
     engine = build_engine(source)
-    return Runtime(engine, SessionRegistry(engine, store), store, projection, packs)
+    return Runtime(engine, SessionRegistry(engine, store), store, projection, packs, source)

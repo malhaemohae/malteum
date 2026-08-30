@@ -23,6 +23,10 @@ class EventStore(Protocol):
 
     def of_session(self, session_id: str) -> list[dict[str, Any]]: ...
 
+    def by_id(self, event_id: str) -> dict[str, Any] | None:
+        """event_id 단건. /evidence 는 세션을 모른 채 근거만 들고 온다."""
+        ...
+
     def healthy(self) -> bool:
         """저장소가 살아 있는가. /health 의 checks.db 가 쓴다."""
         ...
@@ -44,6 +48,9 @@ class MemoryEventStore:
 
     def of_session(self, session_id: str) -> list[dict[str, Any]]:
         return [e for e in self._events if e["session_id"] == session_id]
+
+    def by_id(self, event_id: str) -> dict[str, Any] | None:
+        return next((e for e in self._events if e["event_id"] == event_id), None)
 
     def healthy(self) -> bool:
         return True
@@ -83,6 +90,11 @@ class PostgresEventStore:
         )
         with self._sessions() as db:
             return [_to_event(r) for r in db.scalars(stmt)]
+
+    def by_id(self, event_id: str) -> dict[str, Any] | None:
+        with self._sessions() as db:
+            row = db.get(SessionEvent, event_id)
+            return _to_event(row) if row else None
 
 
 def _to_row(event: dict[str, Any]) -> SessionEvent:

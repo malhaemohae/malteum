@@ -20,7 +20,8 @@ from pydantic import BaseModel
 
 from contracts.engine_contract import Mode
 from engine.pack.source import PackNotFound
-from server.generated.api import SessionDetail, SessionSummary
+from server.generated.api import Report, SessionDetail, SessionSummary
+from server.services import report as report_builder
 
 router = APIRouter(tags=["sessions"])
 
@@ -208,3 +209,21 @@ def list_events(
         and (include_superseded or e["event_id"] not in superseded)
     ]
     return {"session_id": session_id, "events": picked}
+
+
+@router.get("/sessions/{session_id}/report")
+def get_report(session_id: str, request: Request) -> Report:
+    """증빙 리포트. 이벤트를 접어 만들고 PDF 와 같은 내용을 준다(계약)."""
+    runtime = request.app.state.runtime
+    events = runtime.event_store.of_session(session_id)
+    if not events:
+        raise HTTPException(404, "세션이 없습니다.")
+    pack_version = events[0]["pack_version"]
+    try:
+        pack = runtime.registry.pack(pack_version)
+        doc = runtime.pack_source.read(pack_version)
+    except PackNotFound as e:
+        raise HTTPException(404, "규정 팩이 없습니다.") from e
+    return Report.model_validate(
+        report_builder.build(session_id, events, runtime.engine, pack, doc)
+    )
