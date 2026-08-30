@@ -62,7 +62,7 @@ uv run python -m rulepack.cli verify --strict  # 결정성 · 고정 의존성 �
 
 테이블은 M1 이 정의한다(`back/server/database/entities/rulepack.py` · 근거는 `db/SCHEMA.md`). `rule_packs.doc` JSONB 한 칸이 팩 정본이고 나머지 열은 조회용 사본이다. 적재 스크립트는 그 모델을 그대로 쓴다. 열을 SQL 로 다시 적으면 계약이 늘 때 스크립트가 조용히 뒤처지고, nullable 열이 추가되면 아무 테스트도 안 깨진 채 그 열만 null 로 남는다. `scripts/` 는 import-linter 의 `root_packages` 밖이라 이 import 는 모듈 경계를 어기지 않는다. 대가는 스크립트가 `server` 패키지에 묶이는 것인데, 발행 도구를 따로 배포할 계획이 없어 지금은 지불할 만하다.
 
-항목을 열로 펼치지 않는 이유가 둘이다. M2 가 `SELECT doc` 한 줄로 팩을 그대로 돌려받아야 하고, 열로 펼치면 `published_at` 이 timestamptz 를 왕복하며 표기가 바뀌어(`2026-08-30T00:00:00Z` → `2026-08-30 00:00:00+00`) `pack_sha256` 대조가 깨진다. JSONB 는 바이트를 보존한다. M3 가 따로 만들었던 `pack`·`pack_item`·`item_embedding` 은 이 검증을 통과하지 못해 2026-08-30 에 걷어냈다.
+항목을 열로 펼치지 않는 이유가 둘이다. M2 가 `SELECT doc` 한 줄로 팩을 그대로 돌려받아야 하고, 열로 펼치면 `published_at` 이 timestamptz 를 왕복하며 표기가 바뀌어(`2026-08-30T00:00:00Z` → `2026-08-30 00:00:00+00`) `pack_sha256` 대조가 깨진다. JSONB 는 바이트를 보존한다.
 
 `pack_embeddings` 는 항목 하나당 여러 행이 된다. 금지·위험 예시와 쉬운 말이 각각 검색면이 되어야 L2 가 발화를 넓게 잡는다. 예금 팩 9항목이 24행이 된다. `jargon_terms` 는 넣지 않는다. 용어 밀도 게이지는 목록 대조로만 세므로 벡터가 필요 없고, 팩 전역이라 붙일 `item_code` 도 없다.
 
@@ -80,9 +80,7 @@ python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run] [--unsig
 
 `verify` 의 dry-run 산출물은 `production_publishable` 이 거짓이라 거절한다. 같은 `pack_version` 을 두 번 넣는 것도 막는다. 팩은 불변 발행물이라 새 버전을 내는 것이 원칙이고, 덮어쓰려면 `--replace` 를 명시해야 한다. 적재에는 `RULEPACK_APPROVAL_HMAC_KEY` 가 필요하다(`--unsigned` 일 때는 불필요).
 
-M1 이 개발용으로 두었던 `scripts/seed_pack.py` 는 2026-08-30 에 이 스크립트로 흡수했다. 같은 테이블에 서로 다른 방식으로 넣으면, 어느 쪽으로 넣었느냐에 따라 `pack_embeddings` 가 비거나 차서 L2 검색이 되고 안 되고가 갈린다. 에러가 아니라 결과가 조용히 비는 종류라 원인을 찾기 어렵다.
-
-흡수하면서 그쪽의 계약 스키마 검증과 여러 팩 한 번에 넣기를 가져왔다. 개발용 경로는 `--unsigned` 가 대신한다.
+적재하는 길은 이 스크립트 하나뿐이다. 같은 테이블에 서로 다른 방식으로 넣으면 어느 쪽으로 넣었느냐에 따라 `pack_embeddings` 가 비거나 차서 L2 검색이 되고 안 되고가 갈린다. 에러가 아니라 결과가 조용히 비는 종류라 원인을 찾기 어렵다. 넣기 전에 계약 스키마도 다시 본다. 개발용으로 서명 없이 넣을 때는 `--unsigned` 를 쓴다.
 
 ```bash
 python scripts/load_pack.py                      # pack_dir 의 rulepack_*.json 전부 (--unsigned 필요)
