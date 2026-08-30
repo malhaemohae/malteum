@@ -48,9 +48,13 @@ class CreatedSession(BaseModel):
 
 @router.post("/sessions", status_code=201)
 def create_session(body: CreateSession, request: Request) -> CreatedSession:
-    if body.mode == "trace" and not body.source_session_id:
-        raise HTTPException(400, "mode=trace 는 재생할 source_session_id 가 필요합니다.")
     runtime = request.app.state.runtime
+    if body.mode == "trace":
+        if not body.source_session_id:
+            raise HTTPException(400, "mode=trace 는 재생할 source_session_id 가 필요합니다.")
+        # 소켓에 붙기 전에 여기서 거른다. ws 에는 not_found 에 해당하는 error code 가 없다
+        if not runtime.event_store.of_session(body.source_session_id):
+            raise HTTPException(404, "재생할 원본 세션이 없습니다.")
     settings = request.app.state.settings
     profile = body.customer_profile or CustomerProfile()
     try:

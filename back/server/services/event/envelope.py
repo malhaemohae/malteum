@@ -9,6 +9,14 @@ from ulid import ULID
 
 SCHEMA_VERSION = "1"
 
+# events.schema.json $defs/id. ws 쪽 session_id 에는 이 제약이 없어서,
+# 짧은 id 로 붙으면 ws 검증은 통과하고 저장에서 터진다. 경계에서 M1 이 막는다
+ID_MIN, ID_MAX = 8, 64
+
+
+def valid_id(value: str) -> bool:
+    return ID_MIN <= len(value) <= ID_MAX
+
 
 def new_id() -> str:
     return str(ULID())
