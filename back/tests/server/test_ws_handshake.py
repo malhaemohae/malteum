@@ -44,8 +44,12 @@ def test_hello_ready_ping_pong_end():
             ended = sock.receive_json()
         check_s2c(ended)
         assert ended["t"] == "ended"
-        assert ended["summary"]["items_total"] == 5
-        assert ended["summary"]["unmet"] == 5
+        # 필수 항목 수는 팩에서 센다. 숫자를 박으면 팩이 바뀔 때마다 이 줄만
+        # 고치게 되고, 무엇이 왜 달라졌는지가 안 남는다 (2026-08-30).
+        required = sum(1 for i in fixture_ready["items"] if i.get("required"))
+        assert ended["summary"]["items_total"] == required
+        # 발화 없이 끝냈으므로 미충족 수는 필수 항목 전체와 같다
+        assert ended["summary"]["unmet"] == required
 
 
 def test_invalid_message_gets_error_not_disconnect():

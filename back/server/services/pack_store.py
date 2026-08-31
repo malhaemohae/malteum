@@ -4,7 +4,7 @@
 
 **세션이 쓰는 팩과 원천이 다를 수 있다.** 실행 중인 세션은 engine 의 PackSource 를 거치고
 개발 중에는 그게 파일(`settings.pack_dir`)이다. 이 조회는 DB 를 본다. 그래서
-`scripts/seed_pack.py` 로 넣어두지 않으면 목록이 비어 보인다.
+`scripts/load_pack.py` 로 넣어두지 않으면 목록이 비어 보인다.
 """
 
 from __future__ import annotations

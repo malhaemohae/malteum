@@ -19,7 +19,9 @@ def test_run_manifest_fixes_all_seven_sources_and_parser_identity() -> None:
     assert run.parser.name == "opendataloader-pdf"
     assert run.parser.version == "2.3.0"
     assert len(run.sources) == 7
-    assert sum(source.page_count for source in run.sources) == 120
+    # 06 가계대출 설명서를 2025.01 개정본(24쪽)으로 교체하며 26 -> 24 로,
+    # 05 정기예금 설명서를 현행본(4쪽)으로 교체하며 7 -> 4 로 줄었다
+    assert sum(source.page_count for source in run.sources) == 115
 
     for source in run.sources:
         expected = hashlib.sha256(source.path.read_bytes()).hexdigest()
@@ -107,3 +109,43 @@ def test_repo_root_matches_cli_default() -> None:
     갈라지면 테스트는 통과하는데 CLI 만 죽는다. 실제로 그랬다 (2026-08-29).
     """
     assert paths.find_repo_root() == REPO_ROOT
+
+
+def test_publisher_comes_from_manifest_not_code() -> None:
+    """발행 기관은 MANIFEST 표에서 읽어야 한다.
+
+    코드에 매핑을 두면 원천을 늘릴 때마다 코드를 같이 고쳐야 하고, 표와 코드가
+    어긋나도 아무도 모른다. 실제로 표준약관 2건이 그랬다. 코드는 게시한 은행을
+    적고 있었는데(한국씨티은행·우리은행) 실제 발행 기관은 은행연합회다
+    (2026-08-30).
+    """
+    run = build_run_manifest(REPO_ROOT)
+    by_id = {s.doc_id: s.publisher for s in run.sources}
+
+    assert by_id["03_예금거래기본약관"].startswith("은행연합회")
+    assert by_id["04_은행여신거래기본약관_가계용"].startswith("은행연합회")
+    assert by_id["01_금융소비자보호법"] == "법제처"
+
+    # 표에 적힌 값이 그대로 와야 한다. 코드 어디에도 기관명을 박아 두지 않는다.
+    manifest = (paths.docs_dir(REPO_ROOT) / "MANIFEST.md").read_text(encoding="utf-8")
+    for doc_id, publisher in by_id.items():
+        assert publisher in manifest, f"{doc_id}: MANIFEST 에 없는 발행 기관 {publisher}"
+
+
+def test_manifest_row_needs_publisher_column() -> None:
+    """발행 기관 열이 빠진 행은 원천으로 인정하지 않는다.
+
+    열이 사라지면 조용히 다른 칸을 발행 기관으로 읽는 것보다, 그 행을 못 읽어
+    개수가 안 맞는 편이 낫다.
+    """
+    from rulepack.source_manifest import _ROW_RE
+
+    없는_행 = "| `01_x.pdf` | 법령 | [제목](https://example.com/a.pdf) | 31p / 100자 | 확보 |"
+    assert _ROW_RE.search(없는_행) is None
+
+    있는_행 = (
+        "| `01_x.pdf` | 법령 | 법제처 | [제목](https://example.com/a.pdf) | 31p / 100자 | 확보 |"
+    )
+    match = _ROW_RE.search(있는_행)
+    assert match is not None
+    assert match.group("publisher") == "법제처"

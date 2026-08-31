@@ -14,25 +14,25 @@ def test_fixture_pack_loads(pack_json):
     assert pack.embedding_dim == 384
     assert len(pack.items) == 9
     assert [it.code for it in pack.required_items()] == [
-        "DEP-INT-002", "DEP-INT-003", "DEP-INT-004", "DEP-LIM-001", "DEP-LON-001",
+        "DEP-INT-001", "DEP-INT-002", "DEP-INT-003", "DEP-PRO-001", "DEP-TAX-001", "DEP-LIM-001",
     ]  # fmt: skip
-    assert [it.code for it in pack.forbidden_items()] == ["DEP-BAN-001", "DEP-BAN-002"]
+    assert [it.code for it in pack.forbidden_items()] == ["DEP-BAN-001"]
     assert pack.item("DEP-DOC-001").type == "reference"
     assert pack.item("NOPE") is None
 
 
 def test_items_carry_evidence_and_patterns(pack_json):
     pack = load_pack(FakePackSource(pack_json), PACK_VERSION)
-    it = pack.item("DEP-INT-004")
+    it = pack.item("DEP-INT-001")
     assert isinstance(it.evidence, Evidence)
-    assert it.evidence.page == 2 and len(it.evidence.bbox) == 4
+    assert it.evidence.page == 1 and len(it.evidence.bbox) == 4
     assert ("keyword", "우대이자율") in it.l1_patterns
     assert it.plain_language
 
 
 def test_file_source_reads_fixture_dir():
     pack = load_pack(FilePackSource(FIX), PACK_VERSION)
-    assert pack.product_code == "SHB-MYPLUS-TD"
+    assert pack.product_code == "ICBC-KRW-TD"
 
 
 def test_missing_pack():

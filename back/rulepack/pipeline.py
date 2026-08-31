@@ -13,6 +13,11 @@ from .adapters import CandidateExtractor, DeterministicRuleAdapter, extract_batc
 from .source_manifest import build_run_manifest
 from .structure import StructureChunk, build_chunks_from_structure, extract_documents
 
+
+class PipelineError(ValueError):
+    """상품 설정이 서로 어긋남."""
+
+
 CANDIDATE_OUTPUT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "required": [
@@ -75,6 +80,8 @@ CANDIDATE_OUTPUT_SCHEMA: dict[str, Any] = {
         },
         "documents_required": {"type": "array", "items": {"type": "string"}},
         "forbidden_examples": {"type": "array", "items": {"type": "string"}},
+        "risk_examples": {"type": "array", "items": {"type": "string"}},
+        "l1_patterns": {"type": "array"},
     },
     "additionalProperties": False,
 }
@@ -109,7 +116,13 @@ def _candidate_from_rule(rule: dict[str, Any], chunk_id: str, model: str) -> dic
         "prompt_version": "candidate-v1",
         "model": model,
     }
-    for key in ("numeric_facts", "documents_required", "forbidden_examples"):
+    for key in (
+        "numeric_facts",
+        "documents_required",
+        "forbidden_examples",
+        "risk_examples",
+        "l1_patterns",
+    ):
         if key in rule:
             candidate[key] = rule[key]
     return candidate
@@ -187,6 +200,13 @@ def build_product_bundle(
         (paths.config_dir(repo_root) / "products.json").read_text(encoding="utf-8")
     )
     rules_doc = json.loads(rules_path.read_text(encoding="utf-8"))
+    # 상품 목록(products.json)과 후보 규칙(candidate_rules.json)은 따로 관리된다.
+    # 한쪽에만 추가하면 KeyError 로 죽는데, 그 메시지로는 어느 파일이 빠졌는지
+    # 알 수 없다 (2026-08-30).
+    if product not in products:
+        raise PipelineError(f"products.json 에 없는 상품: {product}")
+    if product not in rules_doc["products"]:
+        raise PipelineError(f"candidate_rules.json 에 후보 규칙이 없는 상품: {product}")
     product_config = products[product]
     selected = [source for source in run.sources if source.doc_id in product_config["document_ids"]]
     documents = extract_documents(selected, work_dir / "structure")
@@ -304,12 +324,6 @@ def build_product_bundle(
                 reason_code=rule["manual_review_reason"],
                 reason="exact span은 있으나 요구 요건 전체의 의미 근거가 부족함",
             )
-        elif candidate["candidate_kind"] == "risk_signal":
-            candidate.update(
-                status="review_required",
-                reason_code="contract_gap_risk_type",
-                reason="현행 schema에 위험 신호 type이 없음",
-            )
         else:
             candidate.update(status="evidence_verified", reason_code=None, reason=None)
         candidate["preview_ref"] = f"{evidence['doc_id']}.pdf#page={evidence['page']}"
@@ -326,6 +340,9 @@ def build_product_bundle(
             "name": product_config["name"],
             "category": product,
         },
+        # ⑧ 용어 밀도 게이지가 쓰는 목록. product 는 계약이 세 필드로 못박아
+        # 두어(additionalProperties false) 여기 따로 싣는다.
+        "jargon_terms": product_config.get("jargon_terms", []),
         "parser": {"name": run.parser.name, "version": run.parser.version},
         "sources": [
             {
