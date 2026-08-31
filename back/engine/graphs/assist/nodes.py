@@ -107,7 +107,7 @@ def make_nodes(deps: Deps):
         if s.get("item_code"):
             it = s["pack"].item(s["item_code"])
             allowed.extend(it.plain_language)
-        if deps.generator is not None and not any(_contained(text, a) for a in allowed):
+        if deps.generator is not None and not _grounded(text, allowed):
             return {"result": None}
         if s["mode"] == "rephrase":
             payload = AssistPayload(
@@ -141,9 +141,12 @@ def _items_by_similarity(text: str, pack, deps: Deps) -> list[PackItem]:
     return out
 
 
-def _contained(text: str, source: str) -> bool:
-    """생성 문장의 핵심이 근거 안에 있는가. 숫자와 5자 이상 어절이 모두 근거에 있어야 한다."""
+def _grounded(text: str, allowed: list[str]) -> bool:
+    """생성 문장의 핵심이 근거 안에 있는가 (P4). 숫자와 5자 이상 어절 각각이
+    허용 문장 중 어느 하나에는 있어야 한다. 여러 근거를 합쳐 답하는 것은 정당하다."""
     import re
 
     tokens = re.findall(r"\d+(?:\.\d+)?%?|[가-힣]{5,}", text)
-    return all(t in source for t in tokens) if tokens else text.strip() in source
+    if not tokens:
+        return any(text.strip() in a for a in allowed)
+    return all(any(t in a for a in allowed) for t in tokens)

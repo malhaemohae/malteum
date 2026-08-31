@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     llm_provider: str = "openrouter"  # LiteLLM provider 이름: openrouter · anthropic · openai …
     llm_api_key: str | None = None
     llm_model: str | None = None  # provider 공식 표기 그대로. 예: qwen/qwen3-32b
+    # Qwen 등 thinking 기본 모델은 reasoning 을 꺼야 tool_choice 강제가 되고 지연도 준다
+    llm_no_reasoning: bool = False
+    llm_corrector: bool = False  # refine 앞 STT 교정 (LLM 1회 추가)
+    llm_generator: bool = False  # answer 문장 생성 (guard P4 가 거른다)
     embedding_model: str | None = None  # 같은 provider·키. 예: qwen/qwen3-embedding-0.6b
     embedding_dim: int = 384  # 팩의 embedding.dim 과 같아야 load_pack 이 받는다
     l3_budget_ms: float = (

@@ -22,7 +22,19 @@ def build_engine(
     llm: LlmJudge | None = None,
     cache: DecisionCache | None = None,
     *,
+    corrector: object | None = None,
+    generator: object | None = None,
     l3_budget_ms: float = BUDGET_L3_MS,
 ) -> RuleEngine:
     """l3_budget_ms 는 계약 상수가 기본. 실측·합의 값으로 덮어쓴다 (DESIGN 10절)."""
-    return RuleEngine(pack_source, embedder, index, chunks, llm, cache, l3_budget_ms=l3_budget_ms)
+    return RuleEngine(
+        pack_source,
+        embedder,
+        index,
+        chunks,
+        llm,
+        cache,
+        corrector=corrector,
+        generator=generator,
+        l3_budget_ms=l3_budget_ms,
+    )
