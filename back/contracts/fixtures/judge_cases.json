@@ -49,8 +49,8 @@
             "axis": "omission",
             "state": "partial",
             "missing_elements": [
-              "만기 전 해지",
-              "낮은 중도해지이자율"
+              "적용 이율",
+              "차감률 또는 산출식"
             ]
           }
         ],

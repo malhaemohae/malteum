@@ -152,8 +152,8 @@
       "decided_by": "L1",
       "confidence": 0.7,
       "missing_elements": [
-        "만기 전 해지",
-        "낮은 중도해지이자율"
+        "적용 이율",
+        "차감률 또는 산출식"
       ],
       "utterance_ref": "FIXT-EV-0004",
       "evidence": {
@@ -470,7 +470,7 @@
       "decided_by": "L3",
       "confidence": 0.93,
       "missing_elements": [
-        "낮은 중도해지이자율"
+        "차감률 또는 산출식"
       ],
       "utterance_ref": "FIXT-EV-0020",
       "evidence": {
