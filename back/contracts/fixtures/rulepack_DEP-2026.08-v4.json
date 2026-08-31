@@ -118,8 +118,9 @@
       "name": "중도해지 이자율",
       "type": "required",
       "requirement_elements": [
-        "만기 전 해지",
-        "낮은 중도해지이자율"
+        "만기 전 해지 시 불이익",
+        "적용 이율",
+        "차감률 또는 산출식"
       ],
       "legal_basis": [
         {
@@ -144,14 +145,19 @@
       "axis": "omission",
       "l1_patterns": [
         {
-          "element": "만기 전 해지",
+          "element": "만기 전 해지 시 불이익",
           "kind": "keyword",
           "value": "중도해지"
         },
         {
-          "element": "낮은 중도해지이자율",
+          "element": "적용 이율",
           "kind": "keyword",
           "value": "중도해지이율"
+        },
+        {
+          "element": "차감률 또는 산출식",
+          "kind": "regex",
+          "value": "차감률|산출식|경과일수|경과기간"
         }
       ],
       "embedding_id": "e5:DEP-INT-002",
