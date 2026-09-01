@@ -13,10 +13,18 @@ from . import paths
 from .compiler import approval_digest, compile_pack, compile_synthetic_pack, publish_immutable
 from .pipeline import build_product_bundle, canonical_json
 
-PINNED_DEPENDENCIES = {
-    "jsonschema": "4.26.0",
-    "pypdfium2": "5.13.0",
-    "opendataloader-pdf": "2.3.0",
+# 값은 허용 표기 묶음이다. 한 패키지가 플랫폼마다 다른 문자열로 같은 빌드를
+# 부르는 경우가 있어 하나로 못박으면 그 플랫폼에서 늘 실패한다.
+PINNED_DEPENDENCIES: dict[str, tuple[str, ...]] = {
+    "jsonschema": ("4.26.0",),
+    "pypdfium2": ("5.13.0",),
+    "opendataloader-pdf": ("2.3.0",),
+    # 임베딩 벡터가 팩에 묶이므로 이 셋이 바뀌면 같은 항목도 다른 벡터가 된다.
+    "sentence-transformers": ("5.1.2",),
+    # macOS 휠에는 로컬 버전 접미사(`+cpu`)가 없다. 둘 다 같은 CPU 빌드라
+    # 벡터가 달라지지 않는다. `uv.lock` 이 darwin 에만 접미사 없는 것을 준다.
+    "torch": ("2.9.1+cpu", "2.9.1"),
+    "transformers": ("4.57.6",),
 }
 
 
@@ -46,6 +54,16 @@ def _read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _products(repo_root: Path) -> list[str]:
+    """상품 목록의 진실 원천은 `config/products.json` 이다.
+
+    코드에 박아 두면 상품을 늘릴 때 설정과 코드를 둘 다 고쳐야 하고, 한쪽만
+    고치면 조용히 빠진다 (2026-08-30).
+    """
+    doc = _read_json(paths.config_dir(repo_root) / "products.json")
+    return sorted(doc)
+
+
 def build_all(repo_root: Path, output: Path, work: Path) -> dict:
     rules = paths.config_dir(repo_root) / "candidate_rules.json"
     work.parent.mkdir(parents=True, exist_ok=True)
@@ -53,7 +71,7 @@ def build_all(repo_root: Path, output: Path, work: Path) -> dict:
         run_work = Path(run_dir)
         bundles = {
             product: build_product_bundle(repo_root, product, rules, run_work / product)
-            for product in ("deposit", "loan")
+            for product in _products(repo_root)
         }
     for product, bundle in bundles.items():
         _write(output / f"review_{product}.json", bundle)
@@ -81,7 +99,9 @@ def build_all(repo_root: Path, output: Path, work: Path) -> dict:
     _write(
         output / "run_manifest.json",
         {
-            "parser": bundles["deposit"]["parser"],
+            # parser 는 상품이 아니라 실행 단위의 속성이라 아무 번들에서 꺼내도 같다.
+            # 상품 이름을 박으면 상품 이름이 바뀔 때 여기서만 KeyError 로 죽는다.
+            "parser": next(iter(bundles.values()))["parser"],
             "sources": {
                 source["doc_id"]: source
                 for bundle in bundles.values()
@@ -95,9 +115,9 @@ def build_all(repo_root: Path, output: Path, work: Path) -> dict:
 def _strict_checks(repo_root: Path) -> dict[str, object]:
     installed = {name: importlib.metadata.version(name) for name in PINNED_DEPENDENCIES}
     mismatches = {
-        name: {"expected": expected, "actual": installed[name]}
-        for name, expected in PINNED_DEPENDENCIES.items()
-        if installed[name] != expected
+        name: {"allowed": list(allowed), "actual": installed[name]}
+        for name, allowed in PINNED_DEPENDENCIES.items()
+        if installed[name] not in allowed
     }
     if mismatches:
         raise RuntimeError(f"고정 의존성 버전 불일치: {mismatches}")
@@ -124,10 +144,21 @@ def _strict_checks(repo_root: Path) -> dict[str, object]:
     if contracts.returncode != 0:
         raise RuntimeError("contracts/validate.py 실패: " + contracts.stdout + contracts.stderr)
     return {
-        "dependency_versions_exact": True,
+        "dependency_versions_pinned": True,
         "java_major": java_major,
         "contracts_validate_exit_code": contracts.returncode,
     }
+
+
+def _synthetic_version(bundle: dict) -> str:
+    r"""dry-run 팩 버전. 계약이 `^[A-Z]{3,4}-\d{4}\.\d{2}-v\d+$` 를 강제한다.
+
+    접두어는 항목 코드에서 딴다. 상품이 늘어도 코드를 안 고치게 하려는 것이고,
+    이 버전은 검증 전용이라 운영 발행물이 되지 못한다.
+    """
+    code = bundle["items"][0]["code"]
+    prefix = code.split("-", 1)[0]
+    return f"{prefix}-2026.08-v1"
 
 
 def verify(repo_root: Path, output: Path, strict: bool = False) -> dict:
@@ -139,22 +170,22 @@ def verify(repo_root: Path, output: Path, strict: bool = False) -> dict:
         second = build_all(repo_root, Path(second_dir) / "artifacts", Path(second_dir) / "work")
         if canonical_json(first) != canonical_json(second):
             raise RuntimeError("결정적 재실행 불일치")
-    approvals = {
-        product: {
+    # 검증용 항목은 번들에서 고른다. 코드에 박으면 그 항목이 폐기·보류로 바뀔 때
+    # dry-run 이 통째로 실패하고, 원인이 계약이 아니라 이 목록이 낡은 것이 된다.
+    dry_run = {}
+    for product, bundle in first.items():
+        codes = [item["code"] for item in bundle["items"] if item["status"] == "evidence_verified"]
+        if not codes:
+            raise RuntimeError(f"{product}: 근거 검증을 통과한 항목이 없어 dry-run 을 못 만듦")
+        approval = {
             "approved_by": "synthetic-reviewer",
             "approved_at": "2026-08-26T00:00:00Z",
-            "item_codes": [code],
-            "bundle_sha256": approval_digest(first[product]),
+            "item_codes": [codes[0]],
+            "bundle_sha256": approval_digest(bundle),
         }
-        for product, code in (("deposit", "DEP-INT-002"), ("loan", "LOAN-ARR-001"))
-    }
-    versions = {"deposit": "DEP-2026.08-v1", "loan": "LOAN-2026.08-v1"}
-    dry_run = {
-        product: compile_synthetic_pack(
-            repo_root, first[product], approvals[product], versions[product]
+        dry_run[product] = compile_synthetic_pack(
+            repo_root, bundle, approval, _synthetic_version(bundle)
         )
-        for product in approvals
-    }
     for product, envelope in dry_run.items():
         _write(output / "dry_run" / f"synthetic_{product}.json", envelope)
     summary = {
@@ -171,7 +202,8 @@ def verify(repo_root: Path, output: Path, strict: bool = False) -> dict:
     return summary
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """인자 정의. 문서가 적은 사용법이 실제로 파싱되는지 테스트가 이걸로 확인한다."""
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=("build", "verify", "compile", "publish"))
     parser.add_argument("--repo-root", type=Path, default=paths.find_repo_root())
@@ -180,6 +212,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--approval", type=Path)
     parser.add_argument("--version")
     parser.add_argument("--strict", action="store_true")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
     args = parser.parse_args(argv)
     root = args.repo_root.resolve()
     output = (args.output or paths.default_artifacts_dir(root)).resolve()

@@ -10,16 +10,20 @@
     "session_started": {
       "mode": "replay",
       "product": {
-        "code": "SHB-MYPLUS-TD",
-        "name": "신한 My플러스 정기예금",
+        "code": "ICBC-KRW-TD",
+        "name": "ICBC 원화정기예금",
         "category": "deposit"
       },
-      "customer_profile": { "type": "general", "tags": ["elderly"] },
-      "item_count": 5,
+      "customer_profile": {
+        "type": "general",
+        "tags": [
+          "elderly"
+        ]
+      },
+      "item_count": 6,
       "preset_id": "preset-dep-a"
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0001",
@@ -37,7 +41,6 @@
       "speaker_confidence": 0.95
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0002",
@@ -64,7 +67,7 @@
     "pack_version": "DEP-2026.08-v4",
     "kind": "verdict",
     "verdict": {
-      "item_code": "DEP-INT-004",
+      "item_code": "DEP-INT-001",
       "axis": "omission",
       "state": "met",
       "decided_by": "L1",
@@ -72,15 +75,18 @@
       "missing_elements": [],
       "utterance_ref": "FIXT-EV-0002",
       "evidence": {
+        "bbox": [
+          146.6,
+          136.1,
+          385.2,
+          145.6
+        ],
         "doc_id": "05_상품설명서_정기예금",
-        "page": 2,
-        "span": "※ 계약기간 만기 전 중도해지한 계좌에 대해서는 적용하지 않습니다.",
-        "bbox": [153.4, 566.3, 488.8, 577.2],
-        "legal_basis": "금융소비자보호법 제19조제1항"
+        "page": 1,
+        "span": "신규일 당시 영업점에 고시한 조건별 우대이율 적용"
       }
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0004",
@@ -118,10 +124,15 @@
       },
       "utterance_ref": "FIXT-EV-0004",
       "evidence": {
+        "bbox": [
+          147.0,
+          378.9,
+          420.2,
+          388.4
+        ],
         "doc_id": "05_상품설명서_정기예금",
-        "page": 3,
-        "span": "○ 1개월 미만: 연 0.10%",
-        "bbox": [152.8, 763.8, 278.8, 774.4]
+        "page": 2,
+        "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용"
       },
       "acknowledged": false
     }
@@ -140,18 +151,24 @@
       "state": "partial",
       "decided_by": "L1",
       "confidence": 0.7,
-      "missing_elements": ["적용 이율", "차감률 또는 산출식"],
+      "missing_elements": [
+        "적용 이율",
+        "차감률 또는 산출식"
+      ],
       "utterance_ref": "FIXT-EV-0004",
       "evidence": {
+        "bbox": [
+          147.0,
+          378.9,
+          420.2,
+          388.4
+        ],
         "doc_id": "05_상품설명서_정기예금",
-        "page": 5,
-        "span": "만기 전 해지할 경우 약정한 이자율보다 낮은 중도해지이자율이 적용됩니다.",
-        "bbox": [74.2, 467.8, 467.6, 479.7],
-        "legal_basis": "금융소비자보호법 제19조제1항"
+        "page": 2,
+        "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용"
       }
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0007",
@@ -272,7 +289,6 @@
       "utterance_ref": "FIXT-EV-0012"
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0014",
@@ -299,18 +315,22 @@
     "pack_version": "DEP-2026.08-v4",
     "kind": "verdict",
     "verdict": {
-      "item_code": "DEP-BAN-002",
+      "item_code": "DEP-BAN-001",
       "axis": "commission",
       "state": "suspected",
       "decided_by": "L2",
       "confidence": 0.62,
       "utterance_ref": "FIXT-EV-0014",
       "evidence": {
-        "doc_id": "05_상품설명서_정기예금",
-        "page": 3,
-        "span": "○ 만기 후 6개월 초과: 연 0.10%",
-        "bbox": [156.6, 224.8, 324.5, 235.7],
-        "legal_basis": "금융소비자보호법 제21조제2호"
+        "bbox": [
+          61.3,
+          170.0,
+          554.2,
+          181.6
+        ],
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는"
       }
     }
   },
@@ -326,14 +346,18 @@
       "alert_type": "forbidden_phrase",
       "severity": "warning",
       "message": "만기 후에는 이자율이 내려갑니다. 설명서 기준으로 다시 안내해 주세요.",
-      "item_code": "DEP-BAN-002",
+      "item_code": "DEP-BAN-001",
       "utterance_ref": "FIXT-EV-0014",
       "evidence": {
-        "doc_id": "05_상품설명서_정기예금",
-        "page": 3,
-        "span": "○ 만기 후 6개월 초과: 연 0.10%",
-        "bbox": [156.6, 224.8, 324.5, 235.7],
-        "legal_basis": "금융소비자보호법 제21조제2호"
+        "bbox": [
+          61.3,
+          170.0,
+          554.2,
+          181.6
+        ],
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는"
       },
       "acknowledged": true
     }
@@ -348,22 +372,25 @@
     "kind": "verdict",
     "supersedes": "FIXT-EV-0015",
     "verdict": {
-      "item_code": "DEP-BAN-002",
+      "item_code": "DEP-BAN-001",
       "axis": "commission",
       "state": "violated",
       "decided_by": "L3",
       "confidence": 0.94,
       "utterance_ref": "FIXT-EV-0014",
       "evidence": {
-        "doc_id": "05_상품설명서_정기예금",
-        "page": 3,
-        "span": "○ 만기 후 6개월 초과: 연 0.10%",
-        "bbox": [156.6, 224.8, 324.5, 235.7],
-        "legal_basis": "금융소비자보호법 제21조제2호"
+        "bbox": [
+          61.3,
+          170.0,
+          554.2,
+          181.6
+        ],
+        "doc_id": "01_금융소비자보호법",
+        "page": 11,
+        "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는"
       }
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0018",
@@ -398,15 +425,18 @@
       "missing_elements": [],
       "utterance_ref": "FIXT-EV-0018",
       "evidence": {
+        "bbox": [
+          146.9,
+          104.5,
+          423.8,
+          114.0
+        ],
         "doc_id": "05_상품설명서_정기예금",
-        "page": 3,
-        "span": "○ 만기 후 6개월 초과: 연 0.10%",
-        "bbox": [156.6, 224.8, 324.5, 235.7],
-        "legal_basis": "금융소비자보호법 제19조제1항"
+        "page": 1,
+        "span": "1개월 이내 : 약정만기일 당일 해당 상품의 기본이자율 * 0.5"
       }
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0020",
@@ -439,18 +469,23 @@
       "state": "partial",
       "decided_by": "L3",
       "confidence": 0.93,
-      "missing_elements": ["차감률 또는 산출식"],
+      "missing_elements": [
+        "차감률 또는 산출식"
+      ],
       "utterance_ref": "FIXT-EV-0020",
       "evidence": {
+        "bbox": [
+          147.0,
+          378.9,
+          420.2,
+          388.4
+        ],
         "doc_id": "05_상품설명서_정기예금",
-        "page": 5,
-        "span": "만기 전 해지할 경우 약정한 이자율보다 낮은 중도해지이자율이 적용됩니다.",
-        "bbox": [74.2, 467.8, 467.6, 479.7],
-        "legal_basis": "금융소비자보호법 제19조제1항"
+        "page": 2,
+        "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용"
       }
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0022",
@@ -461,7 +496,7 @@
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
-      "text": "당장 일부만 필요하시면 전부 깨지 않고 일부해지도 가능합니다. 2회까지 돼요.",
+      "text": "당장 일부만 필요하셔도 이 상품은 일부해지가 안 됩니다. 해지하시면 전액이 나갑니다.",
       "t_ms": 158900,
       "duration_ms": 4400,
       "stt_confidence": 0.93,
@@ -485,15 +520,18 @@
       "missing_elements": [],
       "utterance_ref": "FIXT-EV-0022",
       "evidence": {
+        "bbox": [
+          146.7,
+          539.0,
+          372.4,
+          548.9
+        ],
         "doc_id": "05_상품설명서_정기예금",
-        "page": 5,
-        "span": "일부해지 횟수는 2회를 초과할 수 없습니다.",
-        "bbox": [74.4, 444.9, 301.4, 456.7],
-        "legal_basis": "금융소비자보호법 제19조제1항"
+        "page": 3,
+        "span": "영업점을 통해 해지가 가능하며, 일부해지 불가능"
       }
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0024",
@@ -504,14 +542,19 @@
     "kind": "assist",
     "assist": {
       "assist_type": "nudge",
-      "text": "예금담보대출 대안이 아직 안 나왔습니다. 해지 대신 납입액의 100%까지 대출이 가능하다는 점을 안내해 주세요.",
-      "item_code": "DEP-LON-001",
+      "text": "예금자보호 안내가 아직 안 나왔습니다. 원금과 이자를 합해 1인당 1억 원까지, 이 은행의 다른 보호상품과 합산해 보호된다는 점을 안내해 주세요.",
+      "item_code": "DEP-PRO-001",
       "trigger": "missing_item",
       "evidence": {
+        "bbox": [
+          215.3,
+          312.6,
+          564.0,
+          343.0
+        ],
         "doc_id": "05_상품설명서_정기예금",
-        "page": 6,
-        "span": "예금담보대출 O 납입액의 100%까지 가능",
-        "bbox": [65.4, 546.2, 374.5, 558.2]
+        "page": 2,
+        "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지”"
       }
     }
   },
@@ -525,7 +568,7 @@
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
-      "text": "해지 대신 이 예금을 담보로 잡고 납입하신 금액의 100%까지 대출받는 방법도 있습니다.",
+      "text": "참고로 이 예금은 예금자보호법에 따라 원금과 이자를 합해 1인당 1억 원까지 보호됩니다. 이 은행에 있는 다른 예금과 합쳐서 1억 원입니다.",
       "t_ms": 172400,
       "duration_ms": 5800,
       "stt_confidence": 0.95,
@@ -541,7 +584,7 @@
     "pack_version": "DEP-2026.08-v4",
     "kind": "verdict",
     "verdict": {
-      "item_code": "DEP-LON-001",
+      "item_code": "DEP-PRO-001",
       "axis": "omission",
       "state": "met",
       "decided_by": "L1",
@@ -549,11 +592,15 @@
       "missing_elements": [],
       "utterance_ref": "FIXT-EV-0025",
       "evidence": {
+        "bbox": [
+          215.3,
+          312.6,
+          564.0,
+          343.0
+        ],
         "doc_id": "05_상품설명서_정기예금",
-        "page": 6,
-        "span": "예금담보대출 O 납입액의 100%까지 가능",
-        "bbox": [65.4, 546.2, 374.5, 558.2],
-        "legal_basis": "금융소비자보호법 제19조제1항"
+        "page": 2,
+        "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지”"
       }
     }
   },
@@ -568,19 +615,23 @@
     "supersedes": "FIXT-EV-0024",
     "assist": {
       "assist_type": "nudge",
-      "text": "예금담보대출 대안이 아직 안 나왔습니다. 해지 대신 납입액의 100%까지 대출이 가능하다는 점을 안내해 주세요.",
-      "item_code": "DEP-LON-001",
+      "text": "예금자보호 안내가 아직 안 나왔습니다. 원금과 이자를 합해 1인당 1억 원까지, 이 은행의 다른 보호상품과 합산해 보호된다는 점을 안내해 주세요.",
+      "item_code": "DEP-PRO-001",
       "trigger": "missing_item",
       "evidence": {
+        "bbox": [
+          215.3,
+          312.6,
+          564.0,
+          343.0
+        ],
         "doc_id": "05_상품설명서_정기예금",
-        "page": 6,
-        "span": "예금담보대출 O 납입액의 100%까지 가능",
-        "bbox": [65.4, 546.2, 374.5, 558.2]
+        "page": 2,
+        "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지”"
       },
       "outcome": "adopted"
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0028",
@@ -616,13 +667,17 @@
         "doc_id": "07_제2차_금융분야_보이스피싱_대책",
         "page": 18,
         "span": "입금되며, 입금 30분前 취소 가능(창구거래 未적용)",
-        "bbox": [96.0, 617.9, 437.2, 635.9],
+        "bbox": [
+          96.0,
+          617.9,
+          437.2,
+          635.9
+        ],
         "legal_basis": "제2차 금융분야 보이스피싱 대책 (지연이체서비스 창구거래 미적용)"
       },
       "acknowledged": true
     }
   },
-
   {
     "schema_version": "1",
     "event_id": "FIXT-EV-0030",
@@ -635,10 +690,10 @@
       "reason": "normal",
       "duration_ms": 200000,
       "summary": {
-        "items_total": 5,
+        "items_total": 6,
         "met": 4,
         "partial": 1,
-        "unmet": 0,
+        "unmet": 1,
         "waived": 0,
         "violations": 1,
         "alerts": 3,

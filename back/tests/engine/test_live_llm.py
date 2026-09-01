@@ -38,7 +38,10 @@ def engine(pack_json):
         MemoryVectorIndex(),
         FakeChunkIndex([], embedder),
         LiteLlmJudge(
-            settings.llm_model, provider=settings.llm_provider, api_key=settings.llm_api_key
+            settings.llm_model,
+            provider=settings.llm_provider,
+            api_key=settings.llm_api_key,
+            extra_body={"reasoning": {"enabled": False}} if settings.llm_no_reasoning else None,
         ),
         MemoryDecisionCache(),
         l3_budget_ms=30_000,

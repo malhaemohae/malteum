@@ -19,6 +19,8 @@ dependencies = [
     "python-ulid>=4.0.1",
     "langgraph>=1.2.11",
     "litellm>=1.98.0",
+    "sentence-transformers==5.1.2",   # M3 L2 임베딩. 팩에 모델명이 기록되므로 정확히 고정
+    "torch==2.9.1",                   # CPU 전용 휠. 자체 서버에 GPU 를 가정하지 않는다
 ]
 
 [dependency-groups]
@@ -92,3 +94,14 @@ name = "server·engine·rulepack 은 regwatch 를 모른다"
 type = "forbidden"
 source_modules = ["server", "engine", "rulepack"]
 forbidden_modules = ["regwatch"]
+
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+# 기본 인덱스의 torch 는 CUDA 런타임을 함께 받아 2GB 를 넘는다. 자체 서버 단일
+# 배포에 GPU 가 없으므로 CPU 휠만 받는다.
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

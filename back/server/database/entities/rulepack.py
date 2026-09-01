@@ -22,9 +22,20 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from server.database.base import Base
+
+# 벡터를 만드는 출처. 적재하는 쪽(`scripts/load_pack.py`)이 이 목록을 그대로 쓴다.
+# `jargon_term` 은 아직 안 쓴다. 용어 밀도 게이지는 목록 대조로만 세므로 벡터가
+# 필요 없고, 팩 전역이라 붙일 `item_code` 도 없다. 자리는 열어 둔다.
+EMBEDDING_SOURCES = (
+    "item",
+    "forbidden_example",
+    "risk_example",
+    "plain_language",
+    "jargon_term",
+)
 
 
 class RulePack(Base):
@@ -44,6 +55,13 @@ class RulePack(Base):
     doc: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)  # 정본
     loaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    # 자식을 선언해 두면 SQLAlchemy 가 삽입 순서를 스스로 잡고, 팩을 지울 때
+    # 임베딩도 함께 간다. passive_deletes 는 자식을 하나씩 SELECT 해서 지우는
+    # 대신 DB 의 ON DELETE CASCADE 에 맡긴다.
+    embeddings: Mapped[list[PackEmbedding]] = relationship(
+        back_populates="pack", cascade="all, delete-orphan", passive_deletes=True
     )
 
     __table_args__ = (
@@ -73,10 +91,11 @@ class PackEmbedding(Base):
     model: Mapped[str] = mapped_column(Text, nullable=False)
     dim: Mapped[int] = mapped_column(Integer, nullable=False)
 
+    pack: Mapped[RulePack] = relationship(back_populates="embeddings")
+
     __table_args__ = (
         CheckConstraint(
-            "source IN ('item', 'forbidden_example', 'risk_example', "
-            "'plain_language', 'jargon_term')",
+            "source IN (" + ", ".join(f"'{value}'" for value in EMBEDDING_SOURCES) + ")",
             name="ck_pack_embeddings_source",
         ),
         UniqueConstraint(

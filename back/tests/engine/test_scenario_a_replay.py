@@ -19,7 +19,7 @@ from tests.engine.conftest import PACK_VERSION
 from tests.engine.fakes import FakeChunkIndex, FakeEmbedder, FakePackSource, ScriptedLlmJudge
 
 PHRASES = {
-    "만기 지나도": "DEP-BAN-002",
+    "만기 지나도": "DEP-BAN-001",
     "만기가 지나면": "DEP-INT-003",
     "중간에 깨면": "DEP-INT-002",
     "훨씬 덜 받는다": "DEP-INT-002",
@@ -27,7 +27,7 @@ PHRASES = {
 
 SCRIPT = {
     "만기 지나도 지금 금리가 그대로": JudgeDecision(
-        verdicts=(VerdictPayload("DEP-BAN-002", "commission", "violated", "L3"),)
+        verdicts=(VerdictPayload("DEP-BAN-001", "commission", "violated", "L3"),)
     ),
     "중간에 깨면 이자를 훨씬 덜": JudgeDecision(
         verdicts=(VerdictPayload("DEP-INT-002", "comprehension", "confirmed", "L3"),)
@@ -35,7 +35,7 @@ SCRIPT = {
     "만기가 지나면 금리가 내려갑니다": JudgeDecision(
         verdicts=(VerdictPayload("DEP-INT-003", "omission", "met", "L3"),)
     ),
-    "아까 중도해지 이자는": JudgeDecision(
+    "한 달 안에": JudgeDecision(
         verdicts=(
             VerdictPayload(
                 "DEP-INT-002",

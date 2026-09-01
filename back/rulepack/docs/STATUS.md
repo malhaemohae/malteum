@@ -1,0 +1,50 @@
+# rulepack 현황
+
+기준일: 2026-08-30. `python -m rulepack.cli build` 결과와 `config/source_audit.json` 에서 뽑은 값이다.
+
+## 후보 판정
+
+| 상품 | 발행 가능 | 검토 대기 | 발행 차단 | 자동 폐기 |
+| --- | ---: | ---: | ---: | ---: |
+| 예금 신규 | 9 | 0 | 0 | 1 |
+| 신용대출 | 8 | 2 | 0 | 1 |
+
+- 발행 가능 17건: `DEP-INT-001` · `DEP-INT-002` · `DEP-INT-003` · `DEP-PRO-001` · `DEP-TAX-001` · `DEP-LIM-001` · `DEP-DOC-001` · `DEP-BAN-001` · `DEP-RSK-001` · `LOAN-INT-001` · `LOAN-ARR-001` · `LOAN-PRE-001` · `LOAN-DSR-001` · `LOAN-WDR-001` · `LOAN-CIC-001` · `LOAN-BAN-001` · `LOAN-RSK-001`
+- 실제 발행에는 사람 승인과 HMAC 서명이 따로 필요하다. `confirmed` 만으로 나가지 않는다.
+- 자동 폐기 2건(`DEP-REJ-001` · `LOAN-REJ-001`)은 부정 표본이다. 원문 미존재와 page 불일치를 파이프라인이 잡는지 보는 장치라 통과하면 안 된다.
+
+## 남은 막힘
+
+### 검토 대기 2건 · 근거의 의미 범위 부족
+
+`LOAN-RDR-001`(금리인하요구권)과 `LOAN-DOC-001`(자필 기재 문구)은 exact span 은 원문에 실재하지만, 그 문구만으로 요구 요건 전체나 필요 서류를 입증하지 못한다. `evidence_scope_mismatch` 로 사람 검토를 기다린다. `docs/CONTRACT_GAPS.md` 참조.
+
+## 최근 변경
+
+- 2026-08-29 가계대출 설명서를 2025.01 개정본(24쪽)으로 교체. 대출 차단 8건 해제
+- 2026-08-29 위험 신호 2건을 `risk` type 으로 발행. 계약 v0.4 가 이미 채운 공백을 코드가 뒤늦게 따라감
+- 2026-08-29 `risk` 항목에 `risk_examples` 부여. 계약이 요구하는데 빠져 있어 운영 컴파일이 막혔음
+- 2026-08-29 `pack` · `pack_item` · `item_embedding` 테이블 추가
+- 2026-08-29 임베딩 어댑터와 `scripts/load_pack.py` 추가. 팩이 실제로 벡터를 만든 구현을 기록하게 됨
+- 2026-08-30 임베딩 모델을 `intfloat/multilingual-e5-small` 로 확정. CPU 중앙값 7.0ms 로 L2 지연 예산 통과
+- 2026-08-30 `LOAN-RSK-001` 을 `risk` → `forbidden` 으로 정정. 근거 조문이 은행원을 구속하는데 고객 발화로 분류돼 있었음
+- 2026-08-30 `DEP-RSK-001` 근거 조문을 예금거래기본약관 제4조 → 제6조로 정정
+- 2026-08-30 발행 기관을 MANIFEST 표에서 읽게 바꿈. 표준약관 2건의 오표기(게시 은행 → 은행연합회) 정정
+- 2026-08-30 `publish` 를 처음 실행. 예금·대출 팩 둘 다 발행하고 M2 로더가 읽는 것까지 확인
+- 2026-08-30 상품 목록·검증 항목 하드코딩을 `products.json`·번들에서 뽑도록 정리
+- 2026-08-30 정기예금 설명서를 심의 유효기간 내 현행본으로 교체. 예금 6건 차단 해제로 발행 가능 11 → 17건. 옛 원천은 심의 만료에 보호한도 5천만원 표기였고, 새 원천은 2025-09-01 시행 1억원 반영본
+- 2026-08-30 팩 저장을 M1 의 `rule_packs`·`pack_embeddings` 로 통합. 따로 만들었던 `pack`·`pack_item`·`item_embedding` 은 timestamptz 왕복에서 `published_at` 표기가 바뀌어 `pack_sha256` 대조가 깨졌음. M2 도 `SELECT doc` 한 줄로 팩을 그대로 받게 됨
+- 2026-08-30 적재를 생 SQL 에서 M1 의 ORM 모델로 바꿈. 열을 두 곳에 적으면 계약이 늘 때 스크립트가 조용히 뒤처짐. `RulePack.embeddings` 관계도 함께 넣어 삽입 순서와 삭제를 모델이 맡음
+- 2026-08-30 M1 의 `scripts/seed_pack.py` 를 `load_pack.py` 에 흡수. 같은 테이블에 두 방식으로 넣으면 어느 쪽으로 넣었느냐에 따라 `pack_embeddings` 가 비어 L2 검색이 조용히 안 됨. 그쪽의 계약 스키마 검증과 여러 팩 한 번에 넣기를 가져옴
+- 2026-08-30 적재도 발행과 같은 무결성 검사를 거치게 함. 서명 없는 팩 본문은 `--unsigned` 없이는 거절
+- 2026-08-30 계약 fixture 4종을 새 예금 원천 기준으로 재발행. 팩 · 이벤트 · 판정 케이스 · WS 메시지가 모두 옛 원천 문구를 담고 있었음. 항목 코드 3건이 바뀌어 M2 테스트 기대값도 함께 갱신
+
+## 되짚는 법
+
+```bash
+cd back
+uv run python -m rulepack.cli build            # 후보 생성. artifacts/review_*.json
+uv run python -m rulepack.cli verify --strict  # 결정성·고정 의존성·java·계약 검증
+```
+
+JDK 17 이상(CI 는 21)과 `uv` 가 필요하다. 산출물은 `.gitignore` 로 추적하지 않는다. 같은 원천·코드·파서 버전이면 같은 값이 나오므로 레포에 둘 이유가 없다.

@@ -25,8 +25,8 @@ CASES = json.loads((FIX / "judge_cases.json").read_text(encoding="utf-8"))["case
 
 # L2 fake 임베더가 쓰는 문구 → 항목 표. 실물에서는 임베딩 모델이 이 대응을 배운다.
 PHRASES = {
-    "만기 지나도": "DEP-BAN-002",
-    "그대로 계속": "DEP-BAN-002",
+    "만기 지나도": "DEP-BAN-001",
+    "그대로 계속": "DEP-BAN-001",
     "중간에 깨면": "DEP-INT-002",
     "이자가 좀 줄어": "DEP-INT-002",
     "훨씬 덜 받는다": "DEP-INT-002",
@@ -60,7 +60,7 @@ SCRIPT = {
     "그냥 두셔도 돼요. 만기 지나도 지금 금리가 그대로 계속 붙거든요.": JudgeDecision(
         verdicts=(
             VerdictPayload(
-                item_code="DEP-BAN-002", axis="commission", state="violated", decided_by="L3"
+                item_code="DEP-BAN-001", axis="commission", state="violated", decided_by="L3"
             ),
         )
     ),
@@ -286,7 +286,7 @@ def test_answer_from_pack_item_and_rephrase(engine, pack):
         t_ms=1,
     )
     r = engine.rephrase(src, pack, state)
-    assert r is not None and r.assist_type == "rephrase" and r.item_code == "DEP-INT-004"
+    assert r is not None and r.assist_type == "rephrase" and r.item_code == "DEP-INT-001"
     assert r.source_utterance_ref == "U-T1"
     nothing = Utterance(utterance_id="U-T2", speaker="teller", text="잠시만 기다려 주세요.", t_ms=2)
     assert engine.rephrase(nothing, pack, state) is None
@@ -295,7 +295,7 @@ def test_answer_from_pack_item_and_rephrase(engine, pack):
 def test_briefing_and_documents(engine, pack):
     state = engine.initial_state("S-TEST", pack, "text")
     b = engine.briefing(pack, "general")
-    assert b.assist_type == "briefing" and "5개" in b.text
+    assert b.assist_type == "briefing" and "6개" in b.text
     d = engine.documents(pack, state)
     assert (
         d.assist_type == "documents" and "실명확인증표" in d.text and d.item_code == "DEP-DOC-001"

@@ -5,7 +5,11 @@
 
 from __future__ import annotations
 
-from server.database.entities.rulepack import PackEmbedding, RulePack
+from server.database.entities.rulepack import (
+    EMBEDDING_SOURCES,
+    PackEmbedding,
+    RulePack,
+)
 from server.database.entities.session import Session, SessionEvent
 
-__all__ = ["PackEmbedding", "RulePack", "Session", "SessionEvent"]
+__all__ = ["EMBEDDING_SOURCES", "PackEmbedding", "RulePack", "Session", "SessionEvent"]
