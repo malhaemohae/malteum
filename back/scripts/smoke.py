@@ -14,6 +14,7 @@ import asyncio
 import json
 import sys
 import urllib.request
+import uuid
 
 # 한국어 Windows 는 stdout 이 cp949 라 한글·기호가 깨진다. 스크립트가 스스로 UTF-8 을 쓴다
 sys.stdout.reconfigure(encoding="utf-8")
@@ -65,19 +66,33 @@ def rest():
     s, d = get("/sessions?limit=5")
     check("sessions 목록", "sessions" in d, f"{len(d['sessions'])}건")
 
+    s, ev = get(f"/sessions/{SID}/events")
+    events = ev["events"]
+    check("이벤트 원본", len(events) == 31, f"{len(events)}건")
+    ref = next(
+        e["event_id"] for e in events if e["kind"] == "verdict" and e["verdict"].get("evidence")
+    )
+    # 기대값을 픽스처에서 뽑는다. 숫자를 박으면 팩이 재발행될 때마다 이 줄만 고치게 되고
+    # 무엇이 왜 달라졌는지가 안 남는다 (2026-08-31, 팩 재발행에서 항목 코드 3건 변경)
+    superseded = {e["supersedes"] for e in events if e.get("supersedes")}
+    live = [
+        e["verdict"] for e in events if e["kind"] == "verdict" and e["event_id"] not in superseded
+    ]
+    want_violated = sum(1 for v in live if v["state"] == "violated")
+
     s, d = get(f"/sessions/{SID}")
     check(
         "세션 상세(이벤트를 접은 것)",
-        d["status"] == "ended" and d["met"] == 4 and d["violations"] == 1,
-        f"met {d['met']}/{d['items_total']} · 위반 {d['violations']} · 항목 {len(d['items'])}",
+        d["status"] == "ended" and d["violations"] == want_violated,
+        f"위반 {d['violations']} (픽스처 {want_violated}) · 항목 {len(d['items'])}",
     )
-
-    s, d = get(f"/sessions/{SID}/events")
-    check("이벤트 원본", len(d["events"]) == 31, f"{len(d['events'])}건")
-    ref = next(
-        e["event_id"]
-        for e in d["events"]
-        if e["kind"] == "verdict" and e["verdict"].get("evidence")
+    # 같은 응답 안에서 요약(engine.summarize)과 항목 목록(engine.fold)이 어긋나면
+    # 화면은 체크리스트와 진척도가 다른 말을 하는 것을 그대로 그린다
+    listed_met = sum(1 for i in d["items"] if i["state"] == "met")
+    check(
+        "요약 숫자 = 항목 목록",
+        d["met"] == listed_met,
+        f"summary met {d['met']} · 목록 met {listed_met} · items_total {d['items_total']}",
     )
 
     s, d = get(f"/sessions/{SID}/report")
@@ -108,11 +123,15 @@ async def ws_human():
     import websockets
 
     print("\n== WebSocket · 사람 결정 (STT 없이 도는 3층 폴백) ==")
+    # 매번 새 세션을 쓴다. 고정 id 를 재사용하면 실행할 때마다 판정이 쌓여 ver 이 계속
+    # 오르고, 되돌리기가 "앞선 판정"으로 가는 곳이 지난 실행의 결과가 된다
+    sid = f"SMOKE-{uuid.uuid4().hex[:12].upper()}"
     async with websockets.connect(WS) as sock:
-        await sock.send(json.dumps({"t": "hello", "mode": "text", "session_id": "SMOKE-SESS-0001"}))
+        await sock.send(json.dumps({"t": "hello", "mode": "text", "session_id": sid}))
         ready = json.loads(await sock.recv())
-        check("hello → ready", ready["t"] == "ready", f"항목 {len(ready['items'])}개")
-        code = ready["items"][0]["item_code"]
+        check("hello → ready", ready["t"] == "ready", f"{sid} · 항목 {len(ready['items'])}개")
+        item = ready["items"][0]
+        code, before = item["item_code"], item["state"]
 
         async def send(msg, n):
             await sock.send(json.dumps(msg))
@@ -120,8 +139,9 @@ async def ws_human():
 
         got = await send({"t": "mark_met", "item_code": code}, 2)
         check("mark_met", got[0]["state"] == "met", f"{code} → met (ver {got[0]['ver']})")
+        # 되돌리기는 앞선 판정으로 간다. 앞선 것이 없으면 출발 상태(unmet)다
         got = await send({"t": "mark_met", "item_code": code, "undo": True}, 2)
-        check("mark_met undo", got[0]["state"] == "unmet", f"되돌림 (ver {got[0]['ver']})")
+        check("mark_met undo", got[0]["state"] == before, f"{before} 로 되돌림")
         got = await send({"t": "mark_waived", "item_code": code, "reason": "해당 없음"}, 2)
         check("mark_waived", got[0]["state"] == "waived", f"ver {got[0]['ver']}")
         got = await send({"t": "mark_met", "item_code": "XXX-YYY-999"}, 1)
