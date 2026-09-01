@@ -13,6 +13,7 @@ trace 는 새 판정을 만들지 않아 `submit_utterance` 를 거치지 않는
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from typing import Any
@@ -69,7 +70,10 @@ class Pipeline:
         if utterance.speaker == "teller":
             # rephrase(⑥-B)가 "직전 은행원 발화" 를 다시 말한다. 고객 발화는 대상이 아니다
             session.last_teller_utterance = utterance
-        result = self.engine.judge(utterance, session.pack, session.state)
+        # judge 는 동기인데 L2 가 임베딩 모델을 처음 쓸 때 수십 초를 붙잡는다. 루프에서
+        # 그대로 부르면 그동안 하트비트도 다른 세션도 멈춘다 — 실제로 클라이언트가
+        # keepalive 타임아웃으로 끊겼다 (2026-09-02)
+        result = await asyncio.to_thread(self.engine.judge, utterance, session.pack, session.state)
         await self.apply_result(session, result, publish)
         # 계약: needs_refine 이 켜졌을 때만 예약하고, 꺼져 있으면 부르지 않는다.
         # 예약을 여기서 하는 이유는 utterance_id 가 채워진 발화가 이 안에만 있어서다.

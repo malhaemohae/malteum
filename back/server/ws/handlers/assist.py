@@ -11,6 +11,8 @@ s2c `assist` 는 `text` 가 required 라 "근거 없음" 을 담지 못하고, e
 
 from __future__ import annotations
 
+import asyncio
+
 from contracts.engine_contract import AssistPayload, JudgeResult
 from server.services.session.pipeline import Pipeline, Publish
 from server.services.session.registry import Session
@@ -33,7 +35,7 @@ async def ask(session: Session, pipeline: Pipeline, question: str, publish: Publ
 
     남는 것은 답변 assist 하나뿐이고, 무엇을 물었는지는 그 답의 근거로 읽힌다.
     """
-    payload = pipeline.engine.answer(question, session.pack, session.state)
+    payload = await asyncio.to_thread(pipeline.engine.answer, question, session.pack, session.state)
     return await _publish(session, pipeline, payload, publish)
 
 
@@ -51,11 +53,13 @@ async def assist_request(
         if source is None:
             # 다시 말할 대상이 없다. 상담 시작 전이거나 고객만 말한 상태다
             return "다시 말할 직전 발화가 없습니다."
-        payload = engine.rephrase(source, session.pack, session.state)
+        payload = await asyncio.to_thread(engine.rephrase, source, session.pack, session.state)
     elif assist_type == "documents":
-        payload = engine.documents(session.pack, session.state)
+        payload = await asyncio.to_thread(engine.documents, session.pack, session.state)
     elif assist_type == "briefing":
-        payload = engine.briefing(session.pack, session.state.customer_type)
+        payload = await asyncio.to_thread(
+            engine.briefing, session.pack, session.state.customer_type
+        )
     else:  # 스키마가 먼저 거르지만, enum 이 늘었을 때 조용히 통과하지 않게 한다
         return f"알 수 없는 assist_type 입니다: {assist_type}"
     return await _publish(session, pipeline, payload, publish)
