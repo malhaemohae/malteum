@@ -7,3 +7,4 @@ import pytest
 def _no_live_adapters(monkeypatch):
     monkeypatch.setenv("APP_LLM_MODEL", "")
     monkeypatch.setenv("APP_EMBEDDING_MODEL", "")
+    monkeypatch.setenv("APP_STT_API_KEY", "")
