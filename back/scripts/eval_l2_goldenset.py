@@ -171,7 +171,8 @@ def main(argv: list[str] | None = None) -> int:
     passage_model, query_model = make_models(args.model)
     for path in pack_paths:
         pack = json.loads(Path(path).read_text(encoding="utf-8"))
-        report(pack["pack_version"], evaluate(pack, cases, passage_model, query_model, args.top_k), args.top_k)
+        result = evaluate(pack, cases, passage_model, query_model, args.top_k)
+        report(pack["pack_version"], result, args.top_k)
     if args.model == "fake":
         print("\nfake 모델은 뜻을 담지 않는다. 위 수치는 품질이 아니라 경로 확인용이다")
     return 0

@@ -1,6 +1,9 @@
-"""L2 의미 검색. 발화 임베딩과 팩 항목의 유사도로 후보를 올린다.
+"""L2 검색. 자모 trigram-BM25(주)와 발화 임베딩(보조)을 병렬로 융합해 후보를 올린다.
 
 판정 확정은 L3 가 한다. 예외는 되물음(explained)과 위험 신호(alert).
+융합: 항목별 score = max(trigram 덮임 비율, dense). 단 dense 는 항목 간
+분산이 DENSE_MIN_SPREAD 이상일 때만 참여한다 — e5 류는 무관 발화에도 0.8 안팎을
+줘서(실측 0.74~0.87 띠) 그대로 쓰면 무관 발화가 임계를 다 넘는다.
 """
 
 from __future__ import annotations
@@ -18,13 +21,16 @@ from contracts.engine_contract import (
     VerdictPayload,
 )
 from engine.pack.compiler import CompiledPack
+from engine.tiers.l2 import lexical
 from engine.types import RulePack, SessionState
 
 THRESHOLD_REQUIRED = 0.5
 THRESHOLD_FORBIDDEN = 0.5
-THRESHOLD_RISK = 0.5
+# critical 경보라 오탐 비용이 크다. 실측: 실제 위험 발화 0.74 vs 해지·입금 언급 유사 발화 0.59
+THRESHOLD_RISK = 0.65
 THRESHOLD_COMPREHENSION = 0.3
-TOP_K = 5
+TOP_K = 5  # answer() 항목 검색용
+DENSE_MIN_SPREAD = 0.15  # max-mean 이 이보다 작으면 dense 가 항목을 못 가르는 것
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,8 +55,7 @@ def search(
     types: frozenset[str],
     l1_codes: set[str],
 ) -> L2Result:
-    vector = embedder.encode([text])[0]
-    scores = tuple(index.search(pack.pack_version, vector, TOP_K))
+    scores = tuple(fused_scores(text, pack, compiled, embedder, index))
     by_code = {code: item for code, item in ((it.code, it) for it in pack.items)}
     candidates: list[str] = []
     verdicts: list[VerdictPayload] = []
@@ -169,3 +174,25 @@ def _rephrase_from_plain(
         source_utterance_ref=source.utterance_id if source else utterance.utterance_id,
         evidence=item.evidence,
     )
+
+
+def fused_scores(
+    text: str,
+    pack: RulePack,
+    compiled: CompiledPack,
+    embedder: Embedder,
+    index: VectorIndex,
+) -> list[tuple[str, float]]:
+    """항목별 융합 점수. trigram 이 주 신호, dense 는 갈라낼 때만 보조."""
+    vector = embedder.encode([text])[0]
+    dense = dict(index.search(pack.pack_version, vector, len(pack.items)))
+    if dense:
+        # 분산은 전 항목 기준 (인덱스는 양수만 돌려준다). 한 항목만 튀면 dense 는 유효하다
+        vals = [dense.get(it.code, 0.0) for it in pack.items if it.type != "reference"]
+        if max(vals) - sum(vals) / len(vals) < DENSE_MIN_SPREAD:
+            dense = {}
+    tri = lexical.coverage(text, compiled.tri)
+    codes = set(dense) | set(tri)
+    fused = [(c, max(tri.get(c, 0.0), dense.get(c, 0.0))) for c in codes]
+    fused.sort(key=lambda x: x[1], reverse=True)
+    return fused
