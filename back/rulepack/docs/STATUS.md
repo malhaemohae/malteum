@@ -41,6 +41,7 @@
 - 2026-09-01 `DEP-BAN-001` 의 forbidden_examples 를 1문장에서 5문장으로 보강. 엔진 팀 L2 실측에서 "만기 지나도 금리 그대로" 발화의 검색 후보에 이 항목이 못 들었음. 만기 후 금리·중도해지 단정 표현을 추가. 다음 팩 발행부터 반영됨
 - 2026-09-01 L2 골든셋(`config/golden_utterances.json`)과 평가 스크립트(`scripts/eval_l2_goldenset.py`) 추가. 검색 방식(모델 교체·자모 BM25·융합)을 바꿀 때마다 top-1 · recall@k · 무관 발화 분리를 같은 기준으로 잰다
 - 2026-09-02 `DEP-BAN-001` 보강분(금지 예시 1 → 5문장)을 계약 fixture 팩에 반영. 엔진·서버가 읽는 팩이 fixture 라 여기 반영돼야 L2 검색면에 실림. 재빌드 산출물과 canonical 대조로 fixture 에 다른 드리프트가 없음을 확인했고, 이 대조를 `tests/rulepack/test_fixture_matches_canonical.py` 가 상시 수행. 유일한 차이는 `DEP-INT-002` 의 옛 numeric_facts 로, 시연 숫자 대조 경로를 살리려는 의도된 임시 부채(`contracts/fixtures/README.md` 참조). 주의: `pack_version` 을 v4 로 유지한 제자리 수정이라, v4 를 이미 적재한 DB 는 `load_pack --replace` 로 다시 넣어야 새 검색면이 실리고, `pack_version` 을 키로 쓰는 L3 판정 캐시·녹화 테이프도 무효화가 필요함
+- 2026-09-02 L2 골든셋 baseline 실측 기록. 예금 recall@3 8/10 · 대출 7/8, 관련·무관 top1 간격 0.02 안팎. 수치와 조건은 `docs/PIPELINE.md` 의 baseline 표 참조
 
 ## 되짚는 법
 
