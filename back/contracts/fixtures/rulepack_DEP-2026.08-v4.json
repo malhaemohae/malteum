@@ -160,6 +160,11 @@
      "element": "차감률 또는 산출식",
      "kind": "regex",
      "value": "차감률|산출식|경과일수|경과기간"
+    },
+    {
+     "kind": "numeric",
+     "value": "0.10",
+     "element": "적용 이율"
     }
    ],
    "embedding_id": "e5:DEP-INT-002",
