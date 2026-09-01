@@ -1,11 +1,11 @@
 import pytest
 
 from contracts.engine_contract import Evidence
-from engine.adapters.pack_source.fake import FakePackSource
 from engine.adapters.pack_source.file import FilePackSource
 from engine.pack.loader import PackRejected, load_pack
 from engine.pack.source import PackNotFound
 from tests.engine.conftest import FIX, PACK_VERSION
+from tests.engine.fakes import FakePackSource
 
 
 def test_fixture_pack_loads(pack_json):
