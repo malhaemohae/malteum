@@ -49,3 +49,6 @@ back/rulepack/artifacts/compiled_*.json
 back/rulepack/artifacts/rulepack_*.json
 back/rulepack/artifacts/published/
 back/rulepack/work/
+
+# STT 검증용 임시 음원. 재생성 가능하고 레포에 둘 이유가 없다 (scripts/stt_check.py)
+back/scripts/stt_audio/

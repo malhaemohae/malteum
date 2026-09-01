@@ -43,6 +43,15 @@ class Settings(BaseSettings):
     l3_budget_ms: float = (
         1500  # 계약 BUDGET_L3_MS. 실물 API 왕복이 넘기면 여기서 완화 (월요일 합의 대상)
     )
+    # STT. 키가 비면 오디오 층이 빠지고 ws 가 stt_unavailable 을 낸다(3층 폴백).
+    # 기획 11.3: Deepgram nova-3 ko · keyterm·numerals·mip_opt_out
+    stt_provider: str = "deepgram"
+    stt_api_key: str | None = None
+    stt_model: str = "nova-3"
+    stt_language: str = "ko"
+    # 13장이 라이선스·약관 조건으로 정한 값. 할인을 포기하고 학습 사용을 거부한다.
+    # 은행 도입 전제에서 옵션이 아니라 조건이라 기본값을 켜 둔다
+    stt_mip_opt_out: bool = True
 
 
 def get_settings() -> Settings:
