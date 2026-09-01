@@ -8,7 +8,7 @@ FastAPI. REST(`contracts/api.openapi.yaml`) · WebSocket(`contracts/ws_protocol.
 
 ## 규칙
 
-- 흐름의 진입점은 `services/session/pipeline.py`의 `submit_utterance` 하나다. 네 모드가 모두 여기로 합류하고, 이후 `judge → apply → map → persist → publish` 순서를 지킨다.
+- **판정을 만드는 흐름의 진입점은 `services/session/pipeline.py`의 `submit_utterance` 하나다.** live·replay·text 가 여기로 합류하고, 이후 `judge → apply → map → persist → publish` 순서를 지킨다. 두 갈래만 여기를 안 지나며 둘 다 판정을 새로 만들지 않는다 — `trace`는 저장된 이벤트를 `replay.py`가 다시 흘릴 뿐이고, `mark_met`·`mark_waived`·`acknowledge`는 엔진을 부르지 않는 사람 결정이다(`ws/handlers/human.py`).
 - 이벤트 봉투(`event_id`·`seq_in_session`·`occurred_at`·`session_id`·`pack_version`·`supersedes`)는 server가 찍는다. engine은 payload만 만든다. `supersedes`는 항목별 최신 event_id를 registry가 보관해 채운다.
 - server에는 assist 구현이 없다. answer·rephrase·briefing·documents·fold는 engine 소유이며 server는 호출·변환만 한다.
 - STT 조립(`services/stt/assembler.py`)은 프레임 조립·partial/final·문장 분리·PII 마스킹만. 의미 교정은 하지 않는다(교정은 engine judge/refine).
@@ -19,3 +19,22 @@ FastAPI. REST(`contracts/api.openapi.yaml`) · WebSocket(`contracts/ws_protocol.
 ## 목표 구조
 
 `DESIGN.md`(워크벤치) 2절. 파일이 생길 때 그 자리에 만든다. 빈 모듈을 미리 만들지 않는다.
+
+그 문서가 아직 레포에 없어, 지금 서 있는 모양을 적어 둔다. 어긋나면 `DESIGN.md` 가 정본이다.
+
+```
+bootstrap/    settings · startup(어댑터 조립)
+database/     entities · migrations · session
+routers/      health · sessions · packs · evidence
+mapping/      event_to_s2c · payload_to_event      ← ws↔이벤트 변환은 여기만
+services/
+  event/      envelope · store
+  session/    registry · pipeline · refiner · replay · projection · chains
+  stt/        base(Protocol) · deepgram · assembler · session
+  documents · report · pack_source · pack_store
+ws/           endpoint · connection · protocol · handlers/(human · assist)
+```
+
+**실물 어댑터를 늘리면 `tests/server/conftest.py` 의 `_no_live_adapters` 에도 더한다.**
+안 그러면 서버 테스트가 외부 API 를 부르고, CI 는 키가 없어 그냥 통과해 키를 가진
+사람 PC 에서만 깨진다. `tests/server/test_no_live_adapters.py` 가 그것을 잡는다.
