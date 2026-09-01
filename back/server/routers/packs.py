@@ -58,8 +58,10 @@ def publish_pack(doc: dict[str, Any], request: Request) -> dict[str, Any]:
     if rejected:
         raise HTTPException(
             422,
+            # code 는 계약 enum 밖으로 나가면 안 된다. 무엇이 걸렸는지는
+            # rejected_items 가 말한다
             detail={
-                "code": "evidence_mismatch",
+                "code": "validation_failed",
                 "message": "근거가 원문과 맞지 않습니다.",
                 "rejected_items": rejected,
             },
