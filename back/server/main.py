@@ -8,7 +8,7 @@ from fastapi import FastAPI
 
 from server.bootstrap.settings import Settings, get_settings
 from server.bootstrap.startup import build_runtime
-from server.routers import evidence, health, packs, sessions
+from server.routers import documents, evidence, health, packs, sessions
 from server.ws import endpoint as ws_endpoint
 
 
@@ -26,6 +26,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(sessions.router, prefix="/api")
     app.include_router(packs.router, prefix="/api")
     app.include_router(evidence.router, prefix="/api")
+    app.include_router(documents.router, prefix="/api")
     app.include_router(ws_endpoint.router)
     return app
 
