@@ -33,9 +33,15 @@ def test_hello_ready_ping_pong_end():
             for sentence in theirs.get("plain_language", []):
                 assert sentence in ours["plain_language"]
 
+        # replay 는 ready 직후 서버가 스스로 시작한다(계약). STT 가 없어 못 하는 사정을
+        # 먼저 보내오므로 그것을 지나 하트비트를 본다
+        autostart = sock.receive_json()
+        check_s2c(autostart)
+        assert autostart["t"] == "error" and autostart["code"] == "stt_unavailable"
+
         ping = sock.receive_json()
         check_s2c(ping)
-        assert ping == {"t": "ping", "seq": 1}
+        assert ping == {"t": "ping", "seq": 2}
         sock.send_json({"t": "pong"})
 
         sock.send_json({"t": "end"})
@@ -81,6 +87,21 @@ def test_audio_frame_answers_stt_unavailable_once_and_keeps_socket():
         while got["t"] == "ping":
             got = sock.receive_json()
         assert got["t"] == "ended"
+
+
+def test_replay_autostarts_and_says_why_it_cannot():
+    """계약: replay·trace 는 ready 직후 서버가 스스로 시작한다. 시작 메시지는 없다.
+
+    STT 가 없어 replay 를 못 흘리더라도 침묵하면 안 된다. 화면이 영원히 기다린다.
+    """
+    with _client() as client, client.websocket_connect("/ws") as sock:
+        sock.send_json({"t": "hello", "mode": "replay", "session_id": "FIXT-SESS-0A"})
+        assert sock.receive_json()["t"] == "ready"
+        got = sock.receive_json()
+        while got["t"] == "ping":
+            got = sock.receive_json()
+        check_s2c(got)
+        assert got["t"] == "error" and got["code"] == "stt_unavailable"
 
 
 def test_malformed_audio_frame_is_rejected_every_time():

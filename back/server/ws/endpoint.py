@@ -101,9 +101,9 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 )
                 conn.start_heartbeat()
                 refiner = Refiner(session, pipeline, conn.send, refine_failed)
-                if session.mode == "trace":
-                    # 계약: ready 직후 서버가 스스로 재생을 시작한다. 시작 메시지는 없다
-                    trace = asyncio.create_task(_start_trace(session, pipeline, conn))
+                if session.mode in ("trace", "replay"):
+                    # 계약: replay·trace 는 ready 직후 서버가 스스로 시작한다. 시작 메시지는 없다
+                    trace = asyncio.create_task(_autostart(session, pipeline, conn))
             elif msg.t == "pong":
                 pass
             elif session is None:
@@ -187,6 +187,29 @@ async def _on_audio(blob: bytes, conn: Connection, last_seq: int) -> int:
     if last_seq < 0:
         await conn.send(_error("stt_unavailable", "STT 어댑터가 아직 없습니다.", retryable=True))
     return audio.seq
+
+
+async def _autostart(session: Session, pipeline: Pipeline, conn: Connection) -> None:
+    """계약: replay·trace 는 hello 를 받은 서버가 ready 직후 스스로 시작한다.
+
+    두 모드가 같은 약속을 지고 다른 재료를 쓴다. trace 는 저장된 이벤트를, replay 는
+    사전 오디오를 실시간 속도로 STT 에 흘린다(11.4).
+    """
+    if session.mode == "trace":
+        await _start_trace(session, pipeline, conn)
+    else:
+        await _start_replay(conn)
+
+
+async def _start_replay(conn: Connection) -> None:
+    """사전 오디오 재생. STT 어댑터가 붙으면 여기서 흘린다(11.4 기본 시연 경로).
+
+    아직 어댑터가 없다. 계약이 자동 시작을 약속했으므로 아무 말 없이 멈춰 있으면 화면은
+    영원히 기다린다. 못 하는 이유를 말해 주면 프런트가 trace·text 로 갈아탄다(3층 폴백).
+    """
+    await conn.send(
+        _error("stt_unavailable", "STT 어댑터가 없어 replay 를 시작할 수 없습니다.", retryable=True)
+    )
 
 
 async def _start_trace(session: Session, pipeline: Pipeline, conn: Connection) -> None:
