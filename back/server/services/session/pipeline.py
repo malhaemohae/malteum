@@ -2,14 +2,13 @@
 
     submit_utterance   발화 경로. 저장 → judge → apply → map → publish
                        live·replay·text 가 여기로 합류한다
+    refine             L3 보정. judge 가 needs_refine 을 켠 발화만. refiner.py 의 큐가 부른다
     human_verdict      mark_met·mark_waived. 엔진을 거치지 않는 사람 결정
     acknowledge        경보 확인. 원본을 supersedes 로 잇는다
     start · end        세션 봉투와 sessions 투영
 
 trace 는 새 판정을 만들지 않아 `submit_utterance` 를 거치지 않는다. 저장된 이벤트를
 `replay.py` 가 s2c 로 바꿔 흘리고, 이 파일은 그 세션의 봉투만 남긴다.
-
-refine(비동기 L3)은 refiner.py 가 생기면 같은 순서로 큐를 통해 붙는다.
 """
 
 from __future__ import annotations
@@ -57,13 +56,32 @@ class Pipeline:
         return event
 
     async def submit_utterance(
-        self, session: Session, utterance: Utterance, publish: Publish
+        self,
+        session: Session,
+        utterance: Utterance,
+        publish: Publish,
+        schedule_refine: Callable[[Utterance], None] | None = None,
     ) -> JudgeResult:
         ev = self._persist(session, "utterance", payload_to_event.utterance_body(utterance))
         utterance = replace(utterance, utterance_id=ev["event_id"])
         await publish(event_to_s2c.from_event(ev, session.state))
 
         result = self.engine.judge(utterance, session.pack, session.state)
+        await self.apply_result(session, result, publish)
+        # 계약: needs_refine 이 켜졌을 때만 예약하고, 꺼져 있으면 부르지 않는다.
+        # 예약을 여기서 하는 이유는 utterance_id 가 채워진 발화가 이 안에만 있어서다.
+        # 보정이 낼 판정의 근거가 어느 발화인지는 그 id 로만 짚힌다
+        if result.needs_refine and schedule_refine is not None:
+            schedule_refine(utterance)
+        return result
+
+    async def refine(self, session: Session, utterance: Utterance, publish: Publish) -> JudgeResult:
+        """L3 보정. 잠정 판정을 다시 판정해 `supersedes` 로 잇는다(11.1).
+
+        지금 상태를 넘긴다. 보정이 도는 사이에 은행원이 `mark_met` 을 찍었을 수 있고,
+        엔진은 그것을 보고 판단해야 한다. 계약상 사람 결정은 L3 가 뒤집지 않는다.
+        """
+        result = await self.engine.refine(utterance, session.pack, session.state)
         await self.apply_result(session, result, publish)
         return result
 

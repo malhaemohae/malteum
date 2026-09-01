@@ -13,6 +13,7 @@ from engine.pack.source import PackNotFound
 from server.mapping.event_to_s2c import ready
 from server.services.event.envelope import ID_MAX, ID_MIN, valid_id
 from server.services.session.pipeline import Pipeline
+from server.services.session.refiner import Refiner
 from server.services.session.registry import Session
 from server.services.session.replay import replay
 from server.ws.connection import Connection
@@ -40,7 +41,13 @@ async def ws_endpoint(socket: WebSocket) -> None:
     conn = Connection(socket, settings.ws_ping_interval_s)
     session = None
     trace: asyncio.Task | None = None
+    refiner: Refiner | None = None
     started_at = time.monotonic()
+
+    async def refine_failed(e: Exception) -> None:
+        """보정은 화면 뒤에서 돈다. 실패해도 상담은 이어져야 하므로 알리기만 한다."""
+        await conn.send(_error("internal", f"L3 보정 실패: {e}", retryable=True))
+
     try:
         while True:
             raw = await socket.receive_text()
@@ -82,6 +89,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
                     ready(session.session_id, session.pack, session.state, session.mode)
                 )
                 conn.start_heartbeat()
+                refiner = Refiner(session, pipeline, conn.send, refine_failed)
                 if session.mode == "trace":
                     # 계약: ready 직후 서버가 스스로 재생을 시작한다. 시작 메시지는 없다
                     trace = asyncio.create_task(_start_trace(session, pipeline, conn))
@@ -99,7 +107,12 @@ async def ws_endpoint(socket: WebSocket) -> None:
                     t_ms=int((time.monotonic() - started_at) * 1000),
                 )
                 try:
-                    await pipeline.submit_utterance(session, utterance, conn.send)
+                    await pipeline.submit_utterance(
+                        session,
+                        utterance,
+                        conn.send,
+                        refiner.schedule if refiner else None,
+                    )
                 except NotImplementedError as e:  # 엔진 뼈대 단계. tiers/ 가 생기면 사라진다
                     await conn.send(_error("internal", str(e), retryable=True))
             elif msg.t == "end":
@@ -141,6 +154,8 @@ async def ws_endpoint(socket: WebSocket) -> None:
     finally:
         if trace is not None:
             trace.cancel()
+        if refiner is not None:
+            await refiner.aclose()
         await conn.close()
 
 
