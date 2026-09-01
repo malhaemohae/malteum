@@ -66,6 +66,9 @@ class Pipeline:
         utterance = replace(utterance, utterance_id=ev["event_id"])
         await publish(event_to_s2c.from_event(ev, session.state))
 
+        if utterance.speaker == "teller":
+            # rephrase(⑥-B)가 "직전 은행원 발화" 를 다시 말한다. 고객 발화는 대상이 아니다
+            session.last_teller_utterance = utterance
         result = self.engine.judge(utterance, session.pack, session.state)
         await self.apply_result(session, result, publish)
         # 계약: needs_refine 이 켜졌을 때만 예약하고, 꺼져 있으면 부르지 않는다.

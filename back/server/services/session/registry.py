@@ -11,7 +11,7 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from typing import Literal
 
-from contracts.engine_contract import Engine, Mode, RulePack, SessionState
+from contracts.engine_contract import Engine, Mode, RulePack, SessionState, Utterance
 from server.services.event.envelope import new_id
 from server.services.event.store import EventStore
 from server.services.session import chains
@@ -51,6 +51,9 @@ class Session:
     # t_ms 의 원점. 계약이 "세션 시작 기준" 이라 연결이 아니라 세션이 들고 있어야 한다.
     # 되살린 세션은 session_started.occurred_at 을 도로 가져온다
     started_at: datetime = field(default_factory=_now)
+    # rephrase(⑥-B)가 다시 말할 대상. `SessionState.recent_utterances` 는 fold 만 채우고
+    # 실시간 경로는 apply(state, result) 라 발화를 못 받는다. 받는 쪽이 M1 이라 여기 둔다
+    last_teller_utterance: Utterance | None = None
 
     def take_seq(self) -> int:
         seq, self.next_seq = self.next_seq, self.next_seq + 1

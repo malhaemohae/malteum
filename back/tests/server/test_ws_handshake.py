@@ -104,6 +104,37 @@ def test_replay_autostarts_and_says_why_it_cannot():
         assert got["t"] == "error" and got["code"] == "stt_unavailable"
 
 
+def test_ask_and_assist_request_answer_instead_of_hanging():
+    """계약 c2s 10종이 모두 답을 받는다. 엔진의 assist 가 아직 없어도 침묵하면 안 된다.
+
+    은행원이 버튼을 눌렀는데 아무 일도 안 일어나면 고장인지 근거가 없는 것인지
+    구분할 수 없다.
+    """
+    with _client() as client, client.websocket_connect("/ws") as sock:
+        sock.send_json({"t": "hello", "mode": "text", "session_id": "SMOKE-ASSIST-01"})
+        assert sock.receive_json()["t"] == "ready"
+
+        for msg in (
+            {"t": "ask", "question": "중도해지하면 이자가 어떻게 되나요?"},
+            {"t": "assist_request", "assist_type": "briefing"},
+            {"t": "assist_request", "assist_type": "documents"},
+        ):
+            sock.send_json(msg)
+            got = sock.receive_json()
+            while got["t"] == "ping":
+                got = sock.receive_json()
+            check_s2c(got)
+            # 지금 엔진은 NotImplementedError 를 던진다. 붙으면 assist 가 온다
+            assert got["t"] in ("assist", "error")
+
+        # rephrase 는 다시 말할 직전 발화가 있어야 한다
+        sock.send_json({"t": "assist_request", "assist_type": "rephrase"})
+        got = sock.receive_json()
+        while got["t"] == "ping":
+            got = sock.receive_json()
+        assert got["t"] == "error" and "직전 발화" in got["message"]
+
+
 def test_malformed_audio_frame_is_rejected_every_time():
     """길이가 어긋난 프레임은 프런트가 잘못 만들고 있다는 뜻이라 매번 알린다.
     조용히 버리면 마이크가 안 되는 이유를 아무도 못 찾는다."""

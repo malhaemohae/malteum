@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable
 from contextlib import suppress
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -20,7 +21,7 @@ from server.services.session.refiner import Refiner
 from server.services.session.registry import Session
 from server.services.session.replay import replay
 from server.ws.connection import Connection
-from server.ws.handlers import human
+from server.ws.handlers import assist, human
 from server.ws.protocol import InvalidMessage, parse_audio_frame, parse_c2s
 
 router = APIRouter()
@@ -155,8 +156,12 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 problem = await human.acknowledge(session, pipeline, msg.alert_ref, conn.send)
                 if problem:
                     await conn.send(_error("invalid_message", problem))
-            else:  # ask·assist_request — engine 의 assist 가 붙으면
-                await conn.send(_error("internal", f"{msg.t} 는 아직 없습니다."))
+            elif msg.t == "ask":
+                await _assist(assist.ask(session, pipeline, msg.question, conn.send), conn)
+            elif msg.t == "assist_request":
+                await _assist(
+                    assist.assist_request(session, pipeline, msg.assist_type, conn.send), conn
+                )
     except WebSocketDisconnect:
         pass
     except Exception as e:  # noqa: BLE001  버그가 소켓을 조용히 끊지 않게 한다
@@ -168,6 +173,20 @@ async def ws_endpoint(socket: WebSocket) -> None:
         if refiner is not None:
             await refiner.aclose()
         await conn.close()
+
+
+async def _assist(call: Awaitable[str | None], conn: Connection) -> None:
+    """assist 호출 하나. 엔진이 아직 없거나 근거를 못 찾으면 사유를 알린다.
+
+    침묵하지 않는 것이 요점이다. 은행원이 버튼을 눌렀는데 아무 일도 안 일어나면 고장인지
+    근거가 없는 것인지 구분할 수 없다.
+    """
+    try:
+        problem = await call
+    except NotImplementedError as e:  # engine 의 assist 가 붙기 전
+        problem = str(e)
+    if problem:
+        await conn.send(_error("internal", problem))
 
 
 async def _on_audio(blob: bytes, conn: Connection, last_seq: int) -> int:
