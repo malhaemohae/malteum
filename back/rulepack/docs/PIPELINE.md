@@ -138,4 +138,16 @@ E5 계열은 입력에 `query:` 또는 `passage:` 를 붙여 학습했다. 팩 �
 
 무엇을 인코딩하는가는 `embedding_text` 가 정한다. 항목 이름 · 요구 요건 · 쉬운 말을 합치고 근거 원문은 넣지 않는다. 법령 문장은 표현이 상담 발화와 멀어 검색을 흐린다.
 
+### L2 골든셋 평가
+
+검색 품질은 `config/golden_utterances.json` 에 박힌 (발화, 기대 항목) 쌍으로 잰다. 2026-09-01 엔진 팀 실측에서 e5-small 단독은 짧은 구어 발화와 항목 설명의 유사도가 0.77~0.87 좁은 띠에 몰려 무관 발화가 분리되지 않았는데, 그 실험이 일회성으로 끝나지 않게 하는 장치다. 모델·검색 방식을 바꾸면 이걸 다시 돌려 전후를 비교한다.
+
+```bash
+cd back
+uv run python scripts/eval_l2_goldenset.py                   # artifacts 의 발행 팩 전부, e5
+uv run python scripts/eval_l2_goldenset.py --model fake      # 모델 없이 경로 확인(CI 스모크)
+```
+
+지표는 top-1 정답률 · recall@k(기대 항목이 상위 k 후보에 드는 비율) · 관련/무관 점수 분리다. L2 는 프리필터라 최종 판정권이 L3 에 있으므로 recall@k 와 분리력이 판단 기준이고 top-1 은 참고치다. 골든셋의 정합(없는 코드 기대, 금지 항목 누락, 검색면이 `scripts/load_pack.py` 의 `rows` 와 어긋남)은 `tests/rulepack/test_golden_utterances.py` 가 막는다.
+
 `pack_embeddings.embedding` 에는 차원을 박지 않았다. 계약이 "차원을 팩에 묶는다. 컬럼에 차원을 박으면 교체 때 마이그레이션이 필요해진다"고 정했기 때문이다. 대신 pgvector 인덱스를 못 만들어 지금은 전체 스캔이다. M1 이 `db/SCHEMA.md` 에서 규모를 실측했다. 팩당 약 25행이라 인덱스가 의미를 갖는 수천 행대와는 거리가 멀다. e5-small(384)에서 bge-m3(1024)로 갈아타는 기간에는 두 차원이 함께 존재한다.
