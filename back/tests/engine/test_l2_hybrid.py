@@ -21,6 +21,23 @@ def compiled(pack_json):
     return pack, compile_pack(pack_json, pack)
 
 
+def test_coverage_ignores_ending_only_overlap():
+    """어미 조각("있어요" 류)만 겹친 무관 발화는 0. L2 골든셋 실측(2026-09-02)의 회귀.
+
+    금지 예시가 존댓말 문장이 되면 어미 trigram 이 사전에 들어오는데, 문서가 몇 개
+    없어 idf 로 안 걸러진다. 짧은 무관 발화는 그 조각만으로 비율이 높게 나온다."""
+    index = lexical.build(
+        {
+            "BAN": lexical.item_text(
+                "단정 금지",
+                ("만기 후에도 약정 금리 그대로 받으실 수 있어요",),
+            ),
+            "ETC": lexical.item_text("기타 항목", ("중도해지이율 적용",)),
+        }
+    )
+    assert all(v == 0.0 for v in lexical.coverage("주차장 있어요?", index).values())
+
+
 def test_coverage_separates_relevant_from_unrelated(compiled):
     _, cp = compiled
     hit = lexical.coverage("네? 중간에 깨면 그것밖에 못 받아요?", cp.tri)
