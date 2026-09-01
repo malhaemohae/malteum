@@ -13,7 +13,7 @@ FastAPI. REST(`contracts/api.openapi.yaml`) · WebSocket(`contracts/ws_protocol.
 - server에는 assist 구현이 없다. answer·rephrase·briefing·documents·fold는 engine 소유이며 server는 호출·변환만 한다.
 - STT 조립(`services/stt/assembler.py`)은 프레임 조립·partial/final·문장 분리·PII 마스킹만. 의미 교정은 하지 않는다(교정은 engine judge/refine).
 - ws 메시지를 그대로 저장하지 않고, 이벤트를 그대로 전송하지 않는다. 변환은 `mapping/`.
-- 회원·인증은 MVP 밖. `admin_token`은 무시한다.
+- 회원·인증은 MVP 밖. 다만 **계약이 쓰기 경로에만 토큰을 요구한다**(`securitySchemes.bearerAuth`: 문서 업로드·후보 승인·팩 발행). `settings.admin_token` 하나로 관리하고, 설정이 없으면 그 경로들은 401 이다 — 열어 두면 배포에서 누구나 팩을 발행하고 팩은 불변이라 되돌릴 수 없다. 조회·세션 시작은 열려 있어야 한다(심사위원이 로그인 없이 시연).
 - `generated/`는 수동 편집 금지.
 
 ## 목표 구조

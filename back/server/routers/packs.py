@@ -12,8 +12,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from server.auth import require_token
 from server.generated.api import PackSummary
 from server.services import publish
 from server.services.pack_store import PackAlreadyPublished
@@ -39,7 +40,7 @@ def get_pack(pack_version: str, request: Request) -> dict[str, Any]:
     return doc
 
 
-@router.post("/packs/publish", status_code=201)
+@router.post("/packs/publish", status_code=201, dependencies=[Depends(require_token)])
 def publish_pack(doc: dict[str, Any], request: Request) -> dict[str, Any]:
     """팩 발행. 계약: "M3 가 호출한다. 승인 완료 항목만 담아 새 버전으로 굳힌다."
 

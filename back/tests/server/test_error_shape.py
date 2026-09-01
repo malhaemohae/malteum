@@ -24,9 +24,12 @@ def codes() -> set[str]:
     return set(spec["components"]["schemas"]["Error"]["properties"]["code"]["enum"])
 
 
+TOKEN = "test-admin-token"
+
+
 @pytest.fixture(scope="module")
 def client():
-    with TestClient(create_app(Settings(event_store="memory"))) as c:
+    with TestClient(create_app(Settings(event_store="memory", admin_token=TOKEN))) as c:
         yield c
 
 
@@ -63,7 +66,7 @@ def test_conflict_and_detail_survive(client, codes):
     """422 의 rejected_items 처럼 라우터가 실은 detail 이 살아남아야 한다."""
     pack = json.loads((CONTRACTS / "fixtures" / "rulepack_DEP-2026.08-v4.json").read_text("utf-8"))
     pack["items"][0]["evidence"]["span"] = "원문에 없는 문장입니다"
-    got = client.post("/api/packs/publish", json=pack)
+    got = client.post("/api/packs/publish", json=pack, headers={"Authorization": f"Bearer {TOKEN}"})
     assert got.status_code == 422
     body = got.json()
     assert body["code"] in codes

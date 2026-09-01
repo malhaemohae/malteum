@@ -45,6 +45,7 @@ services:
       APP_STT_API_KEY: ${APP_STT_API_KEY:-}
       APP_STT_MODEL: ${APP_STT_MODEL:-nova-3}
       APP_STT_LANGUAGE: ${APP_STT_LANGUAGE:-ko}
+      APP_ADMIN_TOKEN: ${APP_ADMIN_TOKEN:-}
       APP_UPLOAD_DIR: /uploads
       HF_HOME: /hf
     ports:

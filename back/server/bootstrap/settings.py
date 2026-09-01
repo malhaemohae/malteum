@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     upload_dir: Path = BACK_DIR.parent / "uploads"
     default_pack_version: str = "DEP-2026.08-v4"
     ws_ping_interval_s: float = 30.0
+    # 계약 securitySchemes.bearerAuth. 쓰기 경로(팩 발행·문서 업로드·후보 승인)에만 건다.
+    # 비어 있으면 그 경로들이 401 이다 — 열어 두면 배포에서 누구나 팩을 발행한다
+    admin_token: str | None = None
     # 실물 어댑터. LLM_MODEL 이 비면 refine(L3) 생략, EMBEDDING_MODEL 이 비면 L2 생략
     llm_provider: str = "openrouter"  # LiteLLM provider 이름: openrouter · anthropic · openai …
     llm_api_key: str | None = None
