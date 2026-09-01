@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -47,6 +47,11 @@ class SttStream(Protocol):
 
 
 class SttAdapter(Protocol):
-    async def open(self, on_transcript: OnTranscript) -> SttStream:
-        """스트림을 연다. 여는 데 실패하면 예외를 올린다 — ws 가 stt_unavailable 로 바꾼다."""
+    async def open(self, on_transcript: OnTranscript, keyterms: Sequence[str] = ()) -> SttStream:
+        """스트림을 연다. 여는 데 실패하면 예외를 올린다 — ws 가 stt_unavailable 로 바꾼다.
+
+        `keyterms` 는 팩의 `jargon_terms`. 세션마다 팩이 다르므로 어댑터가 아니라
+        여는 시점에 받는다. 없으면 `만기후이자율` 이 `만기 후 이자율` 로 갈라져
+        L1 정확 일치가 깨진다(scripts/stt_check.py 실측).
+        """
         ...

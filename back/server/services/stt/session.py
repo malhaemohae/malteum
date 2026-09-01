@@ -12,7 +12,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 
 from contracts.engine_contract import Utterance
 from server.services.session.registry import Session
@@ -30,8 +30,8 @@ class SttSession:
         self.submit = submit
         self.stream: SttStream | None = None
 
-    async def start(self, adapter: SttAdapter) -> None:
-        self.stream = await adapter.open(self._on_transcript)
+    async def start(self, adapter: SttAdapter, keyterms: Sequence[str] = ()) -> None:
+        self.stream = await adapter.open(self._on_transcript, keyterms)
 
     async def feed(self, pcm: bytes) -> None:
         if self.stream is not None:

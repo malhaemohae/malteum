@@ -105,7 +105,9 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 conn.start_heartbeat()
                 refiner = Refiner(session, pipeline, conn.send, refine_failed)
                 if session.mode == "live" and runtime.stt is not None:
-                    stt = await _start_stt(session, pipeline, conn, runtime.stt, refiner)
+                    stt = await _start_stt(
+                        session, pipeline, conn, runtime.stt, refiner, runtime.pack_source
+                    )
                 if session.mode in ("trace", "replay"):
                     # 계약: replay·trace 는 ready 직후 서버가 스스로 시작한다. 시작 메시지는 없다
                     trace = asyncio.create_task(_autostart(session, pipeline, conn))
@@ -201,8 +203,13 @@ async def _start_stt(
     conn: Connection,
     adapter,
     refiner: Refiner,
+    pack_source,
 ) -> SttSession | None:
     """live 모드에서 상담 하나에 STT 스트림 하나를 연다.
+
+    팩의 `jargon_terms` 를 keyterm 으로 넣는다. 없으면 `만기후이자율` 이
+    `만기 후 이자율` 로 갈라져 L1 의 정확 일치가 깨진다(scripts/stt_check.py 실측).
+    `RulePack` dataclass 에는 그 필드가 없어 팩 원문에서 꺼낸다.
 
     여는 데 실패해도 상담은 이어져야 한다 — 계약의 `stt_unavailable` 이 프런트에
     text 모드 전환을 제안하게 한다(3층 폴백).
@@ -211,9 +218,13 @@ async def _start_stt(
     async def submit(utterance) -> None:
         await pipeline.submit_utterance(session, utterance, conn.send, refiner.schedule)
 
+    keyterms: list[str] = []
+    with suppress(Exception):  # 용어가 없어도 전사는 돈다. 적중률만 떨어진다
+        keyterms = list(pack_source.read(session.pack.pack_version).get("jargon_terms") or [])
+
     stt = SttSession(session, conn.send, submit)
     try:
-        await stt.start(adapter)
+        await stt.start(adapter, keyterms)
     except Exception as e:  # noqa: BLE001  공급자 장애가 상담을 끊지 않게 한다
         await conn.send(_error("stt_unavailable", f"STT 를 열지 못했습니다: {e}", retryable=True))
         return None

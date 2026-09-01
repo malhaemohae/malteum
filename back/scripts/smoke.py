@@ -15,6 +15,7 @@ import json
 import sys
 import urllib.request
 import uuid
+from pathlib import Path
 
 # 한국어 Windows 는 stdout 이 cp949 라 한글·기호가 깨진다. 스크립트가 스스로 UTF-8 을 쓴다
 sys.stdout.reconfigure(encoding="utf-8")
@@ -22,6 +23,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 BASE = "http://localhost:8000/api"
 WS = "ws://localhost:8000/ws"
 SID = "FIXT-SESS-0A"
+AUDIO = Path(__file__).resolve().parent / "stt_audio"
 ok = fail = 0
 
 
@@ -171,11 +173,73 @@ async def ws_trace():
         )
 
 
+async def ws_live():
+    """기획 10.2 심화 경로의 「마이크 직접 발화」. 오디오 → STT → 판정 전 구간.
+
+    서버에 STT 가 없으면 건너뛴다 — 키 없이 도는 기본 경로를 막지 않기 위해서다.
+    음원은 `scripts/stt_check.py --make-audio` 가 만든 것을 그대로 쓴다.
+    """
+    import wave
+
+    import websockets
+
+    print("\n== WebSocket · live (마이크 경로) ==")
+    _, h = get("/health")
+    if h["checks"]["stt"] != "configured":
+        print("[ 건너뜀 ] 서버에 STT 가 설정되지 않음 (APP_STT_API_KEY)")
+        return
+    wav = AUDIO / "deposit_3.wav"
+    if not wav.exists():
+        print("[ 건너뜀 ] 음원 없음 — scripts/stt_check.py --make-audio 로 만드세요")
+        return
+
+    with wave.open(str(wav), "rb") as w:
+        pcm, rate = w.readframes(w.getnframes()), w.getframerate()
+    chunk = rate * 2 * 100 // 1000  # 계약 audioFrame 100ms
+
+    async with websockets.connect(WS, ping_timeout=120) as sock:
+        await sock.send(json.dumps({"t": "hello", "mode": "live"}))
+        ready = json.loads(await sock.recv())
+        check("hello → ready (live)", ready["t"] == "ready")
+
+        got: list[dict] = []
+
+        async def send():
+            for i, off in enumerate(range(0, len(pcm), chunk)):
+                await sock.send(i.to_bytes(4, "big") + pcm[off : off + chunk])
+                await asyncio.sleep(0.1)  # 실시간 속도
+
+        async def recv():
+            end = asyncio.get_running_loop().time() + len(pcm) / (rate * 2) + 8
+            while asyncio.get_running_loop().time() < end:
+                try:
+                    m = json.loads(await asyncio.wait_for(sock.recv(), timeout=5))
+                except TimeoutError:
+                    continue
+                if m["t"] != "ping":
+                    got.append(m)
+
+        await asyncio.gather(send(), recv())
+
+    partials = [m for m in got if m["t"] == "partial"]
+    utterances = [m for m in got if m["t"] == "utterance"]
+    check("partial (중간 전사)", len(partials) > 0, f"{len(partials)}건")
+    check(
+        "utterance (확정 발화)",
+        len(utterances) > 0,
+        " / ".join(m["text"][:40] for m in utterances) or "없음",
+    )
+    verdicts = [m for m in got if m["t"] == "verdict"]
+    if verdicts:
+        check("판정까지 도달", True, " · ".join(f"{m['item_code']} {m['state']}" for m in verdicts))
+
+
 def main():
     try:
         rest()
         asyncio.run(ws_human())
         asyncio.run(ws_trace())
+        asyncio.run(ws_live())
     except Exception as e:
         print(f"\n[ 중단 ] {type(e).__name__}: {e}")
         return 1

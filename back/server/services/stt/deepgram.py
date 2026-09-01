@@ -17,6 +17,7 @@ import asyncio
 import json
 from collections.abc import Sequence
 from contextlib import suppress
+from urllib.parse import quote
 
 from server.services.stt.base import OnTranscript, Transcript
 
@@ -32,15 +33,13 @@ class DeepgramAdapter:
         language: str = "ko",
         *,
         mip_opt_out: bool = True,
-        keyterms: Sequence[str] = (),
     ) -> None:
         self.api_key = api_key
         self.model = model
         self.language = language
         self.mip_opt_out = mip_opt_out
-        self.keyterms = tuple(keyterms)
 
-    def _url(self) -> str:
+    def _url(self, keyterms: Sequence[str]) -> str:
         q = [
             f"model={self.model}",
             f"language={self.language}",
@@ -53,14 +52,16 @@ class DeepgramAdapter:
         ]
         if self.mip_opt_out:
             q.append("mip_opt_out=true")
-        q += [f"keyterm={t}" for t in self.keyterms]
+        q += [f"keyterm={quote(t)}" for t in keyterms]
         return f"{ENDPOINT}?" + "&".join(q)
 
-    async def open(self, on_transcript: OnTranscript) -> DeepgramStream:
+    async def open(
+        self, on_transcript: OnTranscript, keyterms: Sequence[str] = ()
+    ) -> DeepgramStream:
         import websockets
 
         ws = await websockets.connect(
-            self._url(),
+            self._url(keyterms),
             additional_headers={"Authorization": f"Token {self.api_key}"},
             open_timeout=15,
         )
