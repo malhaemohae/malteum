@@ -67,6 +67,10 @@ def normalize(
                     best = (stem, 1.0, span, end - strip) if span > 1 else None
                     settled = True
                     break
+                if span > 1:
+                    # 여러 어절을 붙이는 것은 정확 일치일 때만. 퍼지 결합은 앞 어절을
+                    # 삼킨다 ("아까 중도해지 이자는" → "중도해지이율자는" 류의 과교정)
+                    continue
                 if any(t in stem for t in index.terms):
                     continue  # 맞는 용어를 이미 품고 있는 어절은 고치지 않는다
                 cands = index.candidates(stem, top_k=2)

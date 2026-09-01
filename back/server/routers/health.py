@@ -13,10 +13,13 @@ def health(request: Request) -> dict:
     감시가 무력해지므로 db 는 실제로 찔러 본다.
     """
     runtime = request.app.state.runtime
+    settings = request.app.state.settings
+    # 설정 여부만 본다. 외부 API 를 찔러 보면 감시가 10초마다 유료 호출을 낸다.
+    # db 만 실제로 찌르는 이유는 그것이 이 서버 안에 있고 정본을 들고 있어서다
     checks = {
         "db": "ok" if runtime.event_store.healthy() else "fail",
-        "stt": "unconfigured",
-        "llm": "unconfigured",
+        "stt": "configured" if runtime.stt is not None else "unconfigured",
+        "llm": "configured" if settings.llm_model else "unconfigured",
     }
     return {
         "status": "ok" if "fail" not in checks.values() else "degraded",

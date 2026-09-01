@@ -20,8 +20,10 @@ from contracts.engine_contract import (
 from engine.graphs.assist.state import AssistState
 from engine.tiers.l0_normalize import normalize
 from engine.tiers.l1 import matcher
+from engine.tiers.l2.searcher import fused_scores
 
-THRESHOLD_ITEM = 0.5
+# 실측: 정답 항목 0.58~0.65 vs 무관 발화("점심시간에도 하나요?") 최고 0.50
+THRESHOLD_ITEM = 0.55
 THRESHOLD_CHUNK = 0.5
 TOP_K = 3
 
@@ -63,19 +65,20 @@ def make_nodes(deps: Deps):
             )
             items = [h.item for h in ranked]
             if not items and deps.embedder is not None and deps.index is not None:
-                items = _items_by_similarity(text, pack, deps)
+                items = _items_by_similarity(text, pack, compiled, deps)
             return {"items": items}
         question = s["question"]
         items: list[PackItem] = []
         chunks: list[Chunk] = []
         if deps.embedder is not None:
-            vector = deps.embedder.encode([question])[0]
             if deps.index is not None:
-                for code, sim in deps.index.search(pack.pack_version, vector, TOP_K):
+                ranked = fused_scores(question, pack, compiled, deps.embedder, deps.index)
+                for code, sim in ranked[:TOP_K]:
                     it = pack.item(code)
                     if it is not None and sim >= THRESHOLD_ITEM:
                         items.append(it)
             if not items and deps.chunks is not None:
+                vector = deps.embedder.encode([question])[0]
                 chunks = [
                     c for c, sim in deps.chunks.search(vector, TOP_K) if sim >= THRESHOLD_CHUNK
                 ]
@@ -131,10 +134,9 @@ def make_nodes(deps: Deps):
     return route, retrieve, generate, guard
 
 
-def _items_by_similarity(text: str, pack, deps: Deps) -> list[PackItem]:
-    vector = deps.embedder.encode([text])[0]
+def _items_by_similarity(text: str, pack, compiled, deps: Deps) -> list[PackItem]:
     out = []
-    for code, sim in deps.index.search(pack.pack_version, vector, TOP_K):
+    for code, sim in fused_scores(text, pack, compiled, deps.embedder, deps.index)[:TOP_K]:
         it = pack.item(code)
         if it is not None and sim >= THRESHOLD_ITEM:
             out.append(it)
