@@ -25,6 +25,7 @@ from server.services.session.projection import (
     SessionProjection,
 )
 from server.services.session.registry import SessionRegistry
+from server.services.stt.base import SttAdapter
 
 
 @dataclass(frozen=True)
@@ -36,6 +37,8 @@ class Runtime:
     pack_store: PackStore
     # 팩 원문(rulepack.schema.json 그대로). RulePack dataclass 에는 sources 가 없다
     pack_source: PackSource
+    # STT. 키가 없으면 None 이고 ws 가 stt_unavailable 을 낸다 (3층 폴백)
+    stt: SttAdapter | None = None
 
 
 def build_runtime(settings: Settings) -> Runtime:
@@ -49,7 +52,33 @@ def build_runtime(settings: Settings) -> Runtime:
         store, projection, packs = MemoryEventStore(), NullSessionProjection(), NullPackStore()
         source = FilePackSource(settings.pack_dir)
     engine = build_engine(source, l3_budget_ms=settings.l3_budget_ms, **_adapters(settings))
-    return Runtime(engine, SessionRegistry(engine, store), store, projection, packs, source)
+    return Runtime(
+        engine,
+        SessionRegistry(engine, store),
+        store,
+        projection,
+        packs,
+        source,
+        _stt(settings),
+    )
+
+
+def _stt(settings: Settings) -> SttAdapter | None:
+    """키가 없으면 STT 층을 만들지 않는다. LLM·임베딩과 같은 규칙이다.
+
+    keyterm 은 팩의 `jargon_terms` 를 그대로 넣는다 — 끄면 `만기후이자율` 이
+    `만기 후 이자율` 로 갈라져 L1 정확 일치가 깨진다(scripts/stt_check.py 실측).
+    """
+    if not settings.stt_api_key:
+        return None
+    from server.services.stt.deepgram import DeepgramAdapter
+
+    return DeepgramAdapter(
+        settings.stt_api_key,
+        model=settings.stt_model,
+        language=settings.stt_language,
+        mip_opt_out=settings.stt_mip_opt_out,
+    )
 
 
 def _adapters(settings: Settings) -> dict:

@@ -77,6 +77,8 @@ def test_audio_frame_answers_stt_unavailable_once_and_keeps_socket():
 
         sock.send_bytes(frame)
         err = sock.receive_json()
+        while err["t"] == "ping":  # 테스트는 하트비트를 0.05초로 켜 둔다
+            err = sock.receive_json()
         check_s2c(err)
         # 계약: 이 코드를 받으면 프런트가 text 모드 전환을 제안한다 (3층 폴백)
         assert err["code"] == "stt_unavailable" and err["retryable"] is True
@@ -144,5 +146,7 @@ def test_malformed_audio_frame_is_rejected_every_time():
         for _ in range(2):
             sock.send_bytes(b"\x00" * 10)
             err = sock.receive_json()
+            while err["t"] == "ping":  # 테스트는 하트비트를 0.05초로 켜 둔다
+                err = sock.receive_json()
             assert err["t"] == "error" and err["code"] == "invalid_message"
             assert str(FRAME_BYTES) in err["message"]

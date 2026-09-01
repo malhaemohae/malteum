@@ -20,6 +20,7 @@ from server.services.session.pipeline import Pipeline
 from server.services.session.refiner import Refiner
 from server.services.session.registry import Session
 from server.services.session.replay import replay
+from server.services.stt.session import SttSession
 from server.ws.connection import Connection
 from server.ws.handlers import assist, human
 from server.ws.protocol import InvalidMessage, parse_audio_frame, parse_c2s
@@ -46,6 +47,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
     session = None
     trace: asyncio.Task | None = None
     refiner: Refiner | None = None
+    stt: SttSession | None = None
     # 마지막으로 받은 오디오 시퀀스. -1 은 아직 한 조각도 안 받았다는 뜻
     audio_seq = -1
 
@@ -61,7 +63,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
             # 오디오는 JSON 이 아니라 바이너리로 온다(계약 $defs/audioFrame). 텍스트만
             # 받으면 프런트가 마이크를 켜는 순간 소켓이 죽는다
             if (blob := frame.get("bytes")) is not None:
-                audio_seq = await _on_audio(blob, conn, audio_seq)
+                audio_seq = await _on_audio(blob, conn, audio_seq, stt)
                 continue
             try:
                 msg = parse_c2s(frame["text"])
@@ -102,6 +104,8 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 )
                 conn.start_heartbeat()
                 refiner = Refiner(session, pipeline, conn.send, refine_failed)
+                if session.mode == "live" and runtime.stt is not None:
+                    stt = await _start_stt(session, pipeline, conn, runtime.stt, refiner)
                 if session.mode in ("trace", "replay"):
                     # 계약: replay·trace 는 ready 직후 서버가 스스로 시작한다. 시작 메시지는 없다
                     trace = asyncio.create_task(_autostart(session, pipeline, conn))
@@ -170,6 +174,8 @@ async def ws_endpoint(socket: WebSocket) -> None:
     finally:
         if trace is not None:
             trace.cancel()
+        if stt is not None:
+            await stt.aclose()
         if refiner is not None:
             await refiner.aclose()
         await conn.close()
@@ -189,12 +195,37 @@ async def _assist(call: Awaitable[str | None], conn: Connection) -> None:
         await conn.send(_error("internal", problem))
 
 
-async def _on_audio(blob: bytes, conn: Connection, last_seq: int) -> int:
-    """오디오 프레임 하나. STT 어댑터가 붙기 전까지는 껍질만 벗기고 버린다.
+async def _start_stt(
+    session: Session,
+    pipeline: Pipeline,
+    conn: Connection,
+    adapter,
+    refiner: Refiner,
+) -> SttSession | None:
+    """live 모드에서 상담 하나에 STT 스트림 하나를 연다.
 
-    100ms 마다 오는 것이라 매 조각에 답하면 화면이 오류로 뒤덮인다. 연결당 한 번만
-    `stt_unavailable` 을 보낸다. 계약이 그 코드를 둔 이유가 이것이다 — 프런트가 받으면
-    text 모드 전환을 제안한다(3층 폴백, 기획 7.1 ⑪).
+    여는 데 실패해도 상담은 이어져야 한다 — 계약의 `stt_unavailable` 이 프런트에
+    text 모드 전환을 제안하게 한다(3층 폴백).
+    """
+
+    async def submit(utterance) -> None:
+        await pipeline.submit_utterance(session, utterance, conn.send, refiner.schedule)
+
+    stt = SttSession(session, conn.send, submit)
+    try:
+        await stt.start(adapter)
+    except Exception as e:  # noqa: BLE001  공급자 장애가 상담을 끊지 않게 한다
+        await conn.send(_error("stt_unavailable", f"STT 를 열지 못했습니다: {e}", retryable=True))
+        return None
+    return stt
+
+
+async def _on_audio(blob: bytes, conn: Connection, last_seq: int, stt: SttSession | None) -> int:
+    """오디오 프레임 하나. 껍질을 벗겨 STT 로 흘린다.
+
+    STT 가 없으면 연결당 한 번만 `stt_unavailable` 을 보낸다. 100ms 마다 오는 것이라
+    매 조각에 답하면 화면이 오류로 뒤덮인다. 계약이 그 코드를 둔 이유가 이것이다 —
+    프런트가 받으면 text 모드 전환을 제안한다(3층 폴백, 기획 7.1 ⑪).
     """
     try:
         audio = parse_audio_frame(blob)
@@ -203,8 +234,18 @@ async def _on_audio(blob: bytes, conn: Connection, last_seq: int) -> int:
         # 조용히 버리면 마이크가 안 되는 이유를 아무도 못 찾는다
         await conn.send(_error("invalid_message", str(e)))
         return last_seq
-    if last_seq < 0:
-        await conn.send(_error("stt_unavailable", "STT 어댑터가 아직 없습니다.", retryable=True))
+    if stt is None:
+        if last_seq < 0:
+            await conn.send(
+                _error("stt_unavailable", "STT 가 설정되지 않았습니다.", retryable=True)
+            )
+        return audio.seq
+    if 0 <= last_seq < audio.seq - 1:
+        # 계약: 시퀀스는 재접속 시 손실 구간 판정에 쓴다. 지금은 알리기만 하고 메우지
+        # 않는다 — 빠진 소리를 지어낼 수는 없고, 리포트가 그 구간을 모르는 편이 낫다
+        gap = audio.seq - last_seq - 1
+        await conn.send(_error("internal", f"오디오 {gap}조각이 비었습니다.", retryable=True))
+    await stt.feed(audio.pcm)
     return audio.seq
 
 
