@@ -63,6 +63,17 @@ def search(
     assists: list[AssistPayload] = []
     ref = utterance.utterance_id
 
+    # 금지·위험은 예시 문장과의 유사가 본질이라 예시 가상 문서(#examples) 점수를
+    # 함께 본다. 주제 면(fused)에 예시를 섞으면 예시 어휘가 항목 주제가 되어
+    # required 검색·answer 를 오염시킨다 (compiler 의 tri_texts 설명 참조)
+    score_of = dict(scores)
+    cov = lexical.coverage(text, compiled.tri)
+    ex_cov: dict[str, float] = {}
+    for key, value in cov.items():
+        base, marker, _ = key.partition(lexical.EXAMPLES_SUFFIX)
+        if marker:
+            ex_cov[base] = max(ex_cov.get(base, 0.0), value)
+
     if "required" in types or "forbidden" in types:
         for code, sim in scores:
             item = by_code.get(code)
@@ -72,7 +83,12 @@ def search(
                 cur = state.state_of(code, "omission")
                 if cur is None or cur.state in ("unmet", "partial"):
                     candidates.append(code)
-            elif item.type == "forbidden" and sim >= THRESHOLD_FORBIDDEN:
+        for item in pack.items:
+            code = item.code
+            if item.type != "forbidden" or code in l1_codes:
+                continue
+            sim = max(score_of.get(code, 0.0), ex_cov.get(code, 0.0))
+            if sim >= THRESHOLD_FORBIDDEN:
                 cur = state.state_of(code, "commission")
                 if cur is None or cur.state == "clean":
                     verdicts.append(
@@ -97,11 +113,11 @@ def search(
                     )
 
     if "risk" in types:
-        for code, sim in scores:
-            item = by_code.get(code)
+        for item in pack.items:
+            code = item.code
+            sim = max(score_of.get(code, 0.0), ex_cov.get(code, 0.0))
             if (
-                item is not None
-                and item.type == "risk"
+                item.type == "risk"
                 and sim >= THRESHOLD_RISK
                 and code not in l1_codes
             ):
@@ -192,7 +208,11 @@ def fused_scores(
         if max(vals) - sum(vals) / len(vals) < DENSE_MIN_SPREAD:
             dense = {}
     tri = lexical.coverage(text, compiled.tri)
-    codes = set(dense) | set(tri)
+    # 예시 가상 문서는 금지·위험 판정 전용이라 항목 순위(fused)에서 뺀다.
+    # 안 빼면 answer 의 top-k 자리를 실제 항목이 아닌 가상 문서가 차지한다
+    codes = {
+        c for c in set(dense) | set(tri) if lexical.EXAMPLES_SUFFIX not in c
+    }
     fused = [(c, max(tri.get(c, 0.0), dense.get(c, 0.0))) for c in codes]
     fused.sort(key=lambda x: x[1], reverse=True)
     return fused

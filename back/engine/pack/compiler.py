@@ -88,24 +88,34 @@ def compile_pack(raw: dict[str, Any], pack: RulePack) -> CompiledPack:
     if not reask_raw:
         reask_raw = DEFAULT_REASK_PATTERNS
         warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+    # 주제 면(이름·요건·쉬운 말)과 예시 면(금지·위험 예시)을 문서로 분리하되 같은
+    # 인덱스에 둔다. idf 통계는 주제 문서만으로 계산해, 예시 추가가 주제 점수를
+    # 흔들지 않게 한다 (lexical.EXAMPLES_SUFFIX · build 의 stats 설명 참조)
     tri_texts = {
         it["code"]: lexical.item_text(
             it["name"],
             tuple(it.get("requirement_elements") or ()),
             tuple(it.get("plain_language") or ()),
-            tuple(it.get("forbidden_examples") or ()),
-            tuple(it.get("risk_examples") or ()),
         )
         for it in raw["items"]
         if it["type"] != "reference"
     }
+    topic_keys = frozenset(tri_texts)
+    for it in raw["items"]:
+        examples = (*it.get("forbidden_examples", ()), *it.get("risk_examples", ()))
+        if it["type"] in ("forbidden", "risk"):
+            # 예시 문장 하나가 문서 하나다. 한 항목의 예시를 한 덩어리로 합치면
+            # 발화가 여러 예시에서 조각을 조금씩 모아 임계를 넘는다 (2026-09-02
+            # 실측: "중도해지하시면 0.5% 정도는 받으세요"가 단정 금지로 오탐)
+            for i, example in enumerate(examples):
+                tri_texts[f"{it['code']}{lexical.EXAMPLES_SUFFIX}{i}"] = example
     return CompiledPack(
         pack_version=pack.pack_version,
         patterns=patterns,
         numeric=numeric,
         jargon=JargonIndex(terms),
         reask=tuple(re.compile(r) for r in reask_raw),
-        tri=lexical.build(tri_texts),
+        tri=lexical.build(tri_texts, stats=topic_keys),
         dummy_pattern_items=tuple(dummy),
     )
 
