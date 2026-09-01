@@ -70,6 +70,7 @@ def create_session(body: CreateSession, request: Request) -> CreatedSession:
             body.mode,
             profile.type,
             source_session_id=body.source_session_id,
+            audio_ref=body.audio_ref,
         )
     except PackNotFound as e:
         raise HTTPException(404, "규정 팩이 없습니다.") from e

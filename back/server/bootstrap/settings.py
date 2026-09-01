@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     pack_dir: Path = BACK_DIR / "contracts" / "fixtures"
     # 근거 원문 PDF. 팩의 sources[].doc_id 와 파일명이 1:1 이다
     docs_dir: Path = BACK_DIR.parent / "assets" / "03_규정문서"
+    # 시연 자산 루트. replay 의 audio_ref 가 이 아래를 가리킨다(최상위 README).
+    # 지금 `scenarios/` 가 비어 있고 R5 가 채우면 그대로 붙는다
+    assets_dir: Path = BACK_DIR.parent / "assets"
     default_pack_version: str = "DEP-2026.08-v4"
     ws_ping_interval_s: float = 30.0
     # 실물 어댑터. LLM_MODEL 이 비면 refine(L3) 생략, EMBEDDING_MODEL 이 비면 L2 생략

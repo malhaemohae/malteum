@@ -43,6 +43,8 @@ class Session:
     mode: Mode = "text"
     # mode=trace 일 때 재생할 원본 세션. 계약상 POST /sessions 로만 지정된다
     source_session_id: str | None = None
+    # mode=replay 일 때 흘려보낼 사전 오디오. 마찬가지로 POST /sessions 로만 온다
+    audio_ref: str | None = None
     next_seq: int = 0
     latest_event_by_item: dict[tuple[str, str], str] = field(default_factory=dict)
     latest_assist: dict[chains.AssistKey, tuple[str, int]] = field(default_factory=dict)
@@ -93,6 +95,7 @@ class SessionRegistry:
         customer_type: Literal["general", "professional"] = "general",
         session_id: str | None = None,
         source_session_id: str | None = None,
+        audio_ref: str | None = None,
     ) -> Session:
         if session_id:
             live = self._sessions.get(session_id)
@@ -111,6 +114,7 @@ class SessionRegistry:
             state=state,
             mode=mode,
             source_session_id=source_session_id,
+            audio_ref=audio_ref,
         )
         self._sessions[session_id] = session
         return session

@@ -20,6 +20,7 @@ from server.services.session.pipeline import Pipeline
 from server.services.session.refiner import Refiner
 from server.services.session.registry import Session
 from server.services.session.replay import replay
+from server.services.stt import audio
 from server.services.stt.session import SttSession
 from server.ws.connection import Connection
 from server.ws.handlers import assist, human
@@ -104,13 +105,15 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 )
                 conn.start_heartbeat()
                 refiner = Refiner(session, pipeline, conn.send, refine_failed)
-                if session.mode == "live" and runtime.stt is not None:
+                if session.mode in ("live", "replay") and runtime.stt is not None:
                     stt = await _start_stt(
                         session, pipeline, conn, runtime.stt, refiner, runtime.pack_source
                     )
                 if session.mode in ("trace", "replay"):
                     # 계약: replay·trace 는 ready 직후 서버가 스스로 시작한다. 시작 메시지는 없다
-                    trace = asyncio.create_task(_autostart(session, pipeline, conn))
+                    trace = asyncio.create_task(
+                        _autostart(session, pipeline, conn, stt, settings.assets_dir)
+                    )
             elif msg.t == "pong":
                 pass
             elif session is None:
@@ -260,7 +263,9 @@ async def _on_audio(blob: bytes, conn: Connection, last_seq: int, stt: SttSessio
     return audio.seq
 
 
-async def _autostart(session: Session, pipeline: Pipeline, conn: Connection) -> None:
+async def _autostart(
+    session: Session, pipeline: Pipeline, conn: Connection, stt: SttSession | None, assets_dir
+) -> None:
     """계약: replay·trace 는 hello 를 받은 서버가 ready 직후 스스로 시작한다.
 
     두 모드가 같은 약속을 지고 다른 재료를 쓴다. trace 는 저장된 이벤트를, replay 는
@@ -269,18 +274,33 @@ async def _autostart(session: Session, pipeline: Pipeline, conn: Connection) -> 
     if session.mode == "trace":
         await _start_trace(session, pipeline, conn)
     else:
-        await _start_replay(conn)
+        await _start_replay(session, conn, stt, assets_dir)
 
 
-async def _start_replay(conn: Connection) -> None:
-    """사전 오디오 재생. STT 어댑터가 붙으면 여기서 흘린다(11.4 기본 시연 경로).
+async def _start_replay(
+    session: Session, conn: Connection, stt: SttSession | None, assets_dir
+) -> None:
+    """사전 오디오를 실시간 속도로 STT 에 흘린다 (11.4 기본 시연 경로).
 
-    아직 어댑터가 없다. 계약이 자동 시작을 약속했으므로 아무 말 없이 멈춰 있으면 화면은
-    영원히 기다린다. 못 하는 이유를 말해 주면 프런트가 trace·text 로 갈아탄다(3층 폴백).
+    `live` 와 아래 경로가 같다 — 소리를 브라우저가 주느냐 서버가 읽느냐만 다르다.
+
+    못 하는 이유는 반드시 말한다. 계약이 자동 시작을 약속했으므로 침묵하면 화면은
+    영원히 기다리고, 프런트가 trace·text 로 갈아탈 기회를 잃는다(3층 폴백).
     """
-    await conn.send(
-        _error("stt_unavailable", "STT 어댑터가 없어 replay 를 시작할 수 없습니다.", retryable=True)
-    )
+    if stt is None:
+        await conn.send(
+            _error("stt_unavailable", "STT 가 설정되지 않아 replay 를 못 엽니다.", retryable=True)
+        )
+        return
+    try:
+        pcm = audio.read_pcm(audio.resolve(assets_dir, session.audio_ref or ""))
+    except audio.AudioNotFound as e:
+        await conn.send(_error("invalid_message", f"재생할 오디오가 없습니다: {e}"))
+        return
+    async for chunk in audio.stream(pcm):
+        await stt.feed(chunk)
+    # 남은 전사를 받아야 마지막 발화가 사라지지 않는다
+    await stt.aclose()
 
 
 async def _start_trace(session: Session, pipeline: Pipeline, conn: Connection) -> None:
