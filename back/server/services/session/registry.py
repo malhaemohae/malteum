@@ -8,12 +8,31 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from datetime import UTC, datetime
 from typing import Literal
 
 from contracts.engine_contract import Engine, Mode, RulePack, SessionState
 from server.services.event.envelope import new_id
 from server.services.event.store import EventStore
 from server.services.session import chains
+
+
+def _now() -> datetime:
+    return datetime.now(UTC)
+
+
+def _started_at(events: list[dict]) -> datetime:
+    """되살린 세션의 t_ms 원점. session_started 의 봉투 시각이다.
+
+    그것이 없으면(있을 수 없지만 저장이 부분적으로 깨진 경우) 가장 이른 이벤트로 물러선다.
+    지금 시각으로 물러서면 이어 붙인 발화가 0 부터 매겨져 앞부분과 겹친다.
+    """
+    times = [
+        datetime.fromisoformat(e["occurred_at"]).astimezone(UTC)
+        for e in events
+        if e["kind"] == "session_started"
+    ] or [datetime.fromisoformat(e["occurred_at"]).astimezone(UTC) for e in events]
+    return min(times) if times else _now()
 
 
 @dataclass
@@ -29,10 +48,22 @@ class Session:
     latest_assist: dict[chains.AssistKey, tuple[str, int]] = field(default_factory=dict)
     # 저장된 이벤트에서 되살린 세션. session_started 를 다시 쓰면 안 된다
     restored: bool = False
+    # t_ms 의 원점. 계약이 "세션 시작 기준" 이라 연결이 아니라 세션이 들고 있어야 한다.
+    # 되살린 세션은 session_started.occurred_at 을 도로 가져온다
+    started_at: datetime = field(default_factory=_now)
 
     def take_seq(self) -> int:
         seq, self.next_seq = self.next_seq, self.next_seq + 1
         return seq
+
+    def elapsed_ms(self) -> int:
+        """세션 시작부터 지금까지. 봉투의 occurred_at 과 같은 시계를 쓴다.
+
+        단조 시계가 아니라 벽시계인 이유는 재접속 때문이다. 프로세스가 죽었다 살아나면
+        단조 시계의 원점이 사라지고, 그러면 이어 붙인 세션의 t_ms 가 0 부터 다시 매겨져
+        앞부분과 겹친다. 겹친 t_ms 로는 발화 재생(C축 DoD)이 어느 지점인지 못 짚는다.
+        """
+        return max(0, int((_now() - self.started_at).total_seconds() * 1000))
 
     def assist_ver(self, key: chains.AssistKey) -> tuple[str | None, int]:
         """다음 발행의 (supersedes, ver). 첫 발행이면 (None, 1)."""
@@ -104,6 +135,7 @@ class SessionRegistry:
             latest_event_by_item=chains.latest_verdicts(events),
             latest_assist=chains.latest_assists(events),
             restored=True,
+            started_at=_started_at(events),
         )
         self._sessions[session_id] = session
         return session

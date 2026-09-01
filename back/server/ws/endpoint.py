@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import asyncio
-import time
 from contextlib import suppress
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -46,7 +45,6 @@ async def ws_endpoint(socket: WebSocket) -> None:
     session = None
     trace: asyncio.Task | None = None
     refiner: Refiner | None = None
-    started_at = time.monotonic()
     # 마지막으로 받은 오디오 시퀀스. -1 은 아직 한 조각도 안 받았다는 뜻
     audio_seq = -1
 
@@ -117,7 +115,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
                     utterance_id="",
                     speaker=msg.speaker,
                     text=msg.text,
-                    t_ms=int((time.monotonic() - started_at) * 1000),
+                    t_ms=session.elapsed_ms(),
                 )
                 try:
                     await pipeline.submit_utterance(
@@ -129,7 +127,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 except NotImplementedError as e:  # 엔진 뼈대 단계. tiers/ 가 생기면 사라진다
                     await conn.send(_error("internal", str(e), retryable=True))
             elif msg.t == "end":
-                duration_ms = int((time.monotonic() - started_at) * 1000)
+                duration_ms = session.elapsed_ms()
                 ended = pipeline.end(session, duration_ms)
                 await conn.send(
                     {

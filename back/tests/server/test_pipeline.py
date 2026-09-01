@@ -1,5 +1,7 @@
 """submit_utterance 가 저장 → 판정 → 적용 → 변환 → 전송 순서를 지키는가. 엔진은 가짜."""
 
+from datetime import UTC, datetime
+
 import pytest
 
 from contracts.engine_contract import JudgeResult, Utterance, VerdictPayload
@@ -134,3 +136,29 @@ async def test_refine_is_not_scheduled_when_needs_refine_is_off():
 
     assert scheduled == []
     assert engine.refine_calls == 0
+
+
+def test_restored_session_keeps_the_original_t_ms_origin():
+    """계약: t_ms 는 M1 이 세션 시작 기준 오프셋으로 찍는다.
+
+    재접속하면 연결은 새것이지만 세션은 이어진다. 원점이 연결에 묶여 있으면 이어 붙인
+    발화가 0 부터 다시 매겨져 앞부분과 t_ms 가 겹치고, 겹친 값으로는 발화 재생(C축 DoD)이
+    어느 지점인지 못 짚는다.
+    """
+    engine = StubEngine([])
+    store = MemoryEventStore()
+    registry = SessionRegistry(engine, store)
+    pipeline = Pipeline(engine, store)
+
+    session = registry.open("DEP-2026.08-v4", "text", session_id="FIXT-SESS-0E")
+    started = pipeline.start(
+        session, "text", {"code": "x", "name": "x", "category": "deposit"}, "general"
+    )
+    registry.close("FIXT-SESS-0E")  # 연결이 끊긴 상황
+
+    revived = registry.open("DEP-2026.08-v4", "text", session_id="FIXT-SESS-0E")
+    assert revived.restored
+    origin = datetime.fromisoformat(started["occurred_at"]).astimezone(UTC)
+    assert revived.started_at == origin
+    # 되살린 뒤의 경과는 세션 시작부터 잰다. 0 으로 돌아가지 않는다
+    assert revived.elapsed_ms() >= 0
