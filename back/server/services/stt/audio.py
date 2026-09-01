@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import wave
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
 
 FRAME_MS = 100  # 계약 audioFrame 과 같은 크기
@@ -25,23 +25,24 @@ class AudioNotFound(FileNotFoundError):
     pass
 
 
-def resolve(root: Path, audio_ref: str) -> Path:
-    """`audio_ref` → 실제 파일.
+def resolve(roots: Path | Sequence[Path], audio_ref: str) -> Path:
+    """`audio_ref` → 실제 파일. 뿌리는 둘이다.
 
-    `assets/scenarios/` 아래를 본다(최상위 README 가 시연 자산을 두는 자리로 정한 곳).
-    지금 그 폴더가 비어 있어 R5 가 채우면 그대로 붙는다.
+    `assets/scenarios/` 는 R5 가 채우는 시연 자산이고, 업로드 폴더는 심사위원이
+    올린 것이다(`POST /sessions/{id}/audio`). 뒤엣것은 쓰기가 필요해 자리가 갈린다.
 
-    `..` 로 밖을 파고들지 못하게 막는다 — 참조는 심사위원 화면에서 오는 값이다.
+    `..` 로 뿌리 밖을 파고들지 못하게 막는다 — 참조는 화면에서 오는 값이다.
     """
     if not audio_ref or "\x00" in audio_ref:
         raise AudioNotFound("audio_ref 가 비었습니다.")
-    base = root.resolve()
-    target = (base / audio_ref).resolve()
-    if not target.is_relative_to(base):
-        raise AudioNotFound(f"자산 폴더 밖입니다: {audio_ref}")
-    if not target.is_file():
-        raise AudioNotFound(f"오디오가 없습니다: {audio_ref}")
-    return target
+    for root in [roots] if isinstance(roots, Path) else roots:
+        base = Path(root).resolve()
+        target = (base / audio_ref).resolve()
+        if not target.is_relative_to(base):
+            continue  # 그 뿌리 밖이다. 다른 뿌리를 본다
+        if target.is_file():
+            return target
+    raise AudioNotFound(f"오디오를 찾을 수 없습니다: {audio_ref}")
 
 
 def read_pcm(path: Path) -> bytes:

@@ -22,12 +22,23 @@ def test_resolves_inside_assets(tmp_path):
     assert resolve(tmp_path, "scenarios/a.wav").name == "a.wav"
 
 
-def test_refuses_to_escape_the_assets_folder(tmp_path):
+def test_refuses_to_escape_the_root(tmp_path):
     """`..` 로 밖을 파고들면 서버의 아무 파일이나 읽힌다."""
     outside = tmp_path.parent / "secret.wav"
     _wav(outside)
-    with pytest.raises(AudioNotFound, match="자산 폴더 밖"):
+    with pytest.raises(AudioNotFound):
         resolve(tmp_path, f"../{outside.name}")
+
+
+def test_looks_in_every_root(tmp_path):
+    """시연 자산(assets)과 업로드 두 곳을 본다. 뒤엣것은 쓰기가 필요해 자리가 갈린다."""
+    assets, uploads = tmp_path / "assets", tmp_path / "uploads"
+    assets.mkdir()
+    uploads.mkdir()
+    _wav(uploads / "SESS-01.wav")
+    assert resolve([assets, uploads], "SESS-01.wav").parent == uploads
+    with pytest.raises(AudioNotFound):
+        resolve([assets, uploads], "none.wav")
 
 
 def test_refuses_missing_and_empty(tmp_path):

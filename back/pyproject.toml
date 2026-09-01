@@ -6,6 +6,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
+    "python-multipart>=0.0.9",      # POST /sessions/{id}/audio 가 계약상 multipart/form-data
     "pydantic>=2.8",
     "pydantic-settings>=2.4",
     "jsonschema==4.26.0",         # rulepack 이 정확 일치를 요구 (cli.PINNED_DEPENDENCIES)
