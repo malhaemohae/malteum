@@ -12,6 +12,9 @@ from engine.types import SessionState
 
 
 def apply(state: SessionState, result: JudgeResult) -> SessionState:
+    for v in result.verdicts:
+        if v.state == "waived" and (not v.waive_reason or v.decided_by != "human"):
+            raise ValueError("waive_reason 필수: waived 는 사람만, 사유와 함께")
     items = list(state.items)
     for v in result.verdicts:
         idx = next(

@@ -63,4 +63,5 @@ def _item(it: dict[str, Any]) -> PackItem:
         ),
         documents_required=tuple(it.get("documents_required", [])),
         forbidden_examples=tuple(it.get("forbidden_examples", [])),
+        risk_examples=tuple(it.get("risk_examples", [])),
     )

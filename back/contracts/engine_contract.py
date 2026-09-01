@@ -312,7 +312,10 @@ class JudgePrompt:
     """L3 에 넘기는 것. 프롬프트 문자열이 아니라 구조로 넘긴다.
     문자열 조립을 M2 안에 두면 프롬프트를 고칠 때 계약이 흔들리지 않는다."""
     utterance_text: str
+    speaker: Speaker
+    """은행원·고객 판정 규칙이 다르므로 L3 가 알아야 한다. (2026-08-31 추가)"""
     recent_context: tuple[str, ...]
+    """최근 발화. 화자 구분을 위해 각 줄 앞에 [은행원]·[고객] 라벨이 붙는다."""
     candidate_items: tuple[PackItem, ...]
     current_states: tuple[ItemState, ...]
     customer_type: Literal["general", "professional"]

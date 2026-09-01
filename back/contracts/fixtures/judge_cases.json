@@ -92,7 +92,7 @@
             "item_code": "DEP-INT-002",
             "comparison": {
               "said": "0.5%",
-              "reference": "연 0.10%",
+              "reference": "0.10%",
               "condition": "1개월 미만"
             },
             "evidence_required": true

@@ -9,7 +9,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from contracts.engine_contract import Engine
+from engine.adapters.cache.memory import MemoryDecisionCache
 from engine.adapters.pack_source.file import FilePackSource
+from engine.adapters.vector_index.memory import MemoryVectorIndex
 from engine.build import build_engine
 from engine.pack.source import PackSource
 from server.bootstrap.settings import Settings
@@ -46,5 +48,35 @@ def build_runtime(settings: Settings) -> Runtime:
     else:
         store, projection, packs = MemoryEventStore(), NullSessionProjection(), NullPackStore()
         source = FilePackSource(settings.pack_dir)
-    engine = build_engine(source)
+    engine = build_engine(source, l3_budget_ms=settings.l3_budget_ms, **_adapters(settings))
     return Runtime(engine, SessionRegistry(engine, store), store, projection, packs, source)
+
+
+def _adapters(settings: Settings) -> dict:
+    """실물 LLM·임베딩. 설정이 비면 그 층은 빠지고 engine 이 [DUMMY] 경고로 알린다."""
+    out: dict = {}
+    if settings.embedding_model:
+        from engine.adapters.embedder.litellm import LiteLlmEmbedder
+
+        out["embedder"] = LiteLlmEmbedder(
+            settings.embedding_model,
+            settings.embedding_dim,
+            provider=settings.llm_provider,
+            api_key=settings.llm_api_key,
+        )
+        out["index"] = MemoryVectorIndex()
+    if settings.llm_model:
+        from engine.adapters.llm.litellm import LiteLlmCorrector, LiteLlmGenerator, LiteLlmJudge
+
+        kw = dict(
+            provider=settings.llm_provider,
+            api_key=settings.llm_api_key,
+            extra_body={"reasoning": {"enabled": False}} if settings.llm_no_reasoning else None,
+        )
+        out["llm"] = LiteLlmJudge(settings.llm_model, **kw)
+        out["cache"] = MemoryDecisionCache()
+        if settings.llm_corrector:
+            out["corrector"] = LiteLlmCorrector(settings.llm_model, **kw)
+        if settings.llm_generator:
+            out["generator"] = LiteLlmGenerator(settings.llm_model, **kw)
+    return out

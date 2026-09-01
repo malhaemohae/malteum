@@ -1,487 +1,507 @@
 {
-  "schema_version": "1",
-  "pack_version": "DEP-2026.08-v4",
-  "product": {
-    "code": "ICBC-KRW-TD",
-    "name": "ICBC 원화정기예금",
-    "category": "deposit"
+ "schema_version": "1",
+ "pack_version": "DEP-2026.08-v4",
+ "product": {
+  "code": "ICBC-KRW-TD",
+  "name": "ICBC 원화정기예금",
+  "category": "deposit"
+ },
+ "published_at": "2026-08-30T00:00:00Z",
+ "published_by": "contract-fixture",
+ "embedding": {
+  "model": "intfloat/multilingual-e5-small",
+  "dim": 384,
+  "normalized": true
+ },
+ "jargon_terms": [
+  "우대이자율",
+  "기본이자율",
+  "만기후이자율",
+  "중도해지이율",
+  "차감률",
+  "비과세종합저축",
+  "세금우대",
+  "예금자보호법",
+  "약정이율",
+  "위법계약해지권",
+  "재예치"
+ ],
+ "sources": [
+  {
+   "doc_id": "01_금융소비자보호법",
+   "title": "금융소비자 보호에 관한 법률",
+   "publisher": "법제처",
+   "url": "https://www.law.go.kr/LSW/lsPdfPrint.do?ancYnChk=0&lsiSeq=252409&efYd=20231012&efGubun=Y&joAllCheck=Y&joEfOutPutYn=on&mokChaChk=N&bylChaChk=N",
+   "snapshot_date": "2026-08-23",
+   "page_count": 31
   },
-  "published_at": "2026-08-30T00:00:00Z",
-  "published_by": "contract-fixture",
-  "embedding": {
-    "model": "intfloat/multilingual-e5-small",
-    "dim": 384,
-    "normalized": true
+  {
+   "doc_id": "02_설명의무_이행_가이드라인",
+   "title": "금융상품 설명의무의 합리적 이행을 위한 가이드라인 (2021.7.14, 금융위·금감원)",
+   "publisher": "금융위원회·금융감독원",
+   "url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=76243&fileTy=ATTACH&fileNo=2",
+   "snapshot_date": "2026-08-23",
+   "page_count": 20
   },
-  "jargon_terms": [
-    "우대이자율",
-    "기본이자율",
-    "만기후이자율",
-    "중도해지이율",
-    "차감률",
-    "비과세종합저축",
-    "세금우대",
-    "예금자보호법",
-    "약정이율",
-    "위법계약해지권",
-    "재예치"
-  ],
-  "sources": [
+  {
+   "doc_id": "03_예금거래기본약관",
+   "title": "예금거래기본약관 (표준약관 제10012호 기반, 씨티은행 게시본)",
+   "publisher": "은행연합회 (씨티은행 게시본)",
+   "url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/예금거래기본약관(개정후).pdf",
+   "snapshot_date": "2026-08-23",
+   "page_count": 9
+  },
+  {
+   "doc_id": "05_상품설명서_정기예금",
+   "title": "원화정기예금 상품설명서 (심의 2025.09.01~2026.12.31)",
+   "publisher": "중국공상은행 서울지점",
+   "url": "https://v.icbc.com.cn/userfiles/resources/icbc/haiwai/seoul/download/202509_omd_krwtd.pdf",
+   "snapshot_date": "2026-08-23",
+   "page_count": 4
+  },
+  {
+   "doc_id": "07_제2차_금융분야_보이스피싱_대책",
+   "title": "제2차 금융분야 보이스피싱 대책 (금융위)",
+   "publisher": "금융위원회",
+   "url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=79511&fileTy=ATTACH&fileNo=4",
+   "snapshot_date": "2026-08-23",
+   "page_count": 18
+  }
+ ],
+ "items": [
+  {
+   "code": "DEP-INT-001",
+   "name": "적용 이자율과 우대 조건",
+   "type": "required",
+   "requirement_elements": [
+    "기간별 이자율",
+    "우대 조건"
+   ],
+   "legal_basis": [
     {
-      "doc_id": "01_금융소비자보호법",
-      "title": "금융소비자 보호에 관한 법률",
-      "publisher": "법제처",
-      "url": "https://www.law.go.kr/LSW/lsPdfPrint.do?ancYnChk=0&lsiSeq=252409&efYd=20231012&efGubun=Y&joAllCheck=Y&joEfOutPutYn=on&mokChaChk=N&bylChaChk=N",
-      "snapshot_date": "2026-08-23",
-      "page_count": 31
+     "article": "제19조제1항",
+     "law": "금융소비자보호법"
+    }
+   ],
+   "evidence": {
+    "doc_id": "05_상품설명서_정기예금",
+    "page": 1,
+    "span": "신규일 당시 영업점에 고시한 조건별 우대이율 적용",
+    "bbox": [
+     146.6,
+     136.1,
+     385.2,
+     145.6
+    ]
+   },
+   "plain_language": [
+    "기본 이자율에 조건을 충족해 받는 우대 이자율을 더합니다."
+   ],
+   "axis": "omission",
+   "l1_patterns": [
+    {
+     "element": "우대 조건",
+     "kind": "keyword",
+     "value": "우대이자율"
     },
     {
-      "doc_id": "02_설명의무_이행_가이드라인",
-      "title": "금융상품 설명의무의 합리적 이행을 위한 가이드라인 (2021.7.14, 금융위·금감원)",
-      "publisher": "금융위원회·금융감독원",
-      "url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=76243&fileTy=ATTACH&fileNo=2",
-      "snapshot_date": "2026-08-23",
-      "page_count": 20
+     "element": "기간별 이자율",
+     "kind": "keyword",
+     "value": "기본이자율"
+    }
+   ],
+   "embedding_id": "e5:DEP-INT-001",
+   "approved_at": "2026-08-30T00:00:00Z",
+   "approved_by": "contract-fixture"
+  },
+  {
+   "code": "DEP-INT-002",
+   "name": "중도해지 이자율",
+   "type": "required",
+   "requirement_elements": [
+    "만기 전 해지 시 불이익",
+    "적용 이율",
+    "차감률 또는 산출식"
+   ],
+   "legal_basis": [
+    {
+     "article": "제19조제1항",
+     "law": "금융소비자보호법"
+    }
+   ],
+   "evidence": {
+    "doc_id": "05_상품설명서_정기예금",
+    "page": 2,
+    "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+    "bbox": [
+     147.0,
+     378.9,
+     420.2,
+     388.4
+    ]
+   },
+   "plain_language": [
+    "만기 전에 찾으면 약속한 이자보다 적게 받습니다.",
+    "얼마나 깎이는지는 맡긴 기간에 따라 다르고, 짧게 맡길수록 더 많이 깎입니다."
+   ],
+   "axis": "omission",
+   "l1_patterns": [
+    {
+     "element": "만기 전 해지 시 불이익",
+     "kind": "keyword",
+     "value": "중도해지"
     },
     {
-      "doc_id": "03_예금거래기본약관",
-      "title": "예금거래기본약관 (표준약관 제10012호 기반, 씨티은행 게시본)",
-      "publisher": "은행연합회 (씨티은행 게시본)",
-      "url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/예금거래기본약관(개정후).pdf",
-      "snapshot_date": "2026-08-23",
-      "page_count": 9
+     "element": "적용 이율",
+     "kind": "keyword",
+     "value": "중도해지이율"
     },
     {
+     "element": "차감률 또는 산출식",
+     "kind": "regex",
+     "value": "차감률|산출식|경과일수|경과기간"
+    }
+   ],
+   "embedding_id": "e5:DEP-INT-002",
+   "approved_at": "2026-08-30T00:00:00Z",
+   "approved_by": "contract-fixture",
+   "numeric_facts": [
+    {
+     "label": "중도해지 이자율",
+     "value": "0.10",
+     "unit": "%",
+     "condition": "1개월 미만",
+     "tolerance": 0,
+     "evidence": {
       "doc_id": "05_상품설명서_정기예금",
-      "title": "원화정기예금 상품설명서 (심의 2025.09.01~2026.12.31)",
-      "publisher": "중국공상은행 서울지점",
-      "url": "https://v.icbc.com.cn/userfiles/resources/icbc/haiwai/seoul/download/202509_omd_krwtd.pdf",
-      "snapshot_date": "2026-08-23",
-      "page_count": 4
-    },
-    {
-      "doc_id": "07_제2차_금융분야_보이스피싱_대책",
-      "title": "제2차 금융분야 보이스피싱 대책 (금융위)",
-      "publisher": "금융위원회",
-      "url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=79511&fileTy=ATTACH&fileNo=4",
-      "snapshot_date": "2026-08-23",
-      "page_count": 18
+      "page": 2,
+      "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+      "bbox": [
+       147.0,
+       378.9,
+       420.2,
+       388.4
+      ]
+     }
     }
-  ],
-  "items": [
+   ]
+  },
+  {
+   "code": "DEP-INT-003",
+   "name": "만기 후 이자율",
+   "type": "required",
+   "requirement_elements": [
+    "만기 후 별도 이율",
+    "경과기간별 차등"
+   ],
+   "legal_basis": [
     {
-      "code": "DEP-INT-001",
-      "name": "적용 이자율과 우대 조건",
-      "type": "required",
-      "requirement_elements": [
-        "기간별 이자율",
-        "우대 조건"
-      ],
-      "legal_basis": [
-        {
-          "article": "제19조제1항",
-          "law": "금융소비자보호법"
-        }
-      ],
-      "evidence": {
-        "doc_id": "05_상품설명서_정기예금",
-        "page": 1,
-        "span": "신규일 당시 영업점에 고시한 조건별 우대이율 적용",
-        "bbox": [
-          146.6,
-          136.1,
-          385.2,
-          145.6
-        ]
-      },
-      "plain_language": [
-        "기본 이자율에 조건을 충족해 받는 우대 이자율을 더합니다."
-      ],
-      "axis": "omission",
-      "l1_patterns": [
-        {
-          "element": "우대 조건",
-          "kind": "keyword",
-          "value": "우대이자율"
-        },
-        {
-          "element": "기간별 이자율",
-          "kind": "keyword",
-          "value": "기본이자율"
-        }
-      ],
-      "embedding_id": "e5:DEP-INT-001",
-      "approved_at": "2026-08-30T00:00:00Z",
-      "approved_by": "contract-fixture"
-    },
-    {
-      "code": "DEP-INT-002",
-      "name": "중도해지 이자율",
-      "type": "required",
-      "requirement_elements": [
-        "만기 전 해지 시 불이익",
-        "적용 이율",
-        "차감률 또는 산출식"
-      ],
-      "legal_basis": [
-        {
-          "article": "제19조제1항",
-          "law": "금융소비자보호법"
-        }
-      ],
-      "evidence": {
-        "doc_id": "05_상품설명서_정기예금",
-        "page": 2,
-        "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
-        "bbox": [
-          147.0,
-          378.9,
-          420.2,
-          388.4
-        ]
-      },
-      "plain_language": [
-        "만기 전에 찾으면 약속한 이자보다 적게 받습니다.",
-        "얼마나 깎이는지는 맡긴 기간에 따라 다르고, 짧게 맡길수록 더 많이 깎입니다."
-      ],
-      "axis": "omission",
-      "l1_patterns": [
-        {
-          "element": "만기 전 해지 시 불이익",
-          "kind": "keyword",
-          "value": "중도해지"
-        },
-        {
-          "element": "적용 이율",
-          "kind": "keyword",
-          "value": "중도해지이율"
-        },
-        {
-          "element": "차감률 또는 산출식",
-          "kind": "regex",
-          "value": "차감률|산출식|경과일수|경과기간"
-        }
-      ],
-      "embedding_id": "e5:DEP-INT-002",
-      "approved_at": "2026-08-30T00:00:00Z",
-      "approved_by": "contract-fixture"
-    },
-    {
-      "code": "DEP-INT-003",
-      "name": "만기 후 이자율",
-      "type": "required",
-      "requirement_elements": [
-        "만기 후 별도 이율",
-        "경과기간별 차등"
-      ],
-      "legal_basis": [
-        {
-          "article": "제19조제1항",
-          "law": "금융소비자보호법"
-        }
-      ],
-      "evidence": {
-        "doc_id": "05_상품설명서_정기예금",
-        "page": 1,
-        "span": "1개월 이내 : 약정만기일 당일 해당 상품의 기본이자율 * 0.5",
-        "bbox": [
-          146.9,
-          104.5,
-          423.8,
-          114.0
-        ]
-      },
-      "plain_language": [
-        "만기가 지나면 경과 기간에 따라 다른 이자율이 붙습니다."
-      ],
-      "axis": "omission",
-      "l1_patterns": [
-        {
-          "element": "만기 후 별도 이율",
-          "kind": "keyword",
-          "value": "만기후이자율"
-        },
-        {
-          "element": "경과기간별 차등",
-          "kind": "keyword",
-          "value": "만기 후"
-        }
-      ],
-      "embedding_id": "e5:DEP-INT-003",
-      "approved_at": "2026-08-30T00:00:00Z",
-      "approved_by": "contract-fixture"
-    },
-    {
-      "code": "DEP-PRO-001",
-      "name": "예금자보호 대상과 한도",
-      "type": "required",
-      "requirement_elements": [
-        "보호 대상",
-        "보호 한도",
-        "동일 은행 합산"
-      ],
-      "legal_basis": [
-        {
-          "article": "제32조",
-          "law": "예금자보호법"
-        }
-      ],
-      "evidence": {
-        "doc_id": "05_상품설명서_정기예금",
-        "page": 2,
-        "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지” (본 은행의 여타 보호상품과 합산)보호됩니다.",
-        "bbox": [
-          215.3,
-          311.9,
-          564.0,
-          343.0
-        ]
-      },
-      "plain_language": [
-        "원금과 이자를 합해 한 사람당 1억 원까지 보호됩니다.",
-        "이 은행에 있는 다른 보호 대상 예금과 합쳐서 1억 원입니다."
-      ],
-      "axis": "omission",
-      "numeric_facts": [
-        {
-          "condition": "원금과 소정의 이자를 합하여",
-          "label": "1인당",
-          "tolerance": 0,
-          "unit": "원",
-          "value": "100000000",
-          "evidence": {
-            "doc_id": "05_상품설명서_정기예금",
-            "page": 2,
-            "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지” (본 은행의 여타 보호상품과 합산)보호됩니다.",
-            "bbox": [
-              215.3,
-              311.9,
-              564.0,
-              343.0
-            ]
-          }
-        }
-      ],
-      "l1_patterns": [
-        {
-          "element": "보호 대상",
-          "kind": "keyword",
-          "value": "예금자보호"
-        },
-        {
-          "element": "보호 한도",
-          "kind": "regex",
-          "value": "1\\s*억"
-        },
-        {
-          "element": "동일 은행 합산",
-          "kind": "regex",
-          "value": "합(산|쳐|해)|다른\\s*(예금|상품|계좌)"
-        }
-      ],
-      "embedding_id": "e5:DEP-PRO-001",
-      "approved_at": "2026-08-30T00:00:00Z",
-      "approved_by": "contract-fixture"
-    },
-    {
-      "code": "DEP-TAX-001",
-      "name": "세금",
-      "type": "required",
-      "requirement_elements": [
-        "만기 후 이자 과세"
-      ],
-      "legal_basis": [
-        {
-          "article": "제19조제1항",
-          "law": "금융소비자보호법"
-        }
-      ],
-      "evidence": {
-        "doc_id": "05_상품설명서_정기예금",
-        "page": 2,
-        "span": "세금우대 및 비과세종합저축 적용 불가능",
-        "bbox": [
-          215.4,
-          220.7,
-          404.0,
-          230.3
-        ]
-      },
-      "plain_language": [
-        "만기 뒤에 붙는 이자에는 세금이 붙습니다."
-      ],
-      "axis": "omission",
-      "l1_patterns": [
-        {
-          "element": "만기 후 이자 과세",
-          "kind": "keyword",
-          "value": "과세"
-        }
-      ],
-      "embedding_id": "e5:DEP-TAX-001",
-      "approved_at": "2026-08-30T00:00:00Z",
-      "approved_by": "contract-fixture"
-    },
-    {
-      "code": "DEP-LIM-001",
-      "name": "일부해지 제한",
-      "type": "required",
-      "requirement_elements": [
-        "일부해지 가능 여부"
-      ],
-      "legal_basis": [
-        {
-          "article": "제19조제1항",
-          "law": "금융소비자보호법"
-        }
-      ],
-      "evidence": {
-        "doc_id": "05_상품설명서_정기예금",
-        "page": 3,
-        "span": "영업점을 통해 해지가 가능하며, 일부해지 불가능",
-        "bbox": [
-          146.7,
-          539.0,
-          372.4,
-          548.9
-        ]
-      },
-      "plain_language": [
-        "이 예금은 일부만 찾을 수 없고 해지하면 전액이 나옵니다."
-      ],
-      "axis": "omission",
-      "l1_patterns": [
-        {
-          "element": "일부해지 가능 여부",
-          "kind": "keyword",
-          "value": "일부해지"
-        }
-      ],
-      "embedding_id": "e5:DEP-LIM-001",
-      "approved_at": "2026-08-30T00:00:00Z",
-      "approved_by": "contract-fixture"
-    },
-    {
-      "code": "DEP-DOC-001",
-      "name": "필요 서류",
-      "type": "reference",
-      "requirement_elements": [
-        "실명확인증표"
-      ],
-      "legal_basis": [
-        {
-          "article": "제3조",
-          "law": "금융실명거래 및 비밀보장에 관한 법률"
-        }
-      ],
-      "evidence": {
-        "doc_id": "03_예금거래기본약관",
-        "page": 1,
-        "span": "② 은행은 거래처의 실명확인을 위하여 주민등록증, 사업자등록증 등 실명확인증표 또는 그 밖에 필요",
-        "bbox": [
-          54.6,
-          451.9,
-          540.7,
-          462.1
-        ]
-      },
-      "plain_language": [
-        "본인을 확인할 수 있는 신분증이 필요합니다."
-      ],
-      "documents_required": [
-        "실명확인증표"
-      ],
-      "l1_patterns": [],
-      "embedding_id": "e5:DEP-DOC-001",
-      "approved_at": "2026-08-30T00:00:00Z",
-      "approved_by": "contract-fixture"
-    },
-    {
-      "code": "DEP-BAN-001",
-      "name": "단정적 판단 금지",
-      "type": "forbidden",
-      "requirement_elements": [
-        "단정적 판단",
-        "확실하다고 오인"
-      ],
-      "legal_basis": [
-        {
-          "article": "제21조제1호",
-          "law": "금융소비자보호법"
-        }
-      ],
-      "evidence": {
-        "doc_id": "01_금융소비자보호법",
-        "page": 11,
-        "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
-        "bbox": [
-          61.3,
-          170.0,
-          554.2,
-          181.6
-        ]
-      },
-      "plain_language": [
-        "확실하지 않은 일을 확실하다고 말하면 안 됩니다."
-      ],
-      "axis": "commission",
-      "forbidden_examples": [
-        "무조건 이득입니다"
-      ],
-      "l1_patterns": [
-        {
-          "element": "확실하다고 오인",
-          "kind": "regex",
-          "value": "무조건|절대\\s*(안|없|아니)|100\\s*%\\s*보장|확실(히|하)"
-        }
-      ],
-      "embedding_id": "e5:DEP-BAN-001",
-      "approved_at": "2026-08-30T00:00:00Z",
-      "approved_by": "contract-fixture"
-    },
-    {
-      "code": "DEP-RSK-001",
-      "name": "제3자 계좌 위험 신호",
-      "type": "risk",
-      "requirement_elements": [
-        "제3자 입금 언급"
-      ],
-      "legal_basis": [
-        {
-          "article": "제6조",
-          "law": "예금거래기본약관"
-        }
-      ],
-      "evidence": {
-        "doc_id": "03_예금거래기본약관",
-        "page": 2,
-        "span": "② 거래처는 현금이나 증권으로 계좌송금(거래처가 개설점 이외에서 자기 계좌에 입금하거나, 제3자가",
-        "bbox": [
-          54.6,
-          686.4,
-          541.1,
-          696.7
-        ]
-      },
-      "plain_language": [
-        "제3자가 돈을 넣는 상황은 추가 확인이 필요합니다."
-      ],
-      "risk_examples": [
-        "아들이 알아보라고 해서요",
-        "돈은 다른 사람 계좌로 보내면 돼요",
-        "제 조카가 대신 와서 넣을 거예요",
-        "지금 미국에 있는 사람한테 보내야 해요"
-      ],
-      "l1_patterns": [
-        {
-          "element": "제3자 입금 언급",
-          "kind": "regex",
-          "value": "(아들|딸|지인|그\\s*분)[이가]?\\s*알려준|(아들|딸|지인)\\s*(계좌|통장)|통장.{0,6}(빌려|양도)|시키는\\s*대로"
-        }
-      ],
-      "embedding_id": "e5:DEP-RSK-001",
-      "approved_at": "2026-08-30T00:00:00Z",
-      "approved_by": "contract-fixture"
+     "article": "제19조제1항",
+     "law": "금융소비자보호법"
     }
-  ]
+   ],
+   "evidence": {
+    "doc_id": "05_상품설명서_정기예금",
+    "page": 1,
+    "span": "1개월 이내 : 약정만기일 당일 해당 상품의 기본이자율 * 0.5",
+    "bbox": [
+     146.9,
+     104.5,
+     423.8,
+     114.0
+    ]
+   },
+   "plain_language": [
+    "만기가 지나면 경과 기간에 따라 다른 이자율이 붙습니다."
+   ],
+   "axis": "omission",
+   "l1_patterns": [
+    {
+     "element": "만기 후 별도 이율",
+     "kind": "keyword",
+     "value": "만기후이자율"
+    },
+    {
+     "element": "경과기간별 차등",
+     "kind": "keyword",
+     "value": "만기 후"
+    }
+   ],
+   "embedding_id": "e5:DEP-INT-003",
+   "approved_at": "2026-08-30T00:00:00Z",
+   "approved_by": "contract-fixture"
+  },
+  {
+   "code": "DEP-PRO-001",
+   "name": "예금자보호 대상과 한도",
+   "type": "required",
+   "requirement_elements": [
+    "보호 대상",
+    "보호 한도",
+    "동일 은행 합산"
+   ],
+   "legal_basis": [
+    {
+     "article": "제32조",
+     "law": "예금자보호법"
+    }
+   ],
+   "evidence": {
+    "doc_id": "05_상품설명서_정기예금",
+    "page": 2,
+    "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지” (본 은행의 여타 보호상품과 합산)보호됩니다.",
+    "bbox": [
+     215.3,
+     311.9,
+     564.0,
+     343.0
+    ]
+   },
+   "plain_language": [
+    "원금과 이자를 합해 한 사람당 1억 원까지 보호됩니다.",
+    "이 은행에 있는 다른 보호 대상 예금과 합쳐서 1억 원입니다."
+   ],
+   "axis": "omission",
+   "numeric_facts": [
+    {
+     "condition": "원금과 소정의 이자를 합하여",
+     "label": "1인당",
+     "tolerance": 0,
+     "unit": "원",
+     "value": "100000000",
+     "evidence": {
+      "doc_id": "05_상품설명서_정기예금",
+      "page": 2,
+      "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지” (본 은행의 여타 보호상품과 합산)보호됩니다.",
+      "bbox": [
+       215.3,
+       311.9,
+       564.0,
+       343.0
+      ]
+     }
+    }
+   ],
+   "l1_patterns": [
+    {
+     "element": "보호 대상",
+     "kind": "keyword",
+     "value": "예금자보호"
+    },
+    {
+     "element": "보호 한도",
+     "kind": "regex",
+     "value": "1\\s*억"
+    },
+    {
+     "element": "동일 은행 합산",
+     "kind": "regex",
+     "value": "합(산|쳐|해)|다른\\s*(예금|상품|계좌)"
+    }
+   ],
+   "embedding_id": "e5:DEP-PRO-001",
+   "approved_at": "2026-08-30T00:00:00Z",
+   "approved_by": "contract-fixture"
+  },
+  {
+   "code": "DEP-TAX-001",
+   "name": "세금",
+   "type": "required",
+   "requirement_elements": [
+    "만기 후 이자 과세"
+   ],
+   "legal_basis": [
+    {
+     "article": "제19조제1항",
+     "law": "금융소비자보호법"
+    }
+   ],
+   "evidence": {
+    "doc_id": "05_상품설명서_정기예금",
+    "page": 2,
+    "span": "세금우대 및 비과세종합저축 적용 불가능",
+    "bbox": [
+     215.4,
+     220.7,
+     404.0,
+     230.3
+    ]
+   },
+   "plain_language": [
+    "만기 뒤에 붙는 이자에는 세금이 붙습니다."
+   ],
+   "axis": "omission",
+   "l1_patterns": [
+    {
+     "element": "만기 후 이자 과세",
+     "kind": "keyword",
+     "value": "과세"
+    }
+   ],
+   "embedding_id": "e5:DEP-TAX-001",
+   "approved_at": "2026-08-30T00:00:00Z",
+   "approved_by": "contract-fixture"
+  },
+  {
+   "code": "DEP-LIM-001",
+   "name": "일부해지 제한",
+   "type": "required",
+   "requirement_elements": [
+    "일부해지 가능 여부"
+   ],
+   "legal_basis": [
+    {
+     "article": "제19조제1항",
+     "law": "금융소비자보호법"
+    }
+   ],
+   "evidence": {
+    "doc_id": "05_상품설명서_정기예금",
+    "page": 3,
+    "span": "영업점을 통해 해지가 가능하며, 일부해지 불가능",
+    "bbox": [
+     146.7,
+     539.0,
+     372.4,
+     548.9
+    ]
+   },
+   "plain_language": [
+    "이 예금은 일부만 찾을 수 없고 해지하면 전액이 나옵니다."
+   ],
+   "axis": "omission",
+   "l1_patterns": [
+    {
+     "element": "일부해지 가능 여부",
+     "kind": "keyword",
+     "value": "일부해지"
+    }
+   ],
+   "embedding_id": "e5:DEP-LIM-001",
+   "approved_at": "2026-08-30T00:00:00Z",
+   "approved_by": "contract-fixture"
+  },
+  {
+   "code": "DEP-DOC-001",
+   "name": "필요 서류",
+   "type": "reference",
+   "requirement_elements": [
+    "실명확인증표"
+   ],
+   "legal_basis": [
+    {
+     "article": "제3조",
+     "law": "금융실명거래 및 비밀보장에 관한 법률"
+    }
+   ],
+   "evidence": {
+    "doc_id": "03_예금거래기본약관",
+    "page": 1,
+    "span": "② 은행은 거래처의 실명확인을 위하여 주민등록증, 사업자등록증 등 실명확인증표 또는 그 밖에 필요",
+    "bbox": [
+     54.6,
+     451.9,
+     540.7,
+     462.1
+    ]
+   },
+   "plain_language": [
+    "본인을 확인할 수 있는 신분증이 필요합니다."
+   ],
+   "documents_required": [
+    "실명확인증표"
+   ],
+   "l1_patterns": [],
+   "embedding_id": "e5:DEP-DOC-001",
+   "approved_at": "2026-08-30T00:00:00Z",
+   "approved_by": "contract-fixture"
+  },
+  {
+   "code": "DEP-BAN-001",
+   "name": "단정적 판단 금지",
+   "type": "forbidden",
+   "requirement_elements": [
+    "단정적 판단",
+    "확실하다고 오인"
+   ],
+   "legal_basis": [
+    {
+     "article": "제21조제1호",
+     "law": "금융소비자보호법"
+    }
+   ],
+   "evidence": {
+    "doc_id": "01_금융소비자보호법",
+    "page": 11,
+    "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+    "bbox": [
+     61.3,
+     170.0,
+     554.2,
+     181.6
+    ]
+   },
+   "plain_language": [
+    "확실하지 않은 일을 확실하다고 말하면 안 됩니다."
+   ],
+   "axis": "commission",
+   "forbidden_examples": [
+    "무조건 이득입니다"
+   ],
+   "l1_patterns": [
+    {
+     "element": "확실하다고 오인",
+     "kind": "regex",
+     "value": "무조건|절대\\s*(안|없|아니)|100\\s*%\\s*보장|확실(히|하)"
+    }
+   ],
+   "embedding_id": "e5:DEP-BAN-001",
+   "approved_at": "2026-08-30T00:00:00Z",
+   "approved_by": "contract-fixture"
+  },
+  {
+   "code": "DEP-RSK-001",
+   "name": "제3자 계좌 위험 신호",
+   "type": "risk",
+   "requirement_elements": [
+    "제3자 입금 언급"
+   ],
+   "legal_basis": [
+    {
+     "article": "제6조",
+     "law": "예금거래기본약관"
+    }
+   ],
+   "evidence": {
+    "doc_id": "03_예금거래기본약관",
+    "page": 2,
+    "span": "② 거래처는 현금이나 증권으로 계좌송금(거래처가 개설점 이외에서 자기 계좌에 입금하거나, 제3자가",
+    "bbox": [
+     54.6,
+     686.4,
+     541.1,
+     696.7
+    ]
+   },
+   "plain_language": [
+    "제3자가 돈을 넣는 상황은 추가 확인이 필요합니다."
+   ],
+   "risk_examples": [
+    "아들이 알아보라고 해서요",
+    "돈은 다른 사람 계좌로 보내면 돼요",
+    "제 조카가 대신 와서 넣을 거예요",
+    "지금 미국에 있는 사람한테 보내야 해요"
+   ],
+   "l1_patterns": [
+    {
+     "element": "제3자 입금 언급",
+     "kind": "regex",
+     "value": "(아들|딸|지인|그\\s*분)[이가]?\\s*알려준|(아들|딸|지인)\\s*(계좌|통장)|통장.{0,6}(빌려|양도)|시키는\\s*대로"
+    }
+   ],
+   "embedding_id": "e5:DEP-RSK-001",
+   "approved_at": "2026-08-30T00:00:00Z",
+   "approved_by": "contract-fixture"
+  }
+ ]
 }
