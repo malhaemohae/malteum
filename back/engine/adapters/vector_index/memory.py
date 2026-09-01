@@ -36,7 +36,8 @@ class MemoryVectorIndex:
         if pack.pack_version in self._packs:
             return
         items = [it for it in pack.items if it.type != "reference"]
-        vectors = embedder.encode([item_text(it) for it in items])
+        encode = getattr(embedder, "encode_passages", embedder.encode)
+        vectors = encode([item_text(it) for it in items])
         self._packs[pack.pack_version] = [
             (it.code, v) for it, v in zip(items, vectors, strict=True)
         ]

@@ -37,10 +37,17 @@ class LocalStEmbedder:
         return self._model
 
     def encode(self, texts: Sequence[str]) -> list[list[float]]:
+        return self._encode(texts, self.prefix)
+
+    def encode_passages(self, texts: Sequence[str]) -> list[list[float]]:
+        """팩 항목·문서 조각용. e5 는 질의(query)와 대상(passage) 프리픽스가 다르다."""
+        return self._encode(texts, "passage" if self.prefix else None)
+
+    def _encode(self, texts: Sequence[str], prefix: str | None) -> list[list[float]]:
         if not texts:
             return []
         model = self._load()
-        prefixed = [f"{self.prefix}: {t}" if self.prefix else t for t in texts]
+        prefixed = [f"{prefix}: {t}" if prefix else t for t in texts]
         vectors = model.encode(prefixed, normalize_embeddings=True, show_progress_bar=False)
         out = [[float(x) for x in v] for v in vectors]
         bad = next((len(v) for v in out if len(v) != self.dim), None)
