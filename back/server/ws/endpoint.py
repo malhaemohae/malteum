@@ -1,4 +1,8 @@
-"""/ws 진입. 텍스트 프레임 → c2s 파싱 → 처리. 바이너리 프레임(오디오)은 services/stt 가 생기면."""
+"""/ws 진입. 한 소켓에 오디오 업링크와 이벤트 다운링크를 함께 태운다(계약).
+
+텍스트 프레임은 c2s 로 파싱해 처리하고, 바이너리 프레임은 오디오다. STT 어댑터가
+붙기 전까지 오디오는 껍질만 벗겨 버리고 `stt_unavailable` 을 한 번 알린다.
+"""
 
 from __future__ import annotations
 
@@ -18,7 +22,7 @@ from server.services.session.registry import Session
 from server.services.session.replay import replay
 from server.ws.connection import Connection
 from server.ws.handlers import human
-from server.ws.protocol import InvalidMessage, parse_c2s
+from server.ws.protocol import InvalidMessage, parse_audio_frame, parse_c2s
 
 router = APIRouter()
 
@@ -43,6 +47,8 @@ async def ws_endpoint(socket: WebSocket) -> None:
     trace: asyncio.Task | None = None
     refiner: Refiner | None = None
     started_at = time.monotonic()
+    # 마지막으로 받은 오디오 시퀀스. -1 은 아직 한 조각도 안 받았다는 뜻
+    audio_seq = -1
 
     async def refine_failed(e: Exception) -> None:
         """보정은 화면 뒤에서 돈다. 실패해도 상담은 이어져야 하므로 알리기만 한다."""
@@ -50,9 +56,16 @@ async def ws_endpoint(socket: WebSocket) -> None:
 
     try:
         while True:
-            raw = await socket.receive_text()
+            frame = await socket.receive()
+            if frame["type"] == "websocket.disconnect":
+                break
+            # 오디오는 JSON 이 아니라 바이너리로 온다(계약 $defs/audioFrame). 텍스트만
+            # 받으면 프런트가 마이크를 켜는 순간 소켓이 죽는다
+            if (blob := frame.get("bytes")) is not None:
+                audio_seq = await _on_audio(blob, conn, audio_seq)
+                continue
             try:
-                msg = parse_c2s(raw)
+                msg = parse_c2s(frame["text"])
             except InvalidMessage as e:
                 await conn.send(_error("invalid_message", str(e)))
                 continue
@@ -157,6 +170,25 @@ async def ws_endpoint(socket: WebSocket) -> None:
         if refiner is not None:
             await refiner.aclose()
         await conn.close()
+
+
+async def _on_audio(blob: bytes, conn: Connection, last_seq: int) -> int:
+    """오디오 프레임 하나. STT 어댑터가 붙기 전까지는 껍질만 벗기고 버린다.
+
+    100ms 마다 오는 것이라 매 조각에 답하면 화면이 오류로 뒤덮인다. 연결당 한 번만
+    `stt_unavailable` 을 보낸다. 계약이 그 코드를 둔 이유가 이것이다 — 프런트가 받으면
+    text 모드 전환을 제안한다(3층 폴백, 기획 7.1 ⑪).
+    """
+    try:
+        audio = parse_audio_frame(blob)
+    except InvalidMessage as e:
+        # 규격이 어긋난 것은 매번 알린다. 프런트가 프레임을 잘못 만들고 있다는 뜻이라
+        # 조용히 버리면 마이크가 안 되는 이유를 아무도 못 찾는다
+        await conn.send(_error("invalid_message", str(e)))
+        return last_seq
+    if last_seq < 0:
+        await conn.send(_error("stt_unavailable", "STT 어댑터가 아직 없습니다.", retryable=True))
+    return audio.seq
 
 
 async def _start_trace(session: Session, pipeline: Pipeline, conn: Connection) -> None:

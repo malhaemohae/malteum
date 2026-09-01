@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from server.bootstrap.settings import Settings
 from server.main import create_app
-from server.ws.protocol import check_s2c
+from server.ws.protocol import FRAME_BYTES, PCM_BYTES, check_s2c
 
 FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
 
@@ -59,3 +59,38 @@ def test_invalid_message_gets_error_not_disconnect():
         assert err["t"] == "error" and err["code"] == "invalid_message"
         sock.send_json({"t": "text_utterance", "text": "안녕"})  # hello 전
         assert sock.receive_json()["code"] == "invalid_message"
+
+
+def test_audio_frame_answers_stt_unavailable_once_and_keeps_socket():
+    """마이크를 켜면 100ms 마다 바이너리가 온다. 소켓이 죽지 않아야 하고,
+    조각마다 답하면 화면이 오류로 뒤덮이므로 한 번만 알린다."""
+    frame = (1).to_bytes(4, "big") + b"\x00" * PCM_BYTES
+    with _client() as client, client.websocket_connect("/ws") as sock:
+        sock.send_json({"t": "hello", "mode": "live"})
+        assert sock.receive_json()["t"] == "ready"
+
+        sock.send_bytes(frame)
+        err = sock.receive_json()
+        check_s2c(err)
+        # 계약: 이 코드를 받으면 프런트가 text 모드 전환을 제안한다 (3층 폴백)
+        assert err["code"] == "stt_unavailable" and err["retryable"] is True
+
+        sock.send_bytes((2).to_bytes(4, "big") + b"\x00" * PCM_BYTES)
+        sock.send_json({"t": "end"})  # 두 번째 조각에는 답이 없어야 한다
+        got = sock.receive_json()
+        while got["t"] == "ping":
+            got = sock.receive_json()
+        assert got["t"] == "ended"
+
+
+def test_malformed_audio_frame_is_rejected_every_time():
+    """길이가 어긋난 프레임은 프런트가 잘못 만들고 있다는 뜻이라 매번 알린다.
+    조용히 버리면 마이크가 안 되는 이유를 아무도 못 찾는다."""
+    with _client() as client, client.websocket_connect("/ws") as sock:
+        sock.send_json({"t": "hello", "mode": "live"})
+        assert sock.receive_json()["t"] == "ready"
+        for _ in range(2):
+            sock.send_bytes(b"\x00" * 10)
+            err = sock.receive_json()
+            assert err["t"] == "error" and err["code"] == "invalid_message"
+            assert str(FRAME_BYTES) in err["message"]
