@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 from contracts.engine_contract import Engine
@@ -32,6 +33,8 @@ from server.services.session.projection import (
 from server.services.session.registry import SessionRegistry
 from server.services.stt.base import SttAdapter
 
+log = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True)
 class Runtime:
@@ -49,6 +52,7 @@ class Runtime:
 
 
 def build_runtime(settings: Settings) -> Runtime:
+    _warn_open_write_paths(settings)
     if settings.event_store == "postgres":
         sessions = make_sessions(settings.database_url)
         store: EventStore = PostgresEventStore(sessions)
@@ -71,6 +75,23 @@ def build_runtime(settings: Settings) -> Runtime:
         source,
         approvals,
         _stt(settings),
+    )
+
+
+def _warn_open_write_paths(settings: Settings) -> None:
+    """토큰이 없으면 부팅 때 한 번 말한다.
+
+    없어도 서버는 뜨고 심사 기본 경로(기획 10.1)는 전부 돈다 — 조회·세션 시작은 계약이
+    열어 두라고 했기 때문이다. 그래서 **아무도 눈치채지 못한 채 배포되고, 팩을 발행하려는
+    순간에야 401 로 드러난다.** 그때는 시연 중이다.
+    """
+    if settings.admin_token:
+        return
+    log.warning(
+        "APP_ADMIN_TOKEN 이 없습니다. 쓰기 경로가 401 입니다 — "
+        "POST /packs/publish · POST /documents · 후보 승인. "
+        "조회와 세션 시작은 계약대로 열려 있어 심사 기본 경로는 그대로 돕니다. "
+        "설정하려면 배포 .env 에 APP_ADMIN_TOKEN 을 넣으십시오 (.env.example 참고)."
     )
 
 

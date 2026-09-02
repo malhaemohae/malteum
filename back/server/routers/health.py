@@ -15,11 +15,16 @@ def health(request: Request) -> dict:
     runtime = request.app.state.runtime
     settings = request.app.state.settings
     # 설정 여부만 본다. 외부 API 를 찔러 보면 감시가 10초마다 유료 호출을 낸다.
-    # db 만 실제로 찌르는 이유는 그것이 이 서버 안에 있고 정본을 들고 있어서다
+    # db 만 실제로 찌르는 이유는 그것이 이 서버 안에 있고 정본을 들고 있어서다.
+    #
+    # 설정돼 있으면 `ok` 다. 계약 enum 이 ok·fail·unconfigured 셋뿐이고 `fail` 은
+    # 찔러 보고 실패했을 때인데 여기서는 찌르지 않는다. `configured` 로 내보내면
+    # 계약 밖 값이라 화면·감시가 모르는 상태가 된다 (2026-09-02 실측으로 드러남 —
+    # 설정이 없는 테스트 환경에서만 통과하고 배포에서 어기는 모양이었다)
     checks = {
         "db": "ok" if runtime.event_store.healthy() else "fail",
-        "stt": "configured" if runtime.stt is not None else "unconfigured",
-        "llm": "configured" if settings.llm_model else "unconfigured",
+        "stt": "ok" if runtime.stt is not None else "unconfigured",
+        "llm": "ok" if settings.llm_model else "unconfigured",
     }
     return {
         "status": "ok" if "fail" not in checks.values() else "degraded",
