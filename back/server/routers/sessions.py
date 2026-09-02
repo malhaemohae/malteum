@@ -116,17 +116,50 @@ def list_sessions(
         _encode(rows[-1]["started_at"], rows[-1]["session_id"]) if len(rows) == limit else None
     )
     return {
-        "sessions": [SessionSummary.model_validate(r) for r in rows],
+        "sessions": [_summary(r) for r in rows],
         "next_cursor": next_cursor,
     }
 
 
+# 계약이 integer 로 둔 옵셔널 값들. 아직 접지 않은 세션은 이 값이 없다
+_COUNTS = ("met", "items_total", "violations")
+
+# 계약 전체에서 null 을 허용하는 자리는 이 둘뿐이다(`type: [string, "null"]` 전수 검색).
+# 나머지 옵셔널 필드는 값이 없으면 **키를 빼야 한다** — 생성 모델은 안 채운 필드를 null 로
+# 내보내는데, 계약의 그 자리들은 string·integer·array 여서 null 이 타입 위반이다.
+# `scripts/smoke.py` 의 응답 모양 대조가 이것을 세 경로에서 잡았다
+_NULLABLE = ("ended_at", "next_cursor")
+
+
+def _contract_json(model: BaseModel) -> dict[str, Any]:
+    data = model.model_dump(mode="json", exclude_none=True)
+    for key in _NULLABLE:
+        if key in type(model).model_fields:
+            data.setdefault(key, None)  # 진행 중인 상담은 ended_at 이 null 이어야 한다
+    return data
+
+
+def _summary(row: dict[str, Any]) -> dict[str, Any]:
+    """세션 요약 한 줄. **집계가 없으면 0 이 아니라 키를 뺀다.**
+
+    위반 0 건과 "아직 모름" 은 다른 말이다. 목록에서 0 을 보면 사람은 깨끗이 끝난 상담으로
+    읽는다. 계약이 옵셔널로 둔 자리라 빼는 쪽이 맞고, null 로 두면 integer 타입에 어긋난다
+    (scripts/smoke.py 의 응답 모양 대조가 잡았다).
+    """
+    data = SessionSummary.model_validate(row).model_dump(mode="json")
+    return {k: v for k, v in data.items() if not (v is None and k in _COUNTS)}
+
+
 @router.get("/sessions/{session_id}")
-def get_session(session_id: str, request: Request) -> SessionDetail:
+def get_session(session_id: str, request: Request) -> dict[str, Any]:
     """이벤트를 접어 만든 파생 상태다. 원본이 아니다(계약).
 
     투영(sessions)이 아니라 이벤트에서 직접 만든다. 그래야 투영이 없거나 어긋나도
     같은 답이 나온다.
+
+    반환 타입이 `SessionDetail` 이 아니라 dict 인 이유: 그 모델은 안 채운 옵셔널 필드를
+    null 로 내보내는데, 계약에서 그 자리들은 `string`·`integer`·`array` 라 null 이 타입
+    위반이다. 아래에서 검증은 그대로 하고 직렬화만 우리가 한다.
     """
     runtime = request.app.state.runtime
     events = runtime.event_store.of_session(session_id)
@@ -152,7 +185,7 @@ def get_session(session_id: str, request: Request) -> SessionDetail:
     }
     body = started["session_started"]
     reason = ended["session_ended"]["reason"] if ended else None
-    return SessionDetail.model_validate(
+    detail = SessionDetail.model_validate(
         {
             "session_id": session_id,
             "mode": body["mode"],
@@ -190,6 +223,7 @@ def get_session(session_id: str, request: Request) -> SessionDetail:
             ],
         }
     )
+    return _contract_json(detail)
 
 
 @router.get("/sessions/{session_id}/events")
@@ -260,8 +294,11 @@ async def upload_audio(session_id: str, request: Request, file: UploadFile) -> d
 
 
 @router.get("/sessions/{session_id}/report")
-def get_report(session_id: str, request: Request) -> Report:
-    """증빙 리포트. 이벤트를 접어 만들고 PDF 와 같은 내용을 준다(계약)."""
+def get_report(session_id: str, request: Request) -> dict[str, Any]:
+    """증빙 리포트. 이벤트를 접어 만들고 PDF 와 같은 내용을 준다(계약).
+
+    dict 로 내보내는 이유는 `get_session` 과 같다 — `_contract_json` 주석 참조.
+    """
     runtime = request.app.state.runtime
     events = runtime.event_store.of_session(session_id)
     if not events:
@@ -272,6 +309,6 @@ def get_report(session_id: str, request: Request) -> Report:
         doc = runtime.pack_source.read(pack_version)
     except PackNotFound as e:
         raise HTTPException(404, "규정 팩이 없습니다.") from e
-    return Report.model_validate(
-        report_builder.build(session_id, events, runtime.engine, pack, doc)
+    return _contract_json(
+        Report.model_validate(report_builder.build(session_id, events, runtime.engine, pack, doc))
     )

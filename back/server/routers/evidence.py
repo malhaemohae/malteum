@@ -49,7 +49,7 @@ def get_evidence(evidence_ref: str, request: Request) -> dict[str, Any]:
     except DocumentNotFound as e:
         raise HTTPException(404, f"원문 문서가 없습니다: {evidence['doc_id']}") from e
 
-    return {
+    payload = {
         "doc_id": evidence["doc_id"],
         "doc_title": source.get("title"),
         "publisher": source.get("publisher"),
@@ -61,6 +61,10 @@ def get_evidence(evidence_ref: str, request: Request) -> dict[str, Any]:
         "page_image_url": _page_image_url(evidence["doc_id"], evidence["page"]),
         "page_size": list(size),
     }
+    # 이 응답에는 계약이 null 을 허용한 자리가 없다. 값이 없으면 키를 뺀다 —
+    # 근거 없는 항목의 `legal_basis` 가 null 로 나가 타입에 어긋났다
+    # (`routers/sessions.py` 의 `_contract_json` 과 같은 이유)
+    return {k: v for k, v in payload.items() if v is not None}
 
 
 @router.get("/documents/{doc_id}/pages/{page}.png", tags=["documents"])
