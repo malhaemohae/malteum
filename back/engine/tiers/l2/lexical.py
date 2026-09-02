@@ -23,12 +23,20 @@ class TrigramIndex:
     idf: dict[str, float]
 
 
-def build(texts: dict[str, str]) -> TrigramIndex:
+def build(texts: dict[str, str], *, stats: frozenset[str] | None = None) -> TrigramIndex:
+    """`stats` 에 든 문서만 df·idf 계산에 참여한다. 기본은 전부.
+
+    예시 가상 문서(`EXAMPLES_SUFFIX`)는 채점 대상이되 통계에는 안 넣는다.
+    통계에 넣으면 예시 어휘가 주제 문서의 idf 를 깎아, 예시를 추가하는 것만으로
+    기존 주제 점수가 흔들린다 (2026-09-02 실측: answer 임계 미달 회귀).
+    통계 밖 문서에만 있는 trigram 은 idf 가 없어 채점에서 0 으로 친다.
+    """
     grams = {code: frozenset(jamo_trigrams(t)) for code, t in texts.items()}
-    n = max(len(grams), 1)
+    stat_keys = stats if stats is not None else frozenset(grams)
+    n = max(len(stat_keys), 1)
     df: dict[str, int] = {}
-    for g in grams.values():
-        for t in g:
+    for code in stat_keys:
+        for t in grams.get(code, ()):
             df[t] = df.get(t, 0) + 1
     idf = {t: math.log(1 + (n - d + 0.5) / (d + 0.5)) for t, d in df.items()}
     return TrigramIndex(grams=grams, idf=idf)
@@ -59,3 +67,10 @@ def coverage(text: str, index: TrigramIndex) -> dict[str, float]:
 
 def item_text(name: str, *parts_groups: tuple[str, ...]) -> str:
     return " ".join([name, *(p for g in parts_groups for p in g)])
+
+
+# 금지·위험 예시를 주제 문서와 같은 인덱스 안의 가상 문서로 둘 때의 키 접미사.
+# 예시를 주제 문서에 합치면 예시 어휘("중간에 해지하셔도 손해 없습니다")가 항목
+# 주제로 흡수되어 정상 질문이 금지 항목으로 밀리고, 아예 다른 인덱스로 떼면
+# 문서가 두어 개뿐이라 idf 분모가 무너진다 (2026-09-02 실측, 두 방향 모두)
+EXAMPLES_SUFFIX = "#examples"
