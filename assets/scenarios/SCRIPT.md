@@ -162,15 +162,15 @@ keyterm 은 팩의 `jargon_terms` 를 서버가 자동으로 넣는다(`ws/endpo
 | 화자 분리 | 서버가 STT 화자 분리 옵션을 켜고 번호를 `teller`·`customer` 로 매핑해야 한다. 현재 서버는 오디오 경로의 화자를 전부 `teller` 로 고정(`stt/session.py`) | 서버 작업 전에는 고객 줄의 위험 신호·되물음이 뜨지 않음 |
 | L3 의존 | 넛지, violated 확정, comprehension confirmed, 카드 채택 기록은 LLM 심판이 붙어야 나온다 | `APP_LLM_MODEL` 이 비면 그 장면이 빠진다. 배포 전 확인 |
 | 산식 판단 | 중도해지이율·만기후이자율의 비율(`약정이율×0.5`)은 숫자 대조가 아니라 L3 몫 | 은행원이 "절반" 을 "70%" 로 잘못 말해도 L1·L2 는 경보를 내지 않음. L3 가 근거 문장과 대조해야 함 |
-| 용어 밀도(⑧) | 엔진에 구현이 없다(`term_density` 를 계산하는 코드 없음) | 시연에서 보여줄 수 없음 |
+| 용어 밀도(⑧) | 최근 8발화 창 안 은행원 발화의 팩 `jargon_terms` 출현 수로 잼(`engine/state/term_density.py`, 2026-09-03 dev 병합). 3개 이상이면 high, 은행원 발화 3턴 동안 0개면 low | 대본 A 는 0:42 부터 high 로 올라가 1:45 근처에서 low·normal 을 스치고 2:10 이후 다시 high. 경보가 아니라 `progress.term_density` 상태 표시 |
 | 대출 팩 | 주담대가 아니라 신용대출 팩. 서류 항목(`LOAN-DOC-001`)은 설명서에 구비서류 목록이 없어 검토 대기 | B 는 기획 9장 B 표의 서류 안내 장면을 담지 못함. LTV·근저당은 주담대 팩 몫 |
-| 서버 프리셋 | `GET /presets` 가 빈 목록을 돌려주고 기본 팩이 `DEP-2026.08-v4` 하나 | B 를 열려면 `POST /sessions` 에 `pack_version: LOAN-2026.08-v5` 와 `audio_ref` 를 넘겨야 함 |
+| 서버 프리셋 | `GET /presets` 가 `assets/scenarios/*/script.json` 을 읽어 대본 하나를 프리셋 하나로 냄(`server/services/presets.py`, 2026-09-03 dev 병합). `preset_id`·`title`·`mode`·`product_code`·`pack_version`·`customer_profile`·`duration_ms` 를 그대로 쓰고, `lines[].expect` 의 둘째 토큰(`number_mismatch`·`rephrase` 등)을 세어 `expected_highlights` 를 만듦 | **`expect` 문자열의 앞 두 토큰(`alert <type>` / `assist <type>`)은 서버가 읽는 형식이 됨.** 바꾸면 심사위원 화면의 '볼 것' 안내가 바뀐다. `audio.wav` 가 없으면 `audio_ref` 를 내지 않아 재생 버튼이 켜지지 않음 |
 
-## 6. 배포 서버 동기화 체크리스트 (M1)
+## 6. DB 를 붙일 때 주의 (M1)
 
-팩 파일이 바뀌었으니 배포 DB 도 맞춰야 한다. DB 의 팩이 파일보다 우선하므로(`DbThenFilePackSource`), 옛 팩이 남아 있으면 화면은 옛 값을 보여준다.
+2026-09-03 기준 배포된 서버·DB 가 아직 없다. 그래서 지금 맞출 DB 는 없고, 이 절은 처음 `compose up` 으로 DB 를 붙일 때와 그 뒤 팩을 DB 에 넣기 시작할 때의 규칙이다.
 
-- `DEP-2026.08-v4` 는 같은 버전으로 내용이 바뀌었다(0.10% 제거, 세율 15.4% 추가). DB 에 v4 가 있으면 `load_pack --replace` 로 다시 넣는다
-- `LOAN-2026.08-v5` 를 새로 넣는다. v2·v3·v4 가 DB 에 있으면 지운다(`rulepack/docs/PIPELINE.md` 의 정리 SQL)
-- `pack_version` 을 키로 쓰는 L3 판정 캐시와 녹화 테이프를 무효화한다
-- 프리셋 A 는 기본 팩 그대로, 프리셋 B 는 `pack_version: LOAN-2026.08-v5`
+- DB 가 비어 있으면 서버는 `contracts/fixtures/` 의 팩 파일을 그대로 읽는다(`DbThenFilePackSource`). 저장소를 배포하면 새 팩이 자동으로 쓰이므로 따로 할 일이 없다
+- 팩이 DB 에 들어가는 길은 `scripts/load_pack.py` 와 `POST /packs/publish` 둘뿐이다. 한 번 넣으면 그 버전은 DB 가 파일을 이긴다. 그 뒤 파일만 고치면 화면은 옛 값을 보여주므로, 같은 버전을 다시 넣을 때는 `load_pack --replace`
+- trace 재생(기획 11.4)은 DB 에 저장된 이벤트를 다시 흘리므로, 그 장면을 보이려면 `scripts/seed_session.py` 로 시나리오 A 이벤트(48건)를 넣어야 한다. 팩이 재발행되면 `--replace` 로 다시 넣는다
+- 프리셋 목록은 `script.json` 의 `pack_version` 을 그대로 내므로 따로 넣거나 넘길 것은 없다
