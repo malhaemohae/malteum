@@ -16,6 +16,11 @@ from engine.build import build_engine
 from engine.pack.source import PackSource
 from server.bootstrap.settings import Settings
 from server.database.session import make_sessions
+from server.services.approval_store import (
+    ApprovalStore,
+    MemoryApprovalStore,
+    PostgresApprovalStore,
+)
 from server.services.event.store import EventStore, MemoryEventStore, PostgresEventStore
 from server.services.pack_source import DbThenFilePackSource
 from server.services.pack_store import NullPackStore, PackStore, PostgresPackStore
@@ -37,6 +42,8 @@ class Runtime:
     pack_store: PackStore
     # 팩 원문(rulepack.schema.json 그대로). RulePack dataclass 에는 sources 가 없다
     pack_source: PackSource
+    # 후보 승인 기록. 후보 자체는 저장하지 않는다 — 사람이 누른 결정만 원본이다
+    approvals: ApprovalStore
     # STT. 키가 없으면 None 이고 ws 가 stt_unavailable 을 낸다 (3층 폴백)
     stt: SttAdapter | None = None
 
@@ -47,9 +54,12 @@ def build_runtime(settings: Settings) -> Runtime:
         store: EventStore = PostgresEventStore(sessions)
         projection: SessionProjection = PostgresSessionProjection(sessions)
         packs: PackStore = PostgresPackStore(sessions)
+        approvals: ApprovalStore = PostgresApprovalStore(sessions)
         source = DbThenFilePackSource(packs, settings.pack_dir)
     else:
         store, projection, packs = MemoryEventStore(), NullSessionProjection(), NullPackStore()
+        # 승인은 누른 직후 다시 읽는 값이라 이 모드에서도 담는다(approval_store.py)
+        approvals = MemoryApprovalStore()
         source = FilePackSource(settings.pack_dir)
     engine = build_engine(source, l3_budget_ms=settings.l3_budget_ms, **_adapters(settings))
     return Runtime(
@@ -59,6 +69,7 @@ def build_runtime(settings: Settings) -> Runtime:
         projection,
         packs,
         source,
+        approvals,
         _stt(settings),
     )
 

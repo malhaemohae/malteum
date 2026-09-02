@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     pack_dir: Path = BACK_DIR / "contracts" / "fixtures"
     # 근거 원문 PDF. 팩의 sources[].doc_id 와 파일명이 1:1 이다
     docs_dir: Path = BACK_DIR.parent / "assets" / "03_규정문서"
+    # 항목 후보의 출처(M3 소유). import 가 아니라 파일 읽기다 — services/candidates.py 참고.
+    # M3 가 이 파일을 옮기면 후보 목록이 빈다. tests/server/test_candidates.py 가 먼저 깨진다
+    candidate_rules: Path = BACK_DIR / "rulepack" / "config" / "candidate_rules.json"
     # 시연 자산 루트. replay 의 audio_ref 가 이 아래를 가리킨다(최상위 README).
     # 지금 `scenarios/` 가 비어 있고 R5 가 채우면 그대로 붙는다
     assets_dir: Path = BACK_DIR.parent / "assets"

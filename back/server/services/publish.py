@@ -54,8 +54,12 @@ def _validator() -> Draft202012Validator:
 
 
 @cache
-def _find_span():
-    """계약의 함수를 그대로 쓴다. `contracts/` 는 패키지가 아니라 파일로 얹어 읽는다."""
+def load_find_span():
+    """계약의 함수를 그대로 쓴다. `contracts/` 는 패키지가 아니라 파일로 얹어 읽는다.
+
+    후보 조회(`services/candidates.py`)도 같은 대조를 하므로 여기서 한 번만 얹는다.
+    두 곳이 각자 얹으면 계약 파일이 두 번 실행되고, 무엇보다 대조가 두 구현이 된다.
+    """
     spec = importlib.util.spec_from_file_location("malteum_find_span", CONTRACTS / "find_span.py")
     if spec is None or spec.loader is None:
         raise RuntimeError("contracts/find_span.py 로드 실패")
@@ -70,7 +74,7 @@ def verify_evidence(doc: dict[str, Any], docs_dir: Path) -> list[dict[str, str]]
 
     원문이 없는 것도 거절한다. 근거를 확인할 수 없는 항목은 근거가 없는 항목과 같다.
     """
-    find_span = _find_span()
+    find_span = load_find_span()
     rejected: list[dict[str, str]] = []
     for item in doc.get("items", []):
         evidence = item.get("evidence") or {}

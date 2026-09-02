@@ -19,13 +19,17 @@ from server.main import create_app
 
 CONTRACTS = Path(__file__).resolve().parents[2] / "contracts"
 
-# 아직 서지 않은 계약 경로. 전부 M3 파이프라인 산출물(후보 리뷰 큐)이 서버에 들어와야 열린다.
-# report.pdf 는 별도 배정(R4).
+# 아직 서지 않은 계약 경로.
+#
+# 앞의 둘은 OpenDataLoader 구조 추출 산출물이 있어야 하는데 그것이 M3 의 `artifacts/` 에
+# 있고 `.gitignore` 라 서버에 없다. 기획 14장이 구조 추출을 R3 에 배정했다.
+# `report.pdf` 는 기획 8.2 가 R4 에 배정했다.
+#
+# 후보 조회·승인은 여기서 빠졌다 — 후보에 필요한 값이 M3 의 `config/candidate_rules.json`
+# 에 커밋돼 있어 M3 를 기다리지 않고 섰다(`services/candidates.py`).
 MISSING = {
     ("POST", "/documents"),
     ("GET", "/documents/{doc_id}/extraction"),
-    ("GET", "/documents/{doc_id}/candidates"),
-    ("POST", "/documents/{doc_id}/candidates/{candidate_id}/approve"),
     ("GET", "/sessions/{session_id}/report.pdf"),
 }
 

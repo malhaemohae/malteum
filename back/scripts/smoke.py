@@ -13,6 +13,7 @@
 import asyncio
 import json
 import sys
+import urllib.error
 import urllib.request
 import uuid
 from pathlib import Path
@@ -23,6 +24,8 @@ sys.stdout.reconfigure(encoding="utf-8")
 BASE = "http://localhost:8000/api"
 WS = "ws://localhost:8000/ws"
 SID = "FIXT-SESS-0A"
+# 후보가 붙어 있는 원천. M3 config/candidate_rules.json 의 doc_id 와 같다
+DOC = "05_상품설명서_정기예금"
 AUDIO = Path(__file__).resolve().parent / "stt_audio"
 ok = fail = 0
 
@@ -40,6 +43,18 @@ def check(label, cond, detail=""):
 def get(path, raw=False):
     with urllib.request.urlopen(BASE + path, timeout=20) as r:
         return (r.status, r.read()) if raw else (r.status, json.load(r))
+
+
+def post_status(path, body):
+    """상태 코드만 본다. 4xx 는 예외로 올라오므로 여기서 받아 넘긴다."""
+    req = urllib.request.Request(
+        BASE + path, json.dumps(body).encode(), {"Content-Type": "application/json"}
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
 
 
 def post(path, body):
@@ -119,6 +134,48 @@ def rest():
     except Exception as e:
         check("근거 원문 (기능 14)", False, f"{type(e).__name__} · 원문 PDF 가 안 보임")
         check("페이지 렌더", False, "compose 에 assets 마운트 필요")
+
+    candidates()
+
+
+def candidates():
+    """S4 검수 화면의 입력 (기획 8.2). 심화 경로라 기본 시연에는 안 나오지만
+    "자동 폐기 행 노출" 이 P4 의 시각 증거라 여기서 실물로 확인한다."""
+    s, d = get(f"/documents/{DOC}/candidates")
+    cands = d["candidates"]
+    verified = [c for c in cands if c["span_verified"]]
+    rejected = [c for c in cands if not c["span_verified"]]
+    check(
+        "후보 목록",
+        len(cands) > 0,
+        f"{len(cands)}건 · 검증 {len(verified)} · 자동폐기 {len(rejected)}",
+    )
+    # 걸러서 보내면 화면이 P4 의 증거를 못 보여준다
+    check(
+        "자동 폐기 행 노출 (P4 시각 증거)",
+        len(rejected) > 0 and all(c["status"] == "rejected" for c in rejected),
+        " · ".join(c["suggested_code"] for c in rejected) or "없음",
+    )
+    check(
+        "좌표 부여 (형광펜 배경)",
+        all(len(c["evidence"].get("bbox", [])) == 4 for c in verified),
+        f"{len(verified)}건 bbox",
+    )
+    if d["withheld"]:
+        check(
+            "계약 공백 보류 (risk type)",
+            True,
+            " · ".join(w["suggested_code"] for w in d["withheld"]) + " — 계약 합의 대기",
+        )
+
+    # 승인은 쓰기 경로라 토큰이 필요하다(계약 securitySchemes)
+    target = rejected[0] if rejected else None
+    if target:
+        st = post_status(
+            f"/documents/{DOC}/candidates/{target['candidate_id']}/approve",
+            {"approved_by": "smoke"},
+        )
+        check("토큰 없는 승인 거절", st == 401, f"{st} (계약: 401)")
 
 
 async def ws_human():
