@@ -1,7 +1,7 @@
 {
   "preset_id": "preset-loan-b",
   "title": "가계 신용대출 금리·한도 안내 상담",
-  "pack_version": "LOAN-2026.08-v2",
+  "pack_version": "LOAN-2026.08-v3",
   "product_code": "HNB-HOUSEHOLD-CREDIT",
   "mode": "replay",
   "customer_profile": { "type": "general", "tags": [] },
@@ -23,7 +23,7 @@
     "turn_order": "customer 가 먼저 말하고 이후 교대로. 같은 화자가 연속으로 말하는 구간은 lines 의 speaker 열이 진실",
     "voices_distinct": "남성·여성으로 갈라 화자 분리 정확도를 높인다"
   },
-  "pack_note": "기대 판정은 2026-09-02 l1_patterns 가 실린 다음 발행 팩 기준. 발행된 v2 팩으로 돌리면 DSR 은 L3(LLM) 몫이 되고 B03 재진술 카드는 그 결과가 먼저 도착해야 뜬다",
+  "pack_note": "기대 판정은 LOAN-2026.08-v3(2026-09-02 발행, l1_patterns·numeric_facts·LOAN-ARR-002 반영) 기준. v2 팩으로 돌리면 DSR 은 L3(LLM) 몫이 되고 B03 재진술 카드는 그 결과가 먼저 도착해야 뜨며, ARR-002 항목이 없어 필수 6개로 집계된다",
   "lines": [
     {
       "id": "B01", "start_ms": 3000, "speaker": "customer",
@@ -114,9 +114,14 @@
     },
     {
       "id": "B13", "start_ms": 133000, "speaker": "teller",
-      "text": "연체하시면 대출이자율에 연체가산이자율이 더해진 연체이자율이 적용됩니다.",
-      "expect": ["verdict LOAN-ARR-001 omission met L1"],
-      "note": "연체이자율. 설명서 문구 그대로"
+      "text": "연체하시면 대출이자율에 연체가산이자율 연 3%가 더해진 연체이자율이 적용됩니다.",
+      "tts_text": "연체하시면 대출이자율에 연체가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+      "expect": [
+        "verdict LOAN-ARR-001 omission met L1",
+        "verdict LOAN-ARR-002 omission met L1",
+        "alert 없음 (3% == 설명서 3%)"
+      ],
+      "note": "연체이자율 산식 + 가산이자율 수치. 숫자가 맞으면 경보가 없어야 한다. '연 5%' 로 바꾸면 number_mismatch 경보가 뜨는 ⑤ 장면이 됨(선택)"
     },
     {
       "id": "B14", "start_ms": 145000, "speaker": "teller",
@@ -139,8 +144,8 @@
     }
   ],
   "expected_summary": {
-    "items_total": 6, "met": 5, "partial": 0, "unmet": 1, "waived": 0, "violations": 2, "alerts": 2,
-    "met_codes": ["LOAN-DSR-001", "LOAN-INT-001", "LOAN-PRE-001", "LOAN-ARR-001", "LOAN-WDR-001"],
+    "items_total": 7, "met": 6, "partial": 0, "unmet": 1, "waived": 0, "violations": 2, "alerts": 2,
+    "met_codes": ["LOAN-DSR-001", "LOAN-INT-001", "LOAN-PRE-001", "LOAN-ARR-001", "LOAN-ARR-002", "LOAN-WDR-001"],
     "unmet_codes": ["LOAN-CIC-001"],
     "violated_codes": ["LOAN-BAN-001", "LOAN-RSK-001"],
     "note": "violations 2 는 L3 확정값이고 LLM 이 없으면 suspected 로 남는다"
