@@ -11,7 +11,6 @@
 """
 
 import json
-import logging
 from pathlib import Path
 
 import pytest
@@ -93,25 +92,48 @@ def test_verified_candidates_carry_coordinates(client):
     assert all(len(c["evidence"]["bbox"]) == 4 for c in verified)
 
 
-def test_risk_type_is_withheld_and_says_so_in_the_log(client, caplog):
-    """계약 공백. `rulepack.schema.json` 은 `risk` 를 담는데 REST 후보 type 은 3종뿐이다.
+def test_risk_items_reach_the_review_screen(client):
+    """위험 신호도 검수 화면에 떠야 한다.
 
-    응답에 빠진 사실을 담을 자리가 계약에 없다. 그래서 로그에 남긴다 — 계약을 어기지
-    않으면서 조용히 사라지는 것도 막는 유일한 자리다.
-
-    계약에 `risk` 가 추가되면 이 테스트가 깨진다. 그때 이 테스트를 지우는 것이 맞다.
+    계약 후보 `type` 이 `rulepack.schema.json` 과 같은 집합이 되기 전에는 `DEP-RSK-001`
+    이 목록에서 통째로 빠졌다. 검수자가 승인할 방법이 없으면 그 항목은 팩에 못 들어가고,
+    기획 7.1 ⑦(위험 신호 감지)이 화면에서 통째로 사라진다.
     """
-    spec = yaml.safe_load((CONTRACTS / "api.openapi.yaml").read_text(encoding="utf-8"))
-    got = spec["paths"]["/documents/{doc_id}/candidates"]["get"]["responses"]["200"]
-    item = got["content"]["application/json"]["schema"]["properties"]["candidates"]["items"]
-    assert "risk" not in item["properties"]["type"]["enum"], (
-        "계약이 risk 를 받게 됐습니다. candidates.py 의 보류를 지우고 이 테스트도 지우세요"
-    )
+    body = client.get("/api/documents/03_예금거래기본약관/candidates").json()
+    codes = {c["suggested_code"]: c for c in body["candidates"]}
+    assert "DEP-RSK-001" in codes, "위험 신호 항목이 검수 화면에서 빠졌습니다"
+    assert codes["DEP-RSK-001"]["type"] == "risk"
 
-    with caplog.at_level(logging.WARNING, logger="server.services.candidates"):
-        body = client.get("/api/documents/03_예금거래기본약관/candidates").json()
-    assert "risk" not in {c["type"] for c in body["candidates"]}
-    assert "DEP-RSK-001" in caplog.text, "빠진 항목이 로그에도 안 남았습니다"
+
+def test_contract_candidate_types_match_the_pack_schema(client):
+    """두 계약이 같은 집합을 써야 한다. 갈리면 M3 가 만든 항목을 REST 가 못 나른다."""
+    api = yaml.safe_load((CONTRACTS / "api.openapi.yaml").read_text(encoding="utf-8"))
+    got = api["paths"]["/documents/{doc_id}/candidates"]["get"]["responses"]["200"]
+    item = got["content"]["application/json"]["schema"]["properties"]["candidates"]["items"]
+    rest = set(item["properties"]["type"]["enum"])
+
+    pack = json.loads((CONTRACTS / "rulepack.schema.json").read_text(encoding="utf-8"))
+    found = _find_item_type_enum(pack)
+    assert found, "rulepack.schema.json 에서 item.type enum 을 못 찾았습니다"
+    assert rest == found, f"REST {sorted(rest)} ↔ 팩 {sorted(found)}"
+
+
+def _find_item_type_enum(node) -> set[str] | None:
+    """`rulepack.schema.json` 의 item.type enum. 구조가 바뀌어도 찾게 훑는다."""
+    if isinstance(node, dict):
+        prop = node.get("properties", {}).get("type")
+        if isinstance(prop, dict) and "required" in (prop.get("enum") or []):
+            return set(prop["enum"])
+        for value in node.values():
+            found = _find_item_type_enum(value)
+            if found:
+                return found
+    elif isinstance(node, list):
+        for value in node:
+            found = _find_item_type_enum(value)
+            if found:
+                return found
+    return None
 
 
 def test_unknown_document_is_empty_not_an_error(client):

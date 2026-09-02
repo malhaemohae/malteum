@@ -26,34 +26,12 @@ NO = "NOSUCH-0001"
 
 # 계약이 정의하지 않았지만 서버가 내야만 하는 코드. 각각 왜 뺄 수 없는지 적는다.
 #
-# 여기 있는 것은 전부 **계약에 추가해야 할 목록**이다. 계약에 이미
-# `components.responses.NotFound` 가 있고 `/packs/{ver}`·`/sessions/{id}`·
-# `/evidence/{ref}` 셋이 그것을 쓴다 — 아래 경로들만 안 붙였다.
-BEYOND_CONTRACT = {
-    ("GET", "/packs/{pack_version}/briefing", 404): "없는 팩에 200 을 줄 수 없다",
-    ("GET", "/sessions/{session_id}/events", 404): "없는 세션에 200 을 줄 수 없다",
-    ("GET", "/sessions/{session_id}/report", 404): "없는 세션에 200 을 줄 수 없다",
-    ("GET", "/documents/{doc_id}/pages/{page}.png", 404): "없는 문서에 200 을 줄 수 없다",
-    (
-        "POST",
-        "/documents/{doc_id}/candidates/{candidate_id}/approve",
-        404,
-    ): "없는 후보를 승인했다고 200 을 줄 수 없다",
-    # 요청이 계약 requestBody 를 안 지킨 경우. 계약은 어느 경로에도 422 를 안 적었지만
-    # 스키마를 요구한 이상 안 지킨 요청에 답이 있어야 한다. 프레임워크 공통 동작이다
-    ("POST", "/sessions", 422): "계약 requestBody 위반",
-    (
-        "POST",
-        "/documents/{doc_id}/candidates/{candidate_id}/approve",
-        422,
-    ): "계약 requestBody 위반 (approved_by 는 required)",
-    # 규격이 다르거나 WAV 로 읽히지 않는 업로드. 계약은 202 만 적었지만 STT 에 넘기면
-    # 전사가 비거나 밀린다. 안 거절하면 500 이 되는 자리라 415 가 최선이다
-    ("POST", "/sessions/{session_id}/audio", 415): "계약 audioFrame 규격이 아닌 업로드",
-    # 401 은 전역 securitySchemes 에서 온다. OpenAPI 는 이것을 경로마다 적지 않는다
-    ("POST", "/packs/publish", 401): "bearerAuth",
-    ("POST", "/documents/{doc_id}/candidates/{candidate_id}/approve", 401): "bearerAuth",
-}
+# **2026-09-02 에 비었다.** 여기 있던 열 개를 계약이 흡수했다 — 404 여섯, 415, 422 둘,
+# 401 둘. 계약에 `NotFound`·`ValidationFailed`·`Unauthorized` 응답 컴포넌트가 있으므로
+# 새 항목은 그것을 `$ref` 하면 된다.
+#
+# 비어 있는 것이 정상이다. 여기에 무언가 적어야 하는 상황이면 계약을 먼저 보라.
+BEYOND_CONTRACT: dict[tuple[str, str, int], str] = {}
 
 
 @pytest.fixture(scope="module")

@@ -137,6 +137,7 @@ paths:
           in: query
           schema: { enum: [general, professional], default: general }
       responses:
+        "404": { $ref: "#/components/responses/NotFound" }
         "200":
           description: 브리핑
           content:
@@ -198,6 +199,7 @@ paths:
                   embedding_indexed:
                     type: integer
                     description: pgvector 에 색인된 항목 수
+        "401": { $ref: "#/components/responses/Unauthorized" }
         "409":
           description: 같은 pack_version 이 이미 있음
           content:
@@ -280,6 +282,7 @@ paths:
                   type: string
                   description: mode=replay 일 때 업로드된 오디오 참조
       responses:
+        "422": { $ref: "#/components/responses/ValidationFailed" }
         "201":
           description: 생성됨
           content:
@@ -332,6 +335,7 @@ paths:
           in: query
           schema: { type: boolean, default: true }
       responses:
+        "404": { $ref: "#/components/responses/NotFound" }
         "200":
           description: 이벤트 배열
           content:
@@ -358,6 +362,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/SessionId"
       responses:
+        "404": { $ref: "#/components/responses/NotFound" }
         "200":
           description: 리포트
           content:
@@ -373,6 +378,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/SessionId"
       responses:
+        "404": { $ref: "#/components/responses/NotFound" }
         "200":
           description: PDF
           content:
@@ -397,6 +403,14 @@ paths:
               properties:
                 file: { type: string, format: binary }
       responses:
+        "415":
+          description: |
+            16kHz mono PCM16 WAV 가 아님. 규격이 다른 소리를 STT 에 넘기면 전사가
+            비거나 밀리고, 그 사실이 상담 한복판에서야 드러난다
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
         "202":
           description: 처리 시작
           content:
@@ -497,6 +511,8 @@ paths:
                 url: { type: string }
                 snapshot_date: { type: string, format: date }
       responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
         "202":
           description: 접수됨. 추출 진행 중
           content:
@@ -517,6 +533,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/DocId"
       responses:
+        "404": { $ref: "#/components/responses/NotFound" }
         "200":
           description: 추출 결과
           content:
@@ -571,6 +588,7 @@ paths:
           description: 1 이면 72dpi 기준
           schema: { type: number, default: 2 }
       responses:
+        "404": { $ref: "#/components/responses/NotFound" }
         "200":
           description: PNG
           content:
@@ -603,7 +621,12 @@ paths:
                         candidate_id: { type: string }
                         suggested_code: { $ref: "#/components/schemas/ItemCode" }
                         name: { type: string }
-                        type: { enum: [required, forbidden, reference] }
+                        type:
+                          enum: [required, forbidden, reference, risk]
+                          description: |
+                            rulepack.schema.json 의 item.type 과 같은 집합이다. risk 는
+                            고객 발화 대상이라 판정이 아니라 경보만 만든다(기획 7.1 ⑦).
+                            여기서 빠지면 그 항목이 검수 화면에 아예 뜨지 않는다
                         requirement_elements: { type: array, items: { type: string } }
                         evidence:
                           type: object
@@ -620,7 +643,10 @@ paths:
     post:
       tags: [documents]
       summary: 후보 승인
-      description: 사람이 누른다. span_verified 가 false 인 후보는 400 으로 거절한다
+      description: |
+        사람이 누른다. span_verified 가 false 인 후보는 400 으로 거절한다.
+        같은 후보를 두 번 눌러도 200 이고 처음 승인한 기록이 그대로 남는다 —
+        누가 언제 승인했는지가 증빙이라 뒤에 누른 사람으로 바뀌지 않는다
       parameters:
         - $ref: "#/components/parameters/DocId"
         - name: candidate_id
@@ -660,6 +686,9 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
 
 components:
 
@@ -683,6 +712,16 @@ components:
   responses:
     NotFound:
       description: 없음
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ValidationFailed:
+      description: 요청이 이 계약과 맞지 않음
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: 쓰기 경로인데 토큰이 없거나 맞지 않음
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
