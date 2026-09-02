@@ -116,11 +116,7 @@ def search(
         for item in pack.items:
             code = item.code
             sim = max(score_of.get(code, 0.0), ex_cov.get(code, 0.0))
-            if (
-                item.type == "risk"
-                and sim >= THRESHOLD_RISK
-                and code not in l1_codes
-            ):
+            if item.type == "risk" and sim >= THRESHOLD_RISK and code not in l1_codes:
                 alerts.append(
                     AlertPayload(
                         alert_type="risk_signal",
@@ -210,9 +206,7 @@ def fused_scores(
     tri = lexical.coverage(text, compiled.tri)
     # 예시 가상 문서는 금지·위험 판정 전용이라 항목 순위(fused)에서 뺀다.
     # 안 빼면 answer 의 top-k 자리를 실제 항목이 아닌 가상 문서가 차지한다
-    codes = {
-        c for c in set(dense) | set(tri) if lexical.EXAMPLES_SUFFIX not in c
-    }
+    codes = {c for c in set(dense) | set(tri) if lexical.EXAMPLES_SUFFIX not in c}
     fused = [(c, max(tri.get(c, 0.0), dense.get(c, 0.0))) for c in codes]
     fused.sort(key=lambda x: x[1], reverse=True)
     return fused
