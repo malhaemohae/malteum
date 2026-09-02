@@ -11,6 +11,7 @@ FastAPI. REST(`contracts/api.openapi.yaml`) · WebSocket(`contracts/ws_protocol.
 - **판정을 만드는 흐름의 진입점은 `services/session/pipeline.py`의 `submit_utterance` 하나다.** live·replay·text 가 여기로 합류하고, 이후 `judge → apply → map → persist → publish` 순서를 지킨다. 두 갈래만 여기를 안 지나며 둘 다 판정을 새로 만들지 않는다 — `trace`는 저장된 이벤트를 `replay.py`가 다시 흘릴 뿐이고, `mark_met`·`mark_waived`·`acknowledge`는 엔진을 부르지 않는 사람 결정이다(`ws/handlers/human.py`).
 - 이벤트 봉투(`event_id`·`seq_in_session`·`occurred_at`·`session_id`·`pack_version`·`supersedes`)는 server가 찍는다. engine은 payload만 만든다. `supersedes`는 항목별 최신 event_id를 registry가 보관해 채운다.
 - server에는 assist 구현이 없다. answer·rephrase·briefing·documents·fold는 engine 소유이며 server는 호출·변환만 한다.
+- **REST 는 계약이 정의한 상태 코드 밖으로 나가지 않는다.** 나가야만 하는 자리는 `tests/server/test_contract_status_codes.py` 의 `BEYOND_CONTRACT` 에 이유를 적어야 통과한다. 그 목록이 곧 계약에 추가할 것들이고, 조용히 하나 더 느는 것을 기계가 막는다.
 - **후보(`/documents/{id}/candidates`)는 저장하지 않는다.** M3 의 `config/candidate_rules.json` 을 읽어 매번 다시 뜨는 파생물이고, 근거 대조는 `contracts/find_span.py` 로 한다(다른 구현을 쓰면 M3 와 판정이 갈린다). 저장하는 것은 사람이 누른 승인뿐이다(`candidate_approvals`). 그 파일은 import 가 아니라 **경로 의존**이라 M3 가 옮기면 조용히 빈 목록이 된다 — `tests/server/test_candidates.py` 가 먼저 깨지게 해 뒀다.
 - STT 조립(`services/stt/assembler.py`)은 프레임 조립·partial/final·문장 분리·PII 마스킹만. 의미 교정은 하지 않는다(교정은 engine judge/refine).
 - ws 메시지를 그대로 저장하지 않고, 이벤트를 그대로 전송하지 않는다. 변환은 `mapping/`.

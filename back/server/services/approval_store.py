@@ -21,10 +21,6 @@ from sqlalchemy.orm import sessionmaker
 from server.database.entities import CandidateApproval
 
 
-class AlreadyApproved(Exception):
-    """409. 누가 언제 승인했는지가 증빙이라 뒤에 누른 사람으로 조용히 바뀌면 안 된다."""
-
-
 class ApprovalStore(Protocol):
     def by_document(self, doc_id: str) -> dict[str, dict[str, Any]]:
         """그 문서의 승인 기록. candidate_id → 기록."""
@@ -38,7 +34,13 @@ class ApprovalStore(Protocol):
         approved_by: str,
         edits: dict[str, Any] | None,
     ) -> datetime:
-        """승인 시각을 돌려준다. 이미 있으면 AlreadyApproved."""
+        """승인 시각을 돌려준다.
+
+        **이미 승인돼 있으면 먼저 남은 기록의 시각을 그대로 돌려준다(멱등).** 계약이
+        이 경로에 200 과 400 만 두었기 때문이다. 409 를 내면 화면이 계약에 없는 코드로
+        분기해야 한다. 덮어쓰지는 않는다 — 누가 언제 승인했는지가 증빙이라, 두 번째
+        승인자는 기록되지 않고 첫 기록이 남는다.
+        """
         ...
 
 
@@ -57,8 +59,9 @@ class MemoryApprovalStore:
         approved_by: str,
         edits: dict[str, Any] | None,
     ) -> datetime:
-        if candidate_id in self._rows:
-            raise AlreadyApproved(candidate_id)
+        existing = self._rows.get(candidate_id)
+        if existing is not None:
+            return existing["approved_at"]  # 덮어쓰지 않는다. 첫 기록이 증빙이다
         at = datetime.now(UTC)
         self._rows[candidate_id] = {
             "candidate_id": candidate_id,
@@ -101,8 +104,9 @@ class PostgresApprovalStore:
         edits: dict[str, Any] | None,
     ) -> datetime:
         with self._sessions() as db:
-            if db.get(CandidateApproval, candidate_id) is not None:
-                raise AlreadyApproved(candidate_id)
+            existing = db.get(CandidateApproval, candidate_id)
+            if existing is not None:
+                return existing.approved_at  # 덮어쓰지 않는다. 첫 기록이 증빙이다
             row = CandidateApproval(
                 candidate_id=candidate_id,
                 doc_id=doc_id,

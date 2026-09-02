@@ -53,7 +53,9 @@ def publish_pack(doc: dict[str, Any], request: Request) -> dict[str, Any]:
     try:
         publish.validate(doc)
     except publish.PublishInvalid as e:
-        raise HTTPException(400, str(e)) from e
+        # 계약이 이 경로에 201·409·422 만 두었다. 400 은 그 밖이라 422 로 낸다.
+        # 근거 불일치(아래 422)와는 rejected_items 유무로 갈린다
+        raise HTTPException(422, str(e)) from e
 
     rejected = publish.verify_evidence(doc, settings.docs_dir)
     if rejected:

@@ -36,15 +36,20 @@ S4 화면에 요구하는 "**자동 폐기 행 노출**(P4 의 시각 증거)" �
 후보 `type` 은 `required·forbidden·reference` 3종뿐이다. 실제로 `DEP-RSK-001`(제3자 계좌
 위험 신호) 한 건이 걸린다. 그대로 내보내면 계약 enum 밖이라, 합의 전까지 뺀다.
 
-**빼되 숨기지 않는다.** `withheld` 로 몇 건이 왜 빠졌는지 함께 돌려준다. 조용히 사라지면
-화면에서 항목 하나가 없는 것을 아무도 눈치채지 못한다. 계약에 `risk` 가 추가되면
-`_CONTRACT_TYPES` 를 계약에서 읽는 자리 하나만 지우면 된다.
+`risk` 를 `reference` 로 바꿔 내보내지 않는다. 기획 7.1 이 위험 신호를 "고객 발화 대상,
+판정이 아니라 경보" 로 두었는데 `reference` 로 보내면 화면이 다른 축으로 그린다. 타입을
+속이느니 빠지는 편이 낫다.
+
+**응답 본문에는 빠진 사실을 담지 않는다.** 계약 스키마에 그 자리가 없기 때문이다. 대신
+서버 로그에 남긴다 — 계약을 어기지 않으면서 조용히 사라지는 것도 막는 유일한 자리다.
+계약에 `risk` 가 추가되면 `_contract_types()` 가 계약에서 읽으므로 코드는 그대로 따라간다.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -54,6 +59,8 @@ import yaml
 from server.services.publish import load_find_span
 
 CONTRACTS = Path(__file__).resolve().parents[2] / "contracts"
+
+log = logging.getLogger(__name__)
 
 
 class CandidateNotFound(LookupError):
@@ -100,7 +107,7 @@ def for_document(
     rules_path: Path,
     docs_dir: Path,
     approved: dict[str, dict[str, Any]] | None = None,
-) -> dict[str, Any]:
+) -> dict[str, list[dict[str, Any]]]:
     """그 문서에서 뽑힌 후보들. 계약 모양 그대로.
 
     `approved` 는 승인 기록(candidate_id → 기록). 승인된 후보는 `status="approved"` 가
@@ -112,17 +119,17 @@ def for_document(
     pdf = _pdf(docs_dir, doc_id)
 
     candidates: list[dict[str, Any]] = []
-    withheld: list[dict[str, str]] = []
 
     for rule in _rules(rules_path):
         if rule.get("doc_id") != doc_id:
             continue
         if rule.get("type") not in _contract_types():
-            withheld.append(
-                {
-                    "suggested_code": rule.get("code", "?"),
-                    "reason": f"계약 후보 type 에 없는 값입니다: {rule.get('type')!r}",
-                }
+            log.warning(
+                "계약 후보 type 밖이라 목록에서 뺍니다: %s (type=%r, doc_id=%s). "
+                "api.openapi.yaml 의 후보 type 에 그 값이 추가되면 자동으로 따라갑니다.",
+                rule.get("code", "?"),
+                rule.get("type"),
+                doc_id,
             )
             continue
 
@@ -150,7 +157,7 @@ def for_document(
         }
         candidates.append(candidate)
 
-    return {"candidates": candidates, "withheld": withheld}
+    return {"candidates": candidates}
 
 
 def one(doc_id: str, cid: str, *, rules_path: Path, docs_dir: Path) -> dict[str, Any]:

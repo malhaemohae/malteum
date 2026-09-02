@@ -22,7 +22,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from server.auth import require_token
 from server.services import candidates
-from server.services.approval_store import AlreadyApproved
 from server.services.documents import DocumentNotFound, page_size
 
 router = APIRouter(tags=["documents"])
@@ -114,17 +113,15 @@ def approve_candidate(
     if not candidate["span_verified"]:
         raise HTTPException(400, "근거가 원문에 없어 승인할 수 없습니다.")
 
-    try:
-        at = request.app.state.runtime.approvals.approve(
-            candidate_id,
-            doc_id,
-            candidate["suggested_code"],
-            approved_by,
-            body.get("edits"),
-        )
-    except AlreadyApproved as e:
-        raise HTTPException(409, "이미 승인된 후보입니다.") from e
-
+    # 이미 승인돼 있으면 첫 기록의 시각이 그대로 온다(멱등). 계약이 이 경로에 200 과
+    # 400 만 두어서 409 를 낼 자리가 없다 — 덮어쓰지는 않는다(approval_store.py)
+    at = request.app.state.runtime.approvals.approve(
+        candidate_id,
+        doc_id,
+        candidate["suggested_code"],
+        approved_by,
+        body.get("edits"),
+    )
     return {
         "candidate_id": candidate_id,
         "status": "approved",

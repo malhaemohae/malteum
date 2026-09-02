@@ -161,12 +161,9 @@ def candidates():
         all(len(c["evidence"].get("bbox", [])) == 4 for c in verified),
         f"{len(verified)}건 bbox",
     )
-    if d["withheld"]:
-        check(
-            "계약 공백 보류 (risk type)",
-            True,
-            " · ".join(w["suggested_code"] for w in d["withheld"]) + " — 계약 합의 대기",
-        )
+    # 계약 후보 type 밖(risk)이라 빠진 항목은 응답에 안 담긴다 — 계약 스키마에 자리가
+    # 없다. 빠졌다는 사실은 서버 로그에만 남으므로 여기서는 셀 수 없다(docker compose
+    # logs server 에서 "계약 후보 type 밖" 을 찾는다)
 
     # 승인은 쓰기 경로라 토큰이 필요하다(계약 securitySchemes)
     target = rejected[0] if rejected else None

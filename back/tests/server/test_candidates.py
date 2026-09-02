@@ -11,6 +11,7 @@
 """
 
 import json
+import logging
 from pathlib import Path
 
 import pytest
@@ -92,11 +93,11 @@ def test_verified_candidates_carry_coordinates(client):
     assert all(len(c["evidence"]["bbox"]) == 4 for c in verified)
 
 
-def test_risk_type_is_withheld_until_the_contract_carries_it(client):
+def test_risk_type_is_withheld_and_says_so_in_the_log(client, caplog):
     """계약 공백. `rulepack.schema.json` 은 `risk` 를 담는데 REST 후보 type 은 3종뿐이다.
 
-    그대로 내보내면 계약 enum 밖이라 뺀다. **빼되 숨기지 않는다** — 조용히 사라지면
-    화면에서 항목 하나가 없는 것을 아무도 눈치채지 못한다.
+    응답에 빠진 사실을 담을 자리가 계약에 없다. 그래서 로그에 남긴다 — 계약을 어기지
+    않으면서 조용히 사라지는 것도 막는 유일한 자리다.
 
     계약에 `risk` 가 추가되면 이 테스트가 깨진다. 그때 이 테스트를 지우는 것이 맞다.
     """
@@ -107,16 +108,33 @@ def test_risk_type_is_withheld_until_the_contract_carries_it(client):
         "계약이 risk 를 받게 됐습니다. candidates.py 의 보류를 지우고 이 테스트도 지우세요"
     )
 
-    body = client.get("/api/documents/03_예금거래기본약관/candidates").json()
-    assert [w["suggested_code"] for w in body["withheld"]] == ["DEP-RSK-001"]
+    with caplog.at_level(logging.WARNING, logger="server.services.candidates"):
+        body = client.get("/api/documents/03_예금거래기본약관/candidates").json()
     assert "risk" not in {c["type"] for c in body["candidates"]}
+    assert "DEP-RSK-001" in caplog.text, "빠진 항목이 로그에도 안 남았습니다"
 
 
 def test_unknown_document_is_empty_not_an_error(client):
     """문서 목록에 없는 id 는 후보가 없을 뿐이다. 404 로 만들면 화면이 빈 화면과 오류를
     구분해서 처리해야 하는데, 둘 다 "보여줄 후보 없음" 으로 같다."""
     body = client.get("/api/documents/NO-SUCH-DOC/candidates").json()
-    assert body == {"candidates": [], "withheld": []}
+    assert body == {"candidates": []}
+
+
+def test_response_has_no_field_outside_the_contract(client, schema):
+    """계약 스키마에 없는 키를 얹지 않는다.
+
+    스키마가 `additionalProperties: false` 가 아니라 검증은 통과하지만, 계약에 없는
+    값을 화면이 받으면 그 값에 코드가 얹히고 나중에 계약을 맞출 때 화면을 고치게 된다.
+    """
+    allowed = set(schema["properties"])
+    body = client.get(f"/api/documents/{DEPOSIT}/candidates").json()
+    assert set(body) <= allowed, f"계약 밖 키: {sorted(set(body) - allowed)}"
+
+    item_props = set(schema["properties"]["candidates"]["items"]["properties"])
+    for candidate in body["candidates"]:
+        extra = set(candidate) - item_props
+        assert not extra, f"후보에 계약 밖 키: {sorted(extra)}"
 
 
 def test_candidate_id_survives_a_rebuild():
@@ -189,7 +207,9 @@ def test_approve_records_and_shows_up_in_the_listing(client):
     assert after["status"] == "approved"
     assert after["name"] == "검수자가 고친 이름", "검수자가 고친 내용이 목록에 안 얹혔습니다"
 
-    # 두 번째 승인은 거절한다. 누가 언제 승인했는지가 증빙이라 조용히 덮이면 안 된다
+    # 두 번째 승인은 멱등이다. 계약이 이 경로에 200·400 만 두어 409 를 낼 자리가 없다
     again = client.post(_approve_url(cid), json={"approved_by": "딴사람"}, headers=_auth())
-    assert again.status_code == 409
-    assert again.json()["code"] == "conflict"
+    assert again.status_code == 200
+    assert again.json()["approved_at"] == got.json()["approved_at"], (
+        "두 번째 승인이 기록을 덮었습니다. 누가 언제 승인했는지가 증빙이라 첫 기록이 남아야 한다"
+    )
