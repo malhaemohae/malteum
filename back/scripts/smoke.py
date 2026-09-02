@@ -16,7 +16,9 @@ import sys
 import urllib.error
 import urllib.request
 import uuid
+from functools import cache
 from pathlib import Path
+from urllib.parse import quote
 
 # 한국어 Windows 는 stdout 이 cp949 라 한글·기호가 깨진다. 스크립트가 스스로 UTF-8 을 쓴다
 sys.stdout.reconfigure(encoding="utf-8")
@@ -40,15 +42,61 @@ def check(label, cond, detail=""):
     print(f"[{mark}] {label}" + (f"   {detail}" if detail else ""))
 
 
-def get(path, raw=False):
-    with urllib.request.urlopen(BASE + path, timeout=20) as r:
-        return (r.status, r.read()) if raw else (r.status, json.load(r))
+CONTRACT = Path(__file__).resolve().parent.parent / "contracts" / "api.openapi.yaml"
+violations = []
+_checked = set()
+
+
+@cache
+def _spec():
+    import yaml
+
+    return yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
+
+
+def _schema(template, status="200"):
+    """계약이 그 경로 그 상태에 정한 응답 스키마. `components` 를 얹어 $ref 를 푼다."""
+    spec = _spec()
+    got = spec["paths"][template]["get"]["responses"][str(status)]
+    body = (got.get("content") or {}).get("application/json")
+    return {**body["schema"], "components": spec["components"]} if body else None
+
+
+def contract(template, body, status=200):
+    """**배포가 계약대로 답하는가.**
+
+    pytest 는 TestClient 로 본다 — 메모리 저장소에 실물 어댑터가 없는 상태다. 그래서
+    설정이 붙어야만 드러나는 어긋남을 못 잡는다(실제로 /health 가 STT·LLM 이 붙은
+    배포에서만 계약 밖 값을 냈다). 여기는 컨테이너가 진짜로 답한 것을 본다.
+    """
+    from jsonschema import Draft202012Validator
+
+    schema = _schema(template, status)
+    if schema is None:
+        return
+    _checked.add(template)
+    for e in Draft202012Validator(schema).iter_errors(body):
+        violations.append(f"{template} /{'/'.join(map(str, e.path))}: {e.message[:70]}")
+
+
+def get(path, raw=False, template=None):
+    # doc_id 가 한글이라 그대로 넣으면 urllib 이 ascii 로 못 넘긴다. 서버도 근거 URL 을
+    # 낼 때 같은 처리를 한다(routers/evidence.py 의 quote). `/` 와 질의문자는 살린다
+    with urllib.request.urlopen(BASE + quote(path, safe="/?=&"), timeout=20) as r:
+        if raw:
+            return r.status, r.read()
+        body = json.load(r)
+    if template:
+        contract(template, body, r.status)
+    return r.status, body
 
 
 def post_status(path, body):
     """상태 코드만 본다. 4xx 는 예외로 올라오므로 여기서 받아 넘긴다."""
     req = urllib.request.Request(
-        BASE + path, json.dumps(body).encode(), {"Content-Type": "application/json"}
+        BASE + quote(path, safe="/?=&"),
+        json.dumps(body).encode(),
+        {"Content-Type": "application/json"},
     )
     try:
         with urllib.request.urlopen(req, timeout=20) as r:
@@ -67,23 +115,23 @@ def post(path, body):
 
 def rest():
     print("\n== REST ==")
-    s, d = get("/health")
+    s, d = get("/health", template="/health")
     check("health", d["checks"]["db"] == "ok", f"status={d['status']} db={d['checks']['db']}")
 
-    s, d = get("/packs")
+    s, d = get("/packs", template="/packs")
     check("packs 목록", len(d["packs"]) >= 1, f"{len(d['packs'])}건")
     ver = d["packs"][0]["pack_version"]
 
-    s, d = get(f"/packs/{ver}")
+    s, d = get(f"/packs/{ver}", template="/packs/{pack_version}")
     check("packs 상세 = 팩 원문", "items" in d and "sources" in d, f"{ver} 항목 {len(d['items'])}")
 
-    s, d = get("/presets")
+    s, d = get("/presets", template="/presets")
     check("presets", "presets" in d, f"{len(d['presets'])}건 (자산 없으면 0 이 정상)")
 
-    s, d = get("/sessions?limit=5")
+    s, d = get("/sessions?limit=5", template="/sessions")
     check("sessions 목록", "sessions" in d, f"{len(d['sessions'])}건")
 
-    s, ev = get(f"/sessions/{SID}/events")
+    s, ev = get(f"/sessions/{SID}/events", template="/sessions/{session_id}/events")
     events = ev["events"]
     check("이벤트 원본", len(events) == 31, f"{len(events)}건")
     ref = next(
@@ -97,7 +145,7 @@ def rest():
     ]
     want_violated = sum(1 for v in live if v["state"] == "violated")
 
-    s, d = get(f"/sessions/{SID}")
+    s, d = get(f"/sessions/{SID}", template="/sessions/{session_id}")
     check(
         "세션 상세(이벤트를 접은 것)",
         d["status"] == "ended" and d["violations"] == want_violated,
@@ -112,7 +160,7 @@ def rest():
         f"summary met {d['met']} · 목록 met {listed_met} · items_total {d['items_total']}",
     )
 
-    s, d = get(f"/sessions/{SID}/report")
+    s, d = get(f"/sessions/{SID}/report", template="/sessions/{session_id}/report")
     sec = d["sections"]
     check(
         "리포트 (기획 10.1 5단계)",
@@ -123,7 +171,7 @@ def rest():
     check("리포트 출처 표기", len(d["sources"]) > 0, f"{len(d['sources'])}건")
 
     try:
-        s, d = get(f"/evidence/{ref}")
+        s, d = get(f"/evidence/{ref}", template="/evidence/{evidence_ref}")
         check(
             "근거 원문 (기능 14)",
             all(d.get(k) for k in ("doc_id", "page", "span", "page_image_url", "page_size")),
@@ -137,11 +185,19 @@ def rest():
 
     candidates()
 
+    # 배포가 계약대로 답하는가. pytest 는 TestClient 로 보므로 실물 어댑터·postgres 가
+    # 붙어야만 드러나는 어긋남을 못 잡는다 (/health 가 실제로 그랬다)
+    check(
+        "계약 응답 모양 (전 경로)",
+        not violations,
+        "\n           ".join(violations) if violations else f"{len(_checked)}경로 전부 일치",
+    )
+
 
 def candidates():
     """S4 검수 화면의 입력 (기획 8.2). 심화 경로라 기본 시연에는 안 나오지만
     "자동 폐기 행 노출" 이 P4 의 시각 증거라 여기서 실물로 확인한다."""
-    s, d = get(f"/documents/{DOC}/candidates")
+    s, d = get(f"/documents/{DOC}/candidates", template="/documents/{doc_id}/candidates")
     cands = d["candidates"]
     verified = [c for c in cands if c["span_verified"]]
     rejected = [c for c in cands if not c["span_verified"]]
@@ -161,9 +217,13 @@ def candidates():
         all(len(c["evidence"].get("bbox", [])) == 4 for c in verified),
         f"{len(verified)}건 bbox",
     )
-    # 계약 후보 type 밖(risk)이라 빠진 항목은 응답에 안 담긴다 — 계약 스키마에 자리가
-    # 없다. 빠졌다는 사실은 서버 로그에만 남으므로 여기서는 셀 수 없다(docker compose
-    # logs server 에서 "계약 후보 type 밖" 을 찾는다)
+    # 위험 신호(기획 7.1 ⑦)가 검수 화면까지 오는지. 계약 후보 type 이 3종이던 동안
+    # DEP-RSK-001 이 목록에서 통째로 빠졌고, 승인할 방법이 없으면 팩에도 못 들어간다
+    check(
+        "위험 신호 후보 노출 (기획 7.1 ⑦)",
+        any(c["type"] == "risk" for c in cands) or DOC != "03_예금거래기본약관",
+        " · ".join(c["suggested_code"] for c in cands if c["type"] == "risk") or "이 문서엔 없음",
+    )
 
     # 승인은 쓰기 경로라 토큰이 필요하다(계약 securitySchemes)
     target = rejected[0] if rejected else None
@@ -238,7 +298,7 @@ async def ws_live():
     import websockets
 
     print("\n== WebSocket · live (마이크 경로) ==")
-    _, h = get("/health")
+    _, h = get("/health", template="/health")
     if h["checks"]["stt"] != "configured":
         print("[ 건너뜀 ] 서버에 STT 가 설정되지 않음 (APP_STT_API_KEY)")
         return

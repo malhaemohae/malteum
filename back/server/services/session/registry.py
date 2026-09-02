@@ -7,14 +7,18 @@
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Any, Literal
 
 from contracts.engine_contract import Engine, Mode, RulePack, SessionState, Utterance
 from server.services.event.envelope import new_id
 from server.services.event.store import EventStore
 from server.services.session import chains
+
+# 재전송 창. 이보다 오래된 것은 버린다 — 무한히 들고 있으면 긴 상담에서 메모리가 는다
+S2C_REPLAY_WINDOW = 500
 
 
 def _now() -> datetime:
@@ -46,6 +50,14 @@ class Session:
     # mode=replay 일 때 흘려보낼 사전 오디오. 마찬가지로 POST /sessions 로만 온다
     audio_ref: str | None = None
     next_seq: int = 0
+    # ws s2c 순번과 재전송 로그. **연결이 아니라 세션이 든다.** 계약이 이유까지 적어
+    # 두었다 — "세션 단위 단조 증가. 재접속해도 이어진다(연결 단위로 리셋되면 resume 의
+    # from_seq 가 무의미해짐). 서버는 세션별 s2c 로그를 유지해 from_seq 이후를
+    # 재전송한다". 위의 `next_seq`(이벤트 seq_in_session)와는 다른 번호다.
+    # 저장물에는 안 들어간다(계약). 프로세스가 죽으면 로그는 사라지고 그때는 화면이
+    # 처음부터 다시 받는다 — 되살릴 수 있는 것은 이벤트지 전송분이 아니다
+    next_s2c_seq: int = 0
+    s2c_log: deque[dict[str, Any]] = field(default_factory=lambda: deque(maxlen=S2C_REPLAY_WINDOW))
     latest_event_by_item: dict[tuple[str, str], str] = field(default_factory=dict)
     latest_assist: dict[chains.AssistKey, tuple[str, int]] = field(default_factory=dict)
     # 저장된 이벤트에서 되살린 세션. session_started 를 다시 쓰면 안 된다
@@ -60,6 +72,14 @@ class Session:
     def take_seq(self) -> int:
         seq, self.next_seq = self.next_seq, self.next_seq + 1
         return seq
+
+    def take_s2c_seq(self) -> int:
+        seq, self.next_s2c_seq = self.next_s2c_seq, self.next_s2c_seq + 1
+        return seq
+
+    def since(self, from_seq: int) -> list[dict[str, Any]]:
+        """`from_seq` 다음부터 보낸 것들. resume 이 이것을 다시 흘린다."""
+        return [m for m in self.s2c_log if m["seq"] > from_seq]
 
     def elapsed_ms(self) -> int:
         """세션 시작부터 지금까지. 봉투의 occurred_at 과 같은 시계를 쓴다.

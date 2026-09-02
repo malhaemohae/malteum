@@ -150,3 +150,42 @@ def test_malformed_audio_frame_is_rejected_every_time():
                 err = sock.receive_json()
             assert err["t"] == "error" and err["code"] == "invalid_message"
             assert str(FRAME_BYTES) in err["message"]
+
+
+def test_seq_continues_across_reconnect_and_resume_replays_the_gap():
+    """계약이 이 버그를 이름까지 지목해 뒀다.
+
+        seq: 세션 단위 단조 증가. 재접속해도 이어진다 (**연결 단위로 리셋되면 resume 의
+        from_seq 가 무의미해짐**). 서버는 **세션별 s2c 로그**를 유지해 from_seq 이후를
+        재전송한다.
+
+    순번과 로그를 `Connection` 이 들면 재접속마다 새 객체가 생겨 번호가 0 부터 다시
+    매겨지고 로그도 빈 채로 시작한다. 그러면 화면은 끊긴 동안 놓친 판정을 영영 못 받고,
+    심사 나흘 동안 회선이 한 번만 끊겨도 체크리스트가 어긋난 채로 남는다.
+    """
+    sid = "RECONNECT-TEST-1"
+    with _client() as client:
+        with client.websocket_connect("/ws") as sock:
+            sock.send_json({"t": "hello", "mode": "text", "session_id": sid})
+            first = [sock.receive_json()]
+            sock.send_json({"t": "text_utterance", "speaker": "teller", "text": "기본이자율 안내"})
+            first.append(sock.receive_json())
+        last_seq = max(m["seq"] for m in first)
+        assert last_seq >= 1, f"1차 연결에서 받은 것: {first}"
+
+        # 끊고 다시 붙는다. 같은 세션이다
+        with client.websocket_connect("/ws") as sock:
+            sock.send_json({"t": "hello", "mode": "text", "session_id": sid})
+            ready = sock.receive_json()
+            assert ready["seq"] > last_seq, (
+                f"재접속에서 seq 가 되돌아갔습니다: {ready['seq']} (앞 연결 마지막 {last_seq}). "
+                "연결 단위로 리셋되면 resume 의 from_seq 가 무의미해진다"
+            )
+
+            sock.send_json({"t": "resume", "session_id": sid, "from_seq": 0})
+            replayed = [sock.receive_json() for _ in range(last_seq + 1)]
+
+    seqs = [m["seq"] for m in replayed]
+    assert seqs == sorted(seqs), f"재전송이 순서를 잃었습니다: {seqs}"
+    assert all(s > 0 for s in seqs), f"from_seq 이하를 다시 보냈습니다: {seqs}"
+    assert ready["seq"] in seqs, "재접속 뒤 보낸 것도 로그에 남아야 한다"

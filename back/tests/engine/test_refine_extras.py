@@ -76,7 +76,8 @@ def test_recorder_roundtrip(pack_json, tmp_path):
     pack = real.load_pack(PACK_VERSION)
     state = real.initial_state("S", pack, "text")
     first = asyncio.run(real.refine(UTT, pack, state))
-    assert first.verdicts and tape.exists() and len(tape.read_text().splitlines()) == 1
+    assert first.verdicts and tape.exists()
+    assert len(tape.read_text(encoding="utf-8").splitlines()) == 1
 
     replay = _engine(pack_json, ReplayLlmJudge(tape))
     pack2 = replay.load_pack(PACK_VERSION)
