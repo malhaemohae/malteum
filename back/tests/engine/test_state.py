@@ -59,9 +59,9 @@ def test_term_density_follows_teller_jargon_and_matches_fold(pack_json, scenario
         state = engine.observe(state, Utterance(e["event_id"], u["speaker"], u["text"], u["t_ms"]))
         seen[e["seq_in_session"]] = state.term_density
 
-    assert seen[2] == "normal"  # 우대이자율·기본이자율 두 개. high 는 아직 아니다
-    assert seen[22] == "low"  # 창 안 은행원 발화 여섯 턴에 전문용어가 하나도 없다
-    assert seen[25] == "normal"  # 예금자보호법
+    assert seen[5] == "normal"  # 우대이자율·기본이자율 두 개. high 는 아직 아니다
+    assert seen[28] == "low"  # 은행원 발화가 이어지는 동안 용어가 하나도 없다
+    assert seen[29] == "normal"  # 만기후이자율 하나만 나와 high 는 아니다
     assert engine.fold(scenario_a).term_density == state.term_density
 
 
