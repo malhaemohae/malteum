@@ -166,11 +166,11 @@ keyterm 은 팩의 `jargon_terms` 를 서버가 자동으로 넣는다(`ws/endpo
 | 대출 팩 | 주담대가 아니라 신용대출 팩. 서류 항목(`LOAN-DOC-001`)은 설명서에 구비서류 목록이 없어 검토 대기 | B 는 기획 9장 B 표의 서류 안내 장면을 담지 못함. LTV·근저당은 주담대 팩 몫 |
 | 서버 프리셋 | `GET /presets` 가 `assets/scenarios/*/script.json` 을 읽어 대본 하나를 프리셋 하나로 냄(`server/services/presets.py`, 2026-09-03 dev 병합). `preset_id`·`title`·`mode`·`product_code`·`pack_version`·`customer_profile`·`duration_ms` 를 그대로 쓰고, `lines[].expect` 의 둘째 토큰(`number_mismatch`·`rephrase` 등)을 세어 `expected_highlights` 를 만듦 | **`expect` 문자열의 앞 두 토큰(`alert <type>` / `assist <type>`)은 서버가 읽는 형식이 됨.** 바꾸면 심사위원 화면의 '볼 것' 안내가 바뀐다. `audio.wav` 가 없으면 `audio_ref` 를 내지 않아 재생 버튼이 켜지지 않음 |
 
-## 6. DB 를 붙일 때 주의 (M1)
+## 6. DB 적재 (첫 배포와 팩 재발행 뒤)
 
-2026-09-03 기준 배포된 서버·DB 가 아직 없다. 그래서 지금 맞출 DB 는 없고, 이 절은 처음 `compose up` 으로 DB 를 붙일 때와 그 뒤 팩을 DB 에 넣기 시작할 때의 규칙이다.
+2026-09-03 기준 배포된 서버·DB 는 아직 없다. 처음 띄울 때 `make up` 다음에 `make seed` 를 한 번 돌린다. 저장소의 팩 파일 전부(`contracts/fixtures/rulepack_*.json`)와 시연 A 이벤트 48건을 DB 에 넣는다.
 
-- DB 가 비어 있으면 서버는 `contracts/fixtures/` 의 팩 파일을 그대로 읽는다(`DbThenFilePackSource`). 저장소를 배포하면 새 팩이 자동으로 쓰이므로 따로 할 일이 없다
-- 팩이 DB 에 들어가는 길은 `scripts/load_pack.py` 와 `POST /packs/publish` 둘뿐이다. 한 번 넣으면 그 버전은 DB 가 파일을 이긴다. 그 뒤 파일만 고치면 화면은 옛 값을 보여주므로, 같은 버전을 다시 넣을 때는 `load_pack --replace`
-- trace 재생(기획 11.4)은 DB 에 저장된 이벤트를 다시 흘리므로, 그 장면을 보이려면 `scripts/seed_session.py` 로 시나리오 A 이벤트(48건)를 넣어야 한다. 팩이 재발행되면 `--replace` 로 다시 넣는다
+- 팩 판정 자체는 DB 가 비어도 돈다. 서버가 파일로 내려가고(`DbThenFilePackSource`) L2 임베딩은 메모리에서 즉석 계산한다. 그러나 `GET /packs`·`GET /packs/{version}` 은 DB 만 읽어 빈 목록·404 가 되고, trace 재생(기획 11.4)은 저장된 이벤트가 없으면 재생할 것이 없다. `make seed` 는 이 둘을 채운다
+- 팩이 DB 에 들어간 뒤로는 그 버전은 DB 가 파일을 이긴다. 파일만 고치면 화면은 옛 값을 보여주므로, 팩을 재발행하면 `make seed` 를 다시 돈다(`--replace` 라 같은 버전을 덮어쓴다)
+- `--unsigned` 는 fixtures 파일이 서명 없는 발행물이라 필요하다. 서명 적재(`compile` envelope + `RULEPACK_APPROVAL_HMAC_KEY`)는 `rulepack/docs/PIPELINE.md`
 - 프리셋 목록은 `script.json` 의 `pack_version` 을 그대로 내므로 따로 넣거나 넘길 것은 없다

@@ -69,7 +69,7 @@ uv run python -m rulepack.cli verify --strict  # 결정성 · 고정 의존성 �
 
 발행은 `publish` 가 `artifacts/rulepack_<version>.json` 을 쓴다. M2 는 이 파일 이름 하나로 M3 와 만난다(`engine/adapters/pack_source/file.py`). 서로의 코드를 안 보고도 연결되는 지점이라 이름이 바뀌면 조용히 끊긴다.
 
-적재는 `scripts/load_pack.py` 가 한다.
+적재는 `scripts/load_pack.py` 가 한다. 배포 절차에서는 저장소 루트의 `make seed` 가 이 스크립트(fixtures 전부, `--replace --unsigned`)와 `seed_session.py` 를 한 번에 돈다.
 
 ```bash
 python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run] [--unsigned]

@@ -44,6 +44,7 @@ cd back && uv sync                       # 파이썬 3.12 · 의존성
 make test                                # ruff · lint-imports · pytest
 cd back && uv run uvicorn server.main:app --reload   # http://localhost:8000/health · ws://localhost:8000/ws
 make up                                  # docker compose: postgres + server
+make seed                                # 저장소의 팩·시연 A 이벤트를 DB 에 적재. up 뒤 한 번 (GET /packs · trace 재생이 이걸 읽는다)
 ```
 
 각 폴더의 `AGENTS.md`가 그 모듈의 담당·허용 import·규칙을 적는다. 사람과 에이전트 모두 그 문서를 먼저 읽는다.
