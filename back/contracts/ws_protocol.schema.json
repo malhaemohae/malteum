@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://guitteum.local/contracts/ws_protocol.schema.json",
-  "title": "귀띔 WebSocket 프로토콜",
+  "$id": "https://malteum.local/contracts/ws_protocol.schema.json",
+  "title": "말틈 WebSocket 프로토콜",
   "description": "M1 gateway 와 M4 web 사이. 단일 wss 소켓에 오디오 업링크와 이벤트 다운링크를 함께 태운다. 휘발성이며 화면을 그리기 위한 형태다. 저장물은 events.schema.json 을 따른다.",
 
   "$comment": "오디오 프레임은 JSON 이 아니라 바이너리 프레임으로 보낸다. 레이아웃은 $defs/audioFrame 의 설명 참조.",
@@ -17,7 +17,7 @@
       "type": "object",
       "required": ["t"],
       "unevaluatedProperties": false,
-      "properties": { "t": { "enum": ["hello", "resume", "text_utterance", "ask", "assist_request", "mark_waived", "acknowledge", "end", "pong"] } },
+      "properties": { "t": { "enum": ["hello", "resume", "text_utterance", "ask", "assist_request", "mark_met", "mark_waived", "acknowledge", "end", "pong"] } },
       "allOf": [
         {
           "if": { "properties": { "t": { "const": "hello" } } },
@@ -35,7 +35,8 @@
                 }
               },
               "session_id": { "type": "string", "description": "이어 붙일 세션. 없으면 서버가 만든다" }
-            }
+            },
+            "$comment": "replay·trace 는 hello 를 받은 서버가 ready 직후 자동으로 재생을 시작한다. 별도 시작 메시지는 없다."
           }
         },
         {
@@ -79,6 +80,20 @@
           }
         },
         {
+          "if": { "properties": { "t": { "const": "mark_met" } } },
+          "then": {
+            "required": ["item_code"],
+            "properties": {
+              "item_code": { "type": "string" },
+              "undo": {
+                "type": "boolean", "default": false,
+                "description": "true 면 자기가 올린 human met 를 무른다 (실수 클릭 복구)"
+              }
+            },
+            "$comment": "⑪ 수동 체크. 사람이 항목을 직접 met 로 올린다. 서버는 decided_by=human verdict 로 기록하며, 사람 결정은 L3 가 뒤집지 않는다. undo 는 human 이 만든 met 만 무를 수 있다. 엔진(L1~L3)이 만든 met 는 사람도 엔진도 되돌리지 않는다 (P3: met→unmet 자동 되돌림 금지 유지)."
+          }
+        },
+        {
           "if": { "properties": { "t": { "const": "mark_waived" } } },
           "then": {
             "required": ["item_code", "reason"],
@@ -108,7 +123,7 @@
         "t": { "enum": ["ready", "partial", "utterance", "verdict", "alert", "assist", "progress", "ended", "error", "ping"] },
         "seq": {
           "type": "integer", "minimum": 0,
-          "description": "연결 단위 단조 증가. 재접속 재개 지점의 기준. 저장물에는 넣지 않는다"
+          "description": "세션 단위 단조 증가. 재접속해도 이어진다 (연결 단위로 리셋되면 resume 의 from_seq 가 무의미해짐). 서버는 세션별 s2c 로그를 유지해 from_seq 이후를 재전송한다. 저장물에는 넣지 않는다"
         }
       },
       "allOf": [
@@ -225,7 +240,7 @@
             "properties": {
               "met": { "type": "integer", "minimum": 0 },
               "partial": { "type": "integer", "minimum": 0 },
-              "items_total": { "type": "integer", "minimum": 0 },
+              "items_total": { "type": "integer", "minimum": 0, "description": "필수(required) 항목 수만. 금지·위험 항목은 집계에 안 들어간다. ready 의 items 개수(금지 포함)와 다르니 프런트가 이 값을 분모로 쓴다" },
               "remaining": { "type": "array", "items": { "type": "string" }, "description": "미고지 항목 이름. 넛지 띠에 나열한다" },
               "term_density": { "enum": ["low", "normal", "high"], "description": "⑧. 경보가 아니라 상태 게이지" }
             },

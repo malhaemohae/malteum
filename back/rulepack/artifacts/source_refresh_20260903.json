@@ -1,0 +1,79 @@
+{
+  "audit_version": "2026-09-03",
+  "checked_at": "2026-09-03T00:00:00+09:00",
+  "scope": "LOAN-ARR-002 를 되돌리고 연체가산이자율 3% 를 LOAN-ARR-001 의 숫자 사실(자기 근거)로 옮긴 뒤 재감사. 숫자 사실마다 근거를 따로 두게 파이프라인을 고쳐 항목을 쪼갤 이유가 사라짐. 원천 7종 해시·쪽수 변동 없음",
+  "candidate_summary": {
+    "confirmed": 19,
+    "unverified": 0,
+    "conflict": 0,
+    "excluded_negative_fixtures": 2
+  },
+  "sources": [
+    {
+      "doc_id": "01_금융소비자보호법",
+      "local_sha256": "b56cdf92197ae2fc43c727d6a060d31028cad1ff40a4f72f912575cc36f04a10",
+      "local_page_count": 31,
+      "verdict": "relevant_spans_confirmed",
+      "official_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&lsId=013704",
+      "note": "현행 제20조와 제21조의 후보 span 유지 확인"
+    },
+    {
+      "doc_id": "03_예금거래기본약관",
+      "local_sha256": "126ac2b135444466e52592598cd66bd39ecb92d14336efdbf291c5001027d01b",
+      "local_page_count": 9,
+      "live_sha256": "126ac2b135444466e52592598cd66bd39ecb92d14336efdbf291c5001027d01b",
+      "live_page_count": 9,
+      "verdict": "unchanged",
+      "official_url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/예금거래기본약관(개정후).pdf"
+    },
+    {
+      "doc_id": "04_은행여신거래기본약관_가계용",
+      "local_sha256": "d043424d5f9bdb41703f0afc0fbb4d343e7377010a00ac223694a9eec358262f",
+      "local_page_count": 9,
+      "live_sha256": "d043424d5f9bdb41703f0afc0fbb4d343e7377010a00ac223694a9eec358262f",
+      "live_page_count": 9,
+      "verdict": "unchanged_not_used_by_current_candidates",
+      "official_url": "https://spot.wooribank.com/pot/bbs?cmd=download&BOARD_ID=B00179&ARTICLE_ID=3303&ATTACH_ID=28132"
+    },
+    {
+      "doc_id": "05_상품설명서_정기예금",
+      "local_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "local_page_count": 4,
+      "live_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "live_page_count": 4,
+      "verdict": "replaced_with_current_official",
+      "official_url": "https://v.icbc.com.cn/userfiles/resources/icbc/haiwai/seoul/download/202509_omd_krwtd.pdf",
+      "review_valid_through": "2026-12-31",
+      "note": "옛 원천(신한 My플러스)은 심의 2026-03-27 만료에 보호한도 5천만원 표기라 교체 불가였음. 중국공상은행 서울지점 원화정기예금 설명서로 갈아탐. 2025-09-01 시행 1억원 한도 반영본이고 근거 span 6건을 새로 씀"
+    },
+    {
+      "doc_id": "06_상품설명서_가계대출",
+      "local_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "local_page_count": 24,
+      "live_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "live_page_count": 24,
+      "verdict": "replaced_with_current_official",
+      "official_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "revision": "2025.01",
+      "note": "2026-08-29 교체. 근거 span 9건이 새 원문에서도 실재하고 page 도 그대로였음"
+    }
+  ],
+  "official_references": [
+    {
+      "topic": "예금보호한도 1억원",
+      "url": "https://www.fsc.go.kr/no010101/85200"
+    },
+    {
+      "topic": "2026년 스트레스 DSR 운영",
+      "url": "https://www.fsc.go.kr/no010101/86914"
+    },
+    {
+      "topic": "은행법 제30조의2",
+      "url": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=02&joNo=0030&lsiSeq=282001&urlMode=lsScJoRltInfoR"
+    },
+    {
+      "topic": "신용정보법 제32조",
+      "url": "https://www.law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1025127945"
+    }
+  ]
+}

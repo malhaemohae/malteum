@@ -1,11 +1,11 @@
 import pytest
 
 from contracts.engine_contract import Evidence
-from engine.adapters.pack_source.fake import FakePackSource
 from engine.adapters.pack_source.file import FilePackSource
 from engine.pack.loader import PackRejected, load_pack
 from engine.pack.source import PackNotFound
 from tests.engine.conftest import FIX, PACK_VERSION
+from tests.engine.fakes import FakePackSource
 
 
 def test_fixture_pack_loads(pack_json):
@@ -16,7 +16,7 @@ def test_fixture_pack_loads(pack_json):
     assert [it.code for it in pack.required_items()] == [
         "DEP-INT-001", "DEP-INT-002", "DEP-INT-003", "DEP-PRO-001", "DEP-TAX-001", "DEP-LIM-001",
     ]  # fmt: skip
-    assert [it.code for it in pack.forbidden_items()] == ["DEP-BAN-001", "DEP-BAN-002"]
+    assert [it.code for it in pack.forbidden_items()] == ["DEP-BAN-001"]
     assert pack.item("DEP-DOC-001").type == "reference"
     assert pack.item("NOPE") is None
 
@@ -26,13 +26,13 @@ def test_items_carry_evidence_and_patterns(pack_json):
     it = pack.item("DEP-INT-001")
     assert isinstance(it.evidence, Evidence)
     assert it.evidence.page == 1 and len(it.evidence.bbox) == 4
-    assert ("keyword", "기간별 이자율") in it.l1_patterns
+    assert ("keyword", "우대이자율") in it.l1_patterns
     assert it.plain_language
 
 
 def test_file_source_reads_fixture_dir():
     pack = load_pack(FilePackSource(FIX), PACK_VERSION)
-    assert pack.product_code == "SHB-MYPLUS-TD"
+    assert pack.product_code == "ICBC-KRW-TD"
 
 
 def test_missing_pack():

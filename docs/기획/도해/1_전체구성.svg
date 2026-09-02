@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520" font-family="'IBM Plex Sans KR', 'Malgun Gothic', sans-serif" viewBox="0 0 1000 520" role="img" aria-label="자체 서버 한 대 안에서 실시간 경로와 오프라인 배치 경로가 저장 계층을 공유하고, STT와 LLM은 어댑터 뒤 외부 API로 분리된 전체 구성도">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#15242B" fill-opacity=".55"></path>
+        </marker>
+      </defs>
+
+      <!-- 입력 -->
+      <rect x="30" y="100" width="190" height="64" rx="2" fill="#EEF3F2" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="125" y="126" text-anchor="middle" font-size="12.5" font-weight="500" fill="#15242B">은행원 브라우저</text>
+      <text x="125" y="144" text-anchor="middle" font-size="10.5" fill="#15242B" opacity=".62">AudioWorklet · 16kHz PCM16</text>
+
+      <rect x="30" y="400" width="190" height="64" rx="2" fill="#EEF3F2" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="125" y="426" text-anchor="middle" font-size="12.5" font-weight="500" fill="#15242B">규정 문서 7종</text>
+      <text x="125" y="444" text-anchor="middle" font-size="10.5" fill="#15242B" opacity=".62">공개 PDF · 120페이지</text>
+
+      <!-- 자체 서버 -->
+      <rect x="270" y="30" width="440" height="460" rx="3" fill="none" stroke="#15242B" stroke-opacity=".22" stroke-dasharray="4 3"></rect>
+      <text x="282" y="24" font-size="10.5" font-family="'IBM Plex Mono', Consolas, monospace" letter-spacing=".08em" fill="#15242B" opacity=".62">자체 서버 · 단일 호스팅</text>
+
+      <rect x="293" y="58" width="394" height="42" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="490" y="84" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">Caddy · 자동 TLS · 리버스 프록시</text>
+
+      <!-- 실시간 -->
+      <rect x="293" y="122" width="394" height="142" rx="2" fill="none" stroke="#15242B" stroke-opacity=".2" stroke-dasharray="4 3"></rect>
+      <text x="303" y="138" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" letter-spacing=".08em" fill="#15242B" opacity=".55">실시간 (온라인)</text>
+
+      <rect x="310" y="148" width="172" height="46" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="396" y="169" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M4 front</text>
+      <text x="396" y="185" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">6화면 + 오버레이</text>
+
+      <rect x="500" y="148" width="170" height="46" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="585" y="169" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M1 back/server</text>
+      <text x="585" y="185" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">세션 · STT 어댑터</text>
+
+      <rect x="310" y="210" width="360" height="44" rx="2" fill="#FFFFFF" stroke="#0F6055" stroke-width="1.6"></rect>
+      <text x="490" y="230" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M2 back/engine</text>
+      <text x="490" y="246" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">L1 · L2 · L3 · 상태 머신</text>
+
+      <!-- 저장 (양쪽에서 접근) -->
+      <rect x="293" y="288" width="190" height="52" rx="2" fill="#EEF3F2" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="388" y="310" text-anchor="middle" font-size="11.5" font-weight="500" fill="#15242B">postgres 16 + pgvector</text>
+      <text x="388" y="326" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">팩 · 이벤트 · 감사</text>
+
+      <rect x="497" y="288" width="190" height="52" rx="2" fill="#EEF3F2" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="592" y="310" text-anchor="middle" font-size="11.5" font-weight="500" fill="#15242B">로컬 임베딩</text>
+      <text x="592" y="326" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">e5-small · MIT</text>
+
+      <!-- 오프라인 -->
+      <rect x="293" y="364" width="394" height="104" rx="2" fill="none" stroke="#15242B" stroke-opacity=".2" stroke-dasharray="4 3"></rect>
+      <text x="303" y="380" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" letter-spacing=".08em" fill="#15242B" opacity=".55">오프라인 배치 (P1)</text>
+
+      <rect x="310" y="392" width="360" height="50" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="490" y="412" text-anchor="middle" font-size="12" font-weight="500" fill="#15242B">M3 back/rulepack</text>
+      <text x="490" y="428" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">OpenDataLoader · 추출 · 스팬 대조 · pypdfium2 좌표 · 발행</text>
+
+      <!-- 외부 -->
+      <rect x="760" y="122" width="210" height="250" rx="3" fill="none" stroke="#15242B" stroke-opacity=".22" stroke-dasharray="4 3"></rect>
+      <text x="772" y="116" font-size="10.5" font-family="'IBM Plex Mono', Consolas, monospace" letter-spacing=".08em" fill="#15242B" opacity=".62">외부 · 어댑터 뒤 (P5)</text>
+
+      <rect x="778" y="152" width="174" height="46" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="865" y="173" text-anchor="middle" font-size="11.5" font-weight="500" fill="#15242B">STT</text>
+      <text x="865" y="189" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">Deepgram nova-3 (ko)</text>
+
+      <rect x="778" y="214" width="174" height="46" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="865" y="235" text-anchor="middle" font-size="11.5" font-weight="500" fill="#15242B">소형 LLM</text>
+      <text x="865" y="251" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">L3 심판 · 넛지 · 재진술</text>
+
+      <rect x="778" y="300" width="174" height="46" rx="2" fill="#FFFFFF" stroke="#15242B" stroke-opacity=".38"></rect>
+      <text x="865" y="321" text-anchor="middle" font-size="11.5" font-weight="500" fill="#15242B">프런티어 LLM</text>
+      <text x="865" y="337" text-anchor="middle" font-size="10" fill="#15242B" opacity=".6">항목 추출 · 리포트</text>
+
+      <!-- 화살표 -->
+      <line x1="220" y1="124" x2="291" y2="88" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="228" y="98" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">wss + HTTP</text>
+
+      <line x1="396" y1="100" x2="396" y2="146" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <line x1="585" y1="100" x2="585" y2="146" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="592" y="128" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">wss 업그레이드</text>
+
+      <line x1="500" y1="171" x2="484" y2="171" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="452" y="140" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">이벤트</text>
+
+      <line x1="585" y1="194" x2="585" y2="208" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+
+      <line x1="670" y1="162" x2="776" y2="170" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="676" y="152" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">PCM16 100ms</text>
+
+      <line x1="670" y1="228" x2="776" y2="234" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="678" y="222" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">L3 판정</text>
+
+      <line x1="388" y1="254" x2="388" y2="286" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="290" y="274" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">이벤트 append</text>
+
+      <line x1="592" y1="254" x2="592" y2="286" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="600" y="274" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">L2 검색</text>
+
+      <line x1="388" y1="392" x2="388" y2="342" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="296" y="362" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">팩 발행</text>
+
+      <line x1="592" y1="392" x2="592" y2="342" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="600" y="362" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">팩 컴파일</text>
+
+      <line x1="220" y1="424" x2="308" y2="415" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="224" y="410" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">PDF</text>
+
+      <line x1="670" y1="404" x2="778" y2="336" stroke="#15242B" stroke-opacity=".45" marker-end="url(#a1)"></line>
+      <text x="678" y="400" font-size="10" font-family="'IBM Plex Mono', Consolas, monospace" fill="#15242B" opacity=".62">항목 추출</text>
+    </svg>

@@ -24,8 +24,8 @@ class RulePack(c.RulePack):
 
 @dataclass(frozen=True, slots=True)
 class SessionState(c.SessionState):
-    def state_of(self, item_code: str) -> c.ItemState | None:
-        return next((s for s in self.items if s.item_code == item_code), None)
+    def state_of(self, item_code: str, axis: c.Axis = "omission") -> c.ItemState | None:
+        return next((s for s in self.items if s.item_code == item_code and s.axis == axis), None)
 
     def unmet_codes(self) -> tuple[str, ...]:
         return tuple(s.item_code for s in self.items if s.state == "unmet")

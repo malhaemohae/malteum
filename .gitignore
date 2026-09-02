@@ -22,12 +22,38 @@ pnpm-debug.log*
 .env.*
 !.env.example
 
+# DB 덤프. 상담 내용이 그대로 들어 있어 레포에 올리면 안 된다 (scripts/backup.sh)
+backups/
+
 # os / editor
 .DS_Store
 .idea/
 .vscode/
 *.swp
 
-# assets (규정 PDF·오디오는 저장소에 넣지 않는다. 임한빈에게 받아 로컬에 둔다)
-assets/03_규정문서/*.pdf
+# assets
+#   규정 PDF 는 레포에 넣는다. rulepack 테스트가 원문을 직접 열어 근거 스팬이
+#   실재하는지 대조하므로(P4), 원문이 없으면 CI 에서 그 검증이 아예 안 돌아간다.
+#   7종 3MB 이고 전부 공개 자료(법령·당국 가이드라인·은행 공시 상품설명서)다.
 assets/scenarios/*/audio.wav
+
+# rulepack build 산출물
+#   `rulepack.cli build` 가 매번 다시 만든다. 원천 해시·코드·파서 버전이 같으면
+#   같은 값이 나오므로(verify 의 deterministic) 레포에 둘 이유가 없다.
+#   다만 원천 감사 기록(source_refresh_*.json)은 판정 근거라 추적한다.
+back/rulepack/artifacts/review_*.json
+back/rulepack/artifacts/run_manifest.json
+back/rulepack/artifacts/verification_summary.json
+back/rulepack/artifacts/dry_run/
+back/rulepack/artifacts/compiled_*.json
+back/rulepack/artifacts/rulepack_*.json
+back/rulepack/artifacts/published/
+back/rulepack/work/
+
+# STT 검증용 임시 음원. 재생성 가능하고 레포에 둘 이유가 없다 (scripts/stt_check.py)
+back/scripts/stt_audio/
+
+# 심사위원이 올린 오디오(POST /sessions/{id}/audio). 런타임 산출물이고 배포에서는
+# compose 볼륨(uploads:/uploads)이라 레포에 들어올 값이 아니다. 기획 5.3 이
+# 원본 오디오를 저장물에서 뺐는데 커밋에 섞이면 그 결정이 무의미해진다
+uploads/

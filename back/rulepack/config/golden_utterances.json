@@ -1,0 +1,209 @@
+{
+  "description": "L2 의미 검색 평가용 골든셋. 발화마다 top-k 안에 반드시 들어야 하는 항목 코드를 적는다. 검색 방식(dense·자모 BM25·융합)을 바꿀 때마다 scripts/eval_l2_goldenset.py 로 같은 기준에서 잰다. 2026-09-01 엔진 팀 실측(e5-small 6발화, top-1 0/4)이 일회성 실험으로 끝나 재현이 안 됐던 것이 계기다.",
+  "fields": {
+    "product": "deposit | loan | any. any 는 모든 팩에서 평가한다",
+    "speaker": "teller(은행원) | customer(고객). forbidden 은 은행원, risk 는 고객 발화다",
+    "expected": "top-k 후보 안에 반드시 들어야 하는 항목 코드. 무관 발화는 빈 배열",
+    "kind": "related(항목 관련) | forbidden(금지 발언) | risk(위험 신호) | unrelated(무관)"
+  },
+  "cases": [
+    {
+      "id": "dep-int1-preferential",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "자동이체 걸어 놓으면 금리 더 얹어 주나요?",
+      "expected": ["DEP-INT-001"],
+      "kind": "related"
+    },
+    {
+      "id": "dep-int2-early-termination",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "중간에 깨면 이자 얼마나 깎여요?",
+      "expected": ["DEP-INT-002"],
+      "kind": "related"
+    },
+    {
+      "id": "dep-int3-after-maturity",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "만기 지나고 그냥 두면 이자가 어떻게 붙어요?",
+      "expected": ["DEP-INT-003"],
+      "kind": "related"
+    },
+    {
+      "id": "dep-pro1-protection",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "여기 잘못되면 제 돈은 못 받는 거 아니에요?",
+      "expected": ["DEP-PRO-001"],
+      "kind": "related"
+    },
+    {
+      "id": "dep-tax1-tax",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "이자에서 세금은 얼마나 떼요? 비과세 되나요?",
+      "expected": ["DEP-TAX-001"],
+      "kind": "related"
+    },
+    {
+      "id": "dep-lim1-partial",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "만기 전에 일부만 찾을 수 있나요?",
+      "expected": ["DEP-LIM-001"],
+      "kind": "related"
+    },
+    {
+      "id": "dep-doc1-documents",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "신분증만 가져오면 되나요?",
+      "expected": ["DEP-DOC-001"],
+      "kind": "related"
+    },
+    {
+      "id": "dep-ban1-after-maturity-assertion",
+      "product": "deposit",
+      "speaker": "teller",
+      "utterance": "만기 지나도 금리 그대로예요",
+      "expected": ["DEP-BAN-001"],
+      "kind": "forbidden",
+      "note": "2026-09-01 엔진 팀 실측에서 세 방식 모두 top-1 이 DEP-INT-003 이었던 발화. 주제상 INT-003 이 1위인 것은 자연스럽고, 요구사항은 BAN-001 이 top-k 후보 안에 드는 것이다"
+    },
+    {
+      "id": "dep-ban1-no-loss-assertion",
+      "product": "deposit",
+      "speaker": "teller",
+      "utterance": "이 상품은 손해 보실 일이 없어요",
+      "expected": ["DEP-BAN-001"],
+      "kind": "forbidden",
+      "note": "L1 정규식(무조건·절대·100%·확실)에 안 걸리는 단정 표현. L2 가 잡아야 하는 자리다"
+    },
+    {
+      "id": "dep-rsk1-third-party",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "아들이 알아보라고 해서 왔는데요",
+      "expected": ["DEP-RSK-001"],
+      "kind": "risk"
+    },
+    {
+      "id": "loan-int1-variable-rate",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "변동금리면 나중에 이자가 오를 수도 있는 거죠?",
+      "expected": ["LOAN-INT-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-arr1-overdue",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "갚는 날 늦으면 이자 얼마나 더 붙어요?",
+      "expected": ["LOAN-ARR-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-pre1-prepayment",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "미리 갚으면 수수료 물어야 해요?",
+      "expected": ["LOAN-PRE-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-dsr1-limit",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "제 소득이면 한도가 얼마나 나와요?",
+      "expected": ["LOAN-DSR-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-wdr1-withdrawal",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "대출 받고 나서 마음 바뀌면 무를 수 있나요?",
+      "expected": ["LOAN-WDR-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-rdr1-rate-cut-request",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "제가 승진해서 신용이 좋아지면 금리 깎아 달라고 할 수 있어요?",
+      "expected": ["LOAN-RDR-001"],
+      "kind": "related",
+      "note": "2026-09-03 금리인하요구권이 제목 span 에서 정의 문장으로 근거를 바꿔 발행됨. 기획 9장 B 의 '금리인하요구권 누락' 장면이 대본에 들어오는 근거"
+    },
+    {
+      "id": "loan-cic1-credit-inquiry",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "신용 조회하면 제 등급 떨어지는 거 아니에요?",
+      "expected": ["LOAN-CIC-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-ban1-fixed-rate-assertion",
+      "product": "loan",
+      "speaker": "teller",
+      "utterance": "이 조건이면 금리는 그냥 정해진 거라고 생각하시면 돼요",
+      "expected": ["LOAN-BAN-001"],
+      "kind": "forbidden",
+      "note": "2026-09-02 예시 보강('이 금리로 확정이라고 보시면 돼요')의 패러프레이즈. 예시와 같은 문장이 아니라 다르게 말한 단정이 잡히는지 본다"
+    },
+    {
+      "id": "loan-ban1-approval-assertion",
+      "product": "loan",
+      "speaker": "teller",
+      "utterance": "심사는 걱정 안 하셔도 돼요, 통과된 거나 다름없어요",
+      "expected": ["LOAN-BAN-001"],
+      "kind": "forbidden",
+      "note": "L1 정규식에 안 걸리는 심사 통과 단정. L2 가 잡아야 하는 자리다"
+    },
+    {
+      "id": "loan-rsk1-repayment-coercion",
+      "product": "loan",
+      "speaker": "teller",
+      "utterance": "상환 방식은 저희가 정한 대로 하셔야 합니다",
+      "expected": ["LOAN-RSK-001"],
+      "kind": "forbidden"
+    },
+    {
+      "id": "any-unrelated-parking",
+      "product": "any",
+      "speaker": "customer",
+      "utterance": "주차장 있어요?",
+      "expected": [],
+      "kind": "unrelated",
+      "note": "2026-09-01 엔진 팀 실측에서 쓴 무관 발화. dense 단독에서는 관련 발화와 점수 띠(0.77~0.87)가 겹쳐 분리가 안 됐다"
+    },
+    {
+      "id": "any-unrelated-restroom",
+      "product": "any",
+      "speaker": "customer",
+      "utterance": "화장실이 어디예요?",
+      "expected": [],
+      "kind": "unrelated"
+    },
+    {
+      "id": "any-unrelated-lunch",
+      "product": "any",
+      "speaker": "customer",
+      "utterance": "점심시간에도 창구 하나요?",
+      "expected": [],
+      "kind": "unrelated"
+    },
+    {
+      "id": "any-unrelated-ticket",
+      "product": "any",
+      "speaker": "customer",
+      "utterance": "번호표는 어디서 뽑아요?",
+      "expected": [],
+      "kind": "unrelated"
+    }
+  ]
+}

@@ -42,7 +42,10 @@ VerdictState = Literal[
 DecidedBy = Literal["L1", "L2", "L3", "human"]
 Speaker = Literal["teller", "customer", "system"]
 Mode = Literal["live", "replay", "trace", "text"]
-ItemType = Literal["required", "forbidden", "reference"]
+ItemType = Literal["required", "forbidden", "reference", "risk"]
+"""risk 는 고객 발화를 보고 alert(risk_signal, critical)만 만든다. verdict 를 만들지 않는다.
+forbidden(은행원 발화 대상)과 다른 타입으로 두는 이유: 고객의 말이 은행원의 위반으로
+표시되면 P6(감시가 아니라 방어 도구) 정면 위반이다."""
 
 AlertType = Literal["forbidden_phrase", "number_mismatch", "risk_signal", "term_density"]
 Severity = Literal["critical", "warning", "info"]
@@ -92,6 +95,7 @@ class PackItem:
     numeric_facts: tuple[NumericFact, ...] = ()
     documents_required: tuple[str, ...] = ()
     forbidden_examples: tuple[str, ...] = ()
+    risk_examples: tuple[str, ...] = ()             # type=risk 전용. 고객 발화 예시
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,7 +157,12 @@ class SessionState:
     term_density: Literal["low", "normal", "high"] = "normal"
     alert_count: int = 0
 
-    def state_of(self, item_code: str) -> ItemState | None: ...
+    def state_of(self, item_code: str, axis: Axis = "omission") -> ItemState | None:
+        """축까지 지정해야 유일하다. 같은 항목이 omission 과 comprehension 두 상태를
+        동시에 가질 수 있다 (시나리오 A 의 중도해지 이자율: partial + confirmed).
+        축을 안 받으면 나중에 온 축이 앞의 축을 가리는 버그가 난다."""
+        ...
+
     def unmet_codes(self) -> tuple[str, ...]: ...
 
 
@@ -231,6 +240,10 @@ class JudgeResult:
     verdicts: tuple[VerdictPayload, ...] = ()
     alerts: tuple[AlertPayload, ...] = ()
     assists: tuple[AssistPayload, ...] = ()
+    needs_refine: bool = False
+    """True 면 L1·L2 가 잠정 판정만 냈으니 M1 이 refine() 을 비동기로 예약해야 한다.
+    이 신호가 없으면 M1 은 매 발화마다 refine 을 부르거나(낭비) 안 부르거나(정정 누락)
+    둘 중 하나를 임의로 정하게 된다."""
     trace: TierTrace = field(default_factory=TierTrace)
 
 
@@ -248,12 +261,38 @@ class Embedder(Protocol):
 
 
 class VectorIndex(Protocol):
-    """pgvector 조회. 팩 버전별로 격리된 공간을 본다."""
+    """pgvector 조회. 팩 버전별로 격리된 공간을 본다. L2 후보 선별용."""
 
     def search(
         self, pack_version: str, vector: Sequence[float], top_k: int
     ) -> list[tuple[str, float]]:
         """반환은 (item_code, 유사도) 목록."""
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class Chunk:
+    """문서 조각. M3 가 팩 발행 때 조·항 단위로 잘라 임베딩과 함께 저장한다."""
+    chunk_id: str
+    doc_id: str
+    page: int
+    text: str
+    bbox: tuple[float, float, float, float] | None = None
+
+
+class ChunkIndex(Protocol):
+    """문서 본문 검색. ①⑩ 역질문 답변(answer)의 근거 통로.
+
+    VectorIndex(팩 항목 9개)와 다른 통로인 이유: 체크리스트는 추적용으로 항목이
+    적고, 질문은 문서 120쪽 어디든 닿아야 한다. 이 통로가 없으면 항목 밖 질문은
+    전부 '근거 없음'이 된다. 검색 결과의 텍스트가 곧 evidence.span 의 후보이고,
+    P4 에 따라 여기서 찾지 못한 내용은 답하지 않는다.
+    """
+
+    def search(
+        self, vector: Sequence[float], top_k: int, doc_ids: Sequence[str] | None = None
+    ) -> list[tuple[Chunk, float]]:
+        """반환은 (조각, 유사도) 목록. doc_ids 로 팩 sources 범위로 좁힌다."""
         ...
 
 
@@ -273,7 +312,10 @@ class JudgePrompt:
     """L3 에 넘기는 것. 프롬프트 문자열이 아니라 구조로 넘긴다.
     문자열 조립을 M2 안에 두면 프롬프트를 고칠 때 계약이 흔들리지 않는다."""
     utterance_text: str
+    speaker: Speaker
+    """은행원·고객 판정 규칙이 다르므로 L3 가 알아야 한다. (2026-08-31 추가)"""
     recent_context: tuple[str, ...]
+    """최근 발화. 화자 구분을 위해 각 줄 앞에 [은행원]·[고객] 라벨이 붙는다."""
     candidate_items: tuple[PackItem, ...]
     current_states: tuple[ItemState, ...]
     customer_type: Literal["general", "professional"]
@@ -355,7 +397,8 @@ class Engine(Protocol):
     def answer(
         self, question: str, pack: RulePack, state: SessionState
     ) -> AssistPayload | None:
-        """기능 ①⑩. 근거를 못 찾으면 None 을 돌려준다.
+        """기능 ①⑩. 검색 순서: 팩 항목(VectorIndex) → 문서 본문(ChunkIndex,
+        팩 sources 범위). 어느 쪽에서도 근거를 못 찾으면 None 을 돌려준다.
         근거 없는 문장을 만들어 내보내지 않는다 (P4)."""
         ...
 
@@ -384,12 +427,13 @@ class Engine(Protocol):
 def build_engine(
     embedder: Embedder,
     index: VectorIndex,
+    chunks: ChunkIndex,
     llm: LlmJudge,
     cache: DecisionCache,
 ) -> Engine:
     """의존을 밖에서 넣는다. 테스트는 네 개를 다 가짜로 바꿔 끼운다.
 
-    - live   실제 임베더 · pgvector · LLM · 캐시
+    - live   실제 임베더 · pgvector(항목+청크) · LLM · 캐시
     - trace  실제 임베더 · pgvector · 녹화 재생기 · 캐시
     - 단위테스트  전부 가짜. 네트워크·DB·모델 없이 판정 로직만 검사한다
     """

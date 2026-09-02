@@ -3,21 +3,69 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACK_DIR = Path(__file__).resolve().parents[2]
+ROOT_DIR = BACK_DIR.parent
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="APP_", extra="ignore")
+    # 루트 .env 하나에 compose 변수와 APP_ 변수를 함께 둔다. back/.env 가 있으면 그쪽이 덮어쓴다
+    model_config = SettingsConfigDict(
+        env_file=(ROOT_DIR / ".env", BACK_DIR / ".env"), env_prefix="APP_", extra="ignore"
+    )
 
     display_name: str = "말틈"
     version: str = "0.1.0"
     database_url: str = "postgresql+psycopg://app:app@localhost:5432/app"
+    # postgres 가 정상 경로. memory 는 DB 없이 도는 테스트·데모용이며 재시작하면 사라진다
+    event_store: Literal["postgres", "memory"] = "postgres"
     pack_dir: Path = BACK_DIR / "contracts" / "fixtures"
-    default_pack_version: str = "DEP-2026.08-v3"
+    # 근거 원문 PDF. 팩의 sources[].doc_id 와 파일명이 1:1 이다
+    docs_dir: Path = BACK_DIR.parent / "assets" / "03_규정문서"
+    # 구조 추출 덤프. `scripts/dump_extraction.py` 가 오프라인에서 떠서 커밋한 결과다.
+    # 서버는 자바를 부르지 않는다 — 이유는 services/extraction.py
+    extraction_dir: Path = BACK_DIR.parent / "assets" / "extraction"
+    # 항목 후보의 출처(M3 소유). import 가 아니라 파일 읽기다 — services/candidates.py 참고.
+    # M3 가 이 파일을 옮기면 후보 목록이 빈다. tests/server/test_candidates.py 가 먼저 깨진다
+    candidate_rules: Path = BACK_DIR / "rulepack" / "config" / "candidate_rules.json"
+    # 시연 자산 루트. replay 의 audio_ref 가 이 아래를 가리킨다(최상위 README).
+    # 지금 `scenarios/` 가 비어 있고 R5 가 채우면 그대로 붙는다
+    assets_dir: Path = BACK_DIR.parent / "assets"
+    # 심사위원이 올린 오디오. assets 는 읽기 전용으로 붙이므로(compose) 쓰는 자리를 따로 둔다
+    upload_dir: Path = BACK_DIR.parent / "uploads"
+    default_pack_version: str = "DEP-2026.08-v4"
     ws_ping_interval_s: float = 30.0
+    # 계약 securitySchemes.bearerAuth. 쓰기 경로(팩 발행·문서 업로드·후보 승인)에만 건다.
+    # 비어 있으면 그 경로들이 401 이다 — 열어 두면 배포에서 누구나 팩을 발행한다
+    admin_token: str | None = None
+    # 실물 어댑터. LLM_MODEL 이 비면 refine(L3) 생략, EMBEDDING_MODEL 이 비면 L2 생략
+    llm_provider: str = "openrouter"  # LiteLLM provider 이름: openrouter · anthropic · openai …
+    llm_api_key: str | None = None
+    llm_model: str | None = None  # provider 공식 표기 그대로. 예: qwen/qwen3-32b
+    # Qwen 등 thinking 기본 모델은 reasoning 을 꺼야 tool_choice 강제가 되고 지연도 준다
+    llm_no_reasoning: bool = False
+    llm_corrector: bool = False  # refine 앞 STT 교정 (LLM 1회 추가)
+    llm_generator: bool = False  # answer 문장 생성 (guard P4 가 거른다)
+    # 임베딩. 비우면 L2 생략. local 은 sentence-transformers(M3 팩 발행과 같은 모델),
+    # litellm 은 llm_provider 의 API 임베딩
+    embedding_backend: Literal["local", "litellm"] = "local"
+    embedding_model: str | None = None  # 예: intfloat/multilingual-e5-small
+    embedding_dim: int = 384  # 팩의 embedding.dim 과 같아야 load_pack 이 받는다
+    l3_budget_ms: float = (
+        1500  # 계약 BUDGET_L3_MS. 실물 API 왕복이 넘기면 여기서 완화 (월요일 합의 대상)
+    )
+    # STT. 키가 비면 오디오 층이 빠지고 ws 가 stt_unavailable 을 낸다(3층 폴백).
+    # 기획 11.3: Deepgram nova-3 ko · keyterm·numerals·mip_opt_out
+    stt_provider: str = "deepgram"
+    stt_api_key: str | None = None
+    stt_model: str = "nova-3"
+    stt_language: str = "ko"
+    # 13장이 라이선스·약관 조건으로 정한 값. 할인을 포기하고 학습 사용을 거부한다.
+    # 은행 도입 전제에서 옵션이 아니라 조건이라 기본값을 켜 둔다
+    stt_mip_opt_out: bool = True
 
 
 def get_settings() -> Settings:

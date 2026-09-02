@@ -4,14 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from engine.types import RulePack, SessionState
+from contracts.engine_contract import RulePack, SessionState
 
 
 def ready(session_id: str, pack: RulePack, state: SessionState, mode: str) -> dict[str, Any]:
     items = []
     for it in pack.items:
-        s = state.state_of(it.code)
-        if s is None:  # reference 항목은 체크리스트에 없다
+        axis = "commission" if it.type == "forbidden" else "omission"
+        s = state.state_of(it.code, axis)
+        if s is None:  # reference·risk 항목은 체크리스트에 없다
             continue
         item: dict[str, Any] = {
             "item_code": it.code,
@@ -32,11 +33,21 @@ def ready(session_id: str, pack: RulePack, state: SessionState, mode: str) -> di
     }
 
 
-def from_event(event: dict[str, Any], state: SessionState) -> dict[str, Any] | None:
+def from_event(
+    event: dict[str, Any], state: SessionState, assist_ver: int = 1
+) -> dict[str, Any] | None:
     kind = event["kind"]
     body = event[kind]
     if kind == "utterance":
-        return {"t": "utterance", "event_id": event["event_id"], **body}
+        # 이벤트 본문에는 duration_ms·stt_confidence·speaker_confidence 가 더 있다.
+        # 화면이 쓰는 넷만 보낸다 (계약: 이벤트를 그대로 전송하지 않는다)
+        return {
+            "t": "utterance",
+            "event_id": event["event_id"],
+            "speaker": body["speaker"],
+            "text": body["text"],
+            "t_ms": body["t_ms"],
+        }
     if kind == "verdict":
         item = next(
             s for s in state.items if (s.item_code, s.axis) == (body["item_code"], body["axis"])
@@ -68,7 +79,8 @@ def from_event(event: dict[str, Any], state: SessionState) -> dict[str, Any] | N
             "event_id": event["event_id"],
             "assist_type": body["assist_type"],
             "text": body["text"],
-            "ver": 1,
+            # 계약: 같은 assist 를 outcome 채워 다시 발행한다. 화면은 ver 이 큰 것만 채택한다
+            "ver": assist_ver,
         }
         for k in ("item_code", "outcome"):
             if k in body:
