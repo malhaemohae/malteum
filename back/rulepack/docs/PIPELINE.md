@@ -47,6 +47,7 @@ postgres  rule_packs(doc 정본) · pack_embeddings(검색면)
 - 인용 좌표는 `contracts/find_span.py` 하나로 뜬다. 다른 구현을 쓰면 `validate.py` 3층에서 실패하는 팩이 나온다
 - 팩은 불변 발행물. 수정하지 않고 새 `pack_version` 을 낸다. 항목 `code` 는 버전이 올라가도 유지한다
 - 근거 `span` 이 원문에 실재하지 않는 항목은 팩에 넣지 않는다(P4)
+- 숫자 사실(`numeric_facts`)은 자기 `evidence` 를 둘 수 있다. 없으면 항목 근거를 물려받고, 있으면 `find_span` 유일성과 bbox 만 검사한다(chunk 지원 검사 없음). 비율·산식(`약정이율×0.5`)은 숫자 사실로 두지 않고 L1 정규식 + L3 판단에 맡긴다
 
 ## 실행
 
@@ -68,7 +69,7 @@ uv run python -m rulepack.cli verify --strict  # 결정성 · 고정 의존성 �
 
 발행은 `publish` 가 `artifacts/rulepack_<version>.json` 을 쓴다. M2 는 이 파일 이름 하나로 M3 와 만난다(`engine/adapters/pack_source/file.py`). 서로의 코드를 안 보고도 연결되는 지점이라 이름이 바뀌면 조용히 끊긴다.
 
-적재는 `scripts/load_pack.py` 가 한다.
+적재는 `scripts/load_pack.py` 가 한다. 배포 절차에서는 저장소 루트의 `make seed` 가 이 스크립트(fixtures 전부, `--replace --unsigned`)와 `seed_session.py` 를 한 번에 돈다.
 
 ```bash
 python scripts/load_pack.py <compile 산출물> [--replace] [--dry-run] [--unsigned]
@@ -150,18 +151,18 @@ uv run python scripts/eval_l2_goldenset.py --model fake      # 모델 없이 경
 
 지표는 top-1 정답률 · recall@k(기대 항목이 상위 k 후보에 드는 비율) · 관련/무관 점수 분리다. L2 는 프리필터라 최종 판정권이 L3 에 있으므로 recall@k 와 분리력이 판단 기준이고 top-1 은 참고치다. 골든셋의 정합(없는 코드 기대, 금지 항목 누락, 검색면이 `scripts/load_pack.py` 의 `rows` 와 어긋남)은 `tests/rulepack/test_golden_utterances.py` 가 막는다.
 
-2026-09-02 baseline (e5-small 단독 · top-k 3 · 발행 가능 전 항목, 예금은 fixture v4 · 대출은 evidence_verified 8건 synthetic 팩):
+2026-09-03 baseline (e5-small 단독 · top-k 3 · 발행 가능 전 항목, 예금은 `contracts/fixtures/` 의 v4 팩 · 대출은 v5 팩. 2026-09-02 측정치는 대출 8항목 synthetic 팩 기준 6/8 · 7/8 이었고, 금지 예시 보강·숫자 사실 추가·금리인하요구권 발행·쉬운 말 2건 보강·골든셋 2건 추가 뒤 다시 잰 값이 아래):
 
 | 팩 | top-1 | recall@3 | 관련 top1 대역 | 무관 top1 대역 |
 | --- | ---: | ---: | --- | --- |
-| 예금 9항목 | 6/10 | 8/10 | 0.846~0.944 | 0.806~0.822 |
-| 대출 8항목 | 6/8 | 7/8 | 0.835~0.895 | 0.793~0.815 |
+| 예금 9항목 | 7/10 | 8/10 | 0.846~0.944 | 0.806~0.822 |
+| 대출 9항목 | 7/10 | 10/10 | 0.845~0.954 | 0.793~0.815 |
 
-recall@3 실패는 `DEP-PRO-001`(6위) · `DEP-LIM-001`(5위) · `LOAN-WDR-001`(5위) 셋. 관련 최저와 무관 최고의 간격이 0.02 안팎이라 절대 점수 임계값 게이트는 아직 못 세운다. 엔진의 자모 trigram 융합 같은 검색 방식 변경은 이 표와 같은 조건으로 다시 재서 대조한다.
+recall@3 실패는 `DEP-PRO-001`(6위) · `DEP-LIM-001`(4위) 둘. 대출은 쉬운 말에 골든 발화의 어휘("마음이 바뀌면 … 무를", "갚는 날을 넘기면")를 넣어 `WDR`·`ARR` 이 상위 3 안으로 들어왔다. 이 방식은 골든셋 어휘를 검색면에 심는 것이라 그 발화에는 확실히 듣지만 일반화 지표로는 낙관적이다. 단정 발화 패러프레이즈(`loan-ban1-fixed-rate-assertion`)가 `LOAN-RSK-001` 에 1위를 내주는 것은 그대로. 관련 최저와 무관 최고의 간격이 0.02 안팎이라 절대 점수 임계값 게이트는 아직 못 세운다. 엔진의 자모 trigram 융합 같은 검색 방식 변경은 이 표와 같은 조건으로 다시 재서 대조한다.
 
 재현 조건 세 가지를 지켜야 이 표와 대조가 된다.
 
-- **팩 경로를 명시한다.** 예금은 `contracts/fixtures/rulepack_DEP-2026.08-v4.json`, 대출은 `build` 번들의 evidence_verified 8건을 synthetic compile 한 팩. 인자 없는 기본 실행은 `rulepack/artifacts/` 의 로컬 팩을 집는데, 그 폴더에는 옛 3항목짜리 검증용 팩이 남아 있을 수 있어 수치가 통째로 어긋난다
+- **팩 경로를 명시한다.** 예금은 `contracts/fixtures/rulepack_DEP-2026.08-v4.json`, 대출은 `contracts/fixtures/rulepack_LOAN-2026.08-v5.json`. 인자 없는 기본 실행은 `rulepack/artifacts/` 의 로컬 팩을 집는데, 그 폴더에는 옛 3항목짜리 검증용 팩이 남아 있을 수 있어 수치가 통째로 어긋난다
 - **측정 검색면은 `pack_embeddings` 기준이다**(예시·쉬운 말마다 행 하나, 항목 점수는 행 최고점). 엔진의 `MemoryVectorIndex` 는 항목 전체를 한 문자열로 합쳐 벡터 하나만 만들므로(`engine/adapters/vector_index/memory.py` 의 `item_text`) 이 표의 수치가 그 경로로 그대로 옮겨지지 않는다. 두 검색면이 통일되기 전까지 이 표는 행 단위 검색면의 수치다
 - `DEP-BAN-001` 예시 보강(9/1) 후 "만기 지나도 금리 그대로예요"가 1위(0.913)인 것은 골든 발화와 예시 문장이 거의 같아서다. 이 케이스는 예시가 검색면에 실렸는지의 확인용이고, 일반화(다르게 표현한 위반 발화)는 별도 패러프레이즈 케이스가 필요하다
 

@@ -15,7 +15,7 @@
 │   └── regwatch/     규정 개정 일일 감시 (임한빈). 완전 독립, 표준 라이브러리만
 ├── db/               init.sql (pgvector 확장)
 ├── docs/기획/         핵심기획안 (md·PDF) · 현장검증 인터뷰 · 검증 기록 · 와이어프레임. 구현의 컨텍스트
-├── assets/           03_규정문서/ (PDF, git 제외) · scenarios/<id>/ (manifest·audio·trace)
+├── assets/           03_규정문서/ (규정 PDF 7종) · scenarios/<id>/ (script.json 대본 · audio.wav 는 git 제외)
 └── compose.yaml      postgres16+pgvector · server
 ```
 
@@ -44,6 +44,7 @@ cd back && uv sync                       # 파이썬 3.12 · 의존성
 make test                                # ruff · lint-imports · pytest
 cd back && uv run uvicorn server.main:app --reload   # http://localhost:8000/health · ws://localhost:8000/ws
 make up                                  # docker compose: postgres + server
+make seed                                # 저장소의 팩·시연 A 이벤트를 DB 에 적재. up 뒤 한 번 (GET /packs · trace 재생이 이걸 읽는다)
 ```
 
 각 폴더의 `AGENTS.md`가 그 모듈의 담당·허용 import·규칙을 적는다. 사람과 에이전트 모두 그 문서를 먼저 읽는다.
