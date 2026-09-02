@@ -244,6 +244,10 @@ async def upload_audio(session_id: str, request: Request, file: UploadFile) -> d
     except audio.AudioNotFound as e:
         target.unlink(missing_ok=True)  # 못 쓸 파일을 남기지 않는다
         raise HTTPException(415, str(e)) from e
+    except Exception:
+        # 예상 못 한 실패에도 파일은 지운다. 남으면 다음 replay 가 그 파일을 재생한다
+        target.unlink(missing_ok=True)
+        raise
 
     session = request.app.state.runtime.registry.get(session_id)
     audio_ref = target.name

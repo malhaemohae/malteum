@@ -50,14 +50,23 @@ def read_pcm(path: Path) -> bytes:
 
     다른 규격을 받아 넘기면 STT 가 소리를 어긋나게 해석해 전사가 비거나 밀린다.
     변환은 자산을 만드는 쪽(R5)이 할 일이지 상담 경로가 할 일이 아니다.
+
+    **WAV 가 아닌 파일도 여기서 걸러야 한다.** `wave` 는 규격 불일치가 아니라 파싱
+    실패를 `wave.Error`·`EOFError` 로 낸다 — mp3 를 올리거나 전송이 끊겨 잘린 파일이
+    그렇다. 안 잡으면 업로드가 500 이 되고, 심사위원에게는 "서버가 죽었다" 로 보인다.
+    잡아서 415 로 내리면 화면이 "이 파일은 못 받습니다" 를 말할 수 있다.
     """
-    with wave.open(str(path), "rb") as w:
-        if (w.getnchannels(), w.getsampwidth(), w.getframerate()) != (1, 2, SAMPLE_RATE):
-            raise AudioNotFound(
-                f"16kHz mono PCM16 이 아닙니다: {path.name} "
-                f"({w.getnchannels()}ch {w.getsampwidth() * 8}bit {w.getframerate()}Hz)"
-            )
-        return w.readframes(w.getnframes())
+    try:
+        with wave.open(str(path), "rb") as w:
+            spec = (w.getnchannels(), w.getsampwidth(), w.getframerate())
+            if spec != (1, 2, SAMPLE_RATE):
+                raise AudioNotFound(
+                    f"16kHz mono PCM16 이 아닙니다: {path.name} "
+                    f"({spec[0]}ch {spec[1] * 8}bit {spec[2]}Hz)"
+                )
+            return w.readframes(w.getnframes())
+    except (wave.Error, EOFError) as e:
+        raise AudioNotFound(f"WAV 로 읽을 수 없습니다: {path.name} ({e})") from e
 
 
 async def stream(pcm: bytes) -> AsyncIterator[bytes]:

@@ -3,6 +3,7 @@
 import wave
 
 import pytest
+from fastapi.testclient import TestClient
 
 from server.services.stt.audio import SAMPLE_RATE, AudioNotFound, read_pcm, resolve
 
@@ -62,3 +63,30 @@ def test_rejects_wrong_audio_format(tmp_path):
         bad = _wav(tmp_path / name, **kw)
         with pytest.raises(AudioNotFound, match="16kHz mono PCM16"):
             read_pcm(bad)
+
+
+def test_broken_upload_is_415_not_500(tmp_path):
+    """WAV 가 아닌 파일. `wave` 는 규격 불일치가 아니라 파싱 실패를 내므로 따로 잡는다.
+
+    안 잡으면 업로드가 500 이 되고, 심사위원에게는 "서버가 죽었다" 로 보인다.
+    기획 10.2 심화 경로에 심사위원 직접 업로드가 있다.
+    """
+    from server.bootstrap.settings import Settings
+    from server.main import create_app
+
+    settings = Settings(event_store="memory", upload_dir=tmp_path)
+    with TestClient(create_app(settings), raise_server_exceptions=False) as client:
+        for name, blob in [
+            ("잘린 파일", b"RIFF"),
+            ("WAV 가 아님", b"\xff\xfb\x90\x00" + "mp3 처럼 생긴 것".encode()),
+            ("빈 파일", b""),
+        ]:
+            got = client.post(
+                "/api/sessions/UPLOAD-TEST-01/audio",
+                files={"file": ("a.wav", blob, "audio/wav")},
+            )
+            assert got.status_code == 415, f"{name}: {got.status_code} — 500 이면 안 된다"
+            assert got.json()["code"] == "validation_failed"
+
+    # 못 쓸 파일을 남기지 않는다. 남으면 다음 replay 가 그 파일을 재생한다
+    assert not list(tmp_path.glob("*.wav")), "거절한 업로드가 디스크에 남았습니다"
