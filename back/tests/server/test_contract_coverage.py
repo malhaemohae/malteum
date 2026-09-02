@@ -21,15 +21,16 @@ CONTRACTS = Path(__file__).resolve().parents[2] / "contracts"
 
 # 아직 서지 않은 계약 경로.
 #
-# 앞의 둘은 OpenDataLoader 구조 추출 산출물이 있어야 하는데 그것이 M3 의 `artifacts/` 에
-# 있고 `.gitignore` 라 서버에 없다. 기획 14장이 구조 추출을 R3 에 배정했다.
-# `report.pdf` 는 기획 8.2 가 R4 에 배정했다.
+# `report.pdf` 만 남았다. **리포트 PDF 는 브라우저에서 만들기로 팀이 정했다**(2026-09-02).
+# 서버가 PDF 엔진을 들이면 한글 폰트·표 레이아웃이 따라붙는데, 화면이 이미 리포트를
+# 그리고 있어 인쇄가 같은 결과를 더 싸게 낸다. 기획 8.2 도 이 항목을 R4 에 두었다.
+# 이 경로를 계약에서 지우지는 않는다 — 계약 변경은 전원 합의다(AGENTS.md 원칙 2).
 #
-# 후보 조회·승인은 여기서 빠졌다 — 후보에 필요한 값이 M3 의 `config/candidate_rules.json`
-# 에 커밋돼 있어 M3 를 기다리지 않고 섰다(`services/candidates.py`).
+# 업로드·추출은 여기서 빠졌다. 추출기가 자바라 배포 이미지에 넣지 않고 오프라인 덤프로
+# 갈랐다(`scripts/dump_extraction.py` → `services/extraction.py`).
+# 후보 조회·승인도 빠졌다 — 필요한 값이 M3 의 `config/candidate_rules.json` 에 커밋돼
+# 있어 M3 를 기다리지 않고 섰다(`services/candidates.py`).
 MISSING = {
-    ("POST", "/documents"),
-    ("GET", "/documents/{doc_id}/extraction"),
     ("GET", "/sessions/{session_id}/report.pdf"),
 }
 
