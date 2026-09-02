@@ -29,6 +29,9 @@ services:
       # 근거 원문 PDF (기능 ⑭). 경로를 못박아 둔다 — 기본값은 코드 위치에서 거슬러
       # 올라가 정해지는데, 이미지 안에서는 그 위가 레포 루트가 아니다
       APP_DOCS_DIR: /assets/03_규정문서
+      # 구조 추출 덤프. 오프라인에서 떠서 커밋한 결과다(scripts/dump_extraction.py).
+      # 서버는 자바를 부르지 않으므로 이미지에 JRE 가 없다 — services/extraction.py
+      APP_EXTRACTION_DIR: /assets/extraction
       # 엔진 어댑터. 루트 .env 에서 그대로 넘긴다. 비어 있으면 그 층이 빠지고
       # engine 이 [DUMMY] 경고로 알린다 (bootstrap/startup.py). 값은 .env.example 참조
       APP_EMBEDDING_MODEL: ${APP_EMBEDDING_MODEL:-}
