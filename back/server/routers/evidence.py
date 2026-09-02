@@ -11,6 +11,7 @@ bbox 를 꺼내고, 문서 메타(제목·발행처·스냅샷 일자)는 그 �
 from __future__ import annotations
 
 from typing import Annotated, Any
+from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 
@@ -18,6 +19,13 @@ from engine.pack.source import PackNotFound
 from server.services.documents import DocumentNotFound, page_size, render
 
 router = APIRouter(tags=["evidence"])
+
+
+def _page_image_url(doc_id: str, page: int) -> str:
+    """`doc_id` 는 `05_상품설명서_정기예금` 처럼 한국어다. 그대로 URL 에 박으면 ASCII 가
+    아니라서, 클라이언트에 따라 요청 자체가 안 나간다(python urllib 은 UnicodeEncodeError).
+    경로 조각이라 `/` 도 함께 인코딩한다."""
+    return f"/api/documents/{quote(doc_id, safe='')}/pages/{page}.png"
 
 
 @router.get("/evidence/{evidence_ref}")
@@ -50,7 +58,7 @@ def get_evidence(evidence_ref: str, request: Request) -> dict[str, Any]:
         "span": evidence["span"],
         "bbox": evidence.get("bbox"),
         "legal_basis": evidence.get("legal_basis"),
-        "page_image_url": f"/api/documents/{evidence['doc_id']}/pages/{evidence['page']}.png",
+        "page_image_url": _page_image_url(evidence["doc_id"], evidence["page"]),
         "page_size": list(size),
     }
 

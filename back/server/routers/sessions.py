@@ -4,6 +4,7 @@
     GET  /sessions                    목록 (mode 필터·커서)
     GET  /sessions/{id}               이벤트를 접은 파생 상태
     GET  /sessions/{id}/events        감사의 원본이자 trace 재생의 입력
+    POST /sessions/{id}/audio         replay 용 오디오 업로드
     GET  /sessions/{id}/report        증빙 리포트
 
 `POST /sessions` 는 **mode=trace 의 재생 대상(`source_session_id`)을 지정할 수 있는
@@ -19,15 +20,18 @@ from __future__ import annotations
 import base64
 import binascii
 from datetime import datetime
+from pathlib import Path
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, UploadFile
 from pydantic import BaseModel
 
 from contracts.engine_contract import Mode
 from engine.pack.source import PackNotFound
 from server.generated.api import Report, SessionDetail, SessionSummary
 from server.services import report as report_builder
+from server.services.event.envelope import ID_MAX, ID_MIN, valid_id
+from server.services.stt import audio
 
 router = APIRouter(tags=["sessions"])
 
@@ -70,6 +74,7 @@ def create_session(body: CreateSession, request: Request) -> CreatedSession:
             body.mode,
             profile.type,
             source_session_id=body.source_session_id,
+            audio_ref=body.audio_ref,
         )
     except PackNotFound as e:
         raise HTTPException(404, "규정 팩이 없습니다.") from e
@@ -215,6 +220,43 @@ def list_events(
         and (include_superseded or e["event_id"] not in superseded)
     ]
     return {"session_id": session_id, "events": picked}
+
+
+@router.post("/sessions/{session_id}/audio", status_code=202)
+async def upload_audio(session_id: str, request: Request, file: UploadFile) -> dict[str, Any]:
+    """replay 용 오디오 업로드. 계약: "파일로 재생한다. live 와 게이트웨이 이후 경로가 같다".
+
+    받아서 검사하고 저장만 한다. 재생은 ws `hello` 가 `mode=replay` 로 붙을 때
+    시작한다(계약: ready 직후 자동). 여기서 바로 흘리면 결과를 받을 소켓이 없다.
+
+    규격이 다른 파일은 거절한다. 넘겨 보내면 STT 가 소리를 어긋나게 해석해 전사가
+    비거나 밀리고, 그 사실이 상담 한복판에서야 드러난다.
+    """
+    settings = request.app.state.settings
+    if not valid_id(session_id):
+        raise HTTPException(400, f"session_id 는 {ID_MIN}~{ID_MAX} 자여야 합니다.")
+
+    target = Path(settings.upload_dir) / f"{session_id}.wav"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(await file.read())
+    try:
+        pcm = audio.read_pcm(target)
+    except audio.AudioNotFound as e:
+        target.unlink(missing_ok=True)  # 못 쓸 파일을 남기지 않는다
+        raise HTTPException(415, str(e)) from e
+    except Exception:
+        # 예상 못 한 실패에도 파일은 지운다. 남으면 다음 replay 가 그 파일을 재생한다
+        target.unlink(missing_ok=True)
+        raise
+
+    session = request.app.state.runtime.registry.get(session_id)
+    audio_ref = target.name
+    if session is not None:
+        session.audio_ref = audio_ref
+    return {
+        "audio_ref": audio_ref,
+        "duration_ms": len(pcm) * 1000 // (audio.SAMPLE_RATE * 2),
+    }
 
 
 @router.get("/sessions/{session_id}/report")

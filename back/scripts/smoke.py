@@ -13,7 +13,10 @@
 import asyncio
 import json
 import sys
+import urllib.error
 import urllib.request
+import uuid
+from pathlib import Path
 
 # 한국어 Windows 는 stdout 이 cp949 라 한글·기호가 깨진다. 스크립트가 스스로 UTF-8 을 쓴다
 sys.stdout.reconfigure(encoding="utf-8")
@@ -21,6 +24,9 @@ sys.stdout.reconfigure(encoding="utf-8")
 BASE = "http://localhost:8000/api"
 WS = "ws://localhost:8000/ws"
 SID = "FIXT-SESS-0A"
+# 후보가 붙어 있는 원천. M3 config/candidate_rules.json 의 doc_id 와 같다
+DOC = "05_상품설명서_정기예금"
+AUDIO = Path(__file__).resolve().parent / "stt_audio"
 ok = fail = 0
 
 
@@ -37,6 +43,18 @@ def check(label, cond, detail=""):
 def get(path, raw=False):
     with urllib.request.urlopen(BASE + path, timeout=20) as r:
         return (r.status, r.read()) if raw else (r.status, json.load(r))
+
+
+def post_status(path, body):
+    """상태 코드만 본다. 4xx 는 예외로 올라오므로 여기서 받아 넘긴다."""
+    req = urllib.request.Request(
+        BASE + path, json.dumps(body).encode(), {"Content-Type": "application/json"}
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
 
 
 def post(path, body):
@@ -65,19 +83,33 @@ def rest():
     s, d = get("/sessions?limit=5")
     check("sessions 목록", "sessions" in d, f"{len(d['sessions'])}건")
 
+    s, ev = get(f"/sessions/{SID}/events")
+    events = ev["events"]
+    check("이벤트 원본", len(events) == 31, f"{len(events)}건")
+    ref = next(
+        e["event_id"] for e in events if e["kind"] == "verdict" and e["verdict"].get("evidence")
+    )
+    # 기대값을 픽스처에서 뽑는다. 숫자를 박으면 팩이 재발행될 때마다 이 줄만 고치게 되고
+    # 무엇이 왜 달라졌는지가 안 남는다 (2026-08-31, 팩 재발행에서 항목 코드 3건 변경)
+    superseded = {e["supersedes"] for e in events if e.get("supersedes")}
+    live = [
+        e["verdict"] for e in events if e["kind"] == "verdict" and e["event_id"] not in superseded
+    ]
+    want_violated = sum(1 for v in live if v["state"] == "violated")
+
     s, d = get(f"/sessions/{SID}")
     check(
         "세션 상세(이벤트를 접은 것)",
-        d["status"] == "ended" and d["met"] == 4 and d["violations"] == 1,
-        f"met {d['met']}/{d['items_total']} · 위반 {d['violations']} · 항목 {len(d['items'])}",
+        d["status"] == "ended" and d["violations"] == want_violated,
+        f"위반 {d['violations']} (픽스처 {want_violated}) · 항목 {len(d['items'])}",
     )
-
-    s, d = get(f"/sessions/{SID}/events")
-    check("이벤트 원본", len(d["events"]) == 31, f"{len(d['events'])}건")
-    ref = next(
-        e["event_id"]
-        for e in d["events"]
-        if e["kind"] == "verdict" and e["verdict"].get("evidence")
+    # 같은 응답 안에서 요약(engine.summarize)과 항목 목록(engine.fold)이 어긋나면
+    # 화면은 체크리스트와 진척도가 다른 말을 하는 것을 그대로 그린다
+    listed_met = sum(1 for i in d["items"] if i["state"] == "met")
+    check(
+        "요약 숫자 = 항목 목록",
+        d["met"] == listed_met,
+        f"summary met {d['met']} · 목록 met {listed_met} · items_total {d['items_total']}",
     )
 
     s, d = get(f"/sessions/{SID}/report")
@@ -103,16 +135,59 @@ def rest():
         check("근거 원문 (기능 14)", False, f"{type(e).__name__} · 원문 PDF 가 안 보임")
         check("페이지 렌더", False, "compose 에 assets 마운트 필요")
 
+    candidates()
+
+
+def candidates():
+    """S4 검수 화면의 입력 (기획 8.2). 심화 경로라 기본 시연에는 안 나오지만
+    "자동 폐기 행 노출" 이 P4 의 시각 증거라 여기서 실물로 확인한다."""
+    s, d = get(f"/documents/{DOC}/candidates")
+    cands = d["candidates"]
+    verified = [c for c in cands if c["span_verified"]]
+    rejected = [c for c in cands if not c["span_verified"]]
+    check(
+        "후보 목록",
+        len(cands) > 0,
+        f"{len(cands)}건 · 검증 {len(verified)} · 자동폐기 {len(rejected)}",
+    )
+    # 걸러서 보내면 화면이 P4 의 증거를 못 보여준다
+    check(
+        "자동 폐기 행 노출 (P4 시각 증거)",
+        len(rejected) > 0 and all(c["status"] == "rejected" for c in rejected),
+        " · ".join(c["suggested_code"] for c in rejected) or "없음",
+    )
+    check(
+        "좌표 부여 (형광펜 배경)",
+        all(len(c["evidence"].get("bbox", [])) == 4 for c in verified),
+        f"{len(verified)}건 bbox",
+    )
+    # 계약 후보 type 밖(risk)이라 빠진 항목은 응답에 안 담긴다 — 계약 스키마에 자리가
+    # 없다. 빠졌다는 사실은 서버 로그에만 남으므로 여기서는 셀 수 없다(docker compose
+    # logs server 에서 "계약 후보 type 밖" 을 찾는다)
+
+    # 승인은 쓰기 경로라 토큰이 필요하다(계약 securitySchemes)
+    target = rejected[0] if rejected else None
+    if target:
+        st = post_status(
+            f"/documents/{DOC}/candidates/{target['candidate_id']}/approve",
+            {"approved_by": "smoke"},
+        )
+        check("토큰 없는 승인 거절", st == 401, f"{st} (계약: 401)")
+
 
 async def ws_human():
     import websockets
 
     print("\n== WebSocket · 사람 결정 (STT 없이 도는 3층 폴백) ==")
+    # 매번 새 세션을 쓴다. 고정 id 를 재사용하면 실행할 때마다 판정이 쌓여 ver 이 계속
+    # 오르고, 되돌리기가 "앞선 판정"으로 가는 곳이 지난 실행의 결과가 된다
+    sid = f"SMOKE-{uuid.uuid4().hex[:12].upper()}"
     async with websockets.connect(WS) as sock:
-        await sock.send(json.dumps({"t": "hello", "mode": "text", "session_id": "SMOKE-SESS-0001"}))
+        await sock.send(json.dumps({"t": "hello", "mode": "text", "session_id": sid}))
         ready = json.loads(await sock.recv())
-        check("hello → ready", ready["t"] == "ready", f"항목 {len(ready['items'])}개")
-        code = ready["items"][0]["item_code"]
+        check("hello → ready", ready["t"] == "ready", f"{sid} · 항목 {len(ready['items'])}개")
+        item = ready["items"][0]
+        code, before = item["item_code"], item["state"]
 
         async def send(msg, n):
             await sock.send(json.dumps(msg))
@@ -120,8 +195,9 @@ async def ws_human():
 
         got = await send({"t": "mark_met", "item_code": code}, 2)
         check("mark_met", got[0]["state"] == "met", f"{code} → met (ver {got[0]['ver']})")
+        # 되돌리기는 앞선 판정으로 간다. 앞선 것이 없으면 출발 상태(unmet)다
         got = await send({"t": "mark_met", "item_code": code, "undo": True}, 2)
-        check("mark_met undo", got[0]["state"] == "unmet", f"되돌림 (ver {got[0]['ver']})")
+        check("mark_met undo", got[0]["state"] == before, f"{before} 로 되돌림")
         got = await send({"t": "mark_waived", "item_code": code, "reason": "해당 없음"}, 2)
         check("mark_waived", got[0]["state"] == "waived", f"ver {got[0]['ver']}")
         got = await send({"t": "mark_met", "item_code": "XXX-YYY-999"}, 1)
@@ -151,11 +227,73 @@ async def ws_trace():
         )
 
 
+async def ws_live():
+    """기획 10.2 심화 경로의 「마이크 직접 발화」. 오디오 → STT → 판정 전 구간.
+
+    서버에 STT 가 없으면 건너뛴다 — 키 없이 도는 기본 경로를 막지 않기 위해서다.
+    음원은 `scripts/stt_check.py --make-audio` 가 만든 것을 그대로 쓴다.
+    """
+    import wave
+
+    import websockets
+
+    print("\n== WebSocket · live (마이크 경로) ==")
+    _, h = get("/health")
+    if h["checks"]["stt"] != "configured":
+        print("[ 건너뜀 ] 서버에 STT 가 설정되지 않음 (APP_STT_API_KEY)")
+        return
+    wav = AUDIO / "deposit_3.wav"
+    if not wav.exists():
+        print("[ 건너뜀 ] 음원 없음 — scripts/stt_check.py --make-audio 로 만드세요")
+        return
+
+    with wave.open(str(wav), "rb") as w:
+        pcm, rate = w.readframes(w.getnframes()), w.getframerate()
+    chunk = rate * 2 * 100 // 1000  # 계약 audioFrame 100ms
+
+    async with websockets.connect(WS, ping_timeout=120) as sock:
+        await sock.send(json.dumps({"t": "hello", "mode": "live"}))
+        ready = json.loads(await sock.recv())
+        check("hello → ready (live)", ready["t"] == "ready")
+
+        got: list[dict] = []
+
+        async def send():
+            for i, off in enumerate(range(0, len(pcm), chunk)):
+                await sock.send(i.to_bytes(4, "big") + pcm[off : off + chunk])
+                await asyncio.sleep(0.1)  # 실시간 속도
+
+        async def recv():
+            end = asyncio.get_running_loop().time() + len(pcm) / (rate * 2) + 8
+            while asyncio.get_running_loop().time() < end:
+                try:
+                    m = json.loads(await asyncio.wait_for(sock.recv(), timeout=5))
+                except TimeoutError:
+                    continue
+                if m["t"] != "ping":
+                    got.append(m)
+
+        await asyncio.gather(send(), recv())
+
+    partials = [m for m in got if m["t"] == "partial"]
+    utterances = [m for m in got if m["t"] == "utterance"]
+    check("partial (중간 전사)", len(partials) > 0, f"{len(partials)}건")
+    check(
+        "utterance (확정 발화)",
+        len(utterances) > 0,
+        " / ".join(m["text"][:40] for m in utterances) or "없음",
+    )
+    verdicts = [m for m in got if m["t"] == "verdict"]
+    if verdicts:
+        check("판정까지 도달", True, " · ".join(f"{m['item_code']} {m['state']}" for m in verdicts))
+
+
 def main():
     try:
         rest()
         asyncio.run(ws_human())
         asyncio.run(ws_trace())
+        asyncio.run(ws_live())
     except Exception as e:
         print(f"\n[ 중단 ] {type(e).__name__}: {e}")
         return 1

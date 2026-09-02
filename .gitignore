@@ -22,6 +22,9 @@ pnpm-debug.log*
 .env.*
 !.env.example
 
+# DB 덤프. 상담 내용이 그대로 들어 있어 레포에 올리면 안 된다 (scripts/backup.sh)
+backups/
+
 # os / editor
 .DS_Store
 .idea/
@@ -46,3 +49,11 @@ back/rulepack/artifacts/compiled_*.json
 back/rulepack/artifacts/rulepack_*.json
 back/rulepack/artifacts/published/
 back/rulepack/work/
+
+# STT 검증용 임시 음원. 재생성 가능하고 레포에 둘 이유가 없다 (scripts/stt_check.py)
+back/scripts/stt_audio/
+
+# 심사위원이 올린 오디오(POST /sessions/{id}/audio). 런타임 산출물이고 배포에서는
+# compose 볼륨(uploads:/uploads)이라 레포에 들어올 값이 아니다. 기획 5.3 이
+# 원본 오디오를 저장물에서 뺐는데 커밋에 섞이면 그 결정이 무의미해진다
+uploads/
