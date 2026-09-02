@@ -196,6 +196,9 @@ def main() -> int:
             trace.add("utterance", payload_to_event.utterance_body(utt))
             last_utt = utt_id
             result = engine.judge(utt, pack, state)
+            # 서버 파이프라인과 같은 순서: judge → observe(발화를 recent_utterances 에 접음.
+            # 재진술 카드의 source 와 ⑧ 용어 밀도가 여기서 결정됨) → apply
+            state = engine.observe(state, utt)
             state = engine.apply(state, result)
             trace.add_result(result)
             t_ms += utt.duration_ms + 400
