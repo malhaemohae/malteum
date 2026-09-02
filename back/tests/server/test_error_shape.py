@@ -71,3 +71,45 @@ def test_conflict_and_detail_survive(client, codes):
     body = got.json()
     assert body["code"] in codes
     assert body["detail"]["rejected_items"][0]["item_code"]
+
+
+def test_routing_404_and_405_are_contract_shaped(client, codes):
+    """라우팅이 직접 내는 오류. fastapi.HTTPException 에만 핸들러를 걸면 여기가 샌다.
+
+    프런트가 경로를 한 글자 틀리면 계약 밖 `{"detail": "Not Found"}` 를 받는다. 화면이
+    `body.code` 로 분기하면 undefined 로 떨어져, 오타 하나가 무한 로딩으로 보인다.
+    """
+    missing = client.get("/api/NO-SUCH-ROUTE")
+    assert missing.status_code == 404
+    body = missing.json()
+    assert set(body) >= {"code", "message"}, f"계약 필수 필드 누락: {body}"
+    assert body["code"] in codes and body["code"] == "not_found"
+
+    wrong_method = client.post("/api/health")
+    assert wrong_method.status_code == 405
+    body = wrong_method.json()
+    assert body["code"] in codes, f"계약 enum 밖: {body['code']}"
+    assert body["message"]
+
+
+def test_unhandled_exception_is_contract_shaped(codes):
+    """처리 못 한 예외. 기본값은 text/plain 이라 화면의 res.json() 이 파싱에서 터진다."""
+    from fastapi import APIRouter
+
+    app = create_app(Settings(event_store="memory", admin_token=TOKEN))
+    router = APIRouter()
+
+    @router.get("/api/_boom")
+    def _boom() -> None:
+        raise RuntimeError("의도한 사고")
+
+    app.include_router(router)
+    with TestClient(app, raise_server_exceptions=False) as c:
+        got = c.get("/api/_boom")
+
+    assert got.status_code == 500
+    assert got.headers["content-type"].startswith("application/json")
+    body = got.json()
+    assert body["code"] in codes and body["code"] == "internal"
+    assert body["retryable"] is True, "5xx 는 재시도할 만하다고 알려야 한다"
+    assert "의도한 사고" not in str(body), "예외 내용은 로그에만. 화면에 내보내지 않는다"
