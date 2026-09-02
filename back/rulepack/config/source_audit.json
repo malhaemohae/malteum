@@ -143,13 +143,6 @@
       "checked_at": "2026-08-26",
       "official_url": "https://www.law.go.kr/lsLinkCommonInfo.do?lsJoLnkSeq=1029913371",
       "reason": "현행 금융소비자보호법 제20조와 로컬 원문 span 일치 확인"
-    },
-    "LOAN-ARR-002": {
-      "status": "confirmed",
-      "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "checked_at": "2026-08-29",
-      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
     }
   }
 }

@@ -74,6 +74,18 @@ CANDIDATE_OUTPUT_SCHEMA: dict[str, Any] = {
                     "unit": {"type": "string"},
                     "condition": {"type": "string"},
                     "tolerance": {"type": "number"},
+                    # 숫자가 실제로 적힌 자리. 항목 근거와 다른 줄·쪽일 수 있다(계약
+                    # rulepack.schema 의 numeric_facts[].evidence). 없으면 항목 근거를 쓴다
+                    "evidence": {
+                        "type": "object",
+                        "required": ["doc_id", "page", "span"],
+                        "properties": {
+                            "doc_id": {"type": "string"},
+                            "page": {"type": "integer", "minimum": 1},
+                            "span": {"type": "string", "minLength": 1},
+                        },
+                        "additionalProperties": False,
+                    },
                 },
                 "additionalProperties": False,
             },
@@ -172,6 +184,47 @@ def _candidate_prompt(candidate: dict[str, Any], matches: list[StructureChunk]) 
             ],
         }
     )
+
+
+def _verify_numeric_fact_evidence(
+    candidate: dict[str, Any], source_by_id, find_span
+) -> tuple[str, str] | None:
+    """숫자 사실마다 근거를 확정한다. 실패하면 (reason_code, reason), 전부 통과하면 None.
+
+    자기 근거가 없는 사실은 항목 근거를 물려받는다(옛 동작). 자기 근거가 있으면 그 줄이
+    원문 그 쪽에 정확히 한 번 있어야 하고 bbox 를 여기서 채운다. reason_code 는 위 항목
+    근거 검증(evidence_source_unmapped 등)과 같은 이름을 쓴다 — 실패 종류가 같은데
+    번들을 어디서 뽑았는지(항목 vs 숫자 사실)로 이름을 갈라 둘 이유가 없다.
+    """
+    for fact in candidate.get("numeric_facts", []):
+        own = fact.get("evidence")
+        if not own:
+            fact["evidence"] = dict(candidate["evidence"])
+            continue
+        source = source_by_id.get(own["doc_id"])
+        if source is None:
+            return (
+                "evidence_source_unmapped",
+                f"numeric_fact 근거의 doc_id 가 상품 원천 목록에 없음: {own['doc_id']}",
+            )
+        if own["page"] > source.page_count:
+            return (
+                "evidence_not_found_or_page_mismatch",
+                f"numeric_fact 근거 page 가 원천 범위를 벗어남: p{own['page']}",
+            )
+        hit = find_span(str(source.path), own["span"], own["page"])
+        if hit is None:
+            return (
+                "evidence_not_found_or_page_mismatch",
+                f"numeric_fact 근거 span 을 p{own['page']} 에서 찾지 못함: {own['span'][:40]}",
+            )
+        if count_exact_span(source.path, own["span"], own["page"]) != 1:
+            return (
+                "evidence_ambiguous",
+                f"numeric_fact 근거 span 이 p{own['page']} 에 여러 번 있음: {own['span'][:40]}",
+            )
+        fact["evidence"] = {**own, "bbox": hit["bbox"]}
+    return None
 
 
 def count_exact_span(pdf_path: Path, span: str, page: int) -> int:
@@ -315,8 +368,16 @@ def build_product_bundle(
             )
             items.append(candidate)
             continue
-        for fact in candidate.get("numeric_facts", []):
-            fact["evidence"] = dict(candidate["evidence"])
+        # 숫자 사실의 근거. 자기 근거가 있으면 원문 대조(exact span 유일 + bbox)만 거친다.
+        # chunk 지원 검사는 LLM 이 본 덩어리에서 나온 후보인지를 보는 장치라, 사람이
+        # 설정에 적은 숫자에는 해당이 없다. 표 안의 표처럼 구조 추출이 잃는 줄도
+        # pdfium 텍스트에는 살아 있어 이 경로로만 근거를 댈 수 있다 (2026-09-03).
+        fact_failure = _verify_numeric_fact_evidence(candidate, source_by_id, find_span)
+        if fact_failure is not None:
+            reason_code, reason = fact_failure
+            candidate.update(status="review_required", reason_code=reason_code, reason=reason)
+            items.append(candidate)
+            continue
 
         if rule.get("manual_review_reason"):
             candidate.update(

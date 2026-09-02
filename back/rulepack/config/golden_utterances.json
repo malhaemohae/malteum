@@ -102,9 +102,8 @@
       "product": "loan",
       "speaker": "customer",
       "utterance": "갚는 날 늦으면 이자 얼마나 더 붙어요?",
-      "expected": ["LOAN-ARR-002"],
-      "kind": "related",
-      "note": "2026-09-02 연체가산이자율 수치가 LOAN-ARR-002 로 갈라진 뒤 '얼마나' 를 묻는 이 발화의 정답은 수치 항목. 산식 항목(ARR-001)은 v3 팩에서 4위"
+      "expected": ["LOAN-ARR-001"],
+      "kind": "related"
     },
     {
       "id": "loan-pre1-prepayment",
