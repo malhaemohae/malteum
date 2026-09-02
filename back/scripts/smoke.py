@@ -81,8 +81,10 @@ def contract(template, body, status=200):
 
 def get(path, raw=False, template=None):
     # doc_id 가 한글이라 그대로 넣으면 urllib 이 ascii 로 못 넘긴다. 서버도 근거 URL 을
-    # 낼 때 같은 처리를 한다(routers/evidence.py 의 quote). `/` 와 질의문자는 살린다
-    with urllib.request.urlopen(BASE + quote(path, safe="/?=&"), timeout=20) as r:
+    # 낼 때 같은 처리를 한다(routers/evidence.py 의 quote). `/` 와 질의문자는 살린다.
+    # **`%` 도 살린다** — 서버가 준 `page_image_url` 은 이미 인코딩돼 있어서, 다시 걸면
+    # `%EC` 가 `%25EC` 가 되고 404 가 난다. 그러면 페이지 렌더가 멀쩡한데도 실패로 뜬다
+    with urllib.request.urlopen(BASE + quote(path, safe="/?=&%"), timeout=20) as r:
         if raw:
             return r.status, r.read()
         body = json.load(r)
