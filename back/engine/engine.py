@@ -97,8 +97,22 @@ class RuleEngine:
     def apply(self, state: SessionState, result: JudgeResult) -> SessionState:
         return _apply.apply(state, result)
 
+    def observe(self, state: SessionState, utterance: Utterance) -> SessionState:
+        """계약 밖 보조 함수. 발화를 상태에 접는다(recent_utterances·⑧ 용어 밀도).
+
+        apply(state, result) 는 발화를 받지 않아 실시간 경로가 이것 없이는 fold 와 갈라진다."""
+        return _apply.observe(state, utterance, self._compiled_for(state.pack_version))
+
     def fold(self, events: Sequence[dict]) -> SessionState:
-        return _fold.fold(events)
+        started = next(e for e in events if e["kind"] == "session_started")
+        return _fold.fold(events, self._compiled_for(started["pack_version"]))
+
+    def _compiled_for(self, pack_version: str) -> CompiledPack:
+        cp = self._compiled.get(pack_version)
+        if cp is None:
+            self.load_pack(pack_version)
+            cp = self._compiled[pack_version]
+        return cp
 
     def summarize(self, state: SessionState, pack: RulePack, events: Sequence[dict] = ()) -> dict:
         """계약 밖 보조 함수. session_ended.summary 를 만든다."""

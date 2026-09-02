@@ -40,3 +40,40 @@ def test_apply_is_idempotent_and_bumps_ver_only_on_change(pack_json):
         )
     )
     assert engine.apply(s1, l3).state_of("DEP-INT-001").ver == 2
+
+
+def test_term_density_follows_teller_jargon_and_matches_fold(pack_json, scenario_a):
+    """⑧. 팩 jargon_terms 대조로만 센다. 실시간(observe)과 접기(fold)가 같은 값을 낸다."""
+    from contracts.engine_contract import Utterance
+
+    engine = _engine(pack_json)
+    pack = engine.load_pack(PACK_VERSION)
+    state = engine.initial_state("FIXT-SESS-0A", pack, "replay")
+    assert state.term_density == "normal"  # 아직 잰 것이 없다
+
+    seen: dict[int, str] = {}
+    for e in sorted(scenario_a, key=lambda e: e["seq_in_session"]):
+        if e["kind"] != "utterance":
+            continue
+        u = e["utterance"]
+        state = engine.observe(state, Utterance(e["event_id"], u["speaker"], u["text"], u["t_ms"]))
+        seen[e["seq_in_session"]] = state.term_density
+
+    assert seen[2] == "normal"  # 우대이자율·기본이자율 두 개. high 는 아직 아니다
+    assert seen[22] == "low"  # 창 안 은행원 발화 여섯 턴에 전문용어가 하나도 없다
+    assert seen[25] == "normal"  # 예금자보호법
+    assert engine.fold(scenario_a).term_density == state.term_density
+
+
+def test_term_density_high_and_stt_variant_counts(pack_json):
+    from contracts.engine_contract import Utterance
+
+    engine = _engine(pack_json)
+    pack = engine.load_pack(PACK_VERSION)
+    state = engine.initial_state("S1", pack, "text")
+    # "차감율" 은 L0 가 "차감률" 로 바로잡으므로 센다. 고객 발화의 용어는 세지 않는다
+    state = engine.observe(state, Utterance("u1", "customer", "만기후이자율이 뭐예요?", 0))
+    said = Utterance("u2", "teller", "차감율과 약정이율, 재예치 기준입니다", 1)
+    state = engine.observe(state, said)
+    assert state.term_density == "high"
+    assert engine.observe(state, Utterance("u2", "teller", "같은 발화", 1)) == state  # 멱등
