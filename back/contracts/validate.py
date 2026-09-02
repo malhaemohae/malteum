@@ -47,6 +47,14 @@ def _find_docs() -> str:
 DOCS = _find_docs()
 
 PACK_FIXTURE = "rulepack_DEP-2026.08-v4.json"
+# 시나리오 A 이벤트와 교차 검증하는 팩은 위 하나다. 그 외 팩(대출 등)도 스키마와
+# 근거 실재(3층)는 같은 잣대로 본다. 서버의 pack_dir 이 이 폴더라, 여기 있는 팩은
+# 전부 상담 화면에 나갈 수 있다.
+EXTRA_PACKS = sorted(
+    name
+    for name in (os.listdir(FIX) if os.path.isdir(FIX) else [])
+    if name.startswith("rulepack_") and name.endswith(".json") and name != PACK_FIXTURE
+)
 
 # 축별 허용 상태. events.schema.json 의 allOf 제약과 같은 표를 여기에도 둔다.
 # 두 곳에 두는 이유는 스키마가 없을 때도 이 검사가 돌아야 하기 때문이다.
@@ -86,6 +94,8 @@ def layer_schema(pack, events, ws):
             errors.append(f"[스키마] {label} @ {path}: {e.message}")
 
     check("rulepack.schema.json", pack, PACK_FIXTURE)
+    for name in EXTRA_PACKS:
+        check("rulepack.schema.json", load(name), name)
     for i, ev in enumerate(events):
         check("events.schema.json", ev, f"events[{i}] {ev.get('event_id')}")
     for i, m in enumerate(ws):
@@ -346,6 +356,10 @@ def main() -> int:
     layer_cross(pack, events, ws, cases)
     if not a.skip_pdf:
         layer_pdf(pack, events)
+        for name in EXTRA_PACKS:
+            extra = load(name)
+            print(f"  추가 팩 {extra['pack_version']}  항목 {len(extra['items'])}")
+            layer_pdf(extra, [])
 
     for n in notes:
         print(f"  · {n}")
