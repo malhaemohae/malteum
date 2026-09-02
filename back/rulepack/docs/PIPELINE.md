@@ -150,18 +150,18 @@ uv run python scripts/eval_l2_goldenset.py --model fake      # 모델 없이 경
 
 지표는 top-1 정답률 · recall@k(기대 항목이 상위 k 후보에 드는 비율) · 관련/무관 점수 분리다. L2 는 프리필터라 최종 판정권이 L3 에 있으므로 recall@k 와 분리력이 판단 기준이고 top-1 은 참고치다. 골든셋의 정합(없는 코드 기대, 금지 항목 누락, 검색면이 `scripts/load_pack.py` 의 `rows` 와 어긋남)은 `tests/rulepack/test_golden_utterances.py` 가 막는다.
 
-2026-09-02 baseline (e5-small 단독 · top-k 3 · 발행 가능 전 항목, 예금은 fixture v4 · 대출은 evidence_verified 8건 synthetic 팩):
+2026-09-02 baseline (e5-small 단독 · top-k 3 · 발행 가능 전 항목, 예금은 fixture v4 · 대출은 fixture v3 9항목. 같은 날 오전 측정치는 대출 8항목 synthetic 팩 기준 6/8 · 7/8 이었고, `LOAN-ARR-002` 추가와 골든셋 2건 변경 뒤 다시 잰 값이 아래):
 
 | 팩 | top-1 | recall@3 | 관련 top1 대역 | 무관 top1 대역 |
 | --- | ---: | ---: | --- | --- |
 | 예금 9항목 | 6/10 | 8/10 | 0.846~0.944 | 0.806~0.822 |
-| 대출 8항목 | 6/8 | 7/8 | 0.835~0.895 | 0.793~0.815 |
+| 대출 9항목 | 5/9 | 8/9 | 0.845~0.954 | 0.793~0.815 |
 
-recall@3 실패는 `DEP-PRO-001`(6위) · `DEP-LIM-001`(5위) · `LOAN-WDR-001`(5위) 셋. 관련 최저와 무관 최고의 간격이 0.02 안팎이라 절대 점수 임계값 게이트는 아직 못 세운다. 엔진의 자모 trigram 융합 같은 검색 방식 변경은 이 표와 같은 조건으로 다시 재서 대조한다.
+recall@3 실패는 `DEP-PRO-001`(6위) · `DEP-LIM-001`(5위) · `LOAN-WDR-001`(7위) 셋. 대출 top-1 이 낮은 것은 단정 발화 패러프레이즈(`loan-ban1-fixed-rate-assertion`)가 `LOAN-RSK-001` 에 1위를 내주고 DSR 질문이 `LOAN-BAN-001` 뒤에 서기 때문이며, 둘 다 recall 은 통과. 관련 최저와 무관 최고의 간격이 0.02 안팎이라 절대 점수 임계값 게이트는 아직 못 세운다. 엔진의 자모 trigram 융합 같은 검색 방식 변경은 이 표와 같은 조건으로 다시 재서 대조한다.
 
 재현 조건 세 가지를 지켜야 이 표와 대조가 된다.
 
-- **팩 경로를 명시한다.** 예금은 `contracts/fixtures/rulepack_DEP-2026.08-v4.json`, 대출은 `build` 번들의 evidence_verified 8건을 synthetic compile 한 팩. 인자 없는 기본 실행은 `rulepack/artifacts/` 의 로컬 팩을 집는데, 그 폴더에는 옛 3항목짜리 검증용 팩이 남아 있을 수 있어 수치가 통째로 어긋난다
+- **팩 경로를 명시한다.** 예금은 `contracts/fixtures/rulepack_DEP-2026.08-v4.json`, 대출은 `contracts/fixtures/rulepack_LOAN-2026.08-v3.json`. 인자 없는 기본 실행은 `rulepack/artifacts/` 의 로컬 팩을 집는데, 그 폴더에는 옛 3항목짜리 검증용 팩이 남아 있을 수 있어 수치가 통째로 어긋난다
 - **측정 검색면은 `pack_embeddings` 기준이다**(예시·쉬운 말마다 행 하나, 항목 점수는 행 최고점). 엔진의 `MemoryVectorIndex` 는 항목 전체를 한 문자열로 합쳐 벡터 하나만 만들므로(`engine/adapters/vector_index/memory.py` 의 `item_text`) 이 표의 수치가 그 경로로 그대로 옮겨지지 않는다. 두 검색면이 통일되기 전까지 이 표는 행 단위 검색면의 수치다
 - `DEP-BAN-001` 예시 보강(9/1) 후 "만기 지나도 금리 그대로예요"가 1위(0.913)인 것은 골든 발화와 예시 문장이 거의 같아서다. 이 케이스는 예시가 검색면에 실렸는지의 확인용이고, 일반화(다르게 표현한 위반 발화)는 별도 패러프레이즈 케이스가 필요하다
 

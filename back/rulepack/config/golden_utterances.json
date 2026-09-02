@@ -102,8 +102,9 @@
       "product": "loan",
       "speaker": "customer",
       "utterance": "갚는 날 늦으면 이자 얼마나 더 붙어요?",
-      "expected": ["LOAN-ARR-001"],
-      "kind": "related"
+      "expected": ["LOAN-ARR-002"],
+      "kind": "related",
+      "note": "2026-09-02 연체가산이자율 수치가 LOAN-ARR-002 로 갈라진 뒤 '얼마나' 를 묻는 이 발화의 정답은 수치 항목. 산식 항목(ARR-001)은 v3 팩에서 4위"
     },
     {
       "id": "loan-pre1-prepayment",
@@ -136,6 +137,15 @@
       "utterance": "신용 조회하면 제 등급 떨어지는 거 아니에요?",
       "expected": ["LOAN-CIC-001"],
       "kind": "related"
+    },
+    {
+      "id": "loan-ban1-fixed-rate-assertion",
+      "product": "loan",
+      "speaker": "teller",
+      "utterance": "이 조건이면 금리는 그냥 정해진 거라고 생각하시면 돼요",
+      "expected": ["LOAN-BAN-001"],
+      "kind": "forbidden",
+      "note": "2026-09-02 예시 보강('이 금리로 확정이라고 보시면 돼요')의 패러프레이즈. 예시와 같은 문장이 아니라 다르게 말한 단정이 잡히는지 본다"
     },
     {
       "id": "loan-ban1-approval-assertion",

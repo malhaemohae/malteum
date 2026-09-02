@@ -7,9 +7,9 @@
 | 상품 | 발행 가능 | 검토 대기 | 발행 차단 | 자동 폐기 |
 | --- | ---: | ---: | ---: | ---: |
 | 예금 신규 | 9 | 0 | 0 | 1 |
-| 신용대출 | 8 | 2 | 0 | 1 |
+| 신용대출 | 9 | 2 | 0 | 1 |
 
-- 발행 가능 17건: `DEP-INT-001` · `DEP-INT-002` · `DEP-INT-003` · `DEP-PRO-001` · `DEP-TAX-001` · `DEP-LIM-001` · `DEP-DOC-001` · `DEP-BAN-001` · `DEP-RSK-001` · `LOAN-INT-001` · `LOAN-ARR-001` · `LOAN-PRE-001` · `LOAN-DSR-001` · `LOAN-WDR-001` · `LOAN-CIC-001` · `LOAN-BAN-001` · `LOAN-RSK-001`
+- 발행 가능 18건: `DEP-INT-001` · `DEP-INT-002` · `DEP-INT-003` · `DEP-PRO-001` · `DEP-TAX-001` · `DEP-LIM-001` · `DEP-DOC-001` · `DEP-BAN-001` · `DEP-RSK-001` · `LOAN-INT-001` · `LOAN-ARR-001` · `LOAN-ARR-002` · `LOAN-PRE-001` · `LOAN-DSR-001` · `LOAN-WDR-001` · `LOAN-CIC-001` · `LOAN-BAN-001` · `LOAN-RSK-001`
 - 실제 발행에는 사람 승인과 HMAC 서명이 따로 필요하다. `confirmed` 만으로 나가지 않는다.
 - 자동 폐기 2건(`DEP-REJ-001` · `LOAN-REJ-001`)은 부정 표본이다. 원문 미존재와 page 불일치를 파이프라인이 잡는지 보는 장치라 통과하면 안 된다.
 
@@ -43,6 +43,8 @@
 - 2026-09-02 `DEP-BAN-001` 보강분(금지 예시 1 → 5문장)을 계약 fixture 팩에 반영. 엔진·서버가 읽는 팩이 fixture 라 여기 반영돼야 L2 검색면에 실림. 재빌드 산출물과 canonical 대조로 fixture 에 다른 드리프트가 없음을 확인했고, 이 대조를 `tests/rulepack/test_fixture_matches_canonical.py` 가 상시 수행. 유일한 차이는 `DEP-INT-002` 의 옛 numeric_facts 로, 시연 숫자 대조 경로를 살리려는 의도된 임시 부채(`contracts/fixtures/README.md` 참조). 주의: `pack_version` 을 v4 로 유지한 제자리 수정이라, v4 를 이미 적재한 DB 는 `load_pack --replace` 로 다시 넣어야 새 검색면이 실리고, `pack_version` 을 키로 쓰는 L3 판정 캐시·녹화 테이프도 무효화가 필요함
 - 2026-09-02 L2 골든셋 baseline 실측 기록. 예금 recall@3 8/10 · 대출 7/8, 관련·무관 top1 간격 0.02 안팎. 수치와 조건은 `docs/PIPELINE.md` 의 baseline 표 참조
 - 2026-09-02 대출 후보 9건에 `l1_patterns` 부여(`LOAN-INT`·`RDR`·`ARR`·`PRE`·`DSR`·`WDR`·`CIC`·`BAN`·`RSK`). 시연 대본을 엔진에 통과시켜 보니 대출 팩은 `DSR`·`RSK` 둘만 패턴이 있어 나머지가 엔진의 임시 키워드(`[DUMMY]`)에 의존했고, 은행원이 요건 요소 이름을 글자 그대로 말해야만 L1 이 잡혔음. 요소마다 정규식을 넣고 `tests/rulepack/test_l1_patterns.py` 가 판정 대상 항목의 요소 커버리지·대표 문장 적중·정정 문장 비적중을 상시 검사. 발행된 `LOAN-2026.08-v2` 에는 없고 다음 발행부터 실림
+- 2026-09-02 대출 팩에 숫자 사실 2건 추가. `LOAN-PRE-001` 중도상환해약금 부과 기간 3년, 새 항목 `LOAN-ARR-002`(연체가산이자율 수치) 연 3%. 대출 팩에는 `numeric_facts` 가 하나도 없어 ⑤ 숫자 오류 감지가 통째로 비어 있었음. 파이프라인이 숫자 사실의 근거를 항목 근거 span 으로 고정하므로(`pipeline.py`), 3% 가 적힌 줄이 연체이자율 산식 줄과 다른 chunk 라 `LOAN-ARR-001` 에 붙일 수 없어 항목을 하나 더 냄. 청약철회 14일은 같은 이유로 못 실음(항목 근거는 의사표시·반환 문장이고 14일 문장은 다른 chunk)
+- 2026-09-02 `LOAN-BAN-001` 금지 예시 1 → 5문장. `DEP-BAN-001` 과 같은 이유로, 시연 대본의 "확정이라고 보시면 돼요" 류가 L2 예시 검색면에 없었음. `LOAN-CIC-001` 의 '동의' 패턴을 정보·범위와 붙은 꼴로 좁힘. 한 단어면 "동의서에 서명해 주세요" 같은 절차 안내까지 요소를 채웠음
 
 ## 되짚는 법
 
