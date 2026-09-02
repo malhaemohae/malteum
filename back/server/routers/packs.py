@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 
 from server.auth import require_token
 from server.generated.api import PackSummary
-from server.services import publish
+from server.services import presets, publish
 from server.services.pack_store import PackAlreadyPublished
 
 router = APIRouter(tags=["packs"])
@@ -137,11 +137,10 @@ def get_briefing(
 
 
 @router.get("/presets", tags=["presets"])
-def list_presets() -> dict[str, list[Any]]:
-    """심사용 프리셋 목록.
+def list_presets(request: Request) -> dict[str, list[Any]]:
+    """심사용 프리셋 목록. 원천은 R5 의 `assets/scenarios/<id>/script.json` 이다.
 
-    원천은 `assets/scenarios/<id>/manifest` 다(최상위 README). 지금 그 폴더가 비어 있고
-    manifest 형식도 정해지지 않았다(R5 소유). 형식을 지어내지 않고 빈 목록을 돌려준다.
-    프런트는 이 경로에 대고 짤 수 있고, 자산이 들어오면 여기만 채우면 된다.
+    대본 파일 하나가 프리셋 하나다. 목록을 따로 들고 있으면 대본과 어긋난다 —
+    자세한 근거는 `services/presets.py`.
     """
-    return {"presets": []}
+    return {"presets": presets.load(request.app.state.settings.assets_dir)}
