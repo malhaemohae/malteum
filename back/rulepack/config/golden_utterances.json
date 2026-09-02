@@ -130,6 +130,15 @@
       "kind": "related"
     },
     {
+      "id": "loan-rdr1-rate-cut-request",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "제가 승진해서 신용이 좋아지면 금리 깎아 달라고 할 수 있어요?",
+      "expected": ["LOAN-RDR-001"],
+      "kind": "related",
+      "note": "2026-09-03 금리인하요구권이 제목 span 에서 정의 문장으로 근거를 바꿔 발행됨. 기획 9장 B 의 '금리인하요구권 누락' 장면이 대본에 들어오는 근거"
+    },
+    {
       "id": "loan-cic1-credit-inquiry",
       "product": "loan",
       "speaker": "customer",

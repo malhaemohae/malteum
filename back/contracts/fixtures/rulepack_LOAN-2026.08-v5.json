@@ -54,6 +54,52 @@
       "approved_at": "2026-09-03T00:00:00Z",
       "approved_by": "contract-fixture",
       "axis": "omission",
+      "code": "LOAN-RDR-001",
+      "embedding_id": "e5:LOAN-RDR-001",
+      "evidence": {
+        "bbox": [
+          54.6,
+          574.9,
+          555.2,
+          600.4
+        ],
+        "doc_id": "06_상품설명서_가계대출",
+        "page": 3,
+        "span": "금리인하요구권이란 금융소비자가 본인의 신용상태가 개선 되었다고 판단되는 경우(취업 · 승진 · 재산증가 · 개인신용평점 상승 등) 은행에 자신이 적용받는 금리인하를 요구 할 수 있는 권리(은행법 제30조의2)를 말합니다."
+      },
+      "l1_patterns": [
+        {
+          "element": "신용상태 개선 시 인하 요구",
+          "kind": "regex",
+          "value": "금리\\s*인하\\s*요구|(신용|소득)(상태|등급|점수)?[이가]?\\s*(좋아|개선|오르|올라)"
+        },
+        {
+          "element": "대상 제외 가능성",
+          "kind": "regex",
+          "value": "(대상|해당)[이에]?\\s*(아닐|아니|아닌|안\\s*(될|되)|제외)|제외"
+        }
+      ],
+      "legal_basis": [
+        {
+          "article": "제30조의2",
+          "law": "은행법"
+        }
+      ],
+      "name": "금리인하요구권",
+      "plain_language": [
+        "취업·승진·재산 증가처럼 신용상태가 좋아지면 금리를 내려 달라고 요구할 수 있습니다.",
+        "정책자금대출·집단대출처럼 신용상태가 금리에 영향을 주지 않는 상품은 대상이 아닙니다."
+      ],
+      "requirement_elements": [
+        "신용상태 개선 시 인하 요구",
+        "대상 제외 가능성"
+      ],
+      "type": "required"
+    },
+    {
+      "approved_at": "2026-09-03T00:00:00Z",
+      "approved_by": "contract-fixture",
+      "axis": "omission",
       "code": "LOAN-ARR-001",
       "embedding_id": "e5:LOAN-ARR-001",
       "evidence": {
@@ -106,7 +152,8 @@
         }
       ],
       "plain_language": [
-        "연체하면 원래 금리에 연 3% 의 연체 가산금리가 더해집니다."
+        "연체하면 원래 금리에 연 3% 의 연체 가산금리가 더해집니다.",
+        "갚는 날을 넘기면 그날부터 이자가 더 붙습니다."
       ],
       "requirement_elements": [
         "대출이자율",
@@ -281,7 +328,8 @@
         }
       ],
       "plain_language": [
-        "14일 안에는 의사를 밝히고 받은 돈을 돌려주어 계약을 철회할 수 있습니다."
+        "14일 안에는 의사를 밝히고 받은 돈을 돌려주어 계약을 철회할 수 있습니다.",
+        "대출을 받은 뒤 마음이 바뀌면 14일 안에 무를 수 있습니다."
       ],
       "requirement_elements": [
         "철회 의사표시",
@@ -442,7 +490,7 @@
     "담보",
     "보증"
   ],
-  "pack_version": "LOAN-2026.08-v4",
+  "pack_version": "LOAN-2026.08-v5",
   "product": {
     "category": "loan",
     "code": "HNB-HOUSEHOLD-CREDIT",
