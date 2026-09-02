@@ -1,4 +1,4 @@
-"""contracts/fixtures/judge_cases.json 15건. M2 의 통과 기준.
+"""contracts/fixtures/judge_cases.json 17건. M2 의 통과 기준.
 
 어댑터는 전부 fake. 아래 PHRASES·SCRIPT 는 테스트 데이터이지 엔진 로직이 아니다.
 max_ms 는 측정해 로그로 남기고, MALTEUM_ENFORCE_BUDGET=1 일 때만 실패로 처리한다.
@@ -43,11 +43,6 @@ SCRIPT = {
                 decided_by="L3",
                 missing_elements=("적용 이율", "차감률 또는 산출식"),
             ),
-        )
-    ),
-    "한 달 안에 해지하시면 연 0.10% 입니다. 그 뒤로는 기본이자율에서 경과기간별 차감률을 빼서 계산하고 최저 연 0.10% 입니다.": JudgeDecision(  # noqa: E501
-        verdicts=(
-            VerdictPayload(item_code="DEP-INT-002", axis="omission", state="met", decided_by="L3"),
         )
     ),
     "지금 해지 안 하고 두시면 무조건 이득이에요.": JudgeDecision(

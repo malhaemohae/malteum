@@ -66,34 +66,34 @@
     },
     {
       "name": "숫자 불일치 → 경보. 항목 상태는 별개로 판정",
-      "why": "숫자가 틀렸다는 것과 항목을 설명했다는 것은 다른 축이다. 경보만 뜨고 항목은 partial 로 남는다. 두 개를 한 값으로 뭉치면 리포트가 사실을 잃는다",
+      "why": "숫자가 틀렸다는 것과 항목을 설명했다는 것은 다른 축이다. 세금을 설명했으니 항목은 met, 세율이 설명서와 다르니 경보. 두 개를 한 값으로 뭉치면 리포트가 사실을 잃는다. 정답 15.4% 는 설명서 p.1 원문에 실재한다(옛 원천의 0.10% 를 대체, 2026-09-03)",
       "state_before": {
-        "DEP-INT-002": "unmet"
+        "DEP-TAX-001": "unmet"
       },
       "utterance": {
         "speaker": "teller",
-        "text": "중도해지하시면 0.5% 정도는 받으세요.",
-        "t_ms": 35200
+        "text": "받으시는 이자에는 과세가 되는데요, 세율은 14%입니다.",
+        "t_ms": 30000
       },
       "expect": {
         "tier": "L1",
         "max_ms": 5,
         "verdicts": [
           {
-            "item_code": "DEP-INT-002",
+            "item_code": "DEP-TAX-001",
             "axis": "omission",
-            "state": "partial"
+            "state": "met",
+            "decided_by": "L1"
           }
         ],
         "alerts": [
           {
             "alert_type": "number_mismatch",
             "severity": "warning",
-            "item_code": "DEP-INT-002",
+            "item_code": "DEP-TAX-001",
             "comparison": {
-              "said": "0.5%",
-              "reference": "0.10%",
-              "condition": "1개월 미만"
+              "said": "14%",
+              "reference": "15.4%"
             },
             "evidence_required": true
           }
@@ -105,21 +105,41 @@
       "name": "숫자 일치 → 경보 없음",
       "why": "위 케이스의 대칭. 정답과 같은 숫자에 경보가 뜨면 은행원이 경보를 무시하기 시작한다. 오탐 0 이 이 기능의 생존 조건이다",
       "state_before": {
+        "DEP-TAX-001": "met"
+      },
+      "utterance": {
+        "speaker": "teller",
+        "text": "이자에 과세되는 세율은 15.4%입니다.",
+        "t_ms": 121750
+      },
+      "expect": {
+        "tier": "L1",
+        "max_ms": 5,
+        "verdicts": [],
+        "alerts": [],
+        "assists": []
+      }
+    },
+    {
+      "name": "산식 설명 → met. 비율은 숫자 대조 대상이 아님",
+      "why": "중도해지이율은 '약정이율×0.5' 처럼 무엇의 몇 배로 정해진다. value+unit 절대값 모델로는 표현이 안 되고, 억지로 50% 로 넣으면 0.5% 발화에 '설명서 기준 50%' 라는 오해를 부르는 경보가 뜬다. 그래서 산식을 말했는지만 L1 이 보고, 내용이 맞는지는 L3 가 근거 문장을 보고 판단한다(2026-09-03 팀 결정)",
+      "state_before": {
         "DEP-INT-002": "partial"
       },
       "utterance": {
         "speaker": "teller",
-        "text": "한 달 안에 해지하시면 연 0.10% 입니다. 그 뒤로는 기본이자율에서 경과기간별 차감률을 빼서 계산하고 최저 연 0.10% 입니다.",
-        "t_ms": 135200
+        "text": "중도해지이율은 약정이율에 예치 기간별 차감률을 곱해서 계산되는데, 석 달 안에 해지하시면 약정이율의 절반 정도만 받으세요.",
+        "t_ms": 130000
       },
       "expect": {
-        "tier": "L3",
-        "max_ms": 1500,
+        "tier": "L1",
+        "max_ms": 5,
         "verdicts": [
           {
             "item_code": "DEP-INT-002",
             "axis": "omission",
             "state": "met",
+            "decided_by": "L1",
             "missing_elements": []
           }
         ],
@@ -377,6 +397,33 @@
         "tier": "L1",
         "max_ms": 5,
         "verdicts": [],
+        "alerts": [],
+        "assists": []
+      }
+    },
+    {
+      "name": "일부해지 제한 고지 → met",
+      "why": "DEP-LIM-001 의 L1 met 경로. 2026-09-03 시연 대본에서 이 발화가 빠지면서 어느 테스트도 이 항목의 met 경로를 실제 팩으로 도지 않게 됐다(code-review 발견). 여기서 다시 도지게 한다",
+      "state_before": {
+        "DEP-LIM-001": "unmet"
+      },
+      "utterance": {
+        "speaker": "teller",
+        "text": "이 상품은 일부해지가 안 됩니다. 해지하시면 전액이 나갑니다.",
+        "t_ms": 158900
+      },
+      "expect": {
+        "tier": "L1",
+        "max_ms": 5,
+        "verdicts": [
+          {
+            "item_code": "DEP-LIM-001",
+            "axis": "omission",
+            "state": "met",
+            "decided_by": "L1",
+            "missing_elements": []
+          }
+        ],
         "alerts": [],
         "assists": []
       }

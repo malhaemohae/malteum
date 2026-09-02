@@ -1,4 +1,4 @@
-"""시나리오 A(중도해지 상담) 이벤트 31건을 발화만 뽑아 judge→apply(→refine→apply) 로 다시 돌린다.
+"""시나리오 A(중도해지 상담) 이벤트 48건을 발화만 뽑아 judge→apply(→refine→apply) 로 다시 돌린다.
 
 engine 이 낸 verdict·alert 가 fixture 의 대체되지 않은 마지막 이벤트와 같아야 하고,
 끝난 상태가 fixture 를 fold 한 상태·종료 요약과 같아야 한다.
@@ -20,22 +20,19 @@ from tests.engine.fakes import FakeChunkIndex, FakeEmbedder, FakePackSource, Scr
 
 PHRASES = {
     "만기 지나도": "DEP-BAN-001",
-    "만기가 지나면": "DEP-INT-003",
     "중간에 깨면": "DEP-INT-002",
     "훨씬 덜 받는다": "DEP-INT-002",
+    "중도해지이율이 뭐": "DEP-INT-002",
 }
 
 SCRIPT = {
-    "만기 지나도 지금 금리가 그대로": JudgeDecision(
+    "만기 지나도 금리가 그대로": JudgeDecision(
         verdicts=(VerdictPayload("DEP-BAN-001", "commission", "violated", "L3"),)
     ),
     "중간에 깨면 이자를 훨씬 덜": JudgeDecision(
         verdicts=(VerdictPayload("DEP-INT-002", "comprehension", "confirmed", "L3"),)
     ),
-    "만기가 지나면 금리가 내려갑니다": JudgeDecision(
-        verdicts=(VerdictPayload("DEP-INT-003", "omission", "met", "L3"),)
-    ),
-    "한 달 안에": JudgeDecision(
+    "중도해지이율이 적용돼서 이자가 많이": JudgeDecision(
         verdicts=(
             VerdictPayload(
                 "DEP-INT-002",
@@ -43,6 +40,17 @@ SCRIPT = {
                 "partial",
                 "L3",
                 missing_elements=("차감률 또는 산출식",),
+            ),
+        )
+    ),
+    "예금자보호법에 따라 원금과 이자 포함": JudgeDecision(
+        verdicts=(
+            VerdictPayload(
+                "DEP-PRO-001",
+                "omission",
+                "partial",
+                "L3",
+                missing_elements=("동일 은행 합산",),
             ),
         )
     ),

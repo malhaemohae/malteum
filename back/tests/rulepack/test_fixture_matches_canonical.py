@@ -22,16 +22,11 @@ FIXTURES = REPO_ROOT / "back" / "contracts" / "fixtures"
 
 # 상품 → (fixture 파일, 의도된 드리프트, 있어도 없어도 되는 드리프트)
 PACKS = {
-    "deposit": (
-        "rulepack_DEP-2026.08-v4.json",
-        # 여기 있는 어긋남은 의도된 것이고, 사라져도(재발행으로 지워짐)
-        # 새로 생겨도(반영 누락) 아래 테스트가 빨개진다.
-        {("DEP-INT-002", "numeric_facts")},
-        # 엔진 브랜치(cfccc8f)가 같은 항목의 l1_patterns 에 numeric 임시 부채를
-        # fixture 에만 넣었다. 시연용 옛 값이 정리되면 사라진다.
-        {("DEP-INT-002", "l1_patterns")},
-    ),
-    "loan": ("rulepack_LOAN-2026.08-v3.json", set(), set()),
+    # 2026-09-03 예금 v4 를 canonical 에서 다시 발행하면서 옛 원천 0.10% 임시 부채
+    # (`DEP-INT-002` numeric_facts · numeric l1 패턴)가 사라졌다. 이제 두 팩 모두
+    # 드리프트 0 이 정상이고, 하나라도 생기면 fixture 를 손으로 고친 것이다.
+    "deposit": ("rulepack_DEP-2026.08-v4.json", set(), set()),
+    "loan": ("rulepack_LOAN-2026.08-v4.json", set(), set()),
 }
 
 # compiler._schema_item 이 번들에서 팩으로 옮기는 내용 키. 승인 메타(approved_*)와
