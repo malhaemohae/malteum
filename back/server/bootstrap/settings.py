@@ -35,7 +35,10 @@ class Settings(BaseSettings):
     llm_no_reasoning: bool = False
     llm_corrector: bool = False  # refine 앞 STT 교정 (LLM 1회 추가)
     llm_generator: bool = False  # answer 문장 생성 (guard P4 가 거른다)
-    embedding_model: str | None = None  # 같은 provider·키. 예: qwen/qwen3-embedding-0.6b
+    # 임베딩. 비우면 L2 생략. local 은 sentence-transformers(M3 팩 발행과 같은 모델),
+    # litellm 은 llm_provider 의 API 임베딩
+    embedding_backend: Literal["local", "litellm"] = "local"
+    embedding_model: str | None = None  # 예: intfloat/multilingual-e5-small
     embedding_dim: int = 384  # 팩의 embedding.dim 과 같아야 load_pack 이 받는다
     l3_budget_ms: float = (
         1500  # 계약 BUDGET_L3_MS. 실물 API 왕복이 넘기면 여기서 완화 (월요일 합의 대상)

@@ -54,6 +54,7 @@ class LiteLlmJudge:
         temperature: float = 0.0,
         timeout_s: float = 30.0,
         max_retries: int = 1,
+        transport_retries: int = 2,
         extra_body: dict[str, Any] | None = None,
     ) -> None:
         self.model = register(model, provider, "chat")
@@ -63,6 +64,7 @@ class LiteLlmJudge:
         self.temperature = temperature
         self.timeout_s = timeout_s
         self.max_retries = max_retries
+        self.transport_retries = transport_retries  # 429·일시 오류는 litellm 백오프로
 
     def decide(self, prompt: JudgePrompt) -> JudgeDecision:
         tool = tools.judge_tool(prompt)
@@ -80,7 +82,7 @@ class LiteLlmJudge:
                     timeout=self.timeout_s,
                     api_key=self.api_key,
                     api_base=self.api_base,
-                    num_retries=0,
+                    num_retries=self.transport_retries,
                     extra_body=self.extra_body,
                 )
             except Exception as e:  # litellm 예외 계층이 넓다. 경계에서만 통째로 받는다

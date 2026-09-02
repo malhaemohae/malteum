@@ -41,9 +41,7 @@ def test_expected_codes_exist_in_candidates(cases, bundles) -> None:
     코드가 남으면 그 케이스는 영원히 실패해 지표만 흐린다.
     """
     real = {item["code"] for bundle in bundles.values() for item in bundle["items"]}
-    missing = sorted(
-        {code for case in cases for code in case["expected"]} - real
-    )
+    missing = sorted({code for case in cases for code in case["expected"]} - real)
     assert not missing, f"골든셋이 없는 항목 코드를 기대한다: {missing}"
 
 

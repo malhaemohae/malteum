@@ -13,6 +13,7 @@ from typing import Any
 from contracts.engine_contract import Evidence, NumericFact
 from engine.errors import warn_dummy
 from engine.tiers.l0_normalize import JargonIndex
+from engine.tiers.l2 import lexical
 from engine.types import RulePack
 
 DEFAULT_REASK_PATTERNS = (
@@ -47,6 +48,7 @@ class CompiledPack:
     numeric: dict[str, tuple[NumericRef, ...]]
     jargon: JargonIndex
     reask: tuple[re.Pattern[str], ...]
+    tri: lexical.TrigramIndex = field(default_factory=lambda: lexical.build({}))
     dummy_pattern_items: tuple[str, ...] = field(default=())
 
 
@@ -86,12 +88,24 @@ def compile_pack(raw: dict[str, Any], pack: RulePack) -> CompiledPack:
     if not reask_raw:
         reask_raw = DEFAULT_REASK_PATTERNS
         warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+    tri_texts = {
+        it["code"]: lexical.item_text(
+            it["name"],
+            tuple(it.get("requirement_elements") or ()),
+            tuple(it.get("plain_language") or ()),
+            tuple(it.get("forbidden_examples") or ()),
+            tuple(it.get("risk_examples") or ()),
+        )
+        for it in raw["items"]
+        if it["type"] != "reference"
+    }
     return CompiledPack(
         pack_version=pack.pack_version,
         patterns=patterns,
         numeric=numeric,
         jargon=JargonIndex(terms),
         reask=tuple(re.compile(r) for r in reask_raw),
+        tri=lexical.build(tri_texts),
         dummy_pattern_items=tuple(dummy),
     )
 

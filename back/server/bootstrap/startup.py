@@ -56,14 +56,19 @@ def _adapters(settings: Settings) -> dict:
     """실물 LLM·임베딩. 설정이 비면 그 층은 빠지고 engine 이 [DUMMY] 경고로 알린다."""
     out: dict = {}
     if settings.embedding_model:
-        from engine.adapters.embedder.litellm import LiteLlmEmbedder
+        if settings.embedding_backend == "local":
+            from engine.adapters.embedder.local import LocalStEmbedder
 
-        out["embedder"] = LiteLlmEmbedder(
-            settings.embedding_model,
-            settings.embedding_dim,
-            provider=settings.llm_provider,
-            api_key=settings.llm_api_key,
-        )
+            out["embedder"] = LocalStEmbedder(settings.embedding_model, settings.embedding_dim)
+        else:
+            from engine.adapters.embedder.litellm import LiteLlmEmbedder
+
+            out["embedder"] = LiteLlmEmbedder(
+                settings.embedding_model,
+                settings.embedding_dim,
+                provider=settings.llm_provider,
+                api_key=settings.llm_api_key,
+            )
         out["index"] = MemoryVectorIndex()
     if settings.llm_model:
         from engine.adapters.llm.litellm import LiteLlmCorrector, LiteLlmGenerator, LiteLlmJudge
