@@ -70,14 +70,20 @@ def _java_major(exe: str) -> int | None:
 
 
 def _java_candidates() -> list[str]:
-    out: list[str] = []
+    """찾는 순서. **PATH 를 맨 뒤에 둔다** — Oracle javapath 가 0번을 선점해 Java 8 이 잡힌다.
+
+    `<레포 상위>/.jdk/*` 는 팀이 쓰는 자리다(CI 와 같은 Temurin 배포판을 거기 푼다).
+    `~/.jdk/*` 는 `rulepack/structure.py` 가 안내하는 `install-jdk` 기본 위치다.
+    """
+    homes: list[Path] = []
     if os.environ.get("JAVA_HOME"):
-        home = Path(os.environ["JAVA_HOME"])
-        exe = home / "bin" / ("java.exe" if os.name == "nt" else "java")
-        if exe.is_file():
-            out.append(str(exe))
-    roots = [Path("C:/jdk-17")] + sorted((Path.home() / ".jdk").glob("*"), reverse=True)
-    for home in roots:
+        homes.append(Path(os.environ["JAVA_HOME"]))
+    for root in (BACK_DIR.parent.parent / ".jdk", Path.home() / ".jdk"):
+        if root.is_dir():
+            homes.extend(sorted(root.iterdir(), reverse=True))
+
+    out = []
+    for home in homes:
         exe = home / "bin" / ("java.exe" if os.name == "nt" else "java")
         if exe.is_file():
             out.append(str(exe))
