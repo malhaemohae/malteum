@@ -48,6 +48,8 @@ class CompiledPack:
     numeric: dict[str, tuple[NumericRef, ...]]
     jargon: JargonIndex
     reask: tuple[re.Pattern[str], ...]
+    jargon_terms: tuple[str, ...] = ()
+    """⑧ 용어 밀도 게이지가 세는 목록. `jargon` 인덱스(항목명·요건 요소 포함)보다 좁다."""
     tri: lexical.TrigramIndex = field(default_factory=lambda: lexical.build({}))
     dummy_pattern_items: tuple[str, ...] = field(default=())
 
@@ -114,6 +116,7 @@ def compile_pack(raw: dict[str, Any], pack: RulePack) -> CompiledPack:
         patterns=patterns,
         numeric=numeric,
         jargon=JargonIndex(terms),
+        jargon_terms=tuple(raw.get("jargon_terms", [])),
         reask=tuple(re.compile(r) for r in reask_raw),
         tri=lexical.build(tri_texts, stats=topic_keys),
         dummy_pattern_items=tuple(dummy),

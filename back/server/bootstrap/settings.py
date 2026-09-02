@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     pack_dir: Path = BACK_DIR / "contracts" / "fixtures"
     # 근거 원문 PDF. 팩의 sources[].doc_id 와 파일명이 1:1 이다
     docs_dir: Path = BACK_DIR.parent / "assets" / "03_규정문서"
+    # 구조 추출 덤프. `scripts/dump_extraction.py` 가 오프라인에서 떠서 커밋한 결과다.
+    # 서버는 자바를 부르지 않는다 — 이유는 services/extraction.py
+    extraction_dir: Path = BACK_DIR.parent / "assets" / "extraction"
     # 항목 후보의 출처(M3 소유). import 가 아니라 파일 읽기다 — services/candidates.py 참고.
     # M3 가 이 파일을 옮기면 후보 목록이 빈다. tests/server/test_candidates.py 가 먼저 깨진다
     candidate_rules: Path = BACK_DIR / "rulepack" / "config" / "candidate_rules.json"

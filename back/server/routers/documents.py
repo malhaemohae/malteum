@@ -1,9 +1,10 @@
-"""규정 원문 문서. 목록 · 후보 조회 · 후보 승인.
+"""규정 원문 문서. 목록 · 업로드 · 추출 결과 · 후보 조회 · 후보 승인.
 
-**업로드(`POST /documents`)와 추출 결과(`/extraction`)는 아직 없다.** 그 둘은
-OpenDataLoader 구조 추출 산출물이 있어야 하는데, 그 산출물은 M3 의 `artifacts/` 에 있고
-`.gitignore` 라 서버에 없다. import-linter 가 `server → rulepack` 을 막으므로 여기서
-다시 뜰 수도 없다. 기획 14장이 구조 추출을 R3 에 배정했다.
+**추출은 서버에서 돌지 않는다.** OpenDataLoader 는 JDK 17 을 부르는 자바 프로그램이라
+배포 이미지에 넣지 않았다. `scripts/dump_extraction.py` 로 오프라인에서 미리 떠서
+`assets/extraction/` 에 커밋하고, 여기서는 그 파일을 읽기만 한다. 그래서 업로드 직후는
+계약대로 `extracting` 이고 오프라인 한 번이 지나면 `ready` 가 된다. 자세한 근거는
+`services/extraction.py`.
 
 **후보 조회와 승인은 M3 없이 선다.** 후보에 필요한 값(코드·이름·타입·요건·근거)이 M3 의
 `config/candidate_rules.json` 에 커밋돼 있고, 근거 대조는 `contracts/find_span.py` 로
@@ -16,12 +17,13 @@ OpenDataLoader 구조 추출 산출물이 있어야 하는데, 그 산출물은 
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
 
 from server.auth import require_token
-from server.services import candidates
+from server.services import candidates, doc_intake, extraction
 from server.services.documents import DocumentNotFound, page_size
 
 router = APIRouter(tags=["documents"])
@@ -29,27 +31,29 @@ router = APIRouter(tags=["documents"])
 
 @router.get("/documents")
 def list_documents(request: Request) -> dict[str, list[dict[str, Any]]]:
-    """팩이 인용한 규정 원문 목록. 심사위원이 출처를 확인하는 자리다(10.1 6단계).
+    """팩이 인용한 규정 원문 + 업로드된 원문. 심사위원이 출처를 확인하는 자리다(10.1 6단계).
 
-    `status` 는 파일이 실제로 열리는지로 정한다. 팩에 적혀 있어도 원문이 없으면
-    근거 원문 점프(⑭)가 그 문서에서 404 가 되므로, 목록에서 미리 드러내는 편이 낫다.
+    `status` 는 추출까지 보고 정한다. 원문이 안 열리면 `failed` — 팩에 적혀 있어도 파일이
+    없으면 근거 원문 점프(⑭)가 그 문서에서 404 가 되므로 목록에서 미리 드러낸다. 열리는데
+    추출 덤프가 없으면 `extracting` 이다. `/extraction` 이 같은 규칙으로 답하므로 목록과
+    상세가 어긋나지 않는다.
     """
     runtime = request.app.state.runtime
-    docs_dir = request.app.state.settings.docs_dir
+    settings = request.app.state.settings
+    docs_dir = settings.docs_dir
+    upload_root = Path(settings.upload_dir) / "documents"
 
     seen: dict[str, dict[str, Any]] = {}
     for row in runtime.pack_store.list(None, False):
         doc = runtime.pack_store.get(row["pack_version"])
         for source in (doc or {}).get("sources", []):
             seen.setdefault(source["doc_id"], source)
+    # 업로드된 문서는 아직 어느 팩에도 없다. 팩 문서를 덮지 않게 뒤에 채운다
+    for meta in doc_intake.uploaded(upload_root):
+        seen.setdefault(meta["doc_id"], meta)
 
     documents = []
     for doc_id, source in sorted(seen.items()):
-        try:
-            page_size(docs_dir, doc_id, 1)
-            status = "ready"
-        except DocumentNotFound:
-            status = "failed"
         documents.append(
             {
                 "doc_id": doc_id,
@@ -58,10 +62,70 @@ def list_documents(request: Request) -> dict[str, list[dict[str, Any]]]:
                 "url": source.get("url"),
                 "snapshot_date": source.get("snapshot_date"),
                 "page_count": source.get("page_count"),
-                "status": status,
+                "status": _status(doc_id, docs_dir, upload_root, settings.extraction_dir),
             }
         )
     return {"documents": documents}
+
+
+def _status(doc_id: str, docs_dir: Path, upload_root: Path, extraction_dir: Path) -> str:
+    for root in (docs_dir, upload_root):
+        try:
+            page_size(root, doc_id, 1)
+        except DocumentNotFound:
+            continue
+        return "ready" if extraction.has_dump(doc_id, extraction_dir) else "extracting"
+    return "failed"
+
+
+@router.post("/documents", status_code=202, dependencies=[Depends(require_token)])
+async def upload_document(
+    request: Request,
+    file: UploadFile,
+    doc_id: str = Form(...),
+    publisher: str = Form(...),
+    snapshot_date: str = Form(...),
+    title: str | None = Form(None),
+    url: str | None = Form(None),
+) -> dict[str, Any]:
+    """원문 업로드. 계약: "OpenDataLoader 로 구조를 뜨고 pypdfium2 로 페이지 좌표를 잡는다."
+
+    **여기서는 저장과 검사까지다.** 구조 추출은 오프라인(`scripts/dump_extraction.py`)이라
+    응답은 계약대로 `extracting` 이고, 그 스크립트가 한 번 돌면 `ready` 가 된다. 자바를
+    배포 이미지에 넣지 않은 이유는 `services/extraction.py`.
+    """
+    settings = request.app.state.settings
+    try:
+        meta = doc_intake.store(
+            Path(settings.upload_dir) / "documents",
+            doc_id,
+            await file.read(),
+            publisher=publisher,
+            snapshot_date=snapshot_date,
+            title=title,
+            url=url,
+        )
+    except doc_intake.IntakeError as e:
+        raise HTTPException(422, str(e)) from e
+    return {"doc_id": meta["doc_id"], "status": "extracting", "page_count": meta["page_count"]}
+
+
+@router.get("/documents/{doc_id}/extraction", dependencies=[Depends(require_token)])
+def get_extraction(doc_id: str, request: Request) -> dict[str, Any]:
+    """구조 추출 결과. 계약: "검수 화면의 입력. 표는 셀 단위로 구조를 채워 준다."
+
+    덤프를 그대로 준다. 덤프가 이미 계약 모양이라(`scripts/dump_extraction.py`) 여기서
+    다시 변환하지 않는다 — 변환이 두 곳에 있으면 한쪽만 고쳐진다.
+    """
+    settings = request.app.state.settings
+    try:
+        return extraction.for_document(
+            doc_id,
+            extraction_dir=settings.extraction_dir,
+            pdf_roots=(settings.docs_dir, Path(settings.upload_dir) / "documents"),
+        )
+    except extraction.ExtractionNotFound as e:
+        raise HTTPException(404, "문서가 없습니다.") from e
 
 
 @router.get("/documents/{doc_id}/candidates")

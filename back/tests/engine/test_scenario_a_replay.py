@@ -105,7 +105,7 @@ def test_scenario_a_replay(engine, scenario_a):
         if results[0].needs_refine:
             results.append(asyncio.run(engine.refine(utt, pack, state)))
             state = engine.apply(state, results[1])
-        state = _push_utterance(state, utt)
+        state = engine.observe(state, utt)
 
         final = {}
         for r in results:
@@ -161,9 +161,3 @@ def test_scenario_a_replay(engine, scenario_a):
 def _ref(e: dict) -> str | None:
     body = e.get(e["kind"], {})
     return body.get("utterance_ref") or body.get("source_utterance_ref")
-
-
-def _push_utterance(state, utt):
-    from dataclasses import replace
-
-    return replace(state, recent_utterances=(*state.recent_utterances, utt)[-8:])

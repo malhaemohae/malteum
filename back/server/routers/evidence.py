@@ -4,12 +4,12 @@
 bbox 를 꺼내고, 문서 메타(제목·발행처·스냅샷 일자)는 그 세션이 쓴 팩의 sources 에서 읽는다.
 출처와 일자는 화면·리포트에 상시 표기 대상이다.
 
-여기에는 **페이지 렌더만** 있다. 문서 업로드·추출·후보 승인은 M3 파이프라인이고 오너가
-정해지지 않았다.
+여기에는 **페이지 렌더만** 있다. 업로드·추출 결과·후보는 `routers/documents.py` 다.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated, Any
 from urllib.parse import quote
 
@@ -49,7 +49,7 @@ def get_evidence(evidence_ref: str, request: Request) -> dict[str, Any]:
     except DocumentNotFound as e:
         raise HTTPException(404, f"원문 문서가 없습니다: {evidence['doc_id']}") from e
 
-    return {
+    payload = {
         "doc_id": evidence["doc_id"],
         "doc_title": source.get("title"),
         "publisher": source.get("publisher"),
@@ -61,6 +61,10 @@ def get_evidence(evidence_ref: str, request: Request) -> dict[str, Any]:
         "page_image_url": _page_image_url(evidence["doc_id"], evidence["page"]),
         "page_size": list(size),
     }
+    # 이 응답에는 계약이 null 을 허용한 자리가 없다. 값이 없으면 키를 뺀다 —
+    # 근거 없는 항목의 `legal_basis` 가 null 로 나가 타입에 어긋났다
+    # (`routers/sessions.py` 의 `_contract_json` 과 같은 이유)
+    return {k: v for k, v in payload.items() if v is not None}
 
 
 @router.get("/documents/{doc_id}/pages/{page}.png", tags=["documents"])
@@ -70,9 +74,17 @@ def get_page_image(
     request: Request,
     scale: Annotated[float, Query(gt=0, le=4)] = 2.0,
 ) -> Response:
-    try:
-        png = render(request.app.state.settings.docs_dir, doc_id, page, scale)
-    except DocumentNotFound as e:
-        raise HTTPException(404, "그 페이지가 없습니다.") from e
+    settings = request.app.state.settings
+    # 업로드된 문서도 `GET /documents` 목록에 뜬다. 여기서 원문 폴더만 보면 목록에는
+    # 있는데 페이지가 404 인 문서가 생긴다 (routers/documents.py 의 `_status` 와 같은 순서)
+    png = None
+    for root in (settings.docs_dir, Path(settings.upload_dir) / "documents"):
+        try:
+            png = render(root, doc_id, page, scale)
+        except DocumentNotFound:
+            continue
+        break
+    if png is None:
+        raise HTTPException(404, "그 페이지가 없습니다.")
     # 발행된 팩이 가리키는 원문은 바뀌지 않는다. 오래 캐시해도 안전하다
     return Response(png, media_type="image/png", headers={"Cache-Control": "public, max-age=86400"})

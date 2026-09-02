@@ -74,7 +74,13 @@ class Pipeline:
         # 그대로 부르면 그동안 하트비트도 다른 세션도 멈춘다 — 실제로 클라이언트가
         # keepalive 타임아웃으로 끊겼다 (2026-09-02)
         result = await asyncio.to_thread(self.engine.judge, utterance, session.pack, session.state)
+        # 발화 자체를 상태에 접는다(⑧ 용어 밀도·L3 문맥). fold 가 utterance 이벤트에 하는 일
+        observed = self.engine.observe(session.state, utterance)
+        density_changed = observed.term_density != session.state.term_density
+        session.state = observed
         await self.apply_result(session, result, publish)
+        if density_changed and not result.verdicts:
+            await publish(event_to_s2c.progress(session.pack, session.state))
         # 계약: needs_refine 이 켜졌을 때만 예약하고, 꺼져 있으면 부르지 않는다.
         # 예약을 여기서 하는 이유는 utterance_id 가 채워진 발화가 이 안에만 있어서다.
         # 보정이 낼 판정의 근거가 어느 발화인지는 그 id 로만 짚힌다
