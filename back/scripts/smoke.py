@@ -301,7 +301,9 @@ async def ws_live():
 
     print("\n== WebSocket · live (마이크 경로) ==")
     _, h = get("/health", template="/health")
-    if h["checks"]["stt"] != "configured":
+    # 계약의 enum 은 ok·fail·unconfigured 다. "configured" 는 계약에 없는 값이라
+    # 이 분기가 항상 참이 되어 live 검증이 통째로 건너뛰어지고 있었다
+    if h["checks"]["stt"] != "ok":
         print("[ 건너뜀 ] 서버에 STT 가 설정되지 않음 (APP_STT_API_KEY)")
         return
     wav = AUDIO / "deposit_3.wav"
