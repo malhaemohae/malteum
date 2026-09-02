@@ -89,17 +89,33 @@ def test_to_blocks_maps_kinds_and_absorbs_table_internals():
     """caption 은 계약 enum 에 없어 paragraph 로 접고, 표 안의 행·셀은 따로 안 뜬다."""
     payload = {
         "kids": [
-            {"type": "text block", "kids": [
-                {"type": "caption", "page number": 1, "content": "표 설명",
-                 "bounding box": [1, 2, 3, 4]},
-                {"type": "table", "page number": 1, "number of rows": 1,
-                 "number of columns": 2, "rows": [
-                     {"row number": 1, "cells": [
-                         {"row number": 1, "column number": 1, "content": "구분"},
-                         {"row number": 1, "column number": 2, "content": "내용"},
-                     ]}]},
-                {"type": "image", "page number": 2, "bounding box": [5, 6, 7, 8]},
-            ]}
+            {
+                "type": "text block",
+                "kids": [
+                    {
+                        "type": "caption",
+                        "page number": 1,
+                        "content": "표 설명",
+                        "bounding box": [1, 2, 3, 4],
+                    },
+                    {
+                        "type": "table",
+                        "page number": 1,
+                        "number of rows": 1,
+                        "number of columns": 2,
+                        "rows": [
+                            {
+                                "row number": 1,
+                                "cells": [
+                                    {"row number": 1, "column number": 1, "content": "구분"},
+                                    {"row number": 1, "column number": 2, "content": "내용"},
+                                ],
+                            }
+                        ],
+                    },
+                    {"type": "image", "page number": 2, "bounding box": [5, 6, 7, 8]},
+                ],
+            }
         ]
     }
     blocks = dump_extraction.to_blocks(payload)
@@ -171,9 +187,7 @@ def test_broken_dump_is_failed_not_ready(tmp_path):
 @pytest.mark.parametrize("doc_id", ["../secrets", "a/b", "a\\b", ""])
 def test_doc_id_cannot_escape_the_directory(doc_id, tmp_path):
     with pytest.raises(extraction.ExtractionNotFound):
-        extraction.for_document(
-            doc_id, extraction_dir=tmp_path, pdf_roots=(tmp_path,)
-        )
+        extraction.for_document(doc_id, extraction_dir=tmp_path, pdf_roots=(tmp_path,))
 
 
 # --- 업로드 ----------------------------------------------------------------------

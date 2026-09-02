@@ -82,8 +82,7 @@ def test_real_scenarios_match_the_contract():
     validator = Draft202012Validator(_preset_schema())
     for preset in loaded:
         errors = [
-            f"/{'/'.join(map(str, e.path))}: {e.message}"
-            for e in validator.iter_errors(preset)
+            f"/{'/'.join(map(str, e.path))}: {e.message}" for e in validator.iter_errors(preset)
         ]
         assert not errors, f"{preset['preset_id']} — {errors}"
 

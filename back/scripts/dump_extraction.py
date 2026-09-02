@@ -124,8 +124,15 @@ def _jar() -> Path:
 def _run(java: str, jar: Path, pdf: Path, out_dir: Path) -> dict[str, Any]:
     proc = subprocess.run(
         [
-            java, "-jar", str(jar), str(pdf),
-            "--output-dir", str(out_dir), "--format", "json", "--quiet",
+            java,
+            "-jar",
+            str(jar),
+            str(pdf),
+            "--output-dir",
+            str(out_dir),
+            "--format",
+            "json",
+            "--quiet",
         ],
         capture_output=True,
         text=True,
@@ -173,10 +180,7 @@ def _rows_text(table: dict[str, Any]) -> str:
     rows: dict[int, list[tuple[int, str]]] = {}
     for cell in table["cells"]:
         rows.setdefault(cell["r"], []).append((cell["c"], cell["text"]))
-    lines = [
-        " | ".join(text for _, text in sorted(cells))
-        for _, cells in sorted(rows.items())
-    ]
+    lines = [" | ".join(text for _, text in sorted(cells)) for _, cells in sorted(rows.items())]
     return "\n".join(line for line in lines if line.strip(" |"))
 
 
