@@ -45,6 +45,8 @@ services:
       APP_STT_API_KEY: ${APP_STT_API_KEY:-}
       APP_STT_MODEL: ${APP_STT_MODEL:-nova-3}
       APP_STT_LANGUAGE: ${APP_STT_LANGUAGE:-ko}
+      APP_ADMIN_TOKEN: ${APP_ADMIN_TOKEN:-}
+      APP_UPLOAD_DIR: /uploads
       HF_HOME: /hf
     ports:
       - "${SERVER_PORT:-8000}:8000"
@@ -55,6 +57,8 @@ services:
       # 임베딩 모델(약 470MB)을 볼륨에 둔다. 이미지에 넣으면 배포마다 따라다니고,
       # 안 두면 첫 질의에서 받아온다 — 심사 중에 그러면 안 된다
       - hfcache:/hf
+      # 심사위원이 올린 오디오(POST /sessions/{id}/audio). assets 는 읽기 전용이라 자리가 갈린다
+      - uploads:/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -69,3 +73,4 @@ services:
 volumes:
   pgdata:
   hfcache:
+  uploads:

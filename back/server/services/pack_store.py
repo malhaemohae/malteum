@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Protocol
 
 from sqlalchemy import select
@@ -18,9 +19,17 @@ from sqlalchemy.orm import sessionmaker
 from server.database.entities import RulePack
 
 
+class PackAlreadyPublished(Exception):
+    """409. 팩은 불변 발행물이라 같은 버전을 덮어쓰지 않는다 — 진행 중 세션이
+    그 버전을 보고 있을 수 있다(계약)."""
+
+
 class PackStore(Protocol):
     def list(self, product_code: str | None, latest_only: bool) -> list[dict[str, Any]]: ...
     def get(self, pack_version: str) -> dict[str, Any] | None: ...
+    def put(self, doc: dict[str, Any]) -> None:
+        """새 버전으로 굳힌다. 같은 버전이 있으면 PackAlreadyPublished."""
+        ...
 
 
 class NullPackStore:
@@ -31,6 +40,9 @@ class NullPackStore:
 
     def get(self, pack_version: str) -> dict[str, Any] | None:
         return None
+
+    def put(self, doc: dict[str, Any]) -> None:
+        raise PackAlreadyPublished("이 모드에는 발행 저장소가 없습니다.")
 
 
 class PostgresPackStore:
@@ -52,6 +64,31 @@ class PostgresPackStore:
         with self._sessions() as db:
             row = db.get(RulePack, pack_version)
             return row.doc if row else None
+
+    def put(self, doc: dict[str, Any]) -> None:
+        """`scripts/load_pack.py` 와 같은 테이블에 같은 규칙으로 넣는다.
+
+        벡터는 채우지 않는다. 팩 JSON 에 임베딩 본체가 없고(`embedding_id` 만 참조로
+        둔다), 벡터 생성은 임베딩 모델을 쥔 쪽의 일이다.
+        """
+        version = doc["pack_version"]
+        with self._sessions.begin() as db:
+            if db.get(RulePack, version) is not None:
+                raise PackAlreadyPublished(f"이미 발행된 버전입니다: {version}")
+            embedding = doc.get("embedding") or {}
+            db.add(
+                RulePack(
+                    pack_version=version,
+                    doc=doc,
+                    product_code=doc["product"]["code"],
+                    product_name=doc["product"]["name"],
+                    product_category=doc["product"]["category"],
+                    published_at=datetime.fromisoformat(doc["published_at"].replace("Z", "+00:00")),
+                    published_by=doc.get("published_by", "api"),
+                    embedding_model=embedding.get("model", "none"),
+                    embedding_dim=embedding.get("dim", 384),
+                )
+            )
 
 
 def _summary(row: RulePack) -> dict[str, Any]:

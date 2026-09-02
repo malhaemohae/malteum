@@ -13,6 +13,15 @@ erDiagram
     sessions     ..o{ session_events  : "세션 1 : 이벤트 N (FK 없음 — D5)"
     session_events ||--o| session_events : "supersedes"
 
+    candidate_approvals {
+        text        candidate_id PK "sha256(doc_id:code)[:16]"
+        text        doc_id "인덱스"
+        text        suggested_code "승인 시점의 항목 코드"
+        text        approved_by
+        jsonb       edits "검수자가 고친 내용"
+        timestamptz approved_at
+    }
+
     rule_packs {
         text        pack_version PK "DEP-2026.08-v4"
         text        product_code
@@ -120,6 +129,16 @@ SELECT doc FROM rule_packs WHERE pack_version = %s
 
 UPDATE 하지 않는다. 고칠 일이 생기면 새 `pack_version` 을 발행한다.
 
+### `candidate_approvals` — 사람이 누른 결정
+
+**후보 자체는 저장하지 않는다.** 후보는 M3 의 후보 규칙에서 매번 다시 뜨는 파생물이고(`server/services/candidates.py`), 사람이 누른 승인만이 다시 만들 수 없는 원본이다(AGENTS.md 원칙 3).
+
+`candidate_id` 는 `sha256(doc_id:code)[:16]` 으로 **결정된다.** 무작위로 매기면 파이프라인을 다시 돌릴 때마다 id 가 바뀌어, 어제 승인한 후보가 오늘은 다른 후보가 된다.
+
+`doc_id` 에 FK 를 걸지 않는다. 문서 목록은 발행된 팩의 `sources` 에서 만드는 파생물이라 테이블이 없다.
+
+같은 후보를 두 번 승인하면 **첫 기록의 시각이 그대로 돌아온다(멱등).** 계약이 이 경로에 200 과 400 만 두어 409 를 낼 자리가 없다. 덮어쓰지는 않는다 — 누가 언제 승인했는지가 증빙이라 두 번째 승인자는 기록되지 않는다. 승인 취소 경로는 계약에 아직 없다.
+
 ### `pack_embeddings` — L2 의 검색면
 
 벡터 본체는 팩 JSON 에 넣지 않는다(파일이 거대해지고 diff 가 무의미해진다 — `rulepack.schema.json` 주석). 항목뿐 아니라 `forbidden_examples`·`risk_examples`·`plain_language`·`jargon_terms` 도 각각 한 행이 되므로 `source`+`ordinal` 로 출처를 밝힌다.
@@ -159,9 +178,19 @@ UPDATE 하지 않는다. 고칠 일이 생기면 새 `pack_version` 을 발행�
 
 `DecisionCache` 는 M2(허현준) 소유 Protocol 이고 저장은 M1 땅이다. **테이블이 필요한지 R2 에 확인한 뒤 자리를 잡는다.** 지금 만들지 않는다.
 
-### D3. `documents` 계열 — **오너십 확정 대기**
+### D3. `documents` 계열 — **후보·승인만 채택 (2026-09-02)**
 
-`/documents`·`/documents/{id}/extraction`·`/candidates`·`/approve` 는 REST 표면이라 M1 이지만 내용은 M3 다. 기획 8.2 의 S4(문서 추출·검수)가 심사 경로에 실제로 들어가므로 구현은 필수다. **누가 짜는지 정해진 뒤 스키마를 잡는다.** 지금 만들지 않는다.
+옛 상태: "REST 표면이라 M1 이지만 내용은 M3 다. 누가 짜는지 정해진 뒤 스키마를 잡는다."
+
+**기획 14장이 이미 배정하고 있었다.** R3(M3)이 "구조 추출 · LLM 추출 · 스팬 대조 · 좌표 · 팩 발행", R4 가 S4 화면, R1 은 게이트웨이다. 11.2 도 "심사위원 업로드 화면(S4)은 **같은 파이프라인을 라이브로 노출**" 이라 M1 이 다시 짜는 그림이 아니다. 미정이 아니라 안 읽은 것이었다.
+
+**넷 중 둘은 M3 를 기다리지 않아도 됐다.** 후보에 필요한 값(코드·이름·타입·요건·근거)이 M3 의 `back/rulepack/config/candidate_rules.json` 에 커밋돼 있고, 근거 대조는 `contracts/find_span.py` 로 직접 뜬다(`server → contracts` 는 허용 import). 실측으로 M3 의 `docs/STATUS.md` 와 판정이 일치했다 — 검증 18 · 자동 폐기 2 · 보류 1(risk).
+
+그래서 `candidate_approvals` 하나만 만든다. 후보는 파생물이라 테이블이 없다.
+
+**남은 둘**(`POST /documents` · `/extraction`)은 OpenDataLoader 구조 추출 산출물이 있어야 하는데 그것은 M3 의 `artifacts/` 에 있고 `.gitignore` 다. 기획 10.1 기본 경로에는 없고 10.2 심화 경로이며, 15장 절삭 순서 4번째("B축 승인 화면")다. **테이블을 미리 만들지 않는다.**
+
+옛 전제 정정: 이 문서가 "S4 가 심사 경로에 실제로 들어가므로 구현은 필수" 라고 적었는데, 기획 10.1 기본 경로 6단계에 문서 업로드가 없다. 필수가 아니라 심화다.
 
 ### D4. append-only 강제 — **코드로만**
 
@@ -190,4 +219,8 @@ FK 가 있으면 투영 행이 먼저 있어야 이벤트를 저장할 수 있�
 
 `CREATE EXTENSION IF NOT EXISTS vector` 를 리비전 맨 앞에 둔다. compose 는 `db/init.sql` 이 만들어주지만, 로컬 postgres 에 직접 붙는 경우가 있다.
 
-D2·D3 는 결정된 뒤 별도 리비전으로 붙인다. **빈 테이블을 미리 만들지 않는다**(AGENTS.md 작업 방식).
+D2 는 결정된 뒤 별도 리비전으로 붙인다. **빈 테이블을 미리 만들지 않는다**(AGENTS.md 작업 방식).
+
+## 5. 이후 리비전
+
+`0002_candidate_approvals` — `candidate_approvals` (D3). 후보 조회·승인 REST 두 경로가 서면서 붙었다.

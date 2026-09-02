@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import wave
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
 
 FRAME_MS = 100  # 계약 audioFrame 과 같은 크기
@@ -25,23 +25,24 @@ class AudioNotFound(FileNotFoundError):
     pass
 
 
-def resolve(root: Path, audio_ref: str) -> Path:
-    """`audio_ref` → 실제 파일.
+def resolve(roots: Path | Sequence[Path], audio_ref: str) -> Path:
+    """`audio_ref` → 실제 파일. 뿌리는 둘이다.
 
-    `assets/scenarios/` 아래를 본다(최상위 README 가 시연 자산을 두는 자리로 정한 곳).
-    지금 그 폴더가 비어 있어 R5 가 채우면 그대로 붙는다.
+    `assets/scenarios/` 는 R5 가 채우는 시연 자산이고, 업로드 폴더는 심사위원이
+    올린 것이다(`POST /sessions/{id}/audio`). 뒤엣것은 쓰기가 필요해 자리가 갈린다.
 
-    `..` 로 밖을 파고들지 못하게 막는다 — 참조는 심사위원 화면에서 오는 값이다.
+    `..` 로 뿌리 밖을 파고들지 못하게 막는다 — 참조는 화면에서 오는 값이다.
     """
     if not audio_ref or "\x00" in audio_ref:
         raise AudioNotFound("audio_ref 가 비었습니다.")
-    base = root.resolve()
-    target = (base / audio_ref).resolve()
-    if not target.is_relative_to(base):
-        raise AudioNotFound(f"자산 폴더 밖입니다: {audio_ref}")
-    if not target.is_file():
-        raise AudioNotFound(f"오디오가 없습니다: {audio_ref}")
-    return target
+    for root in [roots] if isinstance(roots, Path) else roots:
+        base = Path(root).resolve()
+        target = (base / audio_ref).resolve()
+        if not target.is_relative_to(base):
+            continue  # 그 뿌리 밖이다. 다른 뿌리를 본다
+        if target.is_file():
+            return target
+    raise AudioNotFound(f"오디오를 찾을 수 없습니다: {audio_ref}")
 
 
 def read_pcm(path: Path) -> bytes:
@@ -49,14 +50,23 @@ def read_pcm(path: Path) -> bytes:
 
     다른 규격을 받아 넘기면 STT 가 소리를 어긋나게 해석해 전사가 비거나 밀린다.
     변환은 자산을 만드는 쪽(R5)이 할 일이지 상담 경로가 할 일이 아니다.
+
+    **WAV 가 아닌 파일도 여기서 걸러야 한다.** `wave` 는 규격 불일치가 아니라 파싱
+    실패를 `wave.Error`·`EOFError` 로 낸다 — mp3 를 올리거나 전송이 끊겨 잘린 파일이
+    그렇다. 안 잡으면 업로드가 500 이 되고, 심사위원에게는 "서버가 죽었다" 로 보인다.
+    잡아서 415 로 내리면 화면이 "이 파일은 못 받습니다" 를 말할 수 있다.
     """
-    with wave.open(str(path), "rb") as w:
-        if (w.getnchannels(), w.getsampwidth(), w.getframerate()) != (1, 2, SAMPLE_RATE):
-            raise AudioNotFound(
-                f"16kHz mono PCM16 이 아닙니다: {path.name} "
-                f"({w.getnchannels()}ch {w.getsampwidth() * 8}bit {w.getframerate()}Hz)"
-            )
-        return w.readframes(w.getnframes())
+    try:
+        with wave.open(str(path), "rb") as w:
+            spec = (w.getnchannels(), w.getsampwidth(), w.getframerate())
+            if spec != (1, 2, SAMPLE_RATE):
+                raise AudioNotFound(
+                    f"16kHz mono PCM16 이 아닙니다: {path.name} "
+                    f"({spec[0]}ch {spec[1] * 8}bit {spec[2]}Hz)"
+                )
+            return w.readframes(w.getnframes())
+    except (wave.Error, EOFError) as e:
+        raise AudioNotFound(f"WAV 로 읽을 수 없습니다: {path.name} ({e})") from e
 
 
 async def stream(pcm: bytes) -> AsyncIterator[bytes]:

@@ -92,6 +92,9 @@ async def ws_endpoint(socket: WebSocket) -> None:
                     except PackNotFound:
                         await conn.send(_error("pack_not_found", "규정 팩이 없습니다."))
                         continue
+                # 이 뒤의 seq 는 세션에서 이어진다. 재접속이면 앞 연결이 쓰던 번호를
+                # 그대로 잇고, resume 이 그 세션의 로그에서 놓친 구간을 꺼낸다
+                conn.attach(session)
                 product = {
                     "code": session.pack.product_code,
                     "name": session.pack.product_name,
@@ -112,7 +115,13 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 if session.mode in ("trace", "replay"):
                     # 계약: replay·trace 는 ready 직후 서버가 스스로 시작한다. 시작 메시지는 없다
                     trace = asyncio.create_task(
-                        _autostart(session, pipeline, conn, stt, settings.assets_dir)
+                        _autostart(
+                            session,
+                            pipeline,
+                            conn,
+                            stt,
+                            [settings.assets_dir, settings.upload_dir],
+                        )
                     )
             elif msg.t == "pong":
                 pass
@@ -264,7 +273,11 @@ async def _on_audio(blob: bytes, conn: Connection, last_seq: int, stt: SttSessio
 
 
 async def _autostart(
-    session: Session, pipeline: Pipeline, conn: Connection, stt: SttSession | None, assets_dir
+    session: Session,
+    pipeline: Pipeline,
+    conn: Connection,
+    stt: SttSession | None,
+    audio_roots,
 ) -> None:
     """계약: replay·trace 는 hello 를 받은 서버가 ready 직후 스스로 시작한다.
 
@@ -274,11 +287,11 @@ async def _autostart(
     if session.mode == "trace":
         await _start_trace(session, pipeline, conn)
     else:
-        await _start_replay(session, conn, stt, assets_dir)
+        await _start_replay(session, conn, stt, audio_roots)
 
 
 async def _start_replay(
-    session: Session, conn: Connection, stt: SttSession | None, assets_dir
+    session: Session, conn: Connection, stt: SttSession | None, audio_roots
 ) -> None:
     """사전 오디오를 실시간 속도로 STT 에 흘린다 (11.4 기본 시연 경로).
 
@@ -293,7 +306,7 @@ async def _start_replay(
         )
         return
     try:
-        pcm = audio.read_pcm(audio.resolve(assets_dir, session.audio_ref or ""))
+        pcm = audio.read_pcm(audio.resolve(audio_roots, session.audio_ref or ""))
     except audio.AudioNotFound as e:
         await conn.send(_error("invalid_message", f"재생할 오디오가 없습니다: {e}"))
         return

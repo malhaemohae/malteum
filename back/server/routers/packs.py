@@ -12,9 +12,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from server.auth import require_token
 from server.generated.api import PackSummary
+from server.services import publish
+from server.services.pack_store import PackAlreadyPublished
 
 router = APIRouter(tags=["packs"])
 
@@ -35,6 +38,47 @@ def get_pack(pack_version: str, request: Request) -> dict[str, Any]:
     if doc is None:
         raise HTTPException(404, "규정 팩이 없습니다.")
     return doc
+
+
+@router.post("/packs/publish", status_code=201, dependencies=[Depends(require_token)])
+def publish_pack(doc: dict[str, Any], request: Request) -> dict[str, Any]:
+    """팩 발행. 계약: "M3 가 호출한다. 승인 완료 항목만 담아 새 버전으로 굳힌다."
+
+    **근거 스팬 대조가 이 경로의 존재 이유다**(422). 인용이 원문에 실재하지 않는 항목은
+    P4 위반이라 팩째로 거절한다. 대조는 `contracts/find_span.py` 로 한다 — M3 의 발행
+    파이프라인도 같은 함수를 쓰므로 그쪽에서 통과한 팩은 여기서도 통과한다.
+    """
+    settings = request.app.state.settings
+    store = request.app.state.runtime.pack_store
+    try:
+        publish.validate(doc)
+    except publish.PublishInvalid as e:
+        # 계약이 이 경로에 201·409·422 만 두었다. 400 은 그 밖이라 422 로 낸다.
+        # 근거 불일치(아래 422)와는 rejected_items 유무로 갈린다
+        raise HTTPException(422, str(e)) from e
+
+    rejected = publish.verify_evidence(doc, settings.docs_dir)
+    if rejected:
+        raise HTTPException(
+            422,
+            # code 는 계약 enum 밖으로 나가면 안 된다. 무엇이 걸렸는지는
+            # rejected_items 가 말한다
+            detail={
+                "code": "validation_failed",
+                "message": "근거가 원문과 맞지 않습니다.",
+                "rejected_items": rejected,
+            },
+        )
+    try:
+        store.put(doc)
+    except PackAlreadyPublished as e:
+        raise HTTPException(409, str(e)) from e
+    return {
+        "pack_version": doc["pack_version"],
+        "item_count": len(doc.get("items", ())),
+        # 벡터는 임베딩 모델을 쥔 쪽이 넣는다(scripts/load_pack.py). 여기서는 0 이 정직하다
+        "embedding_indexed": 0,
+    }
 
 
 @router.get("/packs/{pack_version}/briefing")
