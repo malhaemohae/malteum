@@ -24,6 +24,10 @@
 사용
     python scripts/eval_l2_goldenset.py                       # artifacts 의 팩 전부, e5
     python scripts/eval_l2_goldenset.py <팩.json> --model fake --top-k 3
+    python scripts/eval_l2_goldenset.py <팩.json> --engine   # 엔진 L2(trigram + dense 융합)로
+
+    기본은 dense 단독(`pack_embeddings` 행 단위 검색면)이고, `--engine` 은 서비스가 실제로
+    쓰는 `engine/tiers/l2/searcher.py` 경로로 순위를 매긴다. 검색 방식을 바꿀 때는 둘을 나란히 잰다.
 
     e5 는 첫 실행에서 모델(약 0.5GB)을 내려받는다. fake 는 결정적 해시 벡터라
     품질을 재지 못하고, 경로가 끝까지 도는지만 본다(CI 스모크용).
@@ -34,6 +38,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -79,28 +84,71 @@ def make_models(name: str) -> tuple[EmbeddingModel, EmbeddingModel]:
     return E5SmallEmbedding(prefix="passage"), E5SmallEmbedding(prefix="query")
 
 
-def evaluate(
-    pack: dict[str, Any],
-    cases: list[dict[str, Any]],
-    passage_model: EmbeddingModel,
-    query_model: EmbeddingModel,
-    top_k: int,
-) -> list[dict[str, Any]]:
-    """팩 하나에 대해 케이스별 순위를 계산한다. 반환 항목은 보고와 테스트가 쓴다."""
+Ranker = Callable[[str], list[tuple[str, float]]]
+
+
+def dense_ranker(
+    pack: dict[str, Any], passage_model: EmbeddingModel, query_model: EmbeddingModel
+) -> Ranker:
+    """dense 단독. 검색면은 `pack_embeddings` 와 같이 행 하나씩, 항목 점수는 행 최고점."""
     surfaces = search_surfaces(pack)
     passage_vectors = passage_model.encode([text for _, _, text in surfaces])
-    category = pack["product"]["category"]
-    chosen = [case for case in cases if case["product"] in (category, "any")]
-    query_vectors = query_model.encode([case["utterance"] for case in chosen])
 
-    results: list[dict[str, Any]] = []
-    for case, query in zip(chosen, query_vectors, strict=True):
+    def rank(utterance: str) -> list[tuple[str, float]]:
+        query = query_model.encode([utterance])[0]
         best: dict[str, float] = {}
         for (code, _, _), vector in zip(surfaces, passage_vectors, strict=True):
             score = sum(q * v for q, v in zip(query, vector, strict=True))
             if score > best.get(code, float("-inf")):
                 best[code] = score
-        ranked = sorted(best.items(), key=lambda pair: pair[1], reverse=True)
+        return sorted(best.items(), key=lambda pair: pair[1], reverse=True)
+
+    return rank
+
+
+def engine_ranker(pack_path: Path, query_model: EmbeddingModel) -> Ranker:
+    """엔진의 L2 그대로: L0 정규화 → 자모 trigram + dense 융합(`searcher.fused_scores`).
+    금지·위험 항목은 searcher 처럼 예시 가상 문서 덮임도 함께 본다. 서비스가 실제로 쓰는
+    경로의 수치라 dense 단독과 나란히 놓고 대조한다."""
+    from engine.adapters.pack_source.file import FilePackSource
+    from engine.adapters.vector_index.memory import MemoryVectorIndex
+    from engine.build import build_engine
+    from engine.tiers.l0_normalize import normalize
+    from engine.tiers.l2 import lexical, searcher
+
+    version = json.loads(pack_path.read_text(encoding="utf-8"))["pack_version"]
+    engine = build_engine(FilePackSource(pack_path.parent), query_model, MemoryVectorIndex())
+    pack = engine.load_pack(version)
+    compiled = engine.compiled(pack)
+
+    def rank(utterance: str) -> list[tuple[str, float]]:
+        text, _ = normalize(utterance, compiled.jargon)
+        scores = dict(searcher.fused_scores(text, pack, compiled, engine.embedder, engine.index))
+        for key, value in lexical.coverage(text, compiled.tri).items():
+            base, marker, _ = key.partition(lexical.EXAMPLES_SUFFIX)
+            item = pack.item(base) if marker else None
+            if item is not None and item.type in ("forbidden", "risk"):
+                scores[base] = max(scores.get(base, 0.0), value)
+        return sorted(scores.items(), key=lambda pair: pair[1], reverse=True)
+
+    return rank
+
+
+def evaluate(
+    pack: dict[str, Any],
+    cases: list[dict[str, Any]],
+    ranker: Ranker,
+    top_k: int,
+) -> list[dict[str, Any]]:
+    """팩 하나에 대해 케이스별 순위를 계산한다. 반환 항목은 보고와 테스트가 쓴다."""
+    category = pack["product"]["category"]
+    chosen = [case for case in cases if case["product"] in (category, "any")]
+
+    results: list[dict[str, Any]] = []
+    for case in chosen:
+        ranked = ranker(case["utterance"])
+        if not ranked:
+            ranked = [("(없음)", 0.0)]
         rank_of = {code: index + 1 for index, (code, _) in enumerate(ranked)}
         expected = case["expected"]
         results.append(
@@ -158,6 +206,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--golden", type=Path, default=GOLDEN_DEFAULT, help="골든셋 경로")
     parser.add_argument("--model", choices=("e5", "fake"), default="e5")
     parser.add_argument("--top-k", type=int, default=3, help="L2 가 L3 에 올릴 후보 수")
+    parser.add_argument(
+        "--engine",
+        action="store_true",
+        help="dense 단독 대신 엔진의 L2(trigram + dense 융합)로 순위를 매긴다",
+    )
     return parser
 
 
@@ -171,8 +224,17 @@ def main(argv: list[str] | None = None) -> int:
     passage_model, query_model = make_models(args.model)
     for path in pack_paths:
         pack = json.loads(Path(path).read_text(encoding="utf-8"))
-        result = evaluate(pack, cases, passage_model, query_model, args.top_k)
-        report(pack["pack_version"], result, args.top_k)
+        ranker = (
+            engine_ranker(Path(path), query_model)
+            if args.engine
+            else dense_ranker(pack, passage_model, query_model)
+        )
+        result = evaluate(pack, cases, ranker, args.top_k)
+        report(
+            pack["pack_version"] + (" · 엔진 L2 융합" if args.engine else " · dense 단독"),
+            result,
+            args.top_k,
+        )
     if args.model == "fake":
         print("\nfake 모델은 뜻을 담지 않는다. 위 수치는 품질이 아니라 경로 확인용이다")
     return 0

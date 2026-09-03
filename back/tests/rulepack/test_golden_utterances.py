@@ -93,11 +93,13 @@ def test_surfaces_match_load_pack_rows() -> None:
 
 def test_evaluate_runs_end_to_end_with_fake_model(cases) -> None:
     """fake 모델로 평가 경로가 끝까지 도는지 본다. 품질은 안 본다(해시 벡터라 뜻이 없다)."""
-    from eval_l2_goldenset import evaluate, make_models
+    from eval_l2_goldenset import dense_ranker, engine_ranker, evaluate, make_models
 
     pack = json.loads(PACK_FIXTURE.read_text(encoding="utf-8"))
     passage_model, query_model = make_models("fake")
-    results = evaluate(pack, cases, passage_model, query_model, top_k=3)
+    results = evaluate(pack, cases, dense_ranker(pack, passage_model, query_model), top_k=3)
+    engine_results = evaluate(pack, cases, engine_ranker(PACK_FIXTURE, query_model), top_k=3)
+    assert [row["id"] for row in engine_results] == [row["id"] for row in results]
 
     wanted = [case for case in cases if case["product"] in ("deposit", "any")]
     assert [row["id"] for row in results] == [case["id"] for case in wanted]

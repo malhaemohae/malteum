@@ -147,7 +147,10 @@ E5 계열은 입력에 `query:` 또는 `passage:` 를 붙여 학습했다. 팩 �
 cd back
 uv run python scripts/eval_l2_goldenset.py                   # artifacts 의 발행 팩 전부, e5
 uv run python scripts/eval_l2_goldenset.py --model fake      # 모델 없이 경로 확인(CI 스모크)
+uv run python scripts/eval_l2_goldenset.py <팩.json> --engine  # 엔진 L2(자모 trigram + dense 융합) 경로로
 ```
+
+기본 실행은 dense 단독이다. `--engine` 은 서비스가 실제로 쓰는 `engine/tiers/l2/searcher.py`(L0 정규화 → 자모 trigram 덮임 주 신호, dense 는 항목 간 분산이 있을 때만 보조) 그대로 순위를 매긴다. 검색 방식이나 검색면을 바꿀 때는 둘을 나란히 재서, dense 단독 수치가 아니라 엔진 경로 수치로 판단한다.
 
 지표는 top-1 정답률 · recall@k(기대 항목이 상위 k 후보에 드는 비율) · 관련/무관 점수 분리다. L2 는 프리필터라 최종 판정권이 L3 에 있으므로 recall@k 와 분리력이 판단 기준이고 top-1 은 참고치다. 골든셋의 정합(없는 코드 기대, 금지 항목 누락, 검색면이 `scripts/load_pack.py` 의 `rows` 와 어긋남)은 `tests/rulepack/test_golden_utterances.py` 가 막는다.
 
@@ -159,6 +162,17 @@ uv run python scripts/eval_l2_goldenset.py --model fake      # 모델 없이 경
 | 대출 9항목 | 7/10 | 10/10 | 0.845~0.954 | 0.793~0.815 |
 
 recall@3 실패는 `DEP-PRO-001`(6위) · `DEP-LIM-001`(4위) 둘. 대출은 쉬운 말에 골든 발화의 어휘("마음이 바뀌면 … 무를", "갚는 날을 넘기면")를 넣어 `WDR`·`ARR` 이 상위 3 안으로 들어왔다. 이 방식은 골든셋 어휘를 검색면에 심는 것이라 그 발화에는 확실히 듣지만 일반화 지표로는 낙관적이다. 단정 발화 패러프레이즈(`loan-ban1-fixed-rate-assertion`)가 `LOAN-RSK-001` 에 1위를 내주는 것은 그대로. 관련 최저와 무관 최고의 간격이 0.02 안팎이라 절대 점수 임계값 게이트는 아직 못 세운다. 엔진의 자모 trigram 융합 같은 검색 방식 변경은 이 표와 같은 조건으로 다시 재서 대조한다.
+
+같은 팩·골든셋을 `--engine` 으로 잰 값(2026-09-03). 무관 발화 4건은 두 팩 모두 전 항목 0.000 이라 분리가 완전하다. dense 단독의 "간격 0.02" 문제는 엔진 경로에는 없다.
+
+| 팩 | top-1 | recall@3 | 남은 실패 |
+| --- | ---: | ---: | --- |
+| 예금 9항목 | 6/10 | 9/10 | `dep-doc1-documents`: trigram 0 이고 dense 는 분산 부족으로 버려져 순위 자체가 없음(검색면에 구어 표면이 없다) |
+| 대출 9항목 | 8/10 | 9/10 | `loan-ban1-fixed-rate-assertion`: `LOAN-BAN-001` 4위(0.3대). 단정 발화 패러프레이즈는 예시 문장과 글자가 안 겹친다 |
+
+금지 발언 패러프레이즈가 L2 를 못 넘는 구멍을 L3 쪽에서 막는 안("refine 이 도는 은행원 발화에는 아직 violated 가 아닌 금지 항목을 전부 후보에 넣는다") 은 2026-09-03 에 실물 LLM(`tests/engine/test_live_llm.py`, qwen3-32b) 으로 재 보고 보류했다. 후보에 `DEP-BAN-001` 이 같이 들어가자 "중도해지하시면 이자가 좀 줄어듭니다" 의 `DEP-INT-002` partial 판정에서 빠진 요소가 둘에서 하나(`차감률 또는 산출식`)로 줄었고, 2회 반복·시스템 프롬프트 지시 추가·금지 항목을 별도 `forbidden_watch` 키로 분리한 변형 모두 같은 결과였다. 금지 항목이 프롬프트에 있는 것만으로 필수 항목의 요소 판정이 흔들린다는 뜻이라, 상시 포함은 프롬프트 구조나 모델을 바꾼 뒤 같은 케이스로 다시 재고 넣는다.
+
+**팩을 재발행하면 시연 fixture 를 다시 돌려 본다.** 금지 예시를 보강할수록 은행원의 정정 대사(`assets/scenarios/SCRIPT.md` 4.2)가 예시와 비슷해져 재경보가 뜰 수 있다. `uv run python scripts/gen_scenario_trace.py ../assets/scenarios/preset-dep-a/script.json --out contracts/fixtures/events_scenario_a.json` 을 돌려 요약의 경보 수(현재 3)와 위반 수(1)가 그대로인지 보고, `contracts/validate.py` 를 통과시킨 뒤 발행한다.
 
 재현 조건 세 가지를 지켜야 이 표와 대조가 된다.
 
