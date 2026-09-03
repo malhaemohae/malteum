@@ -5,18 +5,23 @@
   "product_code": "ICBC-KRW-TD",
   "mode": "replay",
   "customer_profile": { "type": "general", "tags": ["elderly"] },
-  "duration_ms": 195000,
+  "duration_ms": 147425,
   "audio": {
     "output": "audio.wav",
     "sample_rate": 16000,
     "channels": 1,
     "sample_width_bytes": 2,
     "min_gap_ms": 1000,
-    "placement": "각 줄의 클립을 start_ms 에 놓는다. 앞 클립이 아직 안 끝났으면 앞 클립 끝 + min_gap_ms 에 놓고 이후 줄을 같은 만큼 민다. 화자가 바뀌는 자리에는 무음이 반드시 있어야 화자 분리가 발화를 가른다"
+    "gap_ms": 1200,
+    "alert_gap_ms": 4000,
+    "tts_model": "eleven_multilingual_v2",
+    "placement": "클립을 앞 클립 끝 + gap_ms 에 이어 놓는다. 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 gap_ms 대신 alert_gap_ms 를 둔다. 화자가 바뀌는 자리의 무음(min_gap_ms 이상)이 화자 분리가 발화를 가르는 조건. start_ms 는 그렇게 조립한 실제 시각이고 make_scenario_audio.py --write-start 가 채운다"
   },
   "speakers": {
-    "teller": { "name": "박민수", "voice": "30대 남성, 차분한 톤", "desc": "가상 인물. 은행 창구 직원" },
-    "customer": { "name": "김영자", "voice": "70대 여성, 느린 톤", "desc": "가상 인물. 정기예금 고객" }
+    "teller": { "name": "박민수", "voice": "30대 남성, 차분한 톤", "desc": "가상 인물. 은행 창구 직원",
+      "tts": { "provider": "elevenlabs", "voice_id": "CxErO97xpQgQXYmapDKX", "speed": 1.0 } },
+    "customer": { "name": "김영자", "voice": "70대 여성, 느린 톤", "desc": "가상 인물. 정기예금 고객",
+      "tts": { "provider": "elevenlabs", "voice_id": "qWofGdsKN4woEPGCzrdX", "speed": 0.8 } }
   },
   "diarization_hint": {
     "first_speaker": "customer",
@@ -32,15 +37,15 @@
       "note": "금소법 19조 1항 둘째 분기(설명 요청) 발동 시점. 판정 없음"
     },
     {
-      "id": "A02", "start_ms": 12000, "speaker": "teller",
+      "id": "A02", "start_ms": 17212, "speaker": "teller",
       "text": "네, 중도해지 기준으로 안내드리겠습니다. 우대이자율은 중도해지하시면 적용이 안 되고, 기본이자율 기준으로 계산됩니다.",
       "expect": ["verdict DEP-INT-001 omission met L1"],
       "note": "정상 진행. 체크리스트 첫 항목이 미고지에서 고지로 바뀜"
     },
     {
-      "id": "A03", "start_ms": 30000, "speaker": "teller",
+      "id": "A03", "start_ms": 26910, "speaker": "teller",
       "text": "받으시는 이자에는 과세가 되는데요, 세율은 14%입니다.",
-      "tts_text": "받으시는 이자에는 과세가 되는데요, 세율은 십사 퍼센트입니다.",
+      "tts_text": "받으시는 이자 수익에는 과세가 되는데요, 세율은 십사 퍼센트입니다.",
       "expect": [
         "verdict DEP-TAX-001 omission met L1",
         "alert number_mismatch warning said=14% reference=15.4%"
@@ -48,7 +53,7 @@
       "note": "첫 결함. 60초 안. 설명서 p.1 의 15.4% 와 대조. 항목은 설명했으니 met, 숫자는 별개 축이라 경보"
     },
     {
-      "id": "A04", "start_ms": 42000, "speaker": "teller",
+      "id": "A04", "start_ms": 35786, "speaker": "teller",
       "text": "그리고 중도해지하시면 중도해지이율이 적용돼서 이자가 많이 줄어듭니다.",
       "expect": ["verdict DEP-INT-002 omission partial L1 missing=[차감률 또는 산출식]"],
       "l3": [
@@ -58,7 +63,7 @@
       "note": "요소 2개(불이익·적용 이율)로 partial. 산식이 빠졌다는 넛지가 L3 뒤에 붙는다"
     },
     {
-      "id": "A05", "start_ms": 55000, "speaker": "customer",
+      "id": "A05", "start_ms": 41815, "speaker": "customer",
       "text": "네에, 중도해지이율이 뭐예요?",
       "expect": [
         "verdict DEP-INT-002 comprehension explained L2",
@@ -67,21 +72,21 @@
       "note": "되물음. '뭐예요' 패턴이라 물음표 없이도 잡힘. '네?' 를 독립 문장으로 두지 않는다"
     },
     {
-      "id": "A06", "start_ms": 65000, "speaker": "teller",
+      "id": "A06", "start_ms": 48972, "speaker": "teller",
       "text": "네, 만기 전에 찾으시면 처음 약속한 이자보다 적게 받으신다는 뜻입니다.",
       "expect": [],
       "l3": [{"adopt": {"assist_type": "rephrase", "item_code": "DEP-INT-002"}}],
       "note": "재진술 카드를 그대로 따라 말하는 장면. 엔진 판정 없음"
     },
     {
-      "id": "A07", "start_ms": 75000, "speaker": "customer",
+      "id": "A07", "start_ms": 55512, "speaker": "customer",
       "text": "아, 중간에 깨면 이자를 훨씬 덜 받는다는 거네요.",
       "expect": ["verdict DEP-INT-002 comprehension confirmed L3 (LLM 필요)"],
       "l3": [{"verdict": {"item_code": "DEP-INT-002", "axis": "comprehension", "state": "confirmed"}}],
       "note": "explained 에서 confirmed 로"
     },
     {
-      "id": "A08", "start_ms": 85000, "speaker": "teller",
+      "id": "A08", "start_ms": 62377, "speaker": "teller",
       "text": "만기 지나도 금리가 그대로 유지되니까 그냥 두셔도 돼요.",
       "expect": [
         "verdict DEP-BAN-001 commission suspected L2",
@@ -92,39 +97,39 @@
       "note": "금지 발언. L1 정규식에 안 걸리고 L2 예시 유사도(실측 0.76)로 잡힘"
     },
     {
-      "id": "A09", "start_ms": 97000, "speaker": "customer",
+      "id": "A09", "start_ms": 71160, "speaker": "customer",
       "text": "그래요. 그럼 그냥 두는 게 낫겠네요.",
       "expect": [],
       "note": "고객이 틀린 안내를 믿는 장면. 물음표를 붙이지 않는다"
     },
     {
-      "id": "A10", "start_ms": 105000, "speaker": "teller",
+      "id": "A10", "start_ms": 76632, "speaker": "teller",
       "text": "아, 죄송합니다. 정확히 다시 말씀드릴게요. 만기 후에는 약정이율이 아니라 만기후이자율이 적용되고, 경과 기간에 따라 더 낮아집니다.",
       "expect": ["verdict DEP-INT-003 omission met L1"],
       "note": "정정. 만기후이자율 항목 고지. 비율(기본이자율×0.5)은 숫자 대조 대상이 아니라 L3 몫"
     },
     {
-      "id": "A11", "start_ms": 120000, "speaker": "teller",
+      "id": "A11", "start_ms": 88559, "speaker": "teller",
       "text": "아까 세금도 정정하겠습니다. 이자에 과세되는 세율은 15.4%입니다.",
       "tts_text": "아까 세금도 정정하겠습니다. 이자에 과세되는 세율은 십오 점 사 퍼센트입니다.",
       "expect": ["alert 없음 (15.4 == 설명서 15.4)"],
       "note": "숫자 정정. 맞는 숫자에는 경보가 없어야 한다. 항목은 이미 met 이라 판정 이벤트도 없음"
     },
     {
-      "id": "A12", "start_ms": 130000, "speaker": "teller",
+      "id": "A12", "start_ms": 96585, "speaker": "teller",
       "text": "그리고 중도해지이율은 약정이율에 예치 기간별 차감률을 곱해서 계산되는데, 석 달 안에 해지하시면 약정이율의 절반 정도만 받으세요.",
       "expect": ["verdict DEP-INT-002 omission met L1"],
       "l3": [{"adopt": {"assist_type": "nudge", "item_code": "DEP-INT-002"}}],
       "note": "넛지를 따라 산식을 채움. 부분 고지에서 고지로 전환. '절반' 이 맞는지(설명서 1~3개월 약정이율×0.5)는 L3 가 근거 문장을 보고 판단"
     },
     {
-      "id": "A13", "start_ms": 145000, "speaker": "teller",
+      "id": "A13", "start_ms": 107816, "speaker": "teller",
       "text": "대신 해지하지 않고 예금담보대출을 이용하시면 예금은 그대로 두고 필요한 금액만 빌리실 수 있습니다.",
       "expect": [],
       "note": "대안 안내(감시가 아니라 조력). 일부해지(DEP-LIM-001)는 끝까지 말하지 않아 미고지로 남는다"
     },
     {
-      "id": "A14", "start_ms": 160000, "speaker": "teller",
+      "id": "A14", "start_ms": 116492, "speaker": "teller",
       "text": "참고로 이 예금은 예금자보호법에 따라 원금과 이자 포함 1인당 1억 원까지 보호됩니다.",
       "tts_text": "참고로 이 예금은 예금자보호법에 따라 원금과 이자 포함 일인당 일억 원까지 보호됩니다.",
       "expect": [
@@ -138,13 +143,13 @@
       "note": "의도된 부분 고지. '합산'·'합쳐'·'합해' 를 말하지 않는다. STT 가 '1억' 을 숫자로 내야 한도 요소가 잡힘(사전 점검 항목)"
     },
     {
-      "id": "A15", "start_ms": 175000, "speaker": "customer",
+      "id": "A15", "start_ms": 127690, "speaker": "customer",
       "text": "아뇨, 그냥 해지할게요. 해지한 돈은 딸이 알려준 계좌로 바로 보내 주세요.",
       "expect": ["alert risk_signal critical DEP-RSK-001 (verdict 없음)"],
       "note": "위험 신호. 고객 발화만 본다. 화자가 teller 로 매핑되면 이 경보가 사라지고, 은행원 위반으로 표시되면 P6 위반"
     },
     {
-      "id": "A16", "start_ms": 185000, "speaker": "teller",
+      "id": "A16", "start_ms": 139352, "speaker": "teller",
       "text": "고객님, 혹시 따님과 직접 통화는 해 보셨어요? 확인 후에 진행하겠습니다. 신분증 먼저 주시겠어요?",
       "expect": [],
       "note": "마무리. 판정 없음"
