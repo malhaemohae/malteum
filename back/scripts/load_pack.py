@@ -123,11 +123,13 @@ def check_contract(pack: dict[str, Any]) -> None:
     컴파일러 것을 그대로 쓴다. 따로 적으면 한쪽만 느슨해진다. 실제로 사본은
     `format_checker` 를 안 넘겨 `date-time` 형식을 못 잡고 있었다.
     """
-    from rulepack import paths
     from rulepack.compiler import _validate_pack_schema
 
+    # 루트를 찾지 않고 back/ 을 준다. 스키마는 back/contracts 에 있고 그것만 필요하다.
+    # find_repo_root 는 계약 폴더와 규정 원천 폴더의 쌍을 요구하는데, 서버 이미지는
+    # /app=back/ 이고 원문은 /assets 에 따로 마운트되어 그 쌍이 없다 (첫 배포에서 실패)
     try:
-        _validate_pack_schema(paths.find_repo_root(), pack)
+        _validate_pack_schema(BACK, pack)
     except CompileError as exc:
         raise LoadError(f"팩이 rulepack.schema.json 을 만족하지 않음: {exc}") from exc
 
