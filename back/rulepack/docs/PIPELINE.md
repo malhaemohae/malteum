@@ -170,7 +170,7 @@ recall@3 실패는 `DEP-PRO-001`(6위) · `DEP-LIM-001`(4위) 둘. 대출은 쉬
 | 예금 9항목 | 6/10 | 9/10 | `dep-doc1-documents`: trigram 0 이고 dense 는 분산 부족으로 버려져 순위 자체가 없음(검색면에 구어 표면이 없다) |
 | 대출 9항목 | 8/10 | 9/10 | `loan-ban1-fixed-rate-assertion`: `LOAN-BAN-001` 4위(0.3대). 단정 발화 패러프레이즈는 예시 문장과 글자가 안 겹친다 |
 
-금지 발언 패러프레이즈가 L2 를 못 넘는 구멍을 L3 쪽에서 막는 안("refine 이 도는 은행원 발화에는 아직 violated 가 아닌 금지 항목을 전부 후보에 넣는다") 은 2026-09-03 에 실물 LLM(`tests/engine/test_live_llm.py`, qwen3-32b) 으로 재 보고 보류했다. 후보에 `DEP-BAN-001` 이 같이 들어가자 "중도해지하시면 이자가 좀 줄어듭니다" 의 `DEP-INT-002` partial 판정에서 빠진 요소가 둘에서 하나(`차감률 또는 산출식`)로 줄었고, 2회 반복·시스템 프롬프트 지시 추가·금지 항목을 별도 `forbidden_watch` 키로 분리한 변형 모두 같은 결과였다. 금지 항목이 프롬프트에 있는 것만으로 필수 항목의 요소 판정이 흔들린다는 뜻이라, 상시 포함은 프롬프트 구조나 모델을 바꾼 뒤 같은 케이스로 다시 재고 넣는다.
+금지 발언 패러프레이즈가 L2 를 못 넘는 구멍을 L3 쪽에서 막는 안("refine 이 도는 은행원 발화에는 아직 violated 가 아닌 금지 항목을 전부 후보에 넣는다") 은 2026-09-03 에 실물 LLM(`tests/engine/test_live_llm.py`, qwen3-8b) 으로 재 보고 보류했다. 후보에 `DEP-BAN-001` 이 같이 들어가자 "중도해지하시면 이자가 좀 줄어듭니다" 의 `DEP-INT-002` partial 판정에서 빠진 요소가 둘에서 하나(`차감률 또는 산출식`)로 줄었고, 2회 반복·시스템 프롬프트 지시 추가·금지 항목을 별도 `forbidden_watch` 키로 분리한 변형 모두 같은 결과였다. 금지 항목이 프롬프트에 있는 것만으로 필수 항목의 요소 판정이 흔들린다는 뜻이라, 상시 포함은 프롬프트 구조나 모델을 바꾼 뒤 같은 케이스로 다시 재고 넣는다.
 
 **팩을 재발행하면 시연 fixture 를 다시 돌려 본다.** 금지 예시를 보강할수록 은행원의 정정 대사(`assets/scenarios/SCRIPT.md` 4.2)가 예시와 비슷해져 재경보가 뜰 수 있다. `uv run python scripts/gen_scenario_trace.py ../assets/scenarios/preset-dep-a/script.json --out contracts/fixtures/events_scenario_a.json` 을 돌려 요약의 경보 수(현재 3)와 위반 수(1)가 그대로인지 보고, `contracts/validate.py` 를 통과시킨 뒤 발행한다.
 
