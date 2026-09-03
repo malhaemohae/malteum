@@ -21,7 +21,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.runtime = build_runtime(settings)
         yield
 
-    app = FastAPI(title=settings.display_name, version=settings.version, lifespan=lifespan)
+    app = FastAPI(
+        title=settings.display_name,
+        version=settings.version,
+        lifespan=lifespan,
+        # 문서도 /api 아래. 배포에서 nginx 가 /api/·/ws 만 서버로 보내고 / 는 프런트 몫이다
+        docs_url="/api/docs",
+        redoc_url="/api/redoc",
+        openapi_url="/api/openapi.json",
+    )
     app.state.settings = settings
     errors.install(app)  # 계약 Error 모양. ws 와 같은 code 집합을 쓴다
     app.include_router(health.router, prefix="/api")
