@@ -29,6 +29,8 @@ SID = "FIXT-SESS-0A"
 # 후보가 붙어 있는 원천. M3 config/candidate_rules.json 의 doc_id 와 같다
 DOC = "05_상품설명서_정기예금"
 AUDIO = Path(__file__).resolve().parent / "stt_audio"
+# 시연 A 의 원본. `seed_session.py` 가 DB 에 넣는 것과 같은 파일이라 기대값의 출처가 된다
+TRACE = Path(__file__).resolve().parent.parent / "contracts" / "fixtures" / "events_scenario_a.json"
 ok = fail = 0
 
 
@@ -135,7 +137,10 @@ def rest():
 
     s, ev = get(f"/sessions/{SID}/events", template="/sessions/{session_id}/events")
     events = ev["events"]
-    check("이벤트 원본", len(events) == 31, f"{len(events)}건")
+    # 기대값을 픽스처에서 뽑는다(아래 supersedes 와 같은 이유). 숫자를 박아 두었더니
+    # 대본이 재생성되어 31 → 48 이 된 순간 스모크가 배포 문제인 양 빨갛게 떴다 (2026-09-03)
+    want = len(json.loads(TRACE.read_text(encoding="utf-8")))
+    check("이벤트 원본", len(events) == want, f"{len(events)}건 (픽스처 {want})")
     ref = next(
         e["event_id"] for e in events if e["kind"] == "verdict" and e["verdict"].get("evidence")
     )
