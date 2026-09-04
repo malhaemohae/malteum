@@ -130,7 +130,7 @@ def search(
 
     if "comprehension" in types:
         if any(rx.search(text) for rx in compiled.reask):
-            target = _reask_target(scores, pack, state)
+            target = _reask_target(scores, pack, state, compiled)
             if target is not None:
                 cur = state.state_of(target.code, "comprehension")
                 if cur is None or cur.state != "confirmed":
@@ -157,11 +157,17 @@ def search(
 
 
 def _reask_target(
-    scores: Sequence[tuple[str, float]], pack: RulePack, state: SessionState
+    scores: Sequence[tuple[str, float]],
+    pack: RulePack,
+    state: SessionState,
+    compiled: CompiledPack | None = None,
 ) -> PackItem | None:
     """되물음이 어느 항목에 대한 것인가.
 
-    이미 설명된(partial·met) 항목 중 유사도 최고, 없으면 partial 항목 하나."""
+    이미 설명된(partial·met) 항목 중 유사도 최고, 없으면 partial 항목 하나. 그것도 없으면
+    **직전 은행원 발화가 어휘로 덮은 필수 항목**: L1 이 빗나가 L2 후보로만 올라 L3 를
+    기다리는 항목이다. L3 met 이 되물음보다 늦게 오면 카드가 통째로 빠지므로(2026-09-04
+    loan-b B02→B03 실측) 판정 없이도 되물음 대상으로는 본다. 판정 자체는 여전히 L3 몫이다."""
     explained = {
         s.item_code for s in state.items if s.axis == "omission" and s.state in ("partial", "met")
     }
@@ -169,7 +175,28 @@ def _reask_target(
         if code in explained:
             return pack.item(code)
     partial = [s.item_code for s in state.items if s.axis == "omission" and s.state == "partial"]
-    return pack.item(partial[0]) if partial else None
+    if partial:
+        return pack.item(partial[0])
+    if compiled is None:
+        return None
+    teller = next((u for u in reversed(state.recent_utterances) if u.speaker == "teller"), None)
+    if teller is None:
+        return None
+    cov = lexical.coverage(teller.text, compiled.tri)
+    pending = [
+        code
+        for code, value in cov.items()
+        if value >= THRESHOLD_REQUIRED
+        and (item := pack.item(code)) is not None
+        and item.type == "required"
+    ]
+    if not pending:
+        return None
+    # 되물음 문장 자체와도 가까운 항목을 우선한다(scores 는 유사도 내림차순)
+    for code, _ in scores:
+        if code in pending:
+            return pack.item(code)
+    return pack.item(max(pending, key=lambda c: cov[c]))
 
 
 def _rephrase_from_plain(

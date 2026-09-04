@@ -27,6 +27,11 @@ class Hit:
 
 def match(text: str, pack: RulePack, compiled: CompiledPack, types: frozenset[str]) -> list[Hit]:
     hits: list[Hit] = []
+    # STT 는 복합어를 자주 띄운다("총 부채 원리금", "중도 해지 이율"). keyword 패턴(용어 하나를
+    # 그대로 적은 것)은 공백을 뺀 본문에도 대 본다. regex 는 대상에서 뺀다 — 작성자가 \s* 로
+    # 띄어쓰기 허용 여부를 이미 정했고, 공백을 지우면 "경과 기간에" 같은 어절 경계가 사라져
+    # 다른 항목의 요소가 우연히 채워진다(시연 A10 에서 DEP-INT-002 가 잘못 met 이 됐다)
+    joined = text.replace(" ", "")
     for item in pack.items:
         if item.type not in types:
             continue
@@ -34,7 +39,8 @@ def match(text: str, pack: RulePack, compiled: CompiledPack, types: frozenset[st
         raws: list[str] = []
         kinds: set[str] = set()
         for p in compiled.patterns.get(item.code, ()):
-            if p.regex.search(text):
+            spaced = p.kind == "keyword" and joined != text
+            if p.regex.search(text) or (spaced and p.regex.search(joined)):
                 raws.append(p.raw)
                 kinds.add(p.kind)
                 if p.element:

@@ -41,3 +41,22 @@ def test_numbers_survive():
 def test_exact_term_untouched():
     text, reps = normalize("중도해지이율 안내드릴게요", INDEX)
     assert text == "중도해지이율 안내드릴게요" and reps == []
+
+
+LOAN_INDEX = JargonIndex(["DSR", "LTV", "총부채원리금상환비율", "신용정보"])
+
+
+def test_misheard_english_acronym_is_corrected():
+    # Qwen3-ASR 이 "DSR" 을 "DSL" 로 냈다(2026-09-04 loan-b 실측). 한 글자 차이면 사전 용어로
+    text, reps = normalize("소득을 확인해서 DSL 총 부채 원리금 상환 비율을 산출합니다", LOAN_INDEX)
+    assert text.startswith("소득을 확인해서 DSR 총 부채")
+    assert [(r.original, r.replaced) for r in reps] == [("DSL", "DSR")]
+
+
+def test_english_acronym_left_alone_when_exact_or_ambiguous():
+    assert normalize("DSR 산출", LOAN_INDEX)[0] == "DSR 산출"  # 이미 맞음
+    assert normalize("dsr 산출", LOAN_INDEX)[0] == "dsr 산출"  # 대소문자만 다름
+    assert normalize("DSLR 카메라", LOAN_INDEX)[0] == "DSLR 카메라"  # 길이가 다르면 손대지 않음
+    # DSR·LTV 둘 다 한 글자 차이인 토큰은 없지만, 후보가 둘이면 None 이어야 한다
+    two = JargonIndex(["DSR", "DSL"])
+    assert normalize("DSX 산출", two)[0] == "DSX 산출"
