@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from contracts.engine_contract import JudgeResult, Utterance, VerdictPayload
+from contracts.engine_contract import AssistPayload, JudgeResult, Utterance, VerdictPayload
 from engine.adapters.pack_source.file import FilePackSource
 from engine.build import build_engine
 from server.bootstrap.settings import BACK_DIR
@@ -162,3 +162,106 @@ def test_restored_session_keeps_the_original_t_ms_origin():
     assert revived.started_at == origin
     # 되살린 뒤의 경과는 세션 시작부터 잰다. 0 으로 돌아가지 않는다
     assert revived.elapsed_ms() >= 0
+
+
+class ResultEngine(StubEngine):
+    """judge 가 준비된 JudgeResult 를 순서대로 낸다(assist 포함)."""
+
+    def __init__(self, results):
+        super().__init__([])
+        self._results = list(results)
+
+    def judge(self, utterance, pack, state):
+        return self._results.pop(0) if self._results else JudgeResult()
+
+
+REPHRASE = AssistPayload(
+    assist_type="rephrase",
+    text="만기 전에 찾으면 약속한 이자보다 적게 받습니다.",
+    item_code="DEP-INT-002",
+    trigger="customer_reask",
+    source_utterance_ref="u-previous-1",
+)
+NUDGE = AssistPayload(
+    assist_type="nudge", text="중도해지이율을 안내하세요.", item_code="DEP-INT-002"
+)
+
+
+async def _run(results, utterances):
+    store, session, pipeline = _fixture_session(ResultEngine(results), "FIXT-SESS-AD")
+    sent = []
+
+    async def publish(m):
+        sent.append(m)
+
+    for u in utterances:
+        await pipeline.submit_utterance(session, u, publish)
+    assists = [e for e in store.of_session("FIXT-SESS-AD") if e["kind"] == "assist"]
+    return assists, [m for m in sent if m["t"] == "assist"]
+
+
+@pytest.mark.anyio
+async def test_a_rephrase_card_is_adopted_when_the_teller_repeats_its_sentence():
+    assists, sent = await _run(
+        [JudgeResult(assists=(REPHRASE,)), JudgeResult()],
+        [
+            Utterance(utterance_id="", speaker="customer", text="중도해지이율이 뭐예요?", t_ms=100),
+            Utterance(
+                utterance_id="",
+                speaker="teller",
+                text="네, 만기 전에 찾으시면 처음 약속한 이자보다 적게 받으신다는 뜻입니다.",
+                t_ms=200,
+            ),
+        ],
+    )
+    assert [a["assist"].get("outcome") for a in assists] == [None, "adopted"]
+    assert assists[1]["supersedes"] == assists[0]["event_id"]
+    assert [m["ver"] for m in sent] == [1, 2]
+
+
+@pytest.mark.anyio
+async def test_a_nudge_card_is_adopted_when_the_teller_meets_that_item():
+    met = VerdictPayload(item_code="DEP-INT-002", axis="omission", state="met", decided_by="L1")
+    assists, _ = await _run(
+        [JudgeResult(assists=(NUDGE,)), JudgeResult(verdicts=(met,))],
+        [
+            Utterance(utterance_id="", speaker="teller", text="이자는 그대로예요.", t_ms=100),
+            Utterance(
+                utterance_id="",
+                speaker="teller",
+                text="중도해지이율은 약정이율에 차감률을 곱합니다.",
+                t_ms=200,
+            ),
+        ],
+    )
+    assert [a["assist"].get("outcome") for a in assists] == [None, "adopted"]
+
+
+@pytest.mark.anyio
+async def test_an_unrelated_teller_utterance_adopts_nothing_and_a_card_is_adopted_once():
+    partial = VerdictPayload(
+        item_code="DEP-INT-002", axis="omission", state="partial", decided_by="L1"
+    )
+    repeat = Utterance(
+        utterance_id="",
+        speaker="teller",
+        text="만기 전에 찾으면 약속한 이자보다 적게 받습니다.",
+        t_ms=300,
+    )
+    assists, _ = await _run(
+        [
+            JudgeResult(assists=(REPHRASE, NUDGE)),
+            JudgeResult(verdicts=(partial,)),
+            JudgeResult(),
+            JudgeResult(),
+        ],
+        [
+            Utterance(utterance_id="", speaker="customer", text="그게 뭐예요?", t_ms=100),
+            Utterance(utterance_id="", speaker="teller", text="세율은 15.4%입니다.", t_ms=200),
+            repeat,
+            repeat,
+        ],
+    )
+    outcomes = [(a["assist"]["assist_type"], a["assist"].get("outcome")) for a in assists]
+    # partial 은 넛지를 채택하지 않고, 되풀이한 문장은 rephrase 만 한 번 채택한다
+    assert outcomes == [("rephrase", None), ("nudge", None), ("rephrase", "adopted")]

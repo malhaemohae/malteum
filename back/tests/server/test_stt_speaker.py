@@ -310,6 +310,8 @@ def test_an_utterance_gives_up_and_goes_out_provisionally_after_the_limit():
     assert [u.speaker for u in submitted] == ["teller"]  # 근거가 없으면 미고지 쪽
     assert [u.speaker_confidence for u in submitted] == [PROVISIONAL_CONFIDENCE]
     assert Settings().speaker_hold_ms == SPEAKER_HOLD_MS == 3000
+    # DEC-8: OpenRouter 왕복 2~5초 실측. 1500 이면 L3 가 필요한 판정이 통째로 빠진다
+    assert Settings().l3_budget_ms == 3000
 
 
 def test_a_slow_answer_does_not_let_a_later_utterance_overtake_an_earlier_one():
