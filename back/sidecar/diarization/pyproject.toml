@@ -1,0 +1,18 @@
+[project]
+name = "malteum-diarization-sidecar"
+version = "0.1.0"
+description = "Streaming Sortformer 화자 분리 사이드카. 서버 .venv 와 따로 선다 — NeMo 의존성이 크다"
+requires-python = ">=3.10,<3.12"     # nemo_toolkit 3.0.0 이 도는 범위. 실측 환경은 3.11
+dependencies = [
+    "nemo_toolkit[asr]==3.0.0",      # 실측에 쓴 판. 모델 로딩·스트리밍 API 가 판마다 바뀐다
+    "torch>=2.4",                    # CPU 휠로 충분하다. 이 서비스는 GPU 를 가정하지 않는다
+    "aiohttp>=3.9",                  # WebSocket 서버. nemo 가 이미 끌고 오지만 직접 쓰므로 적는다
+    "soundfile>=0.12",               # scripts/diarization_check.py 가 음원을 읽을 때
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

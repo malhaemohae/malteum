@@ -20,6 +20,7 @@ from contextlib import suppress
 from urllib.parse import quote
 
 from server.services.stt.base import OnTranscript, Transcript
+from server.services.stt.diarization import DiarizationSource
 
 ENDPOINT = "wss://api.deepgram.com/v1/listen"
 SAMPLE_RATE = 16_000
@@ -56,8 +57,14 @@ class DeepgramAdapter:
         return f"{ENDPOINT}?" + "&".join(q)
 
     async def open(
-        self, on_transcript: OnTranscript, keyterms: Sequence[str] = ()
+        self,
+        on_transcript: OnTranscript,
+        keyterms: Sequence[str] = (),
+        *,
+        diarization: DiarizationSource | None = None,
     ) -> DeepgramStream:
+        # 화자 분리는 쓰지 않는다. Deepgram 은 전사를 이어서 주므로 발화를 자를 필요가 없고,
+        # 번호를 실어 주면 `SttSession` 이 `Transcript.speaker_id` 로 받는다
         import websockets
 
         ws = await websockets.connect(
