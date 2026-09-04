@@ -54,9 +54,9 @@ class Settings(BaseSettings):
     embedding_backend: Literal["local", "litellm"] = "local"
     embedding_model: str | None = None  # 예: intfloat/multilingual-e5-small
     embedding_dim: int = 384  # 팩의 embedding.dim 과 같아야 load_pack 이 받는다
-    l3_budget_ms: float = (
-        1500  # 계약 BUDGET_L3_MS. 실물 API 왕복이 넘기면 여기서 완화 (월요일 합의 대상)
-    )
+    # 계약 BUDGET_L3_MS. OpenRouter 왕복이 1.5초를 자주 넘겨 refine 이 통째로 버려졌다 —
+    # 실측에 맞춰 3초로 완화했다 (사용자 결정, 월요일 합의 대상)
+    l3_budget_ms: float = 3000
     # STT. 키가 비면 오디오 층이 빠지고 ws 가 stt_unavailable 을 낸다(3층 폴백).
     # 기획 11.3: Deepgram nova-3 ko · keyterm·numerals·mip_opt_out
     #   deepgram      스트리밍. APP_STT_API_KEY 가 있어야 한다
@@ -76,9 +76,10 @@ class Settings(BaseSettings):
     # 신뢰도)이다. 끄는 자리를 둔 것은 LLM 은 쓰되 화자 추론만 빼고 싶을 때를 위해서다
     speaker_role_judge: bool = True
     # DEC-7. 새 화자 번호의 발화를 역할이 확정될 때까지 붙잡는 상한. LLM 왕복 실측이
-    # 1~2초라(CTX-005) 2초면 대개 정식 라벨로 나가고, 넘기면 잠정 라벨(0.2)로 흘려보낸다.
+    # 1~2초지만(CTX-005) OpenRouter 경유는 2초를 넘기는 일이 있어 3초로 둔다. 넘기면
+    # 잠정 라벨(0.2)로 흘려보낸다.
     # 0 으로 두면 붙잡지 않는다 — 첫 발화의 필수 고지·위험 신호는 게이트에 접힌다
-    speaker_hold_ms: int = 2000
+    speaker_hold_ms: int = 3000
     # Sortformer 사이드카(`back/sidecar/diarization/`)의 WebSocket. 비면 화자 분리
     # 공급원이 없고, 그러면 발화가 예전대로 teller 고정에 신뢰도 None 으로 나간다
     diarization_url: str | None = None

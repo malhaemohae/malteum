@@ -112,6 +112,16 @@ def _stt(settings: Settings) -> SttAdapter | None:
                 "오디오 층을 만들지 않습니다 — ws 가 stt_unavailable 을 냅니다."
             )
             return None
+        if not settings.diarization_url:
+            # 발화 단위 어댑터는 끊을 자리를 화자 분리 구간에서 얻는다. 공급원이 없으면
+            # 어댑터는 열리지만 구간이 오지 않아 **전사가 조용히 멈춘다** — ws 는 정상으로
+            # 보이고 화면에는 아무 오류도 안 뜬다. 여기서 접어야 3층 폴백이 돈다
+            log.warning(
+                "APP_STT_PROVIDER=openai_file 인데 APP_DIARIZATION_URL 이 없습니다. "
+                "끊을 자리를 얻을 화자 분리 공급원이 없어 오디오 층을 만들지 않습니다 — "
+                "ws 가 stt_unavailable 을 냅니다."
+            )
+            return None
         from server.services.stt.openai_file import SegmentedFileSttAdapter
 
         return SegmentedFileSttAdapter(

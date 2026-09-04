@@ -13,14 +13,34 @@ STT 와 `pipeline.submit_utterance` 사이, 엔진 바깥에 둔다. 엔진은 `
 (같은 사람이 두 번호로 갈리거나 제3자가 끼어든다). 그래서 새 번호가 나올 때마다 그
 번호의 발화와 이미 역할이 정해진 번호들의 최근 발화를 함께 LLM 에 주고 역할을 받는다.
 
-## 확정될 때까지 2초까지만 붙잡는다 (DEC-7)
+## 확정될 때까지 3초까지만 붙잡는다 (DEC-7)
 
 LLM 왕복은 1~2초다(실측 CTX-005). 새 번호의 첫 발화를 잠정 라벨로 그냥 내보내면 그
 줄의 필수 고지·위험 신호가 통째로 게이트에 접히므로, 역할이 확정될 때까지 **상한
-2초**(`SPEAKER_HOLD_MS`)만 붙잡았다가 내보낸다. 상한을 넘기면 잠정 라벨(신뢰도 0.2)로
+3초**(`SPEAKER_HOLD_MS`)만 붙잡았다가 내보낸다. 상한을 넘기면 잠정 라벨(신뢰도 0.2)로
 내보내고, 확정된 뒤에 이전 발화를 다시 판정하지는 않는다. 잠정 규칙은 "확정된 번호가
 하나뿐이면 그 반대 역할, 아니면 teller" 다 — 근거가 없을 때 미고지 쪽으로 두는 기존
 정책(리스크 3 · P3)을 따른다.
+
+## 짧은 인사말 하나로는 확정하지 않는다 (DEC-8 · DEC-9)
+
+문제는 발화 **수**가 아니라 인사말 한 마디로 역할을 못박는 것이다. 상담의 첫마디가
+"안녕하세요." 한 문장일 때 그것만 주면 판정기가 "은행원이 고객에게 인사하는 말" 이라며
+높은 신뢰도로 확정해 버리고, 확정한 번호는 다시 묻지 않으므로 그 상담 내내 역할이
+뒤집힌 채로 간다(dep-a E2E 실측, CTX-017). 그래서 두 자리에 규칙을 둔다.
+
+    거는 시점   `RoleMapper.observe` 는 그 번호의 발화가 두 개 이상 모이거나, **하나뿐이어도
+                공백을 뺀 글자 수가 `MIN_FIRST_CHARS` 이상**이면 곧바로 첫 추론을 건다.
+                긴 한 문장은 그 자체로 근거가 되므로 기다릴 이유가 없다 — 기다리면 그
+                줄에 걸린 필수 고지가 잠정 라벨로 나가 게이트에 접힌다(loan-b B02).
+    확정 금지   짧은 발화 하나에만 근거한 답은 신뢰도가 얼마든 **확정하지 않는다**(DEC-9).
+                역할과 신뢰도만 적어 두고 다음 발화에서 다시 묻는다. 프롬프트가 낮은
+                신뢰도를 내라고 일러 두었어도 모델이 지키는지에 기대지 않는 자리다.
+
+짧은 발화 하나뿐인 채로 붙잡기 상한이 먼저 닿으면 `RoleMapper.ask_now` 가 그 하나로라도
+걸어 준다. 그 답은 위 가드에 걸려 확정되지 않지만, 걸어 두어야 **다음** 발화가 왔을 때
+문맥이 쌓인 채로 다시 물을 수 있다 — 늦게 묻는 것이 아니라 안 묻는 것이 문제다. 확정하지
+못한 답은 `MAX_ASKS` 횟수로도 세지 않는다. 가드 때문에 재추론 기회를 잃으면 안 된다.
 
 붙잡는 동안 순서가 뒤바뀌면 리포트의 시간 순서가 무너진다. 큐를 세우고 앞에서부터
 비우는 일은 이 파일이 아니라 `session.py` 가 한다 — 여기는 "이 번호가 확정될 때까지
@@ -63,6 +83,12 @@ ROLE_CONFIDENCE_MIN = 0.6
 # 최초 1회 + 저신뢰가 이어질 때 1회 더 + 재추론 1회. 세 번째 답은 신뢰도와 무관하게 확정한다.
 # 상한이 없으면 애매한 번호 하나가 발화마다 LLM 을 부른다
 MAX_ASKS = 3
+# DEC-8 · DEC-9. 발화 하나만으로 첫 추론을 걸어도 되는 길이(공백 제외 글자 수). 이보다
+# 짧으면 인사말·맞장구("안녕하세요." 6자 · "네." 2자)라 역할의 근거가 못 되므로 다음
+# 발화를 기다리고, 상한 도달로 그 하나를 물었더라도 답을 확정하지 않는다. 이보다 길면
+# 한 문장으로도 근거가 되므로 곧바로 묻는다 — loan-b B02 처럼 새 번호의 첫 줄이 긴 한
+# 문장이면서 필수 고지를 담는 경우가 기다림에 접히지 않게 한다
+MIN_FIRST_CHARS = 10
 # LLM 에 주는 발화 수. 새 번호는 최근 2개, 확정 번호는 각각 최근 2개(재추론 때는 4개)
 NEW_RECENT = 2
 KNOWN_RECENT = 2
@@ -78,9 +104,10 @@ PROVISIONAL_CONFIDENCE = 0.2
 NO_DIARIZATION_CONFIDENCE: float | None = None
 # LLM 없이 규칙으로만 답할 때. 확정은 되지만 게이트는 접는다
 FALLBACK_CONFIDENCE = 0.3
-# DEC-7. 새 번호의 발화를 역할이 확정될 때까지 붙잡는 상한. LLM 왕복 실측이 1~2초라
-# (CTX-005) 2초면 대개 정식 라벨로 나가고, 넘기면 잠정 라벨로 흘려보낸다
-SPEAKER_HOLD_MS = 2000
+# DEC-7. 새 번호의 발화를 역할이 확정될 때까지 붙잡는 상한. LLM 왕복 실측이 1~2초지만
+# (CTX-005) OpenRouter 경유는 2초를 넘기는 일이 있어(loan-b E2E 2회차) 3초로 둔다.
+# 넘기면 잠정 라벨로 흘려보낸다
+SPEAKER_HOLD_MS = 3000
 
 # 겹치는 구간이 없을 때 가장 가까운 구간을 얼마까지 끌어다 쓰나. 대본이 화자가 바뀌는
 # 자리마다 무음 1초 이상을 두므로(SCRIPT.md `audio.min_gap_ms`), 1초를 넘겨 붙이면
@@ -124,6 +151,15 @@ class RoleJudge(Protocol):
         스레드로 넘긴다(`role_judge.py`).
         """
         ...
+
+
+def _thin(recent: Sequence[str]) -> bool:
+    """이 발화 묶음만으로는 역할을 정할 수 없다 — 짧은 한 마디뿐이다 (DEC-8 · DEC-9).
+
+    둘 이상이면 서로 문맥이 되므로 길이를 보지 않는다. 하나뿐일 때만 공백을 뺀 글자 수로
+    가른다: 인사말·맞장구는 짧고, 그보다 긴 한 문장은 그 자체로 근거가 된다.
+    """
+    return len(recent) == 1 and len("".join(recent[0].split())) < MIN_FIRST_CHARS
 
 
 class RuleRoleJudge:
@@ -171,11 +207,37 @@ class RoleMapper:
         self._tasks: set[asyncio.Task] = set()
 
     def observe(self, speaker_id: str, text: str) -> None:
-        """이 번호가 한 말을 쌓고, 아직 역할이 없으면 추론을 건다(기다리지 않는다)."""
+        """이 번호가 한 말을 쌓고, 물을 때가 되었으면 추론을 건다(기다리지 않는다).
+
+        **첫 추론은 발화가 둘 이상이거나 하나라도 `MIN_FIRST_CHARS` 이상일 때 건다**
+        (DEC-8). 짧은 발화 하나로 물으면 인사말만 보고 역할이 정해지고, 그 번호는 다시
+        묻히지 않는다. 두 번째 이후의 재추론(`MAX_ASKS` 경로)은 발화가 쌓일 때마다 그대로
+        건다.
+        """
         number = self._numbers.get(speaker_id)
         if number is None:
             number = self._numbers[speaker_id] = _Number(deque(maxlen=_RECENT_MAX))
         number.recent.append(text)
+        if number.asks == 0 and _thin(tuple(number.recent)[-NEW_RECENT:]):
+            return  # 아직 근거가 얕다. 상한이 먼저 닿으면 `ask_now` 가 하나로라도 건다
+        self._start_ask(speaker_id, number)
+
+    def ask_now(self, speaker_id: str) -> None:
+        """붙잡기 상한이 닿았다. 짧은 발화 하나뿐이어도 지금 첫 추론을 건다 (DEC-8).
+
+        `observe` 가 다음 발화를 기다리는 사이 상한이 닿으면, 그 번호는 다음 발화가 올
+        때까지 아무것도 묻지 않은 채 잠정 라벨에 머문다. 상한에 닿은 발화는 어차피 잠정
+        라벨로 나가고 여기서 건 답도 확정되지 않지만(DEC-9 가드), 걸어 두어야 **그 다음**
+        발화를 물을 때 문맥이 쌓인 채로 묻는다.
+
+        첫 추론에만 해당한다. 재추론은 `observe` 가 발화가 쌓일 때마다 알아서 건다.
+        """
+        number = self._numbers.get(speaker_id)
+        if number is None or number.asks > 0 or not number.recent:
+            return
+        self._start_ask(speaker_id, number)
+
+    def _start_ask(self, speaker_id: str, number: _Number) -> None:
         if number.settled or number.asking:
             return
         number.asking = True
@@ -240,12 +302,15 @@ class RoleMapper:
         묻히지 않고 잠정 라벨에 갇힌다.
         """
         verdict: RoleVerdict | None = None
+        recent = tuple(number.recent)[-NEW_RECENT:]
+        # 상한 도달로 `ask_now` 가 짧은 발화 하나만 들고 물은 경우. 그 답은 확정하지 않는다
+        thin = _thin(recent)
         try:
             wide = number.asks + 1 >= MAX_ASKS  # 마지막 한 번은 문맥을 넓혀 재추론한다
             verdict = await self.judge.decide(
                 RoleRequest(
                     speaker_id=speaker_id,
-                    recent=tuple(number.recent)[-NEW_RECENT:],
+                    recent=recent,
                     known=self._known(speaker_id, KNOWN_RECENT_WIDE if wide else KNOWN_RECENT),
                 )
             )
@@ -255,6 +320,18 @@ class RoleMapper:
         except Exception as e:  # noqa: BLE001  판정 하나가 상담을 끊지 않게 한다
             log.warning("화자 역할 추론 실패 (%s): %s: %s", speaker_id, type(e).__name__, e)
         try:
+            if verdict is not None and thin:
+                # DEC-9. "안녕하세요." 하나에 근거한 답은 신뢰도가 높아도 확정하지 않는다.
+                # 확정한 번호는 다시 묻지 않으므로 여기서 한 번 틀리면 상담 내내 뒤집힌다.
+                # 재추론 기회를 뺏지 않도록 `asks` 로도 세지 않는다
+                number.role, number.confidence = verdict.role, verdict.confidence
+                log.info(
+                    "화자 역할 보류 (%s): %s conf=%.2f — 짧은 발화 하나뿐이라 확정하지 않는다",
+                    speaker_id,
+                    verdict.role,
+                    verdict.confidence,
+                )
+                return
             number.asks += 1
             if verdict is None:
                 if number.asks >= MAX_ASKS:
@@ -362,11 +439,17 @@ class SpeakerResolver:
         """DEC-7. 역할이 확정될 때까지 상한 안에서 붙잡았다가 붙인다.
 
         상한을 넘기면 잠정 라벨로 내보낸다. 확정 뒤 소급 재판정은 하지 않는다.
+
+        상한에 닿았는데 아직 확정이 없으면 `ask_now` 로 첫 추론을 걸어 둔다 (DEC-8).
+        발화가 하나뿐이라 `observe` 가 아직 묻지 않은 번호가 여기로 오는데, 그대로 두면
+        그 번호의 다음 발화가 올 때까지 아무것도 물리지 않는다.
         """
         if speaker_id is None:
             return NO_SPEAKER
         if timeout_s > 0:
             await self.mapper.wait_settled(speaker_id, timeout_s)
+        if self.mapper.role_of(speaker_id) is None:
+            self.mapper.ask_now(speaker_id)
         return self.label(speaker_id, share)
 
     def speaker_of(self, start_ms: int, duration_ms: int | None) -> tuple[str, float] | None:

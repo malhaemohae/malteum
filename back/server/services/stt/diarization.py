@@ -190,7 +190,13 @@ class SortformerDiarization:
                     SpeakerSegment(int(s["start_ms"]), int(s["end_ms"]), str(s["speaker_id"]))
                     for s in payload.get("segments", ())
                 )
-                self.covered_ms = int(payload.get("covered_ms", self.covered_ms))
+                # 구버전 사이드카는 `covered_ms` 를 주지 않는다. 그때는 마지막 구간의
+                # 끝을 본 지점으로 삼는다 — 전 값을 그대로 두면 시계가 0 에 멈춰 발화
+                # 단위 어댑터가 구간을 영영 닫지 못한다(`openai_file.py` `diarized_ms`)
+                covered = payload.get("covered_ms")
+                if covered is None:
+                    covered = self._segments[-1].end_ms if self._segments else self.covered_ms
+                self.covered_ms = int(covered)
         except asyncio.CancelledError:
             raise
         except Exception as e:  # noqa: BLE001  수신이 끊겨도 지금까지의 구간은 쓴다
