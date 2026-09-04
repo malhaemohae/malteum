@@ -62,8 +62,11 @@ class Settings(BaseSettings):
     #   deepgram      스트리밍. APP_STT_API_KEY 가 있어야 한다
     #   openai_file   온프레미스 Qwen3-ASR(vLLM). 화자 분리 구간마다 WAV 하나를
     #                 {APP_STT_BASE_URL}/v1/audio/transcriptions 에 보낸다.
-    #                 끊을 자리를 구간에서 얻으므로 APP_DIARIZATION_URL 이 함께 있어야 한다
-    stt_provider: Literal["deepgram", "openai_file"] = "deepgram"
+    #                 끊을 자리를 구간에서 얻으므로 APP_DIARIZATION_URL 이 함께 있어야 한다.
+    #                 APP_STT_BASE_URL=https://api.openai.com 이면 OpenAI 배치 전사에도 붙는다
+    #   openai_realtime  OpenAI Realtime WebSocket 전사(1차 MVP 합의). 어댑터는 아직 없다 —
+    #                 services/stt/README.md 의 프로토콜대로 구현해 startup._stt 에 끼운다
+    stt_provider: Literal["deepgram", "openai_file", "openai_realtime"] = "deepgram"
     stt_api_key: str | None = None
     stt_base_url: str | None = None  # openai_file 전용. 예: http://localhost:8100
     stt_model: str = "nova-3"  # openai_file 이면 예: Qwen/Qwen3-ASR-1.7B
