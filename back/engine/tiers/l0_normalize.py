@@ -13,6 +13,8 @@ from engine.tiers.jamo import dice, jamo_edit_distance, jamo_trigrams
 
 DICE_THRESHOLD = 0.7
 _HANGUL = re.compile(r"[가-힣]+")
+# 영문 약어(DSR, LTV …). 3자 미만은 우연 일치가 많아 손대지 않는다
+_LATIN = re.compile(r"[A-Za-z]{3,}")
 _NUMERIC_NEAR = re.compile(r"\d")
 
 
@@ -30,12 +32,28 @@ class JargonIndex:
             {t for t in terms if t and len(t) >= 2 and " " not in t}, key=len, reverse=True
         )
         self._grams = {t: jamo_trigrams(t) for t in self.terms}
+        # 영문 약어는 자모가 없어 Dice 가 무의미하다. 같은 길이·편집거리 1 로만 본다
+        self.latin_terms = [t for t in self.terms if t.isascii() and t.isalpha()]
+
+    def latin_correction(self, token: str) -> str | None:
+        """'DSL' → 'DSR'. 사전에 이미 있거나(대소문자 무시) 후보가 둘이면 None."""
+        upper = token.upper()
+        if any(t.upper() == upper for t in self.latin_terms):
+            return None
+        close = [
+            t for t in self.latin_terms if len(t) == len(token) and _hamming(t.upper(), upper) == 1
+        ]
+        return close[0] if len(close) == 1 else None
 
     def candidates(self, token: str, top_k: int = 3) -> list[tuple[str, float]]:
         grams = jamo_trigrams(token)
         scored = [(t, dice(grams, g)) for t, g in self._grams.items()]
         scored.sort(key=lambda x: x[1], reverse=True)
         return [(t, s) for t, s in scored[:top_k] if s > 0]
+
+
+def _hamming(a: str, b: str) -> int:
+    return sum(x != y for x, y in zip(a, b, strict=True))
 
 
 def normalize(
@@ -99,6 +117,14 @@ def normalize(
             edits.append((start, end, term))
             replacements.append(Replacement(original, term, round(score, 3)))
         i += span
+    for m in _LATIN.finditer(text):
+        # STT 가 영문 약어의 글자 하나를 바꾼 것("DSL 총 부채…", 2026-09-04 Qwen 실측).
+        # 한글 어절 교정과 겹치지 않는다(_HANGUL 과 _LATIN 은 서로소)
+        term = index.latin_correction(m.group())
+        if term is not None:
+            edits.append((m.start(), m.end(), term))
+            replacements.append(Replacement(m.group(), term, 1.0))
+    edits.sort()
     if not edits:
         return text, []
     out, cursor = [], 0
