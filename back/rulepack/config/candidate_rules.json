@@ -485,7 +485,7 @@
         "l1_patterns": [
           {
             "kind": "regex",
-            "value": "DSR|디에스알|총부채\\s*원리금\\s*상환\\s*비율",
+            "value": "DSR|디에스알|총\\s*부채\\s*원리금\\s*상환\\s*비율",
             "element": "DSR 산출"
           },
           {
