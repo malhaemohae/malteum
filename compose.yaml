@@ -43,11 +43,16 @@ services:
       APP_LLM_NO_REASONING: ${APP_LLM_NO_REASONING:-false}
       APP_LLM_CORRECTOR: ${APP_LLM_CORRECTOR:-false}
       APP_LLM_GENERATOR: ${APP_LLM_GENERATOR:-false}
-      APP_L3_BUDGET_MS: ${APP_L3_BUDGET_MS:-1500}
-      # STT. 비면 오디오 층이 빠지고 ws 가 stt_unavailable 을 낸다 (3층 폴백)
+      APP_L3_BUDGET_MS: ${APP_L3_BUDGET_MS:-3000}   # OpenRouter 왕복 1.2~2.4초 실측(2026-09-04)
+      # STT. 비면 오디오 층이 빠지고 ws 가 stt_unavailable 을 낸다 (3층 폴백).
+      # 공급자와 키는 .env 에서. 화자 분리는 아래 diarization 사이드카가 기본이다
+      APP_STT_PROVIDER: ${APP_STT_PROVIDER:-deepgram}
       APP_STT_API_KEY: ${APP_STT_API_KEY:-}
+      APP_STT_BASE_URL: ${APP_STT_BASE_URL:-}
       APP_STT_MODEL: ${APP_STT_MODEL:-nova-3}
       APP_STT_LANGUAGE: ${APP_STT_LANGUAGE:-ko}
+      APP_DIARIZATION_URL: ${APP_DIARIZATION_URL:-ws://diarization:8300/ws}
+      APP_SPEAKER_HOLD_MS: ${APP_SPEAKER_HOLD_MS:-3000}
       APP_ADMIN_TOKEN: ${APP_ADMIN_TOKEN:-}
       APP_UPLOAD_DIR: /uploads
       HF_HOME: /hf
@@ -65,6 +70,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      diarization:
+        condition: service_healthy
     healthcheck:
       # 200 만 보면 db 가 죽어도 통과한다. /health 는 그때 status=degraded 를 내므로
       # 그 값까지 본다 (routers/health.py)
@@ -72,6 +79,24 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+
+  # Streaming Sortformer 화자 분리 사이드카 (back/sidecar/diarization). CPU 로 돈다 —
+  # 청크 0.96초에 처리 0.11초, RSS 약 1.8GB. 서버와 가상환경이 달라 이미지도 따로다.
+  # STT 가 화자 번호를 안 주는 공급자(OpenAI)일 때 화자 단계가 이것으로 접착한다
+  diarization:
+    build: ./back/sidecar/diarization
+    restart: unless-stopped
+    environment:
+      HF_HOME: /hf              # 모델 가중치(nvidia/diar_streaming_sortformer_4spk-v2)는 볼륨에
+      OMP_NUM_THREADS: "4"
+    volumes:
+      - hfcache:/hf
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8300/health').status==200 else 1)\""]
+      interval: 10s
+      timeout: 3s
+      retries: 30             # 첫 기동은 가중치를 내려받고 올리느라 몇 분 걸린다
+      start_period: 120s
 
 volumes:
   pgdata:

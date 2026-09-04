@@ -105,6 +105,12 @@ def _stt(settings: Settings) -> SttAdapter | None:
     keyterm 은 팩의 `jargon_terms` 를 그대로 넣는다 — 끄면 `만기후이자율` 이
     `만기 후 이자율` 로 갈라져 L1 정확 일치가 깨진다(scripts/stt_check.py 실측).
     """
+    if settings.stt_provider == "openai_realtime":
+        log.warning(
+            "APP_STT_PROVIDER=openai_realtime 어댑터가 아직 없습니다(services/stt/README.md). "
+            "오디오 층을 만들지 않습니다 — ws 가 stt_unavailable 을 냅니다."
+        )
+        return None
     if settings.stt_provider == "openai_file":
         if not settings.stt_base_url:
             log.warning(

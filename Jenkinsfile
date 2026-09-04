@@ -11,9 +11,18 @@ pipeline {
     stages {
         stage('env') {
             steps {
-                // 루트 .env 는 저장소에 없다(.gitignore). Jenkins Secret file 자격증명에서 꺼낸다
-                withCredentials([file(credentialsId: 'malteum-env', variable: 'ENV_FILE')]) {
-                    sh 'install -m 600 "$ENV_FILE" .env'
+                // 루트 .env 는 age 로 암호화된 .env.age 로 저장소에 있다(tools/envsecret.py).
+                // 개인키만 Jenkins Secret text 자격증명 `malteum-age-key` 에 있다. 호스트에
+                // pyrage·age 를 깔지 않으려고 파이썬 컨테이너에서 푼다(현재 사용자로 실행해
+                // .env 소유자가 jenkins 가 되게 한다)
+                withCredentials([string(credentialsId: 'malteum-age-key', variable: 'MALTEUM_AGE_KEY')]) {
+                    sh '''
+                      rm -f .env
+                      docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e MALTEUM_AGE_KEY \
+                        -v "$PWD:/w" -w /w python:3.12-slim \
+                        sh -c "pip install -q --target /tmp/py pyrage && PYTHONPATH=/tmp/py python tools/envsecret.py decrypt"
+                      test -s .env
+                    '''
                 }
             }
         }

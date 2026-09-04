@@ -74,3 +74,14 @@ HEALTH_ALERT_WEBHOOK=<URL> python3 back/scripts/watch_health.py …    # Slack·
 | UPS · 시연 영상 백업 | R5 |
 
 ## 재오
+
+## 환경변수(.env)
+
+루트 `.env` 는 age 로 암호화된 `.env.age` 로 커밋되어 있다. 공유받은 개인키를 루트에 `.secret` 으로 두고 아래를 돌리면 된다(파이썬만 있으면 됨, 윈도우 포함).
+
+```bash
+python tools/envsecret.py decrypt      # .env.age → .env
+python tools/envsecret.py encrypt      # 값을 바꾼 뒤 → .env.age (커밋)
+```
+
+자세한 것은 `deploy/README.md` 의 ".env 다루기".
