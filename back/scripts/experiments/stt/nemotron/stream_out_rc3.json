@@ -1,0 +1,2933 @@
+{
+ "right_context": 3,
+ "chunk_s": 0.32,
+ "preset-dep-a": {
+  "infer_s": 31.315216302871704,
+  "n_steps": 461,
+  "mean_step_ms": 67.88242613157325,
+  "max_step_ms": 110.32319068908691,
+  "text": "안녕하세요. 작년에 넣어둔 전기예금이 있는데 만기가 아직 안됐거든요. 지금 해지하면 얼마나 받을 수 있어요 네 중도해지 기준으로 안내드리겠습니다. 우대 이자율은 중도해지면은 적용이 안되고 어 기본이자율 기준으로 계산됩니다. 받으시는 이자 수익에는 과세가 되는데요. 세율은 십사퍼센트입니다. 그리고 중도해지하시면은 중도해지율이 적용돼서 이자가 많이 줄어듭니다. 네 중도해지율이 뭐예요? 네 만기전에 찾으시면은 처음 약속한 이자보다 적게 받으신다는 뜻입니다. 아 중간에 깨면 이자를 훨씬 덜 받는다는 거네요. 만기 지나도 금리가 그대로 유지되니까 그냥 두셔도 돼요. 그래요 그럼 그냥 두는게 낮게네요 아 죄송합니다. 정확히 다시 말씀드릴게요. 만기후에는 약전기율이 아니라 만기후의 자유 자율이 적용되고 경과기간에 따라 더 낮아집니다. 아까 세금도 정정하겠습니다. 이제 과세되는 세율은 십오점사퍼센트입니다. 그리고 중도해지 이유는 약전 기울의 예측기관별 차감률을 곱해서 계산되는데 석달안에 해지하시면은 약정기율의 절반 정도만 받으세요. 대신 해지하지 않고 예금담보 대출을 이용하시면 예금은 그대로 두고 필요한 금액만 빌리실 수 있습니다. 참고로 이 예금은 예금자 보호법에 따라 원금과 이자 포함 일인데 일억원까지 보호됩니다. 그냥 해지할게요 해지한 돈은 딸이 알려준 계좌로 바로 보내주세요. 고객님 혹시 따님과 직접 통하는 해보셨어요? 확인후에 진행하겠습니다. 신분증 먼저 주시겠어요?",
+  "steps": [
+   {
+    "step": 11,
+    "audio_end_s": 3.84,
+    "new": "안녕",
+    "full_len": 2
+   },
+   {
+    "step": 12,
+    "audio_end_s": 4.16,
+    "new": "하세요",
+    "full_len": 5
+   },
+   {
+    "step": 15,
+    "audio_end_s": 5.12,
+    "new": ".",
+    "full_len": 6
+   },
+   {
+    "step": 17,
+    "audio_end_s": 5.76,
+    "new": " 작년",
+    "full_len": 9
+   },
+   {
+    "step": 19,
+    "audio_end_s": 6.4,
+    "new": "에 넣어",
+    "full_len": 13
+   },
+   {
+    "step": 20,
+    "audio_end_s": 6.72,
+    "new": "둔",
+    "full_len": 14
+   },
+   {
+    "step": 22,
+    "audio_end_s": 7.36,
+    "new": " 전기",
+    "full_len": 17
+   },
+   {
+    "step": 23,
+    "audio_end_s": 7.68,
+    "new": "예",
+    "full_len": 18
+   },
+   {
+    "step": 24,
+    "audio_end_s": 8.0,
+    "new": "금이",
+    "full_len": 20
+   },
+   {
+    "step": 25,
+    "audio_end_s": 8.32,
+    "new": " 있는데",
+    "full_len": 24
+   },
+   {
+    "step": 29,
+    "audio_end_s": 9.6,
+    "new": " 만",
+    "full_len": 26
+   },
+   {
+    "step": 30,
+    "audio_end_s": 9.92,
+    "new": "기가",
+    "full_len": 28
+   },
+   {
+    "step": 31,
+    "audio_end_s": 10.24,
+    "new": " 아",
+    "full_len": 30
+   },
+   {
+    "step": 32,
+    "audio_end_s": 10.56,
+    "new": "직 안",
+    "full_len": 33
+   },
+   {
+    "step": 34,
+    "audio_end_s": 11.200000000000001,
+    "new": "됐거든요",
+    "full_len": 37
+   },
+   {
+    "step": 35,
+    "audio_end_s": 11.52,
+    "new": ".",
+    "full_len": 38
+   },
+   {
+    "step": 38,
+    "audio_end_s": 12.48,
+    "new": " 지금",
+    "full_len": 41
+   },
+   {
+    "step": 40,
+    "audio_end_s": 13.120000000000001,
+    "new": " 해지",
+    "full_len": 44
+   },
+   {
+    "step": 41,
+    "audio_end_s": 13.44,
+    "new": "하면",
+    "full_len": 46
+   },
+   {
+    "step": 43,
+    "audio_end_s": 14.08,
+    "new": " 얼",
+    "full_len": 48
+   },
+   {
+    "step": 44,
+    "audio_end_s": 14.4,
+    "new": "마나",
+    "full_len": 50
+   },
+   {
+    "step": 46,
+    "audio_end_s": 15.040000000000001,
+    "new": " 받을 수",
+    "full_len": 55
+   },
+   {
+    "step": 48,
+    "audio_end_s": 15.68,
+    "new": " 있어요",
+    "full_len": 59
+   },
+   {
+    "step": 55,
+    "audio_end_s": 17.92,
+    "new": " 네",
+    "full_len": 61
+   },
+   {
+    "step": 56,
+    "audio_end_s": 18.240000000000002,
+    "new": " 중도",
+    "full_len": 64
+   },
+   {
+    "step": 57,
+    "audio_end_s": 18.56,
+    "new": "해",
+    "full_len": 65
+   },
+   {
+    "step": 58,
+    "audio_end_s": 18.88,
+    "new": "지 기준",
+    "full_len": 69
+   },
+   {
+    "step": 59,
+    "audio_end_s": 19.2,
+    "new": "으로 안",
+    "full_len": 73
+   },
+   {
+    "step": 60,
+    "audio_end_s": 19.52,
+    "new": "내드리",
+    "full_len": 76
+   },
+   {
+    "step": 61,
+    "audio_end_s": 19.84,
+    "new": "겠습니다.",
+    "full_len": 81
+   },
+   {
+    "step": 62,
+    "audio_end_s": 20.16,
+    "new": " 우",
+    "full_len": 83
+   },
+   {
+    "step": 63,
+    "audio_end_s": 20.48,
+    "new": "대 이자",
+    "full_len": 87
+   },
+   {
+    "step": 64,
+    "audio_end_s": 20.8,
+    "new": "율은",
+    "full_len": 89
+   },
+   {
+    "step": 65,
+    "audio_end_s": 21.12,
+    "new": " 중도해",
+    "full_len": 93
+   },
+   {
+    "step": 66,
+    "audio_end_s": 21.44,
+    "new": "지",
+    "full_len": 94
+   },
+   {
+    "step": 67,
+    "audio_end_s": 21.76,
+    "new": "면은",
+    "full_len": 96
+   },
+   {
+    "step": 69,
+    "audio_end_s": 22.400000000000002,
+    "new": " 적용이",
+    "full_len": 100
+   },
+   {
+    "step": 70,
+    "audio_end_s": 22.72,
+    "new": " 안되고",
+    "full_len": 104
+   },
+   {
+    "step": 73,
+    "audio_end_s": 23.68,
+    "new": " 어 기",
+    "full_len": 108
+   },
+   {
+    "step": 74,
+    "audio_end_s": 24.0,
+    "new": "본이",
+    "full_len": 110
+   },
+   {
+    "step": 75,
+    "audio_end_s": 24.32,
+    "new": "자율",
+    "full_len": 112
+   },
+   {
+    "step": 76,
+    "audio_end_s": 24.64,
+    "new": " 기준으로",
+    "full_len": 117
+   },
+   {
+    "step": 78,
+    "audio_end_s": 25.28,
+    "new": " 계산",
+    "full_len": 120
+   },
+   {
+    "step": 79,
+    "audio_end_s": 25.6,
+    "new": "됩니다.",
+    "full_len": 124
+   },
+   {
+    "step": 85,
+    "audio_end_s": 27.52,
+    "new": " 받으",
+    "full_len": 127
+   },
+   {
+    "step": 86,
+    "audio_end_s": 27.84,
+    "new": "시는",
+    "full_len": 129
+   },
+   {
+    "step": 87,
+    "audio_end_s": 28.16,
+    "new": " 이",
+    "full_len": 131
+   },
+   {
+    "step": 88,
+    "audio_end_s": 28.48,
+    "new": "자 수익",
+    "full_len": 135
+   },
+   {
+    "step": 89,
+    "audio_end_s": 28.8,
+    "new": "에는",
+    "full_len": 137
+   },
+   {
+    "step": 90,
+    "audio_end_s": 29.12,
+    "new": " 과세",
+    "full_len": 140
+   },
+   {
+    "step": 91,
+    "audio_end_s": 29.44,
+    "new": "가 되는데",
+    "full_len": 145
+   },
+   {
+    "step": 92,
+    "audio_end_s": 29.76,
+    "new": "요.",
+    "full_len": 147
+   },
+   {
+    "step": 94,
+    "audio_end_s": 30.400000000000002,
+    "new": " 세율",
+    "full_len": 150
+   },
+   {
+    "step": 95,
+    "audio_end_s": 30.72,
+    "new": "은",
+    "full_len": 151
+   },
+   {
+    "step": 96,
+    "audio_end_s": 31.04,
+    "new": " 십사퍼",
+    "full_len": 155
+   },
+   {
+    "step": 97,
+    "audio_end_s": 31.36,
+    "new": "센트",
+    "full_len": 157
+   },
+   {
+    "step": 98,
+    "audio_end_s": 31.68,
+    "new": "입니다.",
+    "full_len": 161
+   },
+   {
+    "step": 112,
+    "audio_end_s": 36.160000000000004,
+    "new": " 그리고",
+    "full_len": 165
+   },
+   {
+    "step": 113,
+    "audio_end_s": 36.480000000000004,
+    "new": " 중",
+    "full_len": 167
+   },
+   {
+    "step": 114,
+    "audio_end_s": 36.800000000000004,
+    "new": "도해지",
+    "full_len": 170
+   },
+   {
+    "step": 115,
+    "audio_end_s": 37.12,
+    "new": "하시면은",
+    "full_len": 174
+   },
+   {
+    "step": 117,
+    "audio_end_s": 37.76,
+    "new": " 중도해",
+    "full_len": 178
+   },
+   {
+    "step": 118,
+    "audio_end_s": 38.08,
+    "new": "지율",
+    "full_len": 180
+   },
+   {
+    "step": 119,
+    "audio_end_s": 38.4,
+    "new": "이 적용",
+    "full_len": 184
+   },
+   {
+    "step": 120,
+    "audio_end_s": 38.72,
+    "new": "돼",
+    "full_len": 185
+   },
+   {
+    "step": 121,
+    "audio_end_s": 39.04,
+    "new": "서",
+    "full_len": 186
+   },
+   {
+    "step": 122,
+    "audio_end_s": 39.36,
+    "new": " 이자가",
+    "full_len": 190
+   },
+   {
+    "step": 123,
+    "audio_end_s": 39.68,
+    "new": " 많이",
+    "full_len": 193
+   },
+   {
+    "step": 124,
+    "audio_end_s": 40.0,
+    "new": " 줄어",
+    "full_len": 196
+   },
+   {
+    "step": 125,
+    "audio_end_s": 40.32,
+    "new": "듭니다.",
+    "full_len": 200
+   },
+   {
+    "step": 133,
+    "audio_end_s": 42.88,
+    "new": " 네",
+    "full_len": 202
+   },
+   {
+    "step": 134,
+    "audio_end_s": 43.2,
+    "new": " 중",
+    "full_len": 204
+   },
+   {
+    "step": 135,
+    "audio_end_s": 43.52,
+    "new": "도해",
+    "full_len": 206
+   },
+   {
+    "step": 136,
+    "audio_end_s": 43.84,
+    "new": "지율",
+    "full_len": 208
+   },
+   {
+    "step": 137,
+    "audio_end_s": 44.160000000000004,
+    "new": "이",
+    "full_len": 209
+   },
+   {
+    "step": 138,
+    "audio_end_s": 44.480000000000004,
+    "new": " 뭐예요?",
+    "full_len": 214
+   },
+   {
+    "step": 155,
+    "audio_end_s": 49.92,
+    "new": " 네 만",
+    "full_len": 218
+   },
+   {
+    "step": 156,
+    "audio_end_s": 50.24,
+    "new": "기전에",
+    "full_len": 221
+   },
+   {
+    "step": 157,
+    "audio_end_s": 50.56,
+    "new": " 찾으시",
+    "full_len": 225
+   },
+   {
+    "step": 158,
+    "audio_end_s": 50.88,
+    "new": "면은",
+    "full_len": 227
+   },
+   {
+    "step": 161,
+    "audio_end_s": 51.84,
+    "new": " 처음",
+    "full_len": 230
+   },
+   {
+    "step": 162,
+    "audio_end_s": 52.160000000000004,
+    "new": " 약속",
+    "full_len": 233
+   },
+   {
+    "step": 163,
+    "audio_end_s": 52.480000000000004,
+    "new": "한 이자",
+    "full_len": 237
+   },
+   {
+    "step": 164,
+    "audio_end_s": 52.800000000000004,
+    "new": "보다",
+    "full_len": 239
+   },
+   {
+    "step": 165,
+    "audio_end_s": 53.120000000000005,
+    "new": " 적게",
+    "full_len": 242
+   },
+   {
+    "step": 166,
+    "audio_end_s": 53.44,
+    "new": " 받으신",
+    "full_len": 246
+   },
+   {
+    "step": 167,
+    "audio_end_s": 53.76,
+    "new": "다는 뜻",
+    "full_len": 250
+   },
+   {
+    "step": 168,
+    "audio_end_s": 54.08,
+    "new": "입니다.",
+    "full_len": 254
+   },
+   {
+    "step": 175,
+    "audio_end_s": 56.32,
+    "new": " 아",
+    "full_len": 256
+   },
+   {
+    "step": 176,
+    "audio_end_s": 56.64,
+    "new": " 중간",
+    "full_len": 259
+   },
+   {
+    "step": 177,
+    "audio_end_s": 56.96,
+    "new": "에",
+    "full_len": 260
+   },
+   {
+    "step": 178,
+    "audio_end_s": 57.28,
+    "new": " 깨",
+    "full_len": 262
+   },
+   {
+    "step": 179,
+    "audio_end_s": 57.6,
+    "new": "면",
+    "full_len": 263
+   },
+   {
+    "step": 181,
+    "audio_end_s": 58.24,
+    "new": " 이자",
+    "full_len": 266
+   },
+   {
+    "step": 182,
+    "audio_end_s": 58.56,
+    "new": "를",
+    "full_len": 267
+   },
+   {
+    "step": 183,
+    "audio_end_s": 58.88,
+    "new": " 훨",
+    "full_len": 269
+   },
+   {
+    "step": 184,
+    "audio_end_s": 59.2,
+    "new": "씬",
+    "full_len": 270
+   },
+   {
+    "step": 186,
+    "audio_end_s": 59.84,
+    "new": " 덜 받",
+    "full_len": 274
+   },
+   {
+    "step": 187,
+    "audio_end_s": 60.160000000000004,
+    "new": "는다는",
+    "full_len": 277
+   },
+   {
+    "step": 189,
+    "audio_end_s": 60.800000000000004,
+    "new": " 거네요.",
+    "full_len": 282
+   },
+   {
+    "step": 196,
+    "audio_end_s": 63.04,
+    "new": " 만기",
+    "full_len": 285
+   },
+   {
+    "step": 197,
+    "audio_end_s": 63.36,
+    "new": " 지나",
+    "full_len": 288
+   },
+   {
+    "step": 198,
+    "audio_end_s": 63.68,
+    "new": "도",
+    "full_len": 289
+   },
+   {
+    "step": 199,
+    "audio_end_s": 64.0,
+    "new": " 금리가",
+    "full_len": 293
+   },
+   {
+    "step": 200,
+    "audio_end_s": 64.32000000000001,
+    "new": " 그",
+    "full_len": 295
+   },
+   {
+    "step": 201,
+    "audio_end_s": 64.64,
+    "new": "대로 유",
+    "full_len": 299
+   },
+   {
+    "step": 202,
+    "audio_end_s": 64.96000000000001,
+    "new": "지되니까",
+    "full_len": 303
+   },
+   {
+    "step": 206,
+    "audio_end_s": 66.24,
+    "new": " 그냥",
+    "full_len": 306
+   },
+   {
+    "step": 207,
+    "audio_end_s": 66.56,
+    "new": " 두셔",
+    "full_len": 309
+   },
+   {
+    "step": 208,
+    "audio_end_s": 66.88,
+    "new": "도 돼요.",
+    "full_len": 314
+   },
+   {
+    "step": 224,
+    "audio_end_s": 72.0,
+    "new": " 그래요",
+    "full_len": 318
+   },
+   {
+    "step": 226,
+    "audio_end_s": 72.64,
+    "new": " 그럼",
+    "full_len": 321
+   },
+   {
+    "step": 227,
+    "audio_end_s": 72.96000000000001,
+    "new": " 그냥",
+    "full_len": 324
+   },
+   {
+    "step": 229,
+    "audio_end_s": 73.60000000000001,
+    "new": " 두",
+    "full_len": 326
+   },
+   {
+    "step": 230,
+    "audio_end_s": 73.92,
+    "new": "는게",
+    "full_len": 328
+   },
+   {
+    "step": 232,
+    "audio_end_s": 74.56,
+    "new": " 낮게",
+    "full_len": 331
+   },
+   {
+    "step": 234,
+    "audio_end_s": 75.2,
+    "new": "네요",
+    "full_len": 333
+   },
+   {
+    "step": 240,
+    "audio_end_s": 77.12,
+    "new": " 아",
+    "full_len": 335
+   },
+   {
+    "step": 241,
+    "audio_end_s": 77.44,
+    "new": " 죄송합니다.",
+    "full_len": 342
+   },
+   {
+    "step": 244,
+    "audio_end_s": 78.4,
+    "new": " 정확히",
+    "full_len": 346
+   },
+   {
+    "step": 245,
+    "audio_end_s": 78.72,
+    "new": " 다시",
+    "full_len": 349
+   },
+   {
+    "step": 246,
+    "audio_end_s": 79.04,
+    "new": " 말씀드",
+    "full_len": 353
+   },
+   {
+    "step": 247,
+    "audio_end_s": 79.36,
+    "new": "릴게요.",
+    "full_len": 357
+   },
+   {
+    "step": 250,
+    "audio_end_s": 80.32000000000001,
+    "new": " 만기",
+    "full_len": 360
+   },
+   {
+    "step": 251,
+    "audio_end_s": 80.64,
+    "new": "후에는",
+    "full_len": 363
+   },
+   {
+    "step": 255,
+    "audio_end_s": 81.92,
+    "new": " 약전",
+    "full_len": 366
+   },
+   {
+    "step": 256,
+    "audio_end_s": 82.24,
+    "new": "기율",
+    "full_len": 368
+   },
+   {
+    "step": 257,
+    "audio_end_s": 82.56,
+    "new": "이 아니라",
+    "full_len": 373
+   },
+   {
+    "step": 259,
+    "audio_end_s": 83.2,
+    "new": " 만",
+    "full_len": 375
+   },
+   {
+    "step": 260,
+    "audio_end_s": 83.52,
+    "new": "기후",
+    "full_len": 377
+   },
+   {
+    "step": 261,
+    "audio_end_s": 83.84,
+    "new": "의 자유",
+    "full_len": 381
+   },
+   {
+    "step": 262,
+    "audio_end_s": 84.16,
+    "new": " 자율이",
+    "full_len": 385
+   },
+   {
+    "step": 263,
+    "audio_end_s": 84.48,
+    "new": " 적용",
+    "full_len": 388
+   },
+   {
+    "step": 264,
+    "audio_end_s": 84.8,
+    "new": "되고",
+    "full_len": 390
+   },
+   {
+    "step": 266,
+    "audio_end_s": 85.44,
+    "new": " 경",
+    "full_len": 392
+   },
+   {
+    "step": 267,
+    "audio_end_s": 85.76,
+    "new": "과",
+    "full_len": 393
+   },
+   {
+    "step": 268,
+    "audio_end_s": 86.08,
+    "new": "기간",
+    "full_len": 395
+   },
+   {
+    "step": 269,
+    "audio_end_s": 86.4,
+    "new": "에 따라",
+    "full_len": 399
+   },
+   {
+    "step": 270,
+    "audio_end_s": 86.72,
+    "new": " 더 낮",
+    "full_len": 403
+   },
+   {
+    "step": 271,
+    "audio_end_s": 87.04,
+    "new": "아집",
+    "full_len": 405
+   },
+   {
+    "step": 272,
+    "audio_end_s": 87.36,
+    "new": "니다.",
+    "full_len": 408
+   },
+   {
+    "step": 277,
+    "audio_end_s": 88.96000000000001,
+    "new": " 아",
+    "full_len": 410
+   },
+   {
+    "step": 278,
+    "audio_end_s": 89.28,
+    "new": "까 세",
+    "full_len": 413
+   },
+   {
+    "step": 279,
+    "audio_end_s": 89.60000000000001,
+    "new": "금도 정",
+    "full_len": 417
+   },
+   {
+    "step": 280,
+    "audio_end_s": 89.92,
+    "new": "정하겠",
+    "full_len": 420
+   },
+   {
+    "step": 281,
+    "audio_end_s": 90.24,
+    "new": "습니다",
+    "full_len": 423
+   },
+   {
+    "step": 282,
+    "audio_end_s": 90.56,
+    "new": ".",
+    "full_len": 424
+   },
+   {
+    "step": 284,
+    "audio_end_s": 91.2,
+    "new": " 이제",
+    "full_len": 427
+   },
+   {
+    "step": 285,
+    "audio_end_s": 91.52,
+    "new": " 과세",
+    "full_len": 430
+   },
+   {
+    "step": 286,
+    "audio_end_s": 91.84,
+    "new": "되는",
+    "full_len": 432
+   },
+   {
+    "step": 287,
+    "audio_end_s": 92.16,
+    "new": " 세",
+    "full_len": 434
+   },
+   {
+    "step": 288,
+    "audio_end_s": 92.48,
+    "new": "율은",
+    "full_len": 436
+   },
+   {
+    "step": 291,
+    "audio_end_s": 93.44,
+    "new": " 십오",
+    "full_len": 439
+   },
+   {
+    "step": 292,
+    "audio_end_s": 93.76,
+    "new": "점",
+    "full_len": 440
+   },
+   {
+    "step": 294,
+    "audio_end_s": 94.4,
+    "new": "사",
+    "full_len": 441
+   },
+   {
+    "step": 295,
+    "audio_end_s": 94.72,
+    "new": "퍼센트",
+    "full_len": 444
+   },
+   {
+    "step": 296,
+    "audio_end_s": 95.04,
+    "new": "입니다.",
+    "full_len": 448
+   },
+   {
+    "step": 302,
+    "audio_end_s": 96.96000000000001,
+    "new": " 그리고",
+    "full_len": 452
+   },
+   {
+    "step": 304,
+    "audio_end_s": 97.60000000000001,
+    "new": " 중도해",
+    "full_len": 456
+   },
+   {
+    "step": 305,
+    "audio_end_s": 97.92,
+    "new": "지 이유",
+    "full_len": 460
+   },
+   {
+    "step": 306,
+    "audio_end_s": 98.24000000000001,
+    "new": "는",
+    "full_len": 461
+   },
+   {
+    "step": 308,
+    "audio_end_s": 98.88,
+    "new": " 약",
+    "full_len": 463
+   },
+   {
+    "step": 309,
+    "audio_end_s": 99.2,
+    "new": "전",
+    "full_len": 464
+   },
+   {
+    "step": 310,
+    "audio_end_s": 99.52,
+    "new": " 기울",
+    "full_len": 467
+   },
+   {
+    "step": 311,
+    "audio_end_s": 99.84,
+    "new": "의 예측",
+    "full_len": 471
+   },
+   {
+    "step": 312,
+    "audio_end_s": 100.16,
+    "new": "기관별",
+    "full_len": 474
+   },
+   {
+    "step": 313,
+    "audio_end_s": 100.48,
+    "new": " 차감",
+    "full_len": 477
+   },
+   {
+    "step": 314,
+    "audio_end_s": 100.8,
+    "new": "률을",
+    "full_len": 479
+   },
+   {
+    "step": 315,
+    "audio_end_s": 101.12,
+    "new": " 곱해서",
+    "full_len": 483
+   },
+   {
+    "step": 316,
+    "audio_end_s": 101.44,
+    "new": " 계산",
+    "full_len": 486
+   },
+   {
+    "step": 317,
+    "audio_end_s": 101.76,
+    "new": "되는데",
+    "full_len": 489
+   },
+   {
+    "step": 320,
+    "audio_end_s": 102.72,
+    "new": " 석",
+    "full_len": 491
+   },
+   {
+    "step": 321,
+    "audio_end_s": 103.04,
+    "new": "달안에",
+    "full_len": 494
+   },
+   {
+    "step": 322,
+    "audio_end_s": 103.36,
+    "new": " 해지",
+    "full_len": 497
+   },
+   {
+    "step": 323,
+    "audio_end_s": 103.68,
+    "new": "하시면은",
+    "full_len": 501
+   },
+   {
+    "step": 327,
+    "audio_end_s": 104.96000000000001,
+    "new": " 약정",
+    "full_len": 504
+   },
+   {
+    "step": 328,
+    "audio_end_s": 105.28,
+    "new": "기율의",
+    "full_len": 507
+   },
+   {
+    "step": 329,
+    "audio_end_s": 105.60000000000001,
+    "new": " 절반",
+    "full_len": 510
+   },
+   {
+    "step": 330,
+    "audio_end_s": 105.92,
+    "new": " 정도만",
+    "full_len": 514
+   },
+   {
+    "step": 331,
+    "audio_end_s": 106.24000000000001,
+    "new": " 받으세요.",
+    "full_len": 520
+   },
+   {
+    "step": 338,
+    "audio_end_s": 108.48,
+    "new": " 대신",
+    "full_len": 523
+   },
+   {
+    "step": 339,
+    "audio_end_s": 108.8,
+    "new": " 해지하지",
+    "full_len": 528
+   },
+   {
+    "step": 340,
+    "audio_end_s": 109.12,
+    "new": " 않고",
+    "full_len": 531
+   },
+   {
+    "step": 341,
+    "audio_end_s": 109.44,
+    "new": " 예금",
+    "full_len": 534
+   },
+   {
+    "step": 342,
+    "audio_end_s": 109.76,
+    "new": "담보",
+    "full_len": 536
+   },
+   {
+    "step": 343,
+    "audio_end_s": 110.08,
+    "new": " 대출",
+    "full_len": 539
+   },
+   {
+    "step": 344,
+    "audio_end_s": 110.4,
+    "new": "을 이용",
+    "full_len": 543
+   },
+   {
+    "step": 345,
+    "audio_end_s": 110.72,
+    "new": "하시",
+    "full_len": 545
+   },
+   {
+    "step": 346,
+    "audio_end_s": 111.04,
+    "new": "면",
+    "full_len": 546
+   },
+   {
+    "step": 348,
+    "audio_end_s": 111.68,
+    "new": " 예",
+    "full_len": 548
+   },
+   {
+    "step": 349,
+    "audio_end_s": 112.0,
+    "new": "금은",
+    "full_len": 550
+   },
+   {
+    "step": 350,
+    "audio_end_s": 112.32000000000001,
+    "new": " 그대로",
+    "full_len": 554
+   },
+   {
+    "step": 352,
+    "audio_end_s": 112.96000000000001,
+    "new": " 두고",
+    "full_len": 557
+   },
+   {
+    "step": 353,
+    "audio_end_s": 113.28,
+    "new": " 필요",
+    "full_len": 560
+   },
+   {
+    "step": 354,
+    "audio_end_s": 113.60000000000001,
+    "new": "한",
+    "full_len": 561
+   },
+   {
+    "step": 355,
+    "audio_end_s": 113.92,
+    "new": " 금액만",
+    "full_len": 565
+   },
+   {
+    "step": 356,
+    "audio_end_s": 114.24000000000001,
+    "new": " 빌리",
+    "full_len": 568
+   },
+   {
+    "step": 357,
+    "audio_end_s": 114.56,
+    "new": "실 수",
+    "full_len": 571
+   },
+   {
+    "step": 358,
+    "audio_end_s": 114.88,
+    "new": " 있습니다.",
+    "full_len": 577
+   },
+   {
+    "step": 365,
+    "audio_end_s": 117.12,
+    "new": " 참고",
+    "full_len": 580
+   },
+   {
+    "step": 366,
+    "audio_end_s": 117.44,
+    "new": "로 이",
+    "full_len": 583
+   },
+   {
+    "step": 367,
+    "audio_end_s": 117.76,
+    "new": " 예금",
+    "full_len": 586
+   },
+   {
+    "step": 368,
+    "audio_end_s": 118.08,
+    "new": "은",
+    "full_len": 587
+   },
+   {
+    "step": 369,
+    "audio_end_s": 118.4,
+    "new": " 예금",
+    "full_len": 590
+   },
+   {
+    "step": 370,
+    "audio_end_s": 118.72,
+    "new": "자",
+    "full_len": 591
+   },
+   {
+    "step": 371,
+    "audio_end_s": 119.04,
+    "new": " 보호법",
+    "full_len": 595
+   },
+   {
+    "step": 372,
+    "audio_end_s": 119.36,
+    "new": "에",
+    "full_len": 596
+   },
+   {
+    "step": 373,
+    "audio_end_s": 119.68,
+    "new": " 따라",
+    "full_len": 599
+   },
+   {
+    "step": 375,
+    "audio_end_s": 120.32000000000001,
+    "new": " 원금",
+    "full_len": 602
+   },
+   {
+    "step": 376,
+    "audio_end_s": 120.64,
+    "new": "과",
+    "full_len": 603
+   },
+   {
+    "step": 377,
+    "audio_end_s": 120.96000000000001,
+    "new": " 이자",
+    "full_len": 606
+   },
+   {
+    "step": 378,
+    "audio_end_s": 121.28,
+    "new": " 포함",
+    "full_len": 609
+   },
+   {
+    "step": 379,
+    "audio_end_s": 121.60000000000001,
+    "new": " 일인데",
+    "full_len": 613
+   },
+   {
+    "step": 382,
+    "audio_end_s": 122.56,
+    "new": " 일억원",
+    "full_len": 617
+   },
+   {
+    "step": 383,
+    "audio_end_s": 122.88,
+    "new": "까지",
+    "full_len": 619
+   },
+   {
+    "step": 384,
+    "audio_end_s": 123.2,
+    "new": " 보호",
+    "full_len": 622
+   },
+   {
+    "step": 385,
+    "audio_end_s": 123.52,
+    "new": "됩니다.",
+    "full_len": 626
+   },
+   {
+    "step": 402,
+    "audio_end_s": 128.96,
+    "new": " 그냥",
+    "full_len": 629
+   },
+   {
+    "step": 403,
+    "audio_end_s": 129.28,
+    "new": " 해지",
+    "full_len": 632
+   },
+   {
+    "step": 404,
+    "audio_end_s": 129.6,
+    "new": "할게",
+    "full_len": 634
+   },
+   {
+    "step": 405,
+    "audio_end_s": 129.92000000000002,
+    "new": "요",
+    "full_len": 635
+   },
+   {
+    "step": 409,
+    "audio_end_s": 131.2,
+    "new": " 해지",
+    "full_len": 638
+   },
+   {
+    "step": 410,
+    "audio_end_s": 131.52,
+    "new": "한 돈",
+    "full_len": 641
+   },
+   {
+    "step": 411,
+    "audio_end_s": 131.84,
+    "new": "은",
+    "full_len": 642
+   },
+   {
+    "step": 413,
+    "audio_end_s": 132.48,
+    "new": " 딸이",
+    "full_len": 645
+   },
+   {
+    "step": 414,
+    "audio_end_s": 132.8,
+    "new": " 알려",
+    "full_len": 648
+   },
+   {
+    "step": 415,
+    "audio_end_s": 133.12,
+    "new": "준",
+    "full_len": 649
+   },
+   {
+    "step": 416,
+    "audio_end_s": 133.44,
+    "new": " 계좌",
+    "full_len": 652
+   },
+   {
+    "step": 417,
+    "audio_end_s": 133.76,
+    "new": "로",
+    "full_len": 653
+   },
+   {
+    "step": 418,
+    "audio_end_s": 134.08,
+    "new": " 바로",
+    "full_len": 656
+   },
+   {
+    "step": 419,
+    "audio_end_s": 134.4,
+    "new": " 보",
+    "full_len": 658
+   },
+   {
+    "step": 420,
+    "audio_end_s": 134.72,
+    "new": "내주세요.",
+    "full_len": 663
+   },
+   {
+    "step": 436,
+    "audio_end_s": 139.84,
+    "new": " 고객",
+    "full_len": 666
+   },
+   {
+    "step": 437,
+    "audio_end_s": 140.16,
+    "new": "님",
+    "full_len": 667
+   },
+   {
+    "step": 439,
+    "audio_end_s": 140.8,
+    "new": " 혹시",
+    "full_len": 670
+   },
+   {
+    "step": 440,
+    "audio_end_s": 141.12,
+    "new": " 따님",
+    "full_len": 673
+   },
+   {
+    "step": 441,
+    "audio_end_s": 141.44,
+    "new": "과 직",
+    "full_len": 676
+   },
+   {
+    "step": 442,
+    "audio_end_s": 141.76,
+    "new": "접 통",
+    "full_len": 679
+   },
+   {
+    "step": 443,
+    "audio_end_s": 142.08,
+    "new": "하는",
+    "full_len": 681
+   },
+   {
+    "step": 444,
+    "audio_end_s": 142.4,
+    "new": " 해보셨",
+    "full_len": 685
+   },
+   {
+    "step": 445,
+    "audio_end_s": 142.72,
+    "new": "어요?",
+    "full_len": 688
+   },
+   {
+    "step": 448,
+    "audio_end_s": 143.68,
+    "new": " 확인",
+    "full_len": 691
+   },
+   {
+    "step": 449,
+    "audio_end_s": 144.0,
+    "new": "후에 진",
+    "full_len": 695
+   },
+   {
+    "step": 450,
+    "audio_end_s": 144.32,
+    "new": "행하",
+    "full_len": 697
+   },
+   {
+    "step": 451,
+    "audio_end_s": 144.64000000000001,
+    "new": "겠습니다",
+    "full_len": 701
+   },
+   {
+    "step": 452,
+    "audio_end_s": 144.96,
+    "new": ". 신",
+    "full_len": 704
+   },
+   {
+    "step": 453,
+    "audio_end_s": 145.28,
+    "new": "분증",
+    "full_len": 706
+   },
+   {
+    "step": 454,
+    "audio_end_s": 145.6,
+    "new": " 먼저 주",
+    "full_len": 711
+   },
+   {
+    "step": 455,
+    "audio_end_s": 145.92000000000002,
+    "new": "시겠어요?",
+    "full_len": 716
+   }
+  ]
+ },
+ "preset-loan-b": {
+  "infer_s": 27.019917964935303,
+  "n_steps": 400,
+  "mean_step_ms": 67.50288486480713,
+  "max_step_ms": 101.68910026550293,
+  "text": "안녕하세요. 신용대출을 좀 받고 싶은데 제 조건이면 금리랑 한도가 어느 정도 나올까요? 네 먼저 소득과 기존 대출을 확인해서 디에스를 총부채원리 금상환 비율을 산출하고 심사에 활용합니다. 네 디 에이 뭐예요? 소득에 비해 모든 대출의 원리금을 얼마나 갚아야 하는지 계산해서 심사하는 비율입니다. 금리방식은 변동금리라서 기준금리가 바뀌면은 금리가 오를 변동 가능성이 있습니다. 지금 조회한 조건이면 연사점 오퍼센트 정도 나오는데 심사는 무조건 승인됩니다. 아 그러면 확정인거네요. 아 정확히는 내부 결제전이라 확정은 아니고 심사결과에 따라 금리와 한도가 달라질 수 있습니다. 그리고 상황은 원리금균으로만 가능합니다. 다른 상황방식은 안됩니다. 갚는 방식을 제가 고를 수는 없나보네요. 죄송합니다. 제가 잘못 말씀드렸습니다. 갚는 방법은 고객님이 원하시는 쪽으로 고르실 수 있습니다. 대출을 삼년안에 일찍 갚으시면 중도 상황 해약금 부과 가능성이 있고 적용기간은 대출 일부터 삼년입니다. 연체하시면 대출 이 자율에 연체 가산이 자율 연산퍼센트가 더해진 연체 이자율이 적용됩니다. 대출실행후 십사이란의 철회의사표시를 하시고 대출금 반환을 하시면 청약철회가 됩니다. 신용조회하면 제 등급이 떨어지는건 아닌지 걱정되네요. 그 부분은 서류 준비되시면 다시 안내드릴게요. 신분증과 소득증빙 서류를 준비해주세요.",
+  "steps": [
+   {
+    "step": 10,
+    "audio_end_s": 3.52,
+    "new": "안",
+    "full_len": 1
+   },
+   {
+    "step": 11,
+    "audio_end_s": 3.84,
+    "new": "녕하",
+    "full_len": 3
+   },
+   {
+    "step": 12,
+    "audio_end_s": 4.16,
+    "new": "세요",
+    "full_len": 5
+   },
+   {
+    "step": 14,
+    "audio_end_s": 4.8,
+    "new": ".",
+    "full_len": 6
+   },
+   {
+    "step": 15,
+    "audio_end_s": 5.12,
+    "new": " 신용",
+    "full_len": 9
+   },
+   {
+    "step": 16,
+    "audio_end_s": 5.44,
+    "new": "대출",
+    "full_len": 11
+   },
+   {
+    "step": 17,
+    "audio_end_s": 5.76,
+    "new": "을 좀",
+    "full_len": 14
+   },
+   {
+    "step": 18,
+    "audio_end_s": 6.08,
+    "new": " 받고 싶",
+    "full_len": 19
+   },
+   {
+    "step": 19,
+    "audio_end_s": 6.4,
+    "new": "은데",
+    "full_len": 21
+   },
+   {
+    "step": 22,
+    "audio_end_s": 7.36,
+    "new": " 제 조",
+    "full_len": 25
+   },
+   {
+    "step": 23,
+    "audio_end_s": 7.68,
+    "new": "건이",
+    "full_len": 27
+   },
+   {
+    "step": 24,
+    "audio_end_s": 8.0,
+    "new": "면",
+    "full_len": 28
+   },
+   {
+    "step": 25,
+    "audio_end_s": 8.32,
+    "new": " 금리",
+    "full_len": 31
+   },
+   {
+    "step": 26,
+    "audio_end_s": 8.64,
+    "new": "랑 한",
+    "full_len": 34
+   },
+   {
+    "step": 27,
+    "audio_end_s": 8.96,
+    "new": "도가",
+    "full_len": 36
+   },
+   {
+    "step": 28,
+    "audio_end_s": 9.28,
+    "new": " 어느 정도",
+    "full_len": 42
+   },
+   {
+    "step": 29,
+    "audio_end_s": 9.6,
+    "new": " 나올",
+    "full_len": 45
+   },
+   {
+    "step": 30,
+    "audio_end_s": 9.92,
+    "new": "까요",
+    "full_len": 47
+   },
+   {
+    "step": 35,
+    "audio_end_s": 11.52,
+    "new": "?",
+    "full_len": 48
+   },
+   {
+    "step": 36,
+    "audio_end_s": 11.84,
+    "new": " 네 먼",
+    "full_len": 52
+   },
+   {
+    "step": 37,
+    "audio_end_s": 12.16,
+    "new": "저",
+    "full_len": 53
+   },
+   {
+    "step": 38,
+    "audio_end_s": 12.48,
+    "new": " 소득과",
+    "full_len": 57
+   },
+   {
+    "step": 39,
+    "audio_end_s": 12.8,
+    "new": " 기존",
+    "full_len": 60
+   },
+   {
+    "step": 40,
+    "audio_end_s": 13.120000000000001,
+    "new": " 대출",
+    "full_len": 63
+   },
+   {
+    "step": 41,
+    "audio_end_s": 13.44,
+    "new": "을 확인",
+    "full_len": 67
+   },
+   {
+    "step": 42,
+    "audio_end_s": 13.76,
+    "new": "해서",
+    "full_len": 69
+   },
+   {
+    "step": 45,
+    "audio_end_s": 14.72,
+    "new": " 디에",
+    "full_len": 72
+   },
+   {
+    "step": 46,
+    "audio_end_s": 15.040000000000001,
+    "new": "스를",
+    "full_len": 74
+   },
+   {
+    "step": 47,
+    "audio_end_s": 15.36,
+    "new": " 총부",
+    "full_len": 77
+   },
+   {
+    "step": 48,
+    "audio_end_s": 15.68,
+    "new": "채",
+    "full_len": 78
+   },
+   {
+    "step": 49,
+    "audio_end_s": 16.0,
+    "new": "원리",
+    "full_len": 80
+   },
+   {
+    "step": 51,
+    "audio_end_s": 16.64,
+    "new": " 금상환",
+    "full_len": 84
+   },
+   {
+    "step": 52,
+    "audio_end_s": 16.96,
+    "new": " 비율",
+    "full_len": 87
+   },
+   {
+    "step": 53,
+    "audio_end_s": 17.28,
+    "new": "을 산",
+    "full_len": 90
+   },
+   {
+    "step": 54,
+    "audio_end_s": 17.6,
+    "new": "출하고",
+    "full_len": 93
+   },
+   {
+    "step": 55,
+    "audio_end_s": 17.92,
+    "new": " 심사",
+    "full_len": 96
+   },
+   {
+    "step": 56,
+    "audio_end_s": 18.240000000000002,
+    "new": "에 활용합니다.",
+    "full_len": 104
+   },
+   {
+    "step": 62,
+    "audio_end_s": 20.16,
+    "new": " 네",
+    "full_len": 106
+   },
+   {
+    "step": 64,
+    "audio_end_s": 20.8,
+    "new": " 디 에이",
+    "full_len": 111
+   },
+   {
+    "step": 65,
+    "audio_end_s": 21.12,
+    "new": " 뭐예요?",
+    "full_len": 116
+   },
+   {
+    "step": 80,
+    "audio_end_s": 25.92,
+    "new": " 소득",
+    "full_len": 119
+   },
+   {
+    "step": 81,
+    "audio_end_s": 26.240000000000002,
+    "new": "에",
+    "full_len": 120
+   },
+   {
+    "step": 82,
+    "audio_end_s": 26.560000000000002,
+    "new": " 비해",
+    "full_len": 123
+   },
+   {
+    "step": 83,
+    "audio_end_s": 26.88,
+    "new": " 모든",
+    "full_len": 126
+   },
+   {
+    "step": 84,
+    "audio_end_s": 27.2,
+    "new": " 대출",
+    "full_len": 129
+   },
+   {
+    "step": 85,
+    "audio_end_s": 27.52,
+    "new": "의 원",
+    "full_len": 132
+   },
+   {
+    "step": 86,
+    "audio_end_s": 27.84,
+    "new": "리금을",
+    "full_len": 135
+   },
+   {
+    "step": 87,
+    "audio_end_s": 28.16,
+    "new": " 얼마나",
+    "full_len": 139
+   },
+   {
+    "step": 89,
+    "audio_end_s": 28.8,
+    "new": " 갚아야",
+    "full_len": 143
+   },
+   {
+    "step": 90,
+    "audio_end_s": 29.12,
+    "new": " 하는지",
+    "full_len": 147
+   },
+   {
+    "step": 92,
+    "audio_end_s": 29.76,
+    "new": " 계산",
+    "full_len": 150
+   },
+   {
+    "step": 93,
+    "audio_end_s": 30.080000000000002,
+    "new": "해서",
+    "full_len": 152
+   },
+   {
+    "step": 94,
+    "audio_end_s": 30.400000000000002,
+    "new": " 심사",
+    "full_len": 155
+   },
+   {
+    "step": 95,
+    "audio_end_s": 30.72,
+    "new": "하는 비",
+    "full_len": 159
+   },
+   {
+    "step": 96,
+    "audio_end_s": 31.04,
+    "new": "율입니다.",
+    "full_len": 164
+   },
+   {
+    "step": 102,
+    "audio_end_s": 32.96,
+    "new": " 금리",
+    "full_len": 167
+   },
+   {
+    "step": 103,
+    "audio_end_s": 33.28,
+    "new": "방식",
+    "full_len": 169
+   },
+   {
+    "step": 104,
+    "audio_end_s": 33.6,
+    "new": "은",
+    "full_len": 170
+   },
+   {
+    "step": 106,
+    "audio_end_s": 34.24,
+    "new": " 변동",
+    "full_len": 173
+   },
+   {
+    "step": 107,
+    "audio_end_s": 34.56,
+    "new": "금리라",
+    "full_len": 176
+   },
+   {
+    "step": 108,
+    "audio_end_s": 34.88,
+    "new": "서",
+    "full_len": 177
+   },
+   {
+    "step": 110,
+    "audio_end_s": 35.52,
+    "new": " 기준금",
+    "full_len": 181
+   },
+   {
+    "step": 111,
+    "audio_end_s": 35.84,
+    "new": "리가",
+    "full_len": 183
+   },
+   {
+    "step": 112,
+    "audio_end_s": 36.160000000000004,
+    "new": " 바뀌",
+    "full_len": 186
+   },
+   {
+    "step": 113,
+    "audio_end_s": 36.480000000000004,
+    "new": "면은",
+    "full_len": 188
+   },
+   {
+    "step": 115,
+    "audio_end_s": 37.12,
+    "new": " 금리",
+    "full_len": 191
+   },
+   {
+    "step": 116,
+    "audio_end_s": 37.44,
+    "new": "가",
+    "full_len": 192
+   },
+   {
+    "step": 117,
+    "audio_end_s": 37.76,
+    "new": " 오",
+    "full_len": 194
+   },
+   {
+    "step": 118,
+    "audio_end_s": 38.08,
+    "new": "를",
+    "full_len": 195
+   },
+   {
+    "step": 119,
+    "audio_end_s": 38.4,
+    "new": " 변동",
+    "full_len": 198
+   },
+   {
+    "step": 121,
+    "audio_end_s": 39.04,
+    "new": " 가능",
+    "full_len": 201
+   },
+   {
+    "step": 122,
+    "audio_end_s": 39.36,
+    "new": "성",
+    "full_len": 202
+   },
+   {
+    "step": 123,
+    "audio_end_s": 39.68,
+    "new": "이",
+    "full_len": 203
+   },
+   {
+    "step": 125,
+    "audio_end_s": 40.32,
+    "new": " 있습니다.",
+    "full_len": 209
+   },
+   {
+    "step": 131,
+    "audio_end_s": 42.24,
+    "new": " 지금",
+    "full_len": 212
+   },
+   {
+    "step": 132,
+    "audio_end_s": 42.56,
+    "new": " 조",
+    "full_len": 214
+   },
+   {
+    "step": 133,
+    "audio_end_s": 42.88,
+    "new": "회한 조",
+    "full_len": 218
+   },
+   {
+    "step": 134,
+    "audio_end_s": 43.2,
+    "new": "건이",
+    "full_len": 220
+   },
+   {
+    "step": 135,
+    "audio_end_s": 43.52,
+    "new": "면 연",
+    "full_len": 223
+   },
+   {
+    "step": 136,
+    "audio_end_s": 43.84,
+    "new": "사점",
+    "full_len": 225
+   },
+   {
+    "step": 139,
+    "audio_end_s": 44.800000000000004,
+    "new": " 오퍼센트",
+    "full_len": 230
+   },
+   {
+    "step": 140,
+    "audio_end_s": 45.12,
+    "new": " 정도",
+    "full_len": 233
+   },
+   {
+    "step": 141,
+    "audio_end_s": 45.44,
+    "new": " 나오는데",
+    "full_len": 238
+   },
+   {
+    "step": 145,
+    "audio_end_s": 46.72,
+    "new": " 심사는",
+    "full_len": 242
+   },
+   {
+    "step": 146,
+    "audio_end_s": 47.04,
+    "new": " 무조건",
+    "full_len": 246
+   },
+   {
+    "step": 147,
+    "audio_end_s": 47.36,
+    "new": " 승인",
+    "full_len": 249
+   },
+   {
+    "step": 148,
+    "audio_end_s": 47.68,
+    "new": "됩니다.",
+    "full_len": 253
+   },
+   {
+    "step": 163,
+    "audio_end_s": 52.480000000000004,
+    "new": " 아",
+    "full_len": 255
+   },
+   {
+    "step": 164,
+    "audio_end_s": 52.800000000000004,
+    "new": " 그러면",
+    "full_len": 259
+   },
+   {
+    "step": 165,
+    "audio_end_s": 53.120000000000005,
+    "new": " 확정",
+    "full_len": 262
+   },
+   {
+    "step": 166,
+    "audio_end_s": 53.44,
+    "new": "인거",
+    "full_len": 264
+   },
+   {
+    "step": 167,
+    "audio_end_s": 53.76,
+    "new": "네요.",
+    "full_len": 267
+   },
+   {
+    "step": 173,
+    "audio_end_s": 55.68,
+    "new": " 아",
+    "full_len": 269
+   },
+   {
+    "step": 174,
+    "audio_end_s": 56.0,
+    "new": " 정확",
+    "full_len": 272
+   },
+   {
+    "step": 175,
+    "audio_end_s": 56.32,
+    "new": "히는",
+    "full_len": 274
+   },
+   {
+    "step": 176,
+    "audio_end_s": 56.64,
+    "new": " 내부 결",
+    "full_len": 279
+   },
+   {
+    "step": 177,
+    "audio_end_s": 56.96,
+    "new": "제전",
+    "full_len": 281
+   },
+   {
+    "step": 178,
+    "audio_end_s": 57.28,
+    "new": "이라 확",
+    "full_len": 285
+   },
+   {
+    "step": 179,
+    "audio_end_s": 57.6,
+    "new": "정은",
+    "full_len": 287
+   },
+   {
+    "step": 180,
+    "audio_end_s": 57.92,
+    "new": " 아니고",
+    "full_len": 291
+   },
+   {
+    "step": 184,
+    "audio_end_s": 59.2,
+    "new": " 심사",
+    "full_len": 294
+   },
+   {
+    "step": 185,
+    "audio_end_s": 59.52,
+    "new": "결과",
+    "full_len": 296
+   },
+   {
+    "step": 186,
+    "audio_end_s": 59.84,
+    "new": "에 따라",
+    "full_len": 300
+   },
+   {
+    "step": 190,
+    "audio_end_s": 61.120000000000005,
+    "new": " 금리",
+    "full_len": 303
+   },
+   {
+    "step": 191,
+    "audio_end_s": 61.44,
+    "new": "와 한",
+    "full_len": 306
+   },
+   {
+    "step": 192,
+    "audio_end_s": 61.76,
+    "new": "도가",
+    "full_len": 308
+   },
+   {
+    "step": 193,
+    "audio_end_s": 62.08,
+    "new": " 달라질",
+    "full_len": 312
+   },
+   {
+    "step": 194,
+    "audio_end_s": 62.4,
+    "new": " 수",
+    "full_len": 314
+   },
+   {
+    "step": 195,
+    "audio_end_s": 62.72,
+    "new": " 있습니다.",
+    "full_len": 320
+   },
+   {
+    "step": 201,
+    "audio_end_s": 64.64,
+    "new": " 그리고",
+    "full_len": 324
+   },
+   {
+    "step": 202,
+    "audio_end_s": 64.96000000000001,
+    "new": " 상황",
+    "full_len": 327
+   },
+   {
+    "step": 203,
+    "audio_end_s": 65.28,
+    "new": "은",
+    "full_len": 328
+   },
+   {
+    "step": 207,
+    "audio_end_s": 66.56,
+    "new": " 원리",
+    "full_len": 331
+   },
+   {
+    "step": 208,
+    "audio_end_s": 66.88,
+    "new": "금균",
+    "full_len": 333
+   },
+   {
+    "step": 209,
+    "audio_end_s": 67.2,
+    "new": "으로",
+    "full_len": 335
+   },
+   {
+    "step": 210,
+    "audio_end_s": 67.52,
+    "new": "만",
+    "full_len": 336
+   },
+   {
+    "step": 211,
+    "audio_end_s": 67.84,
+    "new": " 가능",
+    "full_len": 339
+   },
+   {
+    "step": 212,
+    "audio_end_s": 68.16,
+    "new": "합니다.",
+    "full_len": 343
+   },
+   {
+    "step": 214,
+    "audio_end_s": 68.8,
+    "new": " 다른",
+    "full_len": 346
+   },
+   {
+    "step": 215,
+    "audio_end_s": 69.12,
+    "new": " 상황",
+    "full_len": 349
+   },
+   {
+    "step": 216,
+    "audio_end_s": 69.44,
+    "new": "방식",
+    "full_len": 351
+   },
+   {
+    "step": 217,
+    "audio_end_s": 69.76,
+    "new": "은",
+    "full_len": 352
+   },
+   {
+    "step": 218,
+    "audio_end_s": 70.08,
+    "new": " 안",
+    "full_len": 354
+   },
+   {
+    "step": 219,
+    "audio_end_s": 70.4,
+    "new": "됩니다.",
+    "full_len": 358
+   },
+   {
+    "step": 234,
+    "audio_end_s": 75.2,
+    "new": " 갚는",
+    "full_len": 361
+   },
+   {
+    "step": 235,
+    "audio_end_s": 75.52,
+    "new": " 방식",
+    "full_len": 364
+   },
+   {
+    "step": 236,
+    "audio_end_s": 75.84,
+    "new": "을",
+    "full_len": 365
+   },
+   {
+    "step": 237,
+    "audio_end_s": 76.16,
+    "new": " 제가",
+    "full_len": 368
+   },
+   {
+    "step": 238,
+    "audio_end_s": 76.48,
+    "new": " 고를",
+    "full_len": 371
+   },
+   {
+    "step": 239,
+    "audio_end_s": 76.8,
+    "new": " 수는",
+    "full_len": 374
+   },
+   {
+    "step": 240,
+    "audio_end_s": 77.12,
+    "new": " 없나",
+    "full_len": 377
+   },
+   {
+    "step": 241,
+    "audio_end_s": 77.44,
+    "new": "보네요.",
+    "full_len": 381
+   },
+   {
+    "step": 247,
+    "audio_end_s": 79.36,
+    "new": " 죄송",
+    "full_len": 384
+   },
+   {
+    "step": 248,
+    "audio_end_s": 79.68,
+    "new": "합니다.",
+    "full_len": 388
+   },
+   {
+    "step": 249,
+    "audio_end_s": 80.0,
+    "new": " 제가",
+    "full_len": 391
+   },
+   {
+    "step": 250,
+    "audio_end_s": 80.32000000000001,
+    "new": " 잘못",
+    "full_len": 394
+   },
+   {
+    "step": 251,
+    "audio_end_s": 80.64,
+    "new": " 말씀드",
+    "full_len": 398
+   },
+   {
+    "step": 252,
+    "audio_end_s": 80.96000000000001,
+    "new": "렸습니다.",
+    "full_len": 403
+   },
+   {
+    "step": 254,
+    "audio_end_s": 81.60000000000001,
+    "new": " 갚는",
+    "full_len": 406
+   },
+   {
+    "step": 255,
+    "audio_end_s": 81.92,
+    "new": " 방법",
+    "full_len": 409
+   },
+   {
+    "step": 256,
+    "audio_end_s": 82.24,
+    "new": "은",
+    "full_len": 410
+   },
+   {
+    "step": 257,
+    "audio_end_s": 82.56,
+    "new": " 고객님",
+    "full_len": 414
+   },
+   {
+    "step": 258,
+    "audio_end_s": 82.88,
+    "new": "이 원",
+    "full_len": 417
+   },
+   {
+    "step": 259,
+    "audio_end_s": 83.2,
+    "new": "하시는 쪽",
+    "full_len": 422
+   },
+   {
+    "step": 260,
+    "audio_end_s": 83.52,
+    "new": "으로 고",
+    "full_len": 426
+   },
+   {
+    "step": 261,
+    "audio_end_s": 83.84,
+    "new": "르실 수",
+    "full_len": 430
+   },
+   {
+    "step": 262,
+    "audio_end_s": 84.16,
+    "new": " 있습니다.",
+    "full_len": 436
+   },
+   {
+    "step": 268,
+    "audio_end_s": 86.08,
+    "new": " 대",
+    "full_len": 438
+   },
+   {
+    "step": 269,
+    "audio_end_s": 86.4,
+    "new": "출을",
+    "full_len": 440
+   },
+   {
+    "step": 270,
+    "audio_end_s": 86.72,
+    "new": " 삼년",
+    "full_len": 443
+   },
+   {
+    "step": 271,
+    "audio_end_s": 87.04,
+    "new": "안에",
+    "full_len": 445
+   },
+   {
+    "step": 272,
+    "audio_end_s": 87.36,
+    "new": " 일찍",
+    "full_len": 448
+   },
+   {
+    "step": 273,
+    "audio_end_s": 87.68,
+    "new": " 갚으시",
+    "full_len": 452
+   },
+   {
+    "step": 274,
+    "audio_end_s": 88.0,
+    "new": "면",
+    "full_len": 453
+   },
+   {
+    "step": 278,
+    "audio_end_s": 89.28,
+    "new": " 중",
+    "full_len": 455
+   },
+   {
+    "step": 279,
+    "audio_end_s": 89.60000000000001,
+    "new": "도 상황",
+    "full_len": 459
+   },
+   {
+    "step": 281,
+    "audio_end_s": 90.24,
+    "new": " 해약",
+    "full_len": 462
+   },
+   {
+    "step": 282,
+    "audio_end_s": 90.56,
+    "new": "금",
+    "full_len": 463
+   },
+   {
+    "step": 284,
+    "audio_end_s": 91.2,
+    "new": " 부과",
+    "full_len": 466
+   },
+   {
+    "step": 286,
+    "audio_end_s": 91.84,
+    "new": " 가능성",
+    "full_len": 470
+   },
+   {
+    "step": 287,
+    "audio_end_s": 92.16,
+    "new": "이 있고",
+    "full_len": 474
+   },
+   {
+    "step": 290,
+    "audio_end_s": 93.12,
+    "new": " 적용",
+    "full_len": 477
+   },
+   {
+    "step": 291,
+    "audio_end_s": 93.44,
+    "new": "기",
+    "full_len": 478
+   },
+   {
+    "step": 292,
+    "audio_end_s": 93.76,
+    "new": "간은",
+    "full_len": 480
+   },
+   {
+    "step": 293,
+    "audio_end_s": 94.08,
+    "new": " 대",
+    "full_len": 482
+   },
+   {
+    "step": 294,
+    "audio_end_s": 94.4,
+    "new": "출 일",
+    "full_len": 485
+   },
+   {
+    "step": 295,
+    "audio_end_s": 94.72,
+    "new": "부터",
+    "full_len": 487
+   },
+   {
+    "step": 296,
+    "audio_end_s": 95.04,
+    "new": " 삼년입니다.",
+    "full_len": 494
+   },
+   {
+    "step": 304,
+    "audio_end_s": 97.60000000000001,
+    "new": " 연체",
+    "full_len": 497
+   },
+   {
+    "step": 305,
+    "audio_end_s": 97.92,
+    "new": "하시",
+    "full_len": 499
+   },
+   {
+    "step": 306,
+    "audio_end_s": 98.24000000000001,
+    "new": "면",
+    "full_len": 500
+   },
+   {
+    "step": 307,
+    "audio_end_s": 98.56,
+    "new": " 대",
+    "full_len": 502
+   },
+   {
+    "step": 308,
+    "audio_end_s": 98.88,
+    "new": "출",
+    "full_len": 503
+   },
+   {
+    "step": 310,
+    "audio_end_s": 99.52,
+    "new": " 이",
+    "full_len": 505
+   },
+   {
+    "step": 311,
+    "audio_end_s": 99.84,
+    "new": " 자율",
+    "full_len": 508
+   },
+   {
+    "step": 312,
+    "audio_end_s": 100.16,
+    "new": "에",
+    "full_len": 509
+   },
+   {
+    "step": 314,
+    "audio_end_s": 100.8,
+    "new": " 연체",
+    "full_len": 512
+   },
+   {
+    "step": 315,
+    "audio_end_s": 101.12,
+    "new": " 가산",
+    "full_len": 515
+   },
+   {
+    "step": 316,
+    "audio_end_s": 101.44,
+    "new": "이 자율",
+    "full_len": 519
+   },
+   {
+    "step": 317,
+    "audio_end_s": 101.76,
+    "new": " 연산",
+    "full_len": 522
+   },
+   {
+    "step": 318,
+    "audio_end_s": 102.08,
+    "new": "퍼센",
+    "full_len": 524
+   },
+   {
+    "step": 319,
+    "audio_end_s": 102.4,
+    "new": "트",
+    "full_len": 525
+   },
+   {
+    "step": 320,
+    "audio_end_s": 102.72,
+    "new": "가 더해",
+    "full_len": 529
+   },
+   {
+    "step": 321,
+    "audio_end_s": 103.04,
+    "new": "진 연",
+    "full_len": 532
+   },
+   {
+    "step": 322,
+    "audio_end_s": 103.36,
+    "new": "체 이자",
+    "full_len": 536
+   },
+   {
+    "step": 323,
+    "audio_end_s": 103.68,
+    "new": "율이 적용",
+    "full_len": 541
+   },
+   {
+    "step": 324,
+    "audio_end_s": 104.0,
+    "new": "됩니다.",
+    "full_len": 545
+   },
+   {
+    "step": 330,
+    "audio_end_s": 105.92,
+    "new": " 대출",
+    "full_len": 548
+   },
+   {
+    "step": 331,
+    "audio_end_s": 106.24000000000001,
+    "new": "실행",
+    "full_len": 550
+   },
+   {
+    "step": 332,
+    "audio_end_s": 106.56,
+    "new": "후",
+    "full_len": 551
+   },
+   {
+    "step": 333,
+    "audio_end_s": 106.88,
+    "new": " 십",
+    "full_len": 553
+   },
+   {
+    "step": 334,
+    "audio_end_s": 107.2,
+    "new": "사",
+    "full_len": 554
+   },
+   {
+    "step": 335,
+    "audio_end_s": 107.52,
+    "new": "이",
+    "full_len": 555
+   },
+   {
+    "step": 336,
+    "audio_end_s": 107.84,
+    "new": "란",
+    "full_len": 556
+   },
+   {
+    "step": 337,
+    "audio_end_s": 108.16,
+    "new": "의",
+    "full_len": 557
+   },
+   {
+    "step": 338,
+    "audio_end_s": 108.48,
+    "new": " 철회의",
+    "full_len": 561
+   },
+   {
+    "step": 339,
+    "audio_end_s": 108.8,
+    "new": "사표",
+    "full_len": 563
+   },
+   {
+    "step": 340,
+    "audio_end_s": 109.12,
+    "new": "시를",
+    "full_len": 565
+   },
+   {
+    "step": 341,
+    "audio_end_s": 109.44,
+    "new": " 하시고",
+    "full_len": 569
+   },
+   {
+    "step": 343,
+    "audio_end_s": 110.08,
+    "new": " 대출금",
+    "full_len": 573
+   },
+   {
+    "step": 344,
+    "audio_end_s": 110.4,
+    "new": " 반",
+    "full_len": 575
+   },
+   {
+    "step": 345,
+    "audio_end_s": 110.72,
+    "new": "환을",
+    "full_len": 577
+   },
+   {
+    "step": 346,
+    "audio_end_s": 111.04,
+    "new": " 하시면",
+    "full_len": 581
+   },
+   {
+    "step": 347,
+    "audio_end_s": 111.36,
+    "new": " 청",
+    "full_len": 583
+   },
+   {
+    "step": 348,
+    "audio_end_s": 111.68,
+    "new": "약철",
+    "full_len": 585
+   },
+   {
+    "step": 349,
+    "audio_end_s": 112.0,
+    "new": "회가",
+    "full_len": 587
+   },
+   {
+    "step": 350,
+    "audio_end_s": 112.32000000000001,
+    "new": " 됩니다.",
+    "full_len": 592
+   },
+   {
+    "step": 356,
+    "audio_end_s": 114.24000000000001,
+    "new": " 신용",
+    "full_len": 595
+   },
+   {
+    "step": 357,
+    "audio_end_s": 114.56,
+    "new": "조회",
+    "full_len": 597
+   },
+   {
+    "step": 358,
+    "audio_end_s": 114.88,
+    "new": "하면",
+    "full_len": 599
+   },
+   {
+    "step": 361,
+    "audio_end_s": 115.84,
+    "new": " 제 등",
+    "full_len": 603
+   },
+   {
+    "step": 362,
+    "audio_end_s": 116.16,
+    "new": "급이",
+    "full_len": 605
+   },
+   {
+    "step": 363,
+    "audio_end_s": 116.48,
+    "new": " 떨어",
+    "full_len": 608
+   },
+   {
+    "step": 364,
+    "audio_end_s": 116.8,
+    "new": "지는",
+    "full_len": 610
+   },
+   {
+    "step": 365,
+    "audio_end_s": 117.12,
+    "new": "건 아닌",
+    "full_len": 614
+   },
+   {
+    "step": 366,
+    "audio_end_s": 117.44,
+    "new": "지",
+    "full_len": 615
+   },
+   {
+    "step": 367,
+    "audio_end_s": 117.76,
+    "new": " 걱정",
+    "full_len": 618
+   },
+   {
+    "step": 368,
+    "audio_end_s": 118.08,
+    "new": "되네요.",
+    "full_len": 622
+   },
+   {
+    "step": 374,
+    "audio_end_s": 120.0,
+    "new": " 그",
+    "full_len": 624
+   },
+   {
+    "step": 375,
+    "audio_end_s": 120.32000000000001,
+    "new": " 부분은",
+    "full_len": 628
+   },
+   {
+    "step": 376,
+    "audio_end_s": 120.64,
+    "new": " 서류",
+    "full_len": 631
+   },
+   {
+    "step": 377,
+    "audio_end_s": 120.96000000000001,
+    "new": " 준비",
+    "full_len": 634
+   },
+   {
+    "step": 378,
+    "audio_end_s": 121.28,
+    "new": "되시",
+    "full_len": 636
+   },
+   {
+    "step": 379,
+    "audio_end_s": 121.60000000000001,
+    "new": "면 다시",
+    "full_len": 640
+   },
+   {
+    "step": 380,
+    "audio_end_s": 121.92,
+    "new": " 안내",
+    "full_len": 643
+   },
+   {
+    "step": 381,
+    "audio_end_s": 122.24000000000001,
+    "new": "드릴게요.",
+    "full_len": 648
+   },
+   {
+    "step": 385,
+    "audio_end_s": 123.52,
+    "new": " 신",
+    "full_len": 650
+   },
+   {
+    "step": 386,
+    "audio_end_s": 123.84,
+    "new": "분증",
+    "full_len": 652
+   },
+   {
+    "step": 387,
+    "audio_end_s": 124.16,
+    "new": "과",
+    "full_len": 653
+   },
+   {
+    "step": 388,
+    "audio_end_s": 124.48,
+    "new": " 소득",
+    "full_len": 656
+   },
+   {
+    "step": 389,
+    "audio_end_s": 124.8,
+    "new": "증",
+    "full_len": 657
+   },
+   {
+    "step": 390,
+    "audio_end_s": 125.12,
+    "new": "빙",
+    "full_len": 658
+   },
+   {
+    "step": 391,
+    "audio_end_s": 125.44,
+    "new": " 서류",
+    "full_len": 661
+   },
+   {
+    "step": 392,
+    "audio_end_s": 125.76,
+    "new": "를",
+    "full_len": 662
+   },
+   {
+    "step": 393,
+    "audio_end_s": 126.08,
+    "new": " 준비해",
+    "full_len": 666
+   },
+   {
+    "step": 394,
+    "audio_end_s": 126.4,
+    "new": "주세요.",
+    "full_len": 670
+   }
+  ]
+ },
+ "peak_rss_mb": 5766.9296875
+}

@@ -1,0 +1,6 @@
+.venv*/
+hf_cache/
+*.wav
+*.log
+# 루트 .gitignore 의 out/ 를 이 폴더에서만 되돌린다 — out/ 은 실측 결과 증거(JSON·평가 텍스트)
+!out/
