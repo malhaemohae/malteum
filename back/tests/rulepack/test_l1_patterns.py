@@ -118,3 +118,13 @@ def test_loan_forbidden_patterns_hit_known_assertions(rules) -> None:
     forbidden = [r for r in rules["loan"] if r["type"] == "forbidden"]
     for text in FORBIDDEN_POSITIVE:
         assert any(_hit_elements(rule, text) for rule in forbidden), f"단정 표현을 못 잡음: {text}"
+
+
+def test_dsr_pattern_tolerates_spaced_transcription(rules) -> None:
+    """Qwen3-ASR 이 B02 를 "DSL 총 부채 원리금 상환 비율" 로 냈다(2026-09-04 E2E). 'DSR' 은
+    빗나가도 한글 풀이가 띄어 전사된 채로 잡혀야 L1 met 이 나고, 그래야 B03 되물음의
+    재진술 카드가 뜬다(되물음 대상은 이미 met·partial 인 항목에서만 고른다)."""
+    rule = next(r for r in rules["loan"] if r["code"] == "LOAN-DSR-001")
+    said = "먼저 소득과 기존 대출을 확인해서 DSL 총 부채 원리금 상환 비율을 산출하고 "
+    said += "심사에 활용합니다."
+    assert _hit_elements(rule, said) == set(rule["requirements"])
