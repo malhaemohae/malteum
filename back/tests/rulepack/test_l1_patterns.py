@@ -128,3 +128,11 @@ def test_dsr_pattern_tolerates_spaced_transcription(rules) -> None:
     said = "먼저 소득과 기존 대출을 확인해서 DSL 총 부채 원리금 상환 비율을 산출하고 "
     said += "심사에 활용합니다."
     assert _hit_elements(rule, said) == set(rule["requirements"])
+
+
+def test_risk_pattern_tolerates_spaced_compound(rules) -> None:
+    """모든 STT(ElevenLabs 포함)가 B09 를 "다른 상환 방식은 안 됩니다" 로 띄어 냈고, 패턴이
+    "상환방식" 붙여쓰기만 허용해 위험 신호가 한 번도 안 잡혔다(실험 가설 14벌 전부)."""
+    rule = next(r for r in rules["loan"] if r["code"] == "LOAN-RSK-001")
+    said = "그리고 상환은 원리금 균등으로만 가능합니다. 다른 상환 방식은 안 됩니다."
+    assert _hit_elements(rule, said)
