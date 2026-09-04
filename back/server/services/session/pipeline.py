@@ -19,6 +19,7 @@ from dataclasses import replace
 from typing import Any
 
 from contracts.engine_contract import Engine, JudgeResult, Utterance, VerdictPayload
+from engine.tiers.jamo import dice, jamo_trigrams
 from server.mapping import event_to_s2c, payload_to_event
 from server.services.event import envelope
 from server.services.event.store import EventStore
@@ -27,6 +28,15 @@ from server.services.session.projection import NullSessionProjection, SessionPro
 from server.services.session.registry import Session
 
 Publish = Callable[[dict[str, Any]], Awaitable[Any]]
+
+# 조력 카드 채택(contracts/README: 제시할 때 outcome=null, 은행원이 그 표현을 썼는지
+# 확인되면 outcome 을 채워 다시 발행). 카드 종류마다 "썼다" 의 증거가 다르다.
+#   rephrase  카드 문장을 은행원이 되풀이했는가 — 발화와 카드 문장의 자모 3-gram dice.
+#             시연 대본 A06 은 0.69, 다른 은행원 발화는 모두 0.20 아래다
+#   nudge     빠진 고지를 했는가 — 그 발화가 같은 항목에 met 판정을 냈는가(L1)
+# ponytail: 임계 하나로 가르는 휴리스틱이다. 실제 창구에서 은행원이 카드를 제 말로
+# 풀어 말하면 dice 가 낮아 놓친다. 그때는 L2 dense 유사도(searcher.fused_scores)로 올린다
+ADOPT_DICE_MIN = 0.5
 
 
 class Pipeline:
@@ -79,6 +89,7 @@ class Pipeline:
         density_changed = observed.term_density != session.state.term_density
         session.state = observed
         await self.apply_result(session, result, publish)
+        await self._adopt(session, utterance, result, publish)
         if density_changed and not result.verdicts:
             await publish(event_to_s2c.progress(session.pack, session.state))
         # 계약: needs_refine 이 켜졌을 때만 예약하고, 꺼져 있으면 부르지 않는다.
@@ -136,6 +147,43 @@ class Pipeline:
             await publish(event_to_s2c.from_event(event, session.state, ver))
         if result.verdicts:
             await publish(event_to_s2c.progress(session.pack, session.state))
+
+    async def _adopt(
+        self, session: Session, utterance: Utterance, result: JudgeResult, publish: Publish
+    ) -> None:
+        """열려 있는 조력 카드 중 이 은행원 발화가 채택한 것을 outcome=adopted 로 다시 낸다.
+
+        같은 카드는 한 번만 채택된다(outcome 이 채워진 카드는 건너뛴다). 재발행은
+        `apply_result` 의 assist 발행과 같은 사슬(supersedes · ver)을 쓴다.
+        """
+        if utterance.speaker != "teller" or not session.latest_assist:
+            return
+        said = jamo_trigrams(utterance.text)
+        met = {v.item_code for v in result.verdicts if v.state == "met"}
+        pending: list[tuple[dict, int]] = []
+        for key, (event_id, _) in list(session.latest_assist.items()):
+            prev = self.store.by_id(event_id)
+            if prev is None or prev["assist"].get("outcome"):
+                continue
+            assist_type, item_code = key
+            if assist_type == "rephrase":
+                adopted = dice(jamo_trigrams(prev["assist"]["text"]), said) >= ADOPT_DICE_MIN
+            elif assist_type == "nudge":
+                adopted = item_code in met
+            else:
+                continue  # answer · briefing · documents 는 채택 개념이 없다
+            if not adopted:
+                continue
+            supersedes, ver = session.assist_ver(key)
+            body = {**prev["assist"], "outcome": "adopted"}
+            event = self._wrap(session, "assist", body, supersedes=supersedes)
+            session.latest_assist[key] = (event["event_id"], ver)
+            pending.append((event, ver))
+        if not pending:
+            return
+        self.store.append_many([e for e, _ in pending])
+        for event, ver in pending:
+            await publish(event_to_s2c.from_event(event, session.state, ver))
 
     async def human_verdict(
         self,
