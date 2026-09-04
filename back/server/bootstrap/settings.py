@@ -59,13 +59,29 @@ class Settings(BaseSettings):
     )
     # STT. 키가 비면 오디오 층이 빠지고 ws 가 stt_unavailable 을 낸다(3층 폴백).
     # 기획 11.3: Deepgram nova-3 ko · keyterm·numerals·mip_opt_out
-    stt_provider: str = "deepgram"
+    #   deepgram      스트리밍. APP_STT_API_KEY 가 있어야 한다
+    #   openai_file   온프레미스 Qwen3-ASR(vLLM). 화자 분리 구간마다 WAV 하나를
+    #                 {APP_STT_BASE_URL}/v1/audio/transcriptions 에 보낸다.
+    #                 끊을 자리를 구간에서 얻으므로 APP_DIARIZATION_URL 이 함께 있어야 한다
+    stt_provider: Literal["deepgram", "openai_file"] = "deepgram"
     stt_api_key: str | None = None
-    stt_model: str = "nova-3"
+    stt_base_url: str | None = None  # openai_file 전용. 예: http://localhost:8100
+    stt_model: str = "nova-3"  # openai_file 이면 예: Qwen/Qwen3-ASR-1.7B
     stt_language: str = "ko"
     # 13장이 라이선스·약관 조건으로 정한 값. 할인을 포기하고 학습 사용을 거부한다.
     # 은행 도입 전제에서 옵션이 아니라 조건이라 기본값을 켜 둔다
     stt_mip_opt_out: bool = True
+    # 화자 분리 번호를 teller·customer 로 옮길 때 LLM 에 묻는다. LLM_MODEL 설정을 그대로
+    # 쓰므로 그것이 비면 어차피 규칙 폴백(확정 번호가 하나면 반대, 아니면 teller, 낮은
+    # 신뢰도)이다. 끄는 자리를 둔 것은 LLM 은 쓰되 화자 추론만 빼고 싶을 때를 위해서다
+    speaker_role_judge: bool = True
+    # DEC-7. 새 화자 번호의 발화를 역할이 확정될 때까지 붙잡는 상한. LLM 왕복 실측이
+    # 1~2초라(CTX-005) 2초면 대개 정식 라벨로 나가고, 넘기면 잠정 라벨(0.2)로 흘려보낸다.
+    # 0 으로 두면 붙잡지 않는다 — 첫 발화의 필수 고지·위험 신호는 게이트에 접힌다
+    speaker_hold_ms: int = 2000
+    # Sortformer 사이드카(`back/sidecar/diarization/`)의 WebSocket. 비면 화자 분리
+    # 공급원이 없고, 그러면 발화가 예전대로 teller 고정에 신뢰도 None 으로 나간다
+    diarization_url: str | None = None
 
 
 def get_settings() -> Settings:

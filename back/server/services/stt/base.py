@@ -15,6 +15,8 @@ from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
+from server.services.stt.diarization import DiarizationSource
+
 
 @dataclass(frozen=True, slots=True)
 class Transcript:
@@ -29,6 +31,9 @@ class Transcript:
     # 말이 시작된 시각과 길이. 공급자가 주면 채우고, 없으면 M1 이 세션 시계로 메운다
     start_ms: int | None = None
     duration_ms: int | None = None
+    # 공급자가 화자 분리를 함께 주면 그 번호. 번호일 뿐 역할이 아니다 —
+    # `stt/diarization.py` 가 구간으로 쌓고 `stt/speaker.py` 가 역할로 옮긴다
+    speaker_id: str | None = None
 
 
 OnTranscript = Callable[[Transcript], Awaitable[None]]
@@ -47,11 +52,21 @@ class SttStream(Protocol):
 
 
 class SttAdapter(Protocol):
-    async def open(self, on_transcript: OnTranscript, keyterms: Sequence[str] = ()) -> SttStream:
+    async def open(
+        self,
+        on_transcript: OnTranscript,
+        keyterms: Sequence[str] = (),
+        *,
+        diarization: DiarizationSource | None = None,
+    ) -> SttStream:
         """스트림을 연다. 여는 데 실패하면 예외를 올린다 — ws 가 stt_unavailable 로 바꾼다.
 
         `keyterms` 는 팩의 `jargon_terms`. 세션마다 팩이 다르므로 어댑터가 아니라
         여는 시점에 받는다. 없으면 `만기후이자율` 이 `만기 후 이자율` 로 갈라져
         L1 정확 일치가 깨진다(scripts/stt_check.py 실측).
+
+        `diarization` 은 그 상담의 화자 분리 공급원이다. 스트리밍 공급자(Deepgram)는
+        쓰지 않지만, 발화 단위로만 전사하는 파일 어댑터(`openai_file.py`)는 어디서
+        끊을지를 이 구간에서만 알 수 있다. 세션마다 다른 값이라 여는 시점에 받는다.
         """
         ...

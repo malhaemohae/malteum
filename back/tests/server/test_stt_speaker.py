@@ -1,0 +1,745 @@
+"""화자 단계 (`services/stt/diarization.py` · `speaker.py` · `session.py`).
+
+시연 음성이 mono 단일 파일이라 채널로 못 가른다. 화자 분리가 준 **번호**를 발화에
+붙이고 그 번호를 `teller`·`customer` 로 옮기는 것이 서버 몫이다.
+
+**틀리면 조용히 틀린다.** 엔진 게이트가 화자로 판정 축을 가르기 때문에(teller →
+필수 고지·금지 발언 / customer → 위험 신호·되물음), 화자가 뒤집히면 경보가 안 뜨거나
+고지가 미고지로 남는다. 화면에는 아무 오류도 안 나온다. 그래서 대본의 `speaker` 열을
+정답지로 삼고, Sortformer 가 시연 음원을 실제로 훑어 낸 구간
+(`tests/fixtures/sortformer_scenarios.json`)으로 재생해 대조한다.
+
+실물 LLM 도 실물 사이드카도 부르지 않는다(`test_no_live_adapters.py`). `RoleJudge`
+자리에는 대본의 정답을 모르는 가짜를 세우고 — 발화에 안내·설명 어휘가 있으면 teller
+라고만 답한다 — 사이드카 자리에는 가짜 WebSocket 을 세운다.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+from pathlib import Path
+
+import pytest
+
+from engine.adapters.pack_source.file import FilePackSource
+from engine.build import build_engine
+from engine.tiers.l1.gate import SPEAKER_CONFIDENCE_THRESHOLD, gate
+from server.bootstrap.settings import Settings
+from server.services.stt.base import Transcript
+from server.services.stt.diarization import (
+    ScriptedDiarization,
+    SortformerDiarization,
+    SpeakerSegment,
+    TranscriptDiarization,
+)
+from server.services.stt.session import SttSession
+from server.services.stt.speaker import (
+    MAX_ASKS,
+    NO_DIARIZATION_CONFIDENCE,
+    PROVISIONAL_CONFIDENCE,
+    SPEAKER_HOLD_MS,
+    RoleMapper,
+    RoleRequest,
+    RoleVerdict,
+    SpeakerResolver,
+)
+
+BACK = Path(__file__).resolve().parents[2]
+FIXTURE = json.loads(
+    (BACK / "tests" / "fixtures" / "sortformer_scenarios.json").read_text(encoding="utf-8")
+)
+SCENARIOS = BACK.parent / "assets" / "scenarios"
+PACK_VERSION = "DEP-2026.08-v4"
+
+# 대본에서 은행원이 쓰는 안내·설명 어휘. 가짜 심판이 이것만 보고 답한다
+TELLER_MARKS = ("안내", "적용", "계산", "심사")
+
+
+class _Clock:
+    """SttSession 이 세션에서 쓰는 것은 시계 하나뿐이다."""
+
+    def __init__(self) -> None:
+        self.now_ms = 0
+
+    def elapsed_ms(self) -> int:
+        return self.now_ms
+
+
+class _MarkerJudge:
+    """대본의 정답을 모르는 가짜 심판. 안내·설명 어휘가 있으면 은행원이라고 답한다."""
+
+    def __init__(self, confidence: float = 0.9) -> None:
+        self.confidence = confidence
+        self.requests: list[RoleRequest] = []
+
+    async def decide(self, request: RoleRequest) -> RoleVerdict:
+        self.requests.append(request)
+        text = " ".join(request.recent)
+        if any(mark in text for mark in TELLER_MARKS):
+            return RoleVerdict("teller", self.confidence, "안내·설명 어휘")
+        return RoleVerdict("customer", self.confidence, "안내·설명 어휘 없음")
+
+
+def _script(preset: str) -> dict:
+    return json.loads((SCENARIOS / preset / "script.json").read_text(encoding="utf-8"))
+
+
+def _replay(preset: str, judge, *, segments: list[str] | None = None, hold_ms: int | None = None):
+    """대본 한 편을 STT 경로로 흘린다. 줄 하나가 확정 전사 하나다.
+
+    화자 분리 구간은 그 줄이 끝난 시각까지만 보인다 — 실제 스트림에서 아직 오지 않은
+    구간을 미리 보고 화자를 맞히면 재생 결과가 실제보다 좋게 나온다.
+
+    줄마다 붙잡기(DEC-7)와 배경 추론이 끝나기를 기다린 뒤 다음 줄로 넘어간다. 실제
+    스트림에서도 한 발화가 방출되기 전에 다음 확정 전사가 오는 일은 드물고, 그렇게
+    겹치는 경우의 순서 유지는 아래 `test_a_slow_answer...` 가 따로 본다.
+    """
+    script = _script(preset)
+    durations = FIXTURE["presets"][preset]["line_duration_ms"]
+    clock = _Clock()
+    source = ScriptedDiarization.from_lines(
+        segments if segments is not None else FIXTURE["presets"][preset]["segments"],
+        now_ms=lambda: clock.now_ms,
+    )
+    resolver = SpeakerResolver(source, RoleMapper(judge))
+    submitted: list = []
+
+    async def submit(utterance):
+        submitted.append(utterance)
+
+    async def publish(message):
+        pass
+
+    stt = SttSession(
+        clock,
+        publish,
+        submit,
+        resolver,
+        hold_ms=SPEAKER_HOLD_MS if hold_ms is None else hold_ms,
+    )
+
+    async def run():
+        by_line = []
+        for line in script["lines"]:
+            duration = durations[line["id"]]
+            clock.now_ms = line["start_ms"] + duration
+            before = len(submitted)
+            await stt._on_transcript(
+                Transcript(
+                    text=line["text"],
+                    final=True,
+                    start_ms=line["start_ms"],
+                    duration_ms=duration,
+                )
+            )
+            await stt._releasing  # 붙잡아 둔 발화가 다 나갈 때까지
+            by_line.append((line, duration, submitted[before:]))
+        await stt.aclose()
+        return by_line
+
+    return resolver, asyncio.run(run())
+
+
+# --- (a) 시연 대본 재생 --------------------------------------------------------
+
+
+def test_the_demo_scripts_get_every_line_from_the_sortformer_segments():
+    """32줄 전부. 대본 두 편(16줄씩)을 Sortformer 실측 구간으로 재생한다.
+
+    지표를 **두 개**로 나눠 센다. 값이 같아 보여도 재는 것이 다르다.
+
+    1. **재생이 끝난 뒤(`final`)**: 줄마다 고른 화자 번호를, 재생이 끝난 시점의
+       역할표에 넣은 값. 화자 접착과 역할표가 결국 맞았는지를 본다.
+    2. **흘러나간 시점(`streaming`)**: 그 줄이 실제로 방출될 때 실린 `speaker`.
+       은행원이 화면에서 보는 값이자 게이트가 받는 값이라 이쪽이 제품의 지표다.
+
+    붙잡기(DEC-7)가 들어오기 전에는 각 상담의 첫 줄이 잠정 라벨로 나가 streaming 이
+    30/32 였다. 이제 새 번호의 첫 발화도 역할이 확정될 때까지 붙잡으므로 둘 다 32/32 다.
+    """
+    final_hits = streaming_hits = lines_total = 0
+    provisional: list[str] = []
+    wrong: list[str] = []
+
+    for preset in ("preset-dep-a", "preset-loan-b"):
+        resolver, replayed = _replay(preset, _MarkerJudge())
+        for line, duration, utterances in replayed:
+            lines_total += 1
+            picked = resolver.speaker_of(line["start_ms"], duration)
+            assert picked is not None, f"{line['id']} 에 붙는 화자 구간이 없습니다"
+            role = resolver.mapper.role_of(picked[0])
+            assert role is not None, f"{line['id']} 의 번호 {picked[0]} 이 확정되지 않았습니다"
+            if role[0] == line["speaker"]:
+                final_hits += 1
+
+            assert utterances, f"{line['id']} 이 한 문장도 나가지 않았습니다"
+            emitted = {u.speaker for u in utterances}
+            if emitted == {line["speaker"]}:
+                streaming_hits += 1
+            else:
+                wrong.append(f"{line['id']} {line['speaker']} → {sorted(emitted)}")
+            if any(
+                u.speaker_confidence is not None and u.speaker_confidence <= PROVISIONAL_CONFIDENCE
+                for u in utterances
+            ):
+                provisional.append(line["id"])
+
+    # 재생 결과를 눈으로 확인할 수 있게 한 줄 남긴다 (`pytest -s` 로 보인다)
+    print(
+        f"\n화자 final {final_hits}/{lines_total} · streaming {streaming_hits}/{lines_total}"
+        f" · 잠정으로 나간 줄 {provisional or '없음'}"
+        f" · 라벨이 뒤집힌 줄 {wrong or '없음'}"
+    )
+    assert lines_total == 32
+    assert final_hits == 32, f"재생 종료 시점 화자 {final_hits}/32"
+    assert streaming_hits == 32, f"흘러나간 시점 화자 {streaming_hits}/32 — 뒤집힌 줄 {wrong}"
+    assert not provisional, f"붙잡기가 있는데 잠정으로 나간 줄: {provisional}"
+
+
+def test_the_first_teller_line_of_each_script_goes_out_with_a_settled_label():
+    """DEC-7 이 지키려던 자리. A02·B02 는 각 상담에서 은행원 번호가 처음 나오는 줄이다.
+
+    붙잡지 않으면 이 두 줄이 잠정 라벨 + 게이트 아래 신뢰도로 나가, 그 줄에 걸린 필수
+    고지 판정(A02 는 `DEP-INT-001`)이 통째로 접힌다.
+    """
+    for preset, first_teller in (("preset-dep-a", "A02"), ("preset-loan-b", "B02")):
+        _, replayed = _replay(preset, _MarkerJudge())
+        emitted = {line["id"]: us for line, _, us in replayed}[first_teller]
+        assert [u.speaker for u in emitted] == ["teller"] * len(emitted)
+        assert all(u.speaker_confidence >= SPEAKER_CONFIDENCE_THRESHOLD for u in emitted), (
+            f"{first_teller} 가 게이트 아래 신뢰도로 나갔습니다"
+        )
+
+
+# --- (b) 셋째 번호 ------------------------------------------------------------
+
+
+def test_a_third_number_is_absorbed_into_the_role_it_speaks_like():
+    """화자 분리는 같은 사람을 두 번호로 가르기도 한다. 셋째 번호라고 버리지 않는다.
+
+    같은 고객의 구간(A07·A09)을 speaker_2 로 바꿔도, 그 번호의 발화를 읽은 심판이
+    고객으로 돌려주면 역할표가 그대로 흡수해야 한다. 첫 화자 규칙이었다면 셋째 번호는
+    역할이 없어 그 줄의 되물음·위험 신호가 통째로 빠진다.
+    """
+    segments = [
+        s.replace("speaker_0", "speaker_2") if s.startswith(("55.600", "71.280")) else s
+        for s in FIXTURE["presets"]["preset-dep-a"]["segments"]
+    ]
+    resolver, replayed = _replay("preset-dep-a", _MarkerJudge(), segments=segments)
+    emitted = {line["id"]: us for line, _, us in replayed}
+
+    assert resolver.mapper.role_of("speaker_2") == ("customer", 0.9)
+    assert {u.speaker for u in emitted["A07"]} == {"customer"}
+    assert {u.speaker for u in emitted["A09"]} == {"customer"}
+
+
+# --- (c) 확정 전 · 확정 후 -----------------------------------------------------
+
+
+def test_an_utterance_waits_for_the_role_but_only_up_to_the_limit():
+    """DEC-7. 확정되면 정식 라벨로, 상한을 넘기면 잠정 라벨로 나간다."""
+    answered = asyncio.Event()
+
+    class _SlowJudge:
+        async def decide(self, request: RoleRequest) -> RoleVerdict:
+            await answered.wait()
+            return RoleVerdict("customer", 0.9, "느린 심판")
+
+    source = ScriptedDiarization([SpeakerSegment(0, 20_000, "speaker_0")])
+    resolver = SpeakerResolver(source, RoleMapper(_SlowJudge()))
+
+    async def run():
+        picked = resolver.pick("안녕하세요.", 0, 3_000)
+        # 상한 안에 답이 오면 정식 라벨
+        asyncio.get_running_loop().call_later(0.05, answered.set)
+        settled = await resolver.hold(*picked, 2.0)
+        # 이미 확정된 번호는 기다리지 않는다
+        again = await resolver.hold(*resolver.pick("그냥 해지할게요.", 10_000, 3_000), 2.0)
+        return settled, again
+
+    settled, again = asyncio.run(run())
+    assert not settled.provisional and settled.role == "customer"
+    assert settled.confidence >= SPEAKER_CONFIDENCE_THRESHOLD
+    assert again.role == "customer"
+
+
+def test_an_utterance_gives_up_and_goes_out_provisionally_after_the_limit():
+    """상한을 넘기면 붙잡기를 포기한다. 확정을 기다리며 화면이 멈추면 안 된다."""
+
+    class _SilentJudge:
+        async def decide(self, request: RoleRequest) -> RoleVerdict:
+            await asyncio.Event().wait()  # 영원히 답하지 않는다
+            raise AssertionError("여기까지 오지 않는다")
+
+    clock = _Clock()
+    submitted: list = []
+
+    async def submit(utterance):
+        submitted.append(utterance)
+
+    async def publish(message):
+        pass
+
+    source = ScriptedDiarization([SpeakerSegment(0, 20_000, "speaker_0")])
+    resolver = SpeakerResolver(source, RoleMapper(_SilentJudge()))
+    # 상한만 짧게 줄인다. 기본값 2초를 그대로 쓰면 테스트가 2초를 그냥 기다린다
+    stt = SttSession(clock, publish, submit, resolver, hold_ms=200)
+
+    async def run():
+        await stt._on_transcript(Transcript(text="안녕하세요.", final=True, start_ms=0))
+        await stt._releasing
+        await stt.aclose()
+
+    asyncio.run(run())
+
+    assert [u.speaker for u in submitted] == ["teller"]  # 근거가 없으면 미고지 쪽
+    assert [u.speaker_confidence for u in submitted] == [PROVISIONAL_CONFIDENCE]
+    assert Settings().speaker_hold_ms == SPEAKER_HOLD_MS == 2000
+
+
+def test_a_slow_answer_does_not_let_a_later_utterance_overtake_an_earlier_one():
+    """붙잡는 동안 순서가 뒤바뀌면 리포트의 시간 순서가 무너진다.
+
+    앞 발화의 번호는 0.5초 뒤에야 확정되고 뒤 발화의 번호는 곧바로 확정된다. 큐 없이
+    각자 기다리면 뒤 발화가 먼저 나간다.
+    """
+
+    class _UnevenJudge:
+        async def decide(self, request: RoleRequest) -> RoleVerdict:
+            if request.speaker_id == "speaker_0":
+                await asyncio.sleep(0.5)
+                return RoleVerdict("customer", 0.9, "느리게 온 답")
+            return RoleVerdict("teller", 0.9, "곧바로 온 답")
+
+    clock = _Clock()
+    submitted: list = []
+
+    async def submit(utterance):
+        submitted.append(utterance)
+
+    async def publish(message):
+        pass
+
+    source = ScriptedDiarization(
+        [SpeakerSegment(0, 4_000, "speaker_0"), SpeakerSegment(5_000, 9_000, "speaker_1")]
+    )
+    resolver = SpeakerResolver(source, RoleMapper(_UnevenJudge()))
+    stt = SttSession(clock, publish, submit, resolver)
+
+    async def run():
+        clock.now_ms = 4_000
+        await stt._on_transcript(
+            Transcript(text="먼저 한 말.", final=True, start_ms=0, duration_ms=4_000)
+        )
+        clock.now_ms = 9_000
+        await stt._on_transcript(
+            Transcript(text="나중에 한 말.", final=True, start_ms=5_000, duration_ms=4_000)
+        )
+        await stt.aclose()
+
+    asyncio.run(run())
+
+    assert [u.text for u in submitted] == ["먼저 한 말.", "나중에 한 말."]
+    assert [u.speaker for u in submitted] == ["customer", "teller"]
+    assert all(u.speaker_confidence >= SPEAKER_CONFIDENCE_THRESHOLD for u in submitted)
+
+
+# --- (d) 화자 분리 없음 --------------------------------------------------------
+
+
+def _without_diarization(text: str) -> list:
+    clock = _Clock()
+    submitted: list = []
+
+    async def submit(utterance):
+        submitted.append(utterance)
+
+    async def publish(message):
+        pass
+
+    stt = SttSession(clock, publish, submit)
+
+    async def run():
+        await stt._on_transcript(Transcript(text=text, final=True))
+        await stt.aclose()
+
+    asyncio.run(run())
+    return submitted
+
+
+def test_without_diarization_everything_stays_teller_at_the_contract_default():
+    """예전 동작 그대로. 신뢰도는 **계약 기본값 None** 이고 0.0 이 아니다.
+
+    0.0 을 실으면 게이트가 은행원 발화를 전부 접는다. 화자 분리 공급원이 없는 것은
+    지금 배포되는 경로(Deepgram · replay)의 정상 상태라, 그 경로의 필수 고지·금지
+    발언 판정이 통째로 사라진다.
+    """
+    submitted = _without_diarization("그냥 해지할게요. 딸이 알려준 계좌로 보내 주세요.")
+
+    assert [u.speaker for u in submitted] == ["teller", "teller"]
+    assert [u.speaker_confidence for u in submitted] == [NO_DIARIZATION_CONFIDENCE, None]
+    assert all(gate(u).types == frozenset({"required", "forbidden"}) for u in submitted)
+
+
+def test_without_diarization_l1_still_finds_the_required_disclosure():
+    """A1 회귀. 화자 분리 없이 A02 를 흘리면 `DEP-INT-001` 이 met 로 나와야 한다.
+
+    이 판정이 사라지는 것이 신뢰도 0.0 의 실제 피해였다. 게이트만이 아니라 엔진까지
+    실제로 통과시켜 확인한다.
+    """
+    line = next(line for line in _script("preset-dep-a")["lines"] if line["id"] == "A02")
+    submitted = _without_diarization(line["text"])
+    engine = build_engine(FilePackSource(BACK / "contracts" / "fixtures"))
+    pack = engine.load_pack(PACK_VERSION)
+    state = engine.initial_state("s-a1-regression", pack, "live")
+
+    verdicts = [v for u in submitted for v in engine.judge(u, pack, state).verdicts]
+    met = {v.item_code for v in verdicts if v.state == "met"}
+    assert "DEP-INT-001" in met, f"필수 고지 판정이 사라졌습니다: {verdicts}"
+
+
+# --- (e) other -----------------------------------------------------------------
+
+
+def test_an_outsider_is_logged_but_never_submitted():
+    """상담 당사자가 아닌 소리를 은행원의 고지나 고객의 위험 신호로 기록하면 증빙이 오염된다."""
+
+    class _OutsiderJudge:
+        async def decide(self, request: RoleRequest) -> RoleVerdict:
+            if request.speaker_id == "speaker_2":
+                return RoleVerdict("other", 0.9, "상담 당사자가 아님")
+            return RoleVerdict("teller", 0.9, "상담 당사자")
+
+    clock = _Clock()
+    submitted: list = []
+
+    async def submit(utterance):
+        submitted.append(utterance)
+
+    async def publish(message):
+        pass
+
+    source = ScriptedDiarization([SpeakerSegment(0, 5_000, "speaker_2")])
+    resolver = SpeakerResolver(source, RoleMapper(_OutsiderJudge()))
+    stt = SttSession(clock, publish, submit, resolver)
+
+    async def run():
+        await stt._on_transcript(Transcript(text="지나가는 소리.", final=True, start_ms=0))
+        await stt._on_transcript(Transcript(text="여기 사람 있어요.", final=True, start_ms=1_000))
+        await stt.aclose()
+
+    asyncio.run(run())
+
+    assert resolver.mapper.role_of("speaker_2") == ("other", 0.9)
+    assert submitted == []
+
+
+# --- 재추론 조건 ---------------------------------------------------------------
+
+
+def test_two_low_confidence_answers_in_a_row_trigger_one_wider_reinference():
+    """확정한 번호는 다시 묻지 않는다. 다만 낮은 신뢰도가 두 번 이어지면 한 번 더 캔다.
+
+    세 번째는 확정 번호들의 최근 발화를 두 배로 넓혀 묻고, 그 답을 신뢰도와 무관하게
+    확정한다. 상한이 없으면 애매한 번호 하나가 발화마다 LLM 을 부른다.
+    """
+    answers = [
+        RoleVerdict("teller", 0.4, "애매"),
+        RoleVerdict("teller", 0.4, "애매"),
+        RoleVerdict("customer", 0.4, "넓힌 문맥"),
+    ]
+
+    class _WobblyJudge:
+        def __init__(self) -> None:
+            self.seen: list[RoleRequest] = []
+
+        async def decide(self, request: RoleRequest) -> RoleVerdict:
+            self.seen.append(request)
+            return answers[len(self.seen) - 1]
+
+    judge = _WobblyJudge()
+    mapper = RoleMapper(judge)
+
+    async def run():
+        for i in range(4):
+            mapper.observe("speaker_1", f"{i} 번째 발화.")
+            await mapper.pending()
+
+    asyncio.run(run())
+
+    assert len(judge.seen) == MAX_ASKS == 3, "확정된 뒤에도 물었습니다"
+    assert mapper.role_of("speaker_1") == ("customer", 0.4)
+
+
+def test_the_role_table_widens_the_context_only_on_the_last_ask():
+    """재추론은 문맥을 넓혀서 묻는다. 같은 것을 그대로 다시 물으면 같은 답이 온다."""
+    judge = _MarkerJudge(confidence=0.4)  # 늘 저신뢰 → 세 번 다 물린다
+    mapper = RoleMapper(judge)
+
+    async def run():
+        for text in ("안내드리겠습니다.", "적용됩니다.", "계산됩니다.", "심사합니다."):
+            mapper.observe("speaker_0", text)
+            await mapper.pending()
+        # 확정된 번호 하나를 옆에 두고, 다른 번호를 같은 방식으로 물린다
+        for i in range(4):
+            mapper.observe("speaker_1", f"{i} 번째 발화.")
+            await mapper.pending()
+
+    asyncio.run(run())
+
+    asked = [r for r in judge.requests if r.speaker_id == "speaker_1"]
+    assert len(asked) == 3
+    assert all(k.speaker_id == "speaker_0" for r in asked for k in r.known)
+    assert len(asked[-1].known[0].recent) > len(asked[0].known[0].recent)
+
+
+def test_a_judge_that_raises_does_not_leave_the_number_stuck():
+    """판정이 터져도 다음 발화에서 다시 묻는다. `asking` 이 안 풀리면 잠정 라벨에 갇힌다."""
+
+    class _BrokenJudge:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def decide(self, request: RoleRequest) -> RoleVerdict:
+            self.calls += 1
+            if self.calls == 1:
+                raise RuntimeError("공급자 장애")
+            return RoleVerdict("customer", 0.9, "두 번째는 성공")
+
+    judge = _BrokenJudge()
+    mapper = RoleMapper(judge)
+
+    async def run():
+        for text in ("첫 발화.", "둘째 발화."):
+            mapper.observe("speaker_0", text)
+            await mapper.pending()
+
+    asyncio.run(run())
+
+    assert judge.calls == 2
+    assert mapper.role_of("speaker_0") == ("customer", 0.9)
+
+
+def test_closing_reclaims_a_role_inference_that_never_answers():
+    """세션이 닫히면 진행 중인 추론을 거둔다. 기다리면 실물 판별기의 30초를 그대로 문다."""
+
+    class _SilentJudge:
+        async def decide(self, request: RoleRequest) -> RoleVerdict:
+            await asyncio.Event().wait()
+            raise AssertionError("여기까지 오지 않는다")
+
+    mapper = RoleMapper(_SilentJudge())
+
+    async def run():
+        mapper.observe("speaker_0", "답이 오지 않는 발화.")
+        await asyncio.sleep(0)  # 태스크가 실제로 시작하도록 한 번 양보한다
+        await asyncio.wait_for(mapper.aclose(), 1.0)
+        return mapper._tasks
+
+    assert asyncio.run(run()) == set()
+
+
+# --- 접착 ----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("start_ms", "duration_ms", "expected"),
+    [
+        (1_000, 2_000, ("speaker_0", 1.0)),  # 통째로 한 화자 안에 든다
+        (9_000, 2_000, ("speaker_1", 1.0)),
+        (4_600, 500, ("speaker_0", 0.5)),  # 겹치는 구간이 없다 → 가장 가까운 쪽, 추정
+        (3_000, 4_000, ("speaker_1", 0.517)),  # 두 화자에 반씩 걸쳤다 → 점유율만큼 내린다
+    ],
+)
+def test_an_utterance_sticks_to_the_segment_it_overlaps_most(start_ms, duration_ms, expected):
+    resolver = SpeakerResolver(
+        ScriptedDiarization(
+            [SpeakerSegment(0, 4_400, "speaker_0"), SpeakerSegment(5_500, 12_000, "speaker_1")]
+        )
+    )
+    assert resolver.speaker_of(start_ms, duration_ms) == expected
+
+
+def test_a_speaker_is_not_invented_for_an_utterance_far_from_every_segment():
+    """거리 한계 밖이면 화자를 지어내지 않는다. 지어내면 그 말이 은행원의 고지로 기록된다."""
+    resolver = SpeakerResolver(ScriptedDiarization([SpeakerSegment(0, 4_000, "speaker_0")]))
+    assert resolver.speaker_of(60_000, 2_000) is None
+
+
+def test_a_gap_exactly_at_the_limit_is_already_the_next_speaker():
+    """대본은 화자가 바뀌는 자리에 무음을 1초 "이상" 둔다. 딱 1초 떨어진 구간은 옆 사람이다."""
+    resolver = SpeakerResolver(ScriptedDiarization([SpeakerSegment(11_000, 15_000, "speaker_0")]))
+    assert resolver.speaker_of(9_000, 1_000) is None  # 간격 정확히 1000ms
+    assert resolver.speaker_of(9_001, 1_000) == ("speaker_0", 0.5)  # 999ms
+
+
+# --- 사이드카 클라이언트 -------------------------------------------------------
+
+
+class _FakeSidecar:
+    """가짜 WebSocket. 오디오를 받으면 미리 정해 둔 구간 목록을 하나씩 돌려준다."""
+
+    def __init__(self, replies: list[list[dict]], covered: list[int] | None = None) -> None:
+        self.replies = list(replies)
+        self.covered = list(covered or [])
+        self.sent: list[bytes] = []
+        self.closed = False
+        self._out: asyncio.Queue[str] = asyncio.Queue()
+
+    async def send(self, pcm: bytes) -> None:
+        self.sent.append(pcm)
+        if self.replies:
+            message: dict = {"segments": self.replies.pop(0)}
+            if self.covered:
+                message["covered_ms"] = self.covered.pop(0)
+            await self._out.put(json.dumps(message))
+
+    async def close(self) -> None:
+        self.closed = True
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self) -> str:
+        return await self._out.get()
+
+
+def _fake_websockets(monkeypatch, socket) -> None:
+    import websockets
+
+    async def connect(url, **kwargs):
+        if socket is None:
+            raise OSError("사이드카가 없습니다")
+        return socket
+
+    monkeypatch.setattr(websockets, "connect", connect)
+
+
+def test_the_sidecar_client_replaces_the_segment_list_it_is_given(monkeypatch):
+    """사이드카는 청크마다 **지금까지의 목록 전체**를 준다. 이어 붙이면 고쳐진 구간이 겹친다."""
+    socket = _FakeSidecar(
+        [
+            [{"start_ms": 0, "end_ms": 900, "speaker_id": "speaker_0"}],
+            [{"start_ms": 0, "end_ms": 1800, "speaker_id": "speaker_0"}],
+        ],
+        covered=[960, 1920],
+    )
+    _fake_websockets(monkeypatch, socket)
+    source = SortformerDiarization("ws://사이드카/ws")
+
+    async def run():
+        await source.feed(b"\x00\x00" * 100)
+        await asyncio.sleep(0)
+        first = tuple(source.segments())
+        await source.feed(b"\x00\x00" * 100)
+        await asyncio.sleep(0)
+        second = tuple(source.segments())
+        await source.aclose()
+        return first, second
+
+    first, second = asyncio.run(run())
+    assert first == (SpeakerSegment(0, 900, "speaker_0"),)
+    assert second == (SpeakerSegment(0, 1800, "speaker_0"),)  # 두 개가 아니라 갈아 끼운다
+    assert source.covered_ms == 1920  # 이 목록이 어디까지의 오디오를 보고 나왔는가
+    assert len(socket.sent) == 2
+    assert socket.closed
+
+
+def test_a_missing_sidecar_leaves_the_session_running_without_diarization(monkeypatch):
+    """사이드카가 없어도 상담은 이어진다. 화자 분리 없음으로 내려앉을 뿐이다."""
+    _fake_websockets(monkeypatch, None)
+    source = SortformerDiarization("ws://없는곳/ws")
+    clock = _Clock()
+    submitted: list = []
+
+    async def submit(utterance):
+        submitted.append(utterance)
+
+    async def publish(message):
+        pass
+
+    stt = SttSession(clock, publish, submit, diarization=source)
+
+    async def run():
+        await stt.feed(b"\x00\x00" * 100)  # 여기서 붙기를 시도했다가 실패한다
+        await stt._on_transcript(Transcript(text="그냥 해지할게요.", final=True))
+        await stt.aclose()
+
+    asyncio.run(run())
+
+    assert source.segments() == ()
+    assert [(u.speaker, u.speaker_confidence) for u in submitted] == [("teller", None)]
+
+
+# --- 부팅 배선 ------------------------------------------------------------------
+
+
+class _NullStream:
+    async def send(self, pcm: bytes) -> None:
+        pass
+
+    async def aclose(self) -> None:
+        pass
+
+
+class _RecordingAdapter:
+    """연 스트림과 그때 받은 화자 분리 공급원을 적어 둔다."""
+
+    def __init__(self) -> None:
+        self.keyterms: list[str] = []
+        self.diarization = None
+
+    async def open(self, on_transcript, keyterms=(), *, diarization=None):
+        self.keyterms = list(keyterms)
+        self.diarization = diarization
+        return _NullStream()
+
+
+def _start(diarization_url=None, hold_ms=2000):
+    """`ws/endpoint.py` 의 `_start_stt` 를 그대로 부른다. 배선만 본다."""
+    from types import SimpleNamespace
+
+    from server.ws.endpoint import _start_stt
+
+    judge = _MarkerJudge()
+    adapter = _RecordingAdapter()
+    runtime = SimpleNamespace(
+        stt=adapter,
+        role_judge=judge,
+        pack_source=SimpleNamespace(read=lambda version: {"jargon_terms": ["만기후이자율"]}),
+    )
+    settings = SimpleNamespace(diarization_url=diarization_url, speaker_hold_ms=hold_ms)
+    session = SimpleNamespace(pack=SimpleNamespace(pack_version=PACK_VERSION))
+
+    async def send(message):
+        pass
+
+    conn = SimpleNamespace(send=send)
+    stt = asyncio.run(
+        _start_stt(
+            session, SimpleNamespace(), conn, SimpleNamespace(schedule=None), runtime, settings
+        )
+    )
+    return judge, adapter, stt
+
+
+def test_the_endpoint_hands_the_session_the_runtimes_role_judge():
+    """A2. 배선이 빠지면 상담마다 규칙 폴백이 서고, 화면에는 아무 차이도 안 보인다."""
+    judge, adapter, stt = _start()
+
+    assert stt is not None
+    assert stt.resolver.mapper.judge is judge
+    assert stt.hold_ms == 2000
+    assert adapter.keyterms == ["만기후이자율"]  # 팩의 jargon_terms 가 그대로 간다
+    assert adapter.diarization is stt.diarization  # 발화 단위 어댑터가 끊을 자리를 얻는다
+
+
+def test_the_endpoint_puts_the_sidecar_in_when_its_url_is_set():
+    """`APP_DIARIZATION_URL` 이 있으면 사이드카가 화자 분리 공급원이 된다."""
+    _, _, plain = _start()
+    _, _, wired = _start(diarization_url="ws://127.0.0.1:8300/ws", hold_ms=1500)
+
+    assert isinstance(plain.diarization, TranscriptDiarization)
+    assert isinstance(wired.diarization, SortformerDiarization)
+    assert wired.diarization.url == "ws://127.0.0.1:8300/ws"
+    assert wired.hold_ms == 1500
