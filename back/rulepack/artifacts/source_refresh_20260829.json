@@ -1,0 +1,79 @@
+{
+  "audit_version": "2026-08-29",
+  "checked_at": "2026-08-29T00:00:00+09:00",
+  "scope": "가계대출 상품설명서 2025.01 개정본으로 원천 교체 후 재감사",
+  "candidate_summary": {
+    "confirmed": 13,
+    "unverified": 5,
+    "conflict": 1,
+    "excluded_negative_fixtures": 2
+  },
+  "sources": [
+    {
+      "doc_id": "01_금융소비자보호법",
+      "local_sha256": "b56cdf92197ae2fc43c727d6a060d31028cad1ff40a4f72f912575cc36f04a10",
+      "local_page_count": 31,
+      "verdict": "relevant_spans_confirmed",
+      "official_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&lsId=013704",
+      "note": "현행 제20조와 제21조의 후보 span 유지 확인"
+    },
+    {
+      "doc_id": "03_예금거래기본약관",
+      "local_sha256": "126ac2b135444466e52592598cd66bd39ecb92d14336efdbf291c5001027d01b",
+      "local_page_count": 9,
+      "live_sha256": "126ac2b135444466e52592598cd66bd39ecb92d14336efdbf291c5001027d01b",
+      "live_page_count": 9,
+      "verdict": "unchanged",
+      "official_url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/예금거래기본약관(개정후).pdf"
+    },
+    {
+      "doc_id": "04_은행여신거래기본약관_가계용",
+      "local_sha256": "d043424d5f9bdb41703f0afc0fbb4d343e7377010a00ac223694a9eec358262f",
+      "local_page_count": 9,
+      "live_sha256": "d043424d5f9bdb41703f0afc0fbb4d343e7377010a00ac223694a9eec358262f",
+      "live_page_count": 9,
+      "verdict": "unchanged_not_used_by_current_candidates",
+      "official_url": "https://spot.wooribank.com/pot/bbs?cmd=download&BOARD_ID=B00179&ARTICLE_ID=3303&ATTACH_ID=28132"
+    },
+    {
+      "doc_id": "05_상품설명서_정기예금",
+      "local_sha256": "bba8c98eae0a30978234624d613e570ee15bb7cda88ab4f7d390f33fbedce202",
+      "local_page_count": 7,
+      "candidate_sha256": "556ee40af070f4400e2a4cfd09bded8f691e1abe66995ac5b39d9c12595e42ff",
+      "candidate_page_count": 7,
+      "candidate_url": "https://img.shinhan.com/sbank2016/seol/20230823000001510007LC000030.PDF?1743089364051=",
+      "candidate_review_valid_through": "2026-03-27",
+      "verdict": "replacement_required_no_current_candidate",
+      "note": "후보 파일도 심의 유효기간 만료 및 5천만원 표기 상태라 운영 원천으로 부적합"
+    },
+    {
+      "doc_id": "06_상품설명서_가계대출",
+      "local_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "local_page_count": 24,
+      "live_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "live_page_count": 24,
+      "verdict": "replaced_with_current_official",
+      "official_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "revision": "2025.01",
+      "note": "2026-08-29 교체. 근거 span 9건이 새 원문에서도 실재하고 page 도 그대로였음"
+    }
+  ],
+  "official_references": [
+    {
+      "topic": "예금보호한도 1억원",
+      "url": "https://www.fsc.go.kr/no010101/85200"
+    },
+    {
+      "topic": "2026년 스트레스 DSR 운영",
+      "url": "https://www.fsc.go.kr/no010101/86914"
+    },
+    {
+      "topic": "은행법 제30조의2",
+      "url": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=02&joNo=0030&lsiSeq=282001&urlMode=lsScJoRltInfoR"
+    },
+    {
+      "topic": "신용정보법 제32조",
+      "url": "https://www.law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1025127945"
+    }
+  ]
+}

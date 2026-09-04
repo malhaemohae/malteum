@@ -1,6 +1,9 @@
 [
-  { "t": "hello", "mode": "replay", "preset_id": "preset-dep-a" },
-
+  {
+    "t": "hello",
+    "mode": "replay",
+    "preset_id": "preset-dep-a"
+  },
   {
     "t": "ready",
     "seq": 0,
@@ -8,101 +11,184 @@
     "pack_version": "DEP-2026.08-v4",
     "mode": "replay",
     "items": [
-      { "item_code": "DEP-INT-002", "name": "중도해지 이자율", "axis": "omission", "state": "unmet", "required": true,
-        "plain_language": ["만기까지 두지 않고 중간에 찾으시면, 처음 약속한 이자가 아니라 훨씬 낮은 이자로 계산됩니다."] },
-      { "item_code": "DEP-INT-003", "name": "만기 후 이자율", "axis": "omission", "state": "unmet", "required": true },
-      { "item_code": "DEP-INT-004", "name": "중도해지 시 우대이자율 미적용", "axis": "omission", "state": "unmet", "required": true,
-        "plain_language": ["중간에 해지하시면 조건을 채워서 더 받기로 한 이자는 못 받으시고, 기본 이자로만 계산됩니다."] },
-      { "item_code": "DEP-LIM-001", "name": "일부해지 대안", "axis": "omission", "state": "unmet", "required": true },
-      { "item_code": "DEP-LON-001", "name": "예금담보대출 대안", "axis": "omission", "state": "unmet", "required": true },
-      { "item_code": "DEP-BAN-001", "name": "단정적 판단 제공", "axis": "commission", "state": "clean", "required": false },
-      { "item_code": "DEP-BAN-002", "name": "사실과 다른 내용 알림", "axis": "commission", "state": "clean", "required": false }
+      {
+        "item_code": "DEP-INT-001",
+        "name": "적용 이자율과 우대 조건",
+        "axis": "omission",
+        "state": "unmet",
+        "required": true,
+        "plain_language": [
+          "기본 이자율에 조건을 충족해 받는 우대 이자율을 더합니다."
+        ]
+      },
+      {
+        "item_code": "DEP-INT-002",
+        "name": "중도해지 이자율",
+        "axis": "omission",
+        "state": "unmet",
+        "required": true,
+        "plain_language": [
+          "만기 전에 찾으면 약속한 이자보다 적게 받습니다.",
+          "얼마나 깎이는지는 맡긴 기간에 따라 다르고, 짧게 맡길수록 더 많이 깎입니다."
+        ]
+      },
+      {
+        "item_code": "DEP-INT-003",
+        "name": "만기 후 이자율",
+        "axis": "omission",
+        "state": "unmet",
+        "required": true,
+        "plain_language": [
+          "만기가 지나면 경과 기간에 따라 다른 이자율이 붙습니다."
+        ]
+      },
+      {
+        "item_code": "DEP-PRO-001",
+        "name": "예금자보호 대상과 한도",
+        "axis": "omission",
+        "state": "unmet",
+        "required": true,
+        "plain_language": [
+          "원금과 이자를 합해 한 사람당 1억 원까지 보호됩니다.",
+          "이 은행에 있는 다른 보호 대상 예금과 합쳐서 1억 원입니다."
+        ]
+      },
+      {
+        "item_code": "DEP-TAX-001",
+        "name": "세금",
+        "axis": "omission",
+        "state": "unmet",
+        "required": true,
+        "plain_language": [
+          "만기 뒤에 붙는 이자에도 세금이 붙고, 세율은 15.4% 입니다."
+        ]
+      },
+      {
+        "item_code": "DEP-LIM-001",
+        "name": "일부해지 제한",
+        "axis": "omission",
+        "state": "unmet",
+        "required": true,
+        "plain_language": [
+          "이 예금은 일부만 찾을 수 없고 해지하면 전액이 나옵니다."
+        ]
+      },
+      {
+        "item_code": "DEP-BAN-001",
+        "name": "단정적 판단 금지",
+        "axis": "commission",
+        "state": "clean",
+        "required": false,
+        "plain_language": [
+          "확실하지 않은 일을 확실하다고 말하면 안 됩니다."
+        ]
+      }
     ]
   },
-
-  { "t": "partial", "seq": 1, "text": "중도해지하시면", "speaker": "teller" },
-  { "t": "partial", "seq": 2, "text": "중도해지하시면 0.5% 정도는", "speaker": "teller" },
-
+  {
+    "t": "partial",
+    "seq": 1,
+    "text": "받으시는 이자에는",
+    "speaker": "teller"
+  },
+  {
+    "t": "partial",
+    "seq": 2,
+    "text": "받으시는 이자에는 과세가 되는데요, 세율은",
+    "speaker": "teller"
+  },
   {
     "t": "utterance",
     "seq": 3,
-    "event_id": "FIXT-EV-0004",
+    "event_id": "FIXT-EV-0007",
     "speaker": "teller",
-    "text": "중도해지하시면 0.5% 정도는 받으세요.",
-    "t_ms": 35200
+    "text": "받으시는 이자에는 과세가 되는데요, 세율은 14%입니다.",
+    "t_ms": 30000
   },
   {
     "t": "alert",
     "seq": 4,
-    "event_id": "FIXT-EV-0005",
+    "event_id": "FIXT-EV-0009",
     "alert_type": "number_mismatch",
     "severity": "warning",
-    "message": "설명서 기준 중도해지 이자율은 1개월 미만 연 0.10% 입니다. 확인 후 다시 안내해 주세요.",
-    "item_code": "DEP-INT-002",
-    "comparison": { "said": "0.5%", "reference": "연 0.10%", "condition": "1개월 미만" },
-    "evidence_ref": "FIXT-EV-0005"
+    "message": "설명서 기준 15.4%",
+    "item_code": "DEP-TAX-001",
+    "comparison": {
+      "said": "14%",
+      "reference": "15.4%"
+    },
+    "evidence_ref": "FIXT-EV-0009"
   },
   {
     "t": "verdict",
     "seq": 5,
-    "event_id": "FIXT-EV-0006",
-    "item_code": "DEP-INT-002",
+    "event_id": "FIXT-EV-0008",
+    "item_code": "DEP-TAX-001",
     "axis": "omission",
-    "state": "partial",
+    "state": "met",
     "ver": 1,
     "decided_by": "L1",
-    "missing_elements": ["적용 이율", "차감률 또는 산출식"],
-    "evidence_ref": "FIXT-EV-0006"
+    "missing_elements": [],
+    "evidence_ref": "FIXT-EV-0008"
   },
-
   {
     "t": "progress",
     "seq": 6,
     "met": 1,
-    "partial": 1,
-    "items_total": 5,
-    "remaining": ["중도해지 이자율", "만기 후 이자율", "일부해지 대안", "예금담보대출 대안"],
+    "partial": 0,
+    "items_total": 6,
+    "remaining": [
+      "적용 이자율과 우대 조건",
+      "중도해지 이자율",
+      "만기 후 이자율",
+      "예금자보호 대상과 한도",
+      "일부해지 제한"
+    ],
     "term_density": "normal"
   },
-
-  { "t": "assist_request", "assist_type": "rephrase", "item_code": "DEP-INT-002" },
+  {
+    "t": "assist_request",
+    "assist_type": "rephrase",
+    "item_code": "DEP-INT-002"
+  },
   {
     "t": "assist",
     "seq": 7,
-    "event_id": "FIXT-EV-0009",
+    "event_id": "FIXT-EV-0016",
     "assist_type": "rephrase",
-    "text": "만기까지 두지 않고 중간에 찾으시면, 처음 약속한 이자가 아니라 훨씬 낮은 이자로 계산됩니다.",
+    "text": "만기 전에 찾으면 약속한 이자보다 적게 받습니다.",
     "ver": 1,
     "item_code": "DEP-INT-002"
   },
   {
     "t": "assist",
     "seq": 8,
-    "event_id": "FIXT-EV-0011",
+    "event_id": "FIXT-EV-0018",
     "assist_type": "rephrase",
-    "text": "만기까지 두지 않고 중간에 찾으시면, 처음 약속한 이자가 아니라 훨씬 낮은 이자로 계산됩니다.",
+    "text": "만기 전에 찾으면 약속한 이자보다 적게 받습니다.",
     "ver": 2,
     "item_code": "DEP-INT-002",
     "outcome": "adopted"
   },
-
-  { "t": "ask", "question": "만기 지나서 그냥 두면 이자가 어떻게 되나요?" },
+  {
+    "t": "ask",
+    "question": "만기 지나서 그냥 두면 이자가 어떻게 되나요?"
+  },
   {
     "t": "assist",
     "seq": 9,
     "event_id": "FIXT-EV-9001",
     "assist_type": "answer",
-    "text": "만기 후 1개월 이내는 만기일 당시 가입기간에 해당하는 일반정기예금 이자율의 1/2, 6개월을 넘기면 연 0.10% 입니다.",
+    "text": "만기가 지나면 경과 기간에 따라 다른 이자율이 붙습니다.",
     "ver": 1,
     "item_code": "DEP-INT-003",
     "evidence_ref": "FIXT-EV-9001"
   },
-
   {
     "t": "verdict",
     "seq": 10,
-    "event_id": "FIXT-EV-0015",
-    "item_code": "DEP-BAN-002",
+    "event_id": "FIXT-EV-0022",
+    "item_code": "DEP-BAN-001",
     "axis": "commission",
     "state": "suspected",
     "ver": 1,
@@ -111,46 +197,60 @@
   {
     "t": "verdict",
     "seq": 11,
-    "event_id": "FIXT-EV-0017",
-    "item_code": "DEP-BAN-002",
+    "event_id": "FIXT-EV-0024",
+    "item_code": "DEP-BAN-001",
     "axis": "commission",
     "state": "violated",
     "ver": 2,
     "decided_by": "L3",
-    "evidence_ref": "FIXT-EV-0017"
+    "evidence_ref": "FIXT-EV-0024"
   },
-
   {
     "t": "alert",
     "seq": 12,
-    "event_id": "FIXT-EV-0029",
+    "event_id": "FIXT-EV-0043",
     "alert_type": "risk_signal",
     "severity": "critical",
-    "message": "제3자가 알려준 계좌로의 이체 요청입니다. 사용 목적과 수취인 관계를 확인해 주세요.",
+    "message": "위험 신호: 제3자 계좌 위험 신호. 본인 의사와 거래 목적 확인이 필요합니다",
     "item_code": "DEP-RSK-001",
-    "evidence_ref": "FIXT-EV-0029"
+    "evidence_ref": "FIXT-EV-0043"
   },
-  { "t": "acknowledge", "alert_ref": "FIXT-EV-0029" },
-
-  { "t": "mark_waived", "item_code": "DEP-LON-001", "reason": "고객이 대출 의사 없음을 명시. 상담 범위에서 제외" },
+  {
+    "t": "acknowledge",
+    "alert_ref": "FIXT-EV-0043"
+  },
+  {
+    "t": "mark_waived",
+    "item_code": "DEP-PRO-001",
+    "reason": "고객이 대출 의사 없음을 명시. 상담 범위에서 제외"
+  },
   {
     "t": "verdict",
     "seq": 13,
     "event_id": "FIXT-EV-9002",
-    "item_code": "DEP-LON-001",
+    "item_code": "DEP-PRO-001",
     "axis": "omission",
     "state": "waived",
     "ver": 2,
     "decided_by": "human"
   },
-
-  { "t": "ping", "seq": 14 },
-  { "t": "pong" },
-
-  { "t": "text_utterance", "text": "일부해지는 2회까지 가능합니다.", "speaker": "teller" },
-
-  { "t": "resume", "session_id": "FIXT-SESS-0A", "from_seq": 14 },
-
+  {
+    "t": "ping",
+    "seq": 14
+  },
+  {
+    "t": "pong"
+  },
+  {
+    "t": "text_utterance",
+    "text": "이 상품은 일부해지가 안 됩니다.",
+    "speaker": "teller"
+  },
+  {
+    "t": "resume",
+    "session_id": "FIXT-SESS-0A",
+    "from_seq": 14
+  },
   {
     "t": "error",
     "seq": 15,
@@ -158,13 +258,20 @@
     "message": "음성 인식을 쓸 수 없습니다. 텍스트 입력으로 계속할 수 있습니다.",
     "retryable": true
   },
-
-  { "t": "end" },
+  {
+    "t": "end"
+  },
   {
     "t": "ended",
     "seq": 16,
     "session_id": "FIXT-SESS-0A",
-    "summary": { "items_total": 5, "met": 4, "partial": 1, "unmet": 0, "violations": 1 },
+    "summary": {
+      "items_total": 6,
+      "met": 4,
+      "partial": 1,
+      "unmet": 1,
+      "violations": 1
+    },
     "report_url": "/api/sessions/FIXT-SESS-0A/report.pdf"
   }
 ]

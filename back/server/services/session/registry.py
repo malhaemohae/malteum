@@ -1,14 +1,42 @@
-"""활성 세션 메모리. 상태·팩·seq_in_session·항목별 최신 event_id(supersedes 재료)."""
+"""활성 세션 메모리. 상태·팩·seq_in_session·갱신 사슬(supersedes 재료).
+
+**메모리는 정본이 아니다.** 서버가 재시작되면 여기 있던 것이 사라지지만 이벤트는 남아
+있다. 계약이 `hello.session_id` 를 "이어 붙일 세션" 이라고 정의하므로, 저장된 이벤트가
+있는 session_id 로 다시 붙으면 새로 만들지 않고 접어서 되살린다.
+"""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Literal
+from collections import deque
+from dataclasses import dataclass, field, replace
+from datetime import UTC, datetime
+from typing import Any, Literal
 
-from contracts.engine_contract import Mode
-from engine.engine import RuleEngine
-from engine.types import RulePack, SessionState
+from contracts.engine_contract import Engine, Mode, RulePack, SessionState, Utterance
 from server.services.event.envelope import new_id
+from server.services.event.store import EventStore
+from server.services.session import chains
+
+# 재전송 창. 이보다 오래된 것은 버린다 — 무한히 들고 있으면 긴 상담에서 메모리가 는다
+S2C_REPLAY_WINDOW = 500
+
+
+def _now() -> datetime:
+    return datetime.now(UTC)
+
+
+def _started_at(events: list[dict]) -> datetime:
+    """되살린 세션의 t_ms 원점. session_started 의 봉투 시각이다.
+
+    그것이 없으면(있을 수 없지만 저장이 부분적으로 깨진 경우) 가장 이른 이벤트로 물러선다.
+    지금 시각으로 물러서면 이어 붙인 발화가 0 부터 매겨져 앞부분과 겹친다.
+    """
+    times = [
+        datetime.fromisoformat(e["occurred_at"]).astimezone(UTC)
+        for e in events
+        if e["kind"] == "session_started"
+    ] or [datetime.fromisoformat(e["occurred_at"]).astimezone(UTC) for e in events]
+    return min(times) if times else _now()
 
 
 @dataclass
@@ -16,18 +44,62 @@ class Session:
     session_id: str
     pack: RulePack
     state: SessionState
+    mode: Mode = "text"
+    # mode=trace 일 때 재생할 원본 세션. 계약상 POST /sessions 로만 지정된다
+    source_session_id: str | None = None
+    # mode=replay 일 때 흘려보낼 사전 오디오. 마찬가지로 POST /sessions 로만 온다
+    audio_ref: str | None = None
     next_seq: int = 0
+    # ws s2c 순번과 재전송 로그. **연결이 아니라 세션이 든다.** 계약이 이유까지 적어
+    # 두었다 — "세션 단위 단조 증가. 재접속해도 이어진다(연결 단위로 리셋되면 resume 의
+    # from_seq 가 무의미해짐). 서버는 세션별 s2c 로그를 유지해 from_seq 이후를
+    # 재전송한다". 위의 `next_seq`(이벤트 seq_in_session)와는 다른 번호다.
+    # 저장물에는 안 들어간다(계약). 프로세스가 죽으면 로그는 사라지고 그때는 화면이
+    # 처음부터 다시 받는다 — 되살릴 수 있는 것은 이벤트지 전송분이 아니다
+    next_s2c_seq: int = 0
+    s2c_log: deque[dict[str, Any]] = field(default_factory=lambda: deque(maxlen=S2C_REPLAY_WINDOW))
     latest_event_by_item: dict[tuple[str, str], str] = field(default_factory=dict)
-    t0_ms: int = 0
+    latest_assist: dict[chains.AssistKey, tuple[str, int]] = field(default_factory=dict)
+    # 저장된 이벤트에서 되살린 세션. session_started 를 다시 쓰면 안 된다
+    restored: bool = False
+    # t_ms 의 원점. 계약이 "세션 시작 기준" 이라 연결이 아니라 세션이 들고 있어야 한다.
+    # 되살린 세션은 session_started.occurred_at 을 도로 가져온다
+    started_at: datetime = field(default_factory=_now)
+    # rephrase(⑥-B)가 다시 말할 대상. `SessionState.recent_utterances` 는 fold 와
+    # engine.observe 가 채우지만 최근 8턴 창이라, 고객이 길게 말하면 밀려난다. 여기는 안 밀린다
+    last_teller_utterance: Utterance | None = None
 
     def take_seq(self) -> int:
         seq, self.next_seq = self.next_seq, self.next_seq + 1
         return seq
 
+    def take_s2c_seq(self) -> int:
+        seq, self.next_s2c_seq = self.next_s2c_seq, self.next_s2c_seq + 1
+        return seq
+
+    def since(self, from_seq: int) -> list[dict[str, Any]]:
+        """`from_seq` 다음부터 보낸 것들. resume 이 이것을 다시 흘린다."""
+        return [m for m in self.s2c_log if m["seq"] > from_seq]
+
+    def elapsed_ms(self) -> int:
+        """세션 시작부터 지금까지. 봉투의 occurred_at 과 같은 시계를 쓴다.
+
+        단조 시계가 아니라 벽시계인 이유는 재접속 때문이다. 프로세스가 죽었다 살아나면
+        단조 시계의 원점이 사라지고, 그러면 이어 붙인 세션의 t_ms 가 0 부터 다시 매겨져
+        앞부분과 겹친다. 겹친 t_ms 로는 발화 재생(C축 DoD)이 어느 지점인지 못 짚는다.
+        """
+        return max(0, int((_now() - self.started_at).total_seconds() * 1000))
+
+    def assist_ver(self, key: chains.AssistKey) -> tuple[str | None, int]:
+        """다음 발행의 (supersedes, ver). 첫 발행이면 (None, 1)."""
+        previous = self.latest_assist.get(key)
+        return (previous[0], previous[1] + 1) if previous else (None, 1)
+
 
 class SessionRegistry:
-    def __init__(self, engine: RuleEngine) -> None:
+    def __init__(self, engine: Engine, store: EventStore) -> None:
         self.engine = engine
+        self.store = store
         self._packs: dict[str, RulePack] = {}
         self._sessions: dict[str, Session] = {}
 
@@ -42,11 +114,56 @@ class SessionRegistry:
         mode: Mode,
         customer_type: Literal["general", "professional"] = "general",
         session_id: str | None = None,
+        source_session_id: str | None = None,
+        audio_ref: str | None = None,
     ) -> Session:
+        if session_id:
+            live = self._sessions.get(session_id)
+            if live is not None:
+                return live
+            stored = self.store.of_session(session_id)
+            if stored:
+                return self._restore(session_id, stored, source_session_id)
+
         session_id = session_id or new_id()
         pack = self.pack(pack_version)
         state = self.engine.initial_state(session_id, pack, mode, customer_type)
-        session = Session(session_id=session_id, pack=pack, state=state)
+        session = Session(
+            session_id=session_id,
+            pack=pack,
+            state=state,
+            mode=mode,
+            source_session_id=source_session_id,
+            audio_ref=audio_ref,
+        )
+        self._sessions[session_id] = session
+        return session
+
+    def _restore(
+        self, session_id: str, events: list[dict], source_session_id: str | None
+    ) -> Session:
+        """이벤트를 접어 세션을 되살린다. 새 이벤트를 만들지 않는다."""
+        folded = self.engine.fold(events)
+        pack = self.pack(folded.pack_version)
+        # fold 는 판정이 있었던 항목만 담는다. 판정 전 항목까지 보이도록 출발 상태에 덮는다
+        state = self.engine.initial_state(session_id, pack, folded.mode, folded.customer_type)
+        judged = {(i.item_code, i.axis): i for i in folded.items}
+        merged = tuple(judged.pop((i.item_code, i.axis), i) for i in state.items)
+        state = replace(
+            folded, items=merged + tuple(judged.values())
+        )  # fold 에만 있는 축(comprehension 등)도 잃지 않는다
+        session = Session(
+            session_id=session_id,
+            pack=pack,
+            state=state,
+            mode=folded.mode,
+            source_session_id=source_session_id,
+            next_seq=max(e["seq_in_session"] for e in events) + 1,
+            latest_event_by_item=chains.latest_verdicts(events),
+            latest_assist=chains.latest_assists(events),
+            restored=True,
+            started_at=_started_at(events),
+        )
         self._sessions[session_id] = session
         return session
 

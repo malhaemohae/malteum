@@ -8,12 +8,14 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from contracts.engine_contract import ItemState, Utterance
+from engine.pack.compiler import CompiledPack
+from engine.state import term_density
 from engine.types import SessionState
 
 RECENT_UTTERANCES = 8
 
 
-def fold(events: Sequence[dict]) -> SessionState:
+def fold(events: Sequence[dict], compiled: CompiledPack) -> SessionState:
     started = next(e for e in events if e["kind"] == "session_started")
     superseded = {e["supersedes"] for e in events if e.get("supersedes")}
 
@@ -55,12 +57,14 @@ def fold(events: Sequence[dict]) -> SessionState:
             alerts += 1
 
     profile = started["session_started"].get("customer_profile") or {}
+    recent = tuple(utterances[-RECENT_UTTERANCES:])
     return SessionState(
         session_id=started["session_id"],
         pack_version=started["pack_version"],
         mode=started["session_started"]["mode"],
         customer_type=profile.get("type", "general"),
         items=tuple(items.values()),
-        recent_utterances=tuple(utterances[-RECENT_UTTERANCES:]),
+        recent_utterances=recent,
+        term_density=term_density.level(recent, compiled),
         alert_count=alerts,
     )

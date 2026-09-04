@@ -23,7 +23,7 @@ EVENTS = _load("events_scenario_a.json")
 
 def test_fixture_counts():
     assert len(WS_MESSAGES) == 26
-    assert len(EVENTS) == 31
+    assert len(EVENTS) == 48
 
 
 @pytest.mark.parametrize("msg", WS_MESSAGES, ids=[m["t"] for m in WS_MESSAGES])

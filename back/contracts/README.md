@@ -41,6 +41,7 @@ M3 ──rulepack──▶ M2 ◀──engine_contract── M1 ──ws_protoco
 ## 동결 규칙
 
 - **8/28 이후 변경은 전원 합의.** 한 사람이 고치면 네 모듈이 동시에 흔들린다
+- 오류 응답은 `components/responses` 의 `NotFound`·`ValidationFailed`·`Unauthorized` 를 `$ref` 한다. 경로마다 새로 적으면 모양이 갈리고, 갈린 모양은 화면에서야 드러난다
 - 변경 시 `fixtures/` 를 함께 갱신하고 `validate.py` 를 통과시킨다
 - `events.schema.json` 은 특히 신중히. 이미 쌓인 이벤트를 읽지 못하게 되면 재생·감사가 죽는다. 그래서 모든 이벤트에 `schema_version` 이 있다
 - 필드 **추가는 안전**(옵셔널로), **삭제·의미 변경은 위험**

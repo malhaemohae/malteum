@@ -4,10 +4,11 @@
 
 | 파일 | 무엇 | 누가 쓰나 |
 | --- | --- | --- |
-| `rulepack_DEP-2026.08-v4.json` | 규정 팩 실물 1건. 항목 9개 (risk 타입 1개 포함). 중도해지 상담용 | M3 발행 결과의 정답 · M2 로드 테스트 입력 |
-| `events_scenario_a.json` | 시연 시나리오 A(중도해지 상담)의 이벤트 열 31건 | trace 재생 · 리포트 생성 · 접기 함수 테스트 |
+| `rulepack_DEP-2026.08-v4.json` | 규정 팩 실물 1건. 항목 9개 (risk 타입 1개 포함). 중도해지 상담용. 2026-09-03 canonical 에서 재발행(옛 원천 0.10% 제거, 세율 15.4% 숫자 사실 추가) | M3 발행 결과의 정답 · M2 로드 테스트 입력 · 시연 서버가 읽는 예금 팩 |
+| `rulepack_LOAN-2026.08-v5.json` | 가계 신용대출 팩. 항목 9개 (forbidden 2개 포함, 숫자 사실 3건, 금리인하요구권 포함). 시연 B(금리·한도 안내)용. 이벤트·판정 케이스와 교차 검증은 하지 않고 스키마·근거 실재만 본다 | 시연 서버가 읽는 대출 팩(`pack_dir` 이 이 폴더) |
+| `events_scenario_a.json` | 시연 시나리오 A(중도해지 상담)의 이벤트 열 48건. `assets/scenarios/preset-dep-a/script.json` 에서 `scripts/gen_scenario_trace.py` 로 생성 | trace 재생 · 리포트 생성 · 접기 함수 테스트 |
 | `ws_messages.json` | c2s·s2c 메시지 26건 | M4 프런트 개발 시 서버 없이 화면 그리기 |
-| `judge_cases.json` | 판정 입출력 쌍 15건 | M2 엔진의 통과 기준 |
+| `judge_cases.json` | 판정 입출력 쌍 17건 | M2 엔진의 통과 기준 |
 
 ## 값이 실물이다
 
@@ -18,7 +19,11 @@
 python contracts/validate.py
 ```
 
-숫자도 실물이다. 중도해지 이자율 1개월 미만 연 0.10%, 일부해지 2회, 예금담보대출 납입액의 100%.
+근거 `span` 과 `numeric_facts` 는 실물이다. 예금자보호 1억원, 세율 15.4%, 일부해지 불가.
+중도해지이율은 약정이율에 예치기간별 차감률을 곱하는 산식이라 숫자 사실을 두지 않는다.
+`value + unit` 절대값 모델로는 "약정이율의 절반" 을 표현할 수 없고, 산식을 말했는지는 L1
+정규식이, 내용이 맞는지는 L3(LLM) 가 판단한다(2026-09-03 팀 결정). 옛 원천(신한)의
+0.10% 는 같은 날 팩·대사·판정 케이스에서 모두 지웠다.
 
 ## 시나리오 A 가 담고 있는 것 (2026-08-26 타겟 변경판: 정기예금 중도해지 상담)
 
@@ -27,19 +32,23 @@ python contracts/validate.py
 
 | 시점 | 무엇 | 이벤트 |
 | --- | --- | --- |
-| 0:15 | 우대 미적용 고지 | `EV-0003` DEP-INT-004 met(L1) |
-| 0:35 | 숫자 오류 | `EV-0005` alert `number_mismatch` (0.5% vs 연 0.10%) |
-| 1:10 | 되물음 → 재진술 | `EV-0009` assist → `EV-0011` 이 `outcome=adopted` 로 대체 |
-| 1:50 | 사실과 다른 안내 | "만기 지나도 금리 그대로" → `EV-0015` suspected(L2) → `EV-0017` violated(L3) |
-| 2:15 | 부분 정정 | `EV-0006` partial → `EV-0021` **여전히 partial** (이율은 정정, 차감률·산출식은 끝내 미고지) |
-| 2:40 | 넛지 → 고지 전환 | `EV-0024` nudge(예금담보대출 대안) → `EV-0025` 발화 → `EV-0026` met → `EV-0027` adopted |
-| 3:05 | 위험 신호 | "딸이 알려준 계좌로" → `EV-0029` alert `risk_signal` critical (verdict 없음) |
-| 종료 | partial 1건 | 중도해지 이자율. met 4 · partial 1 · unmet 0 · 위반 1 · 경보 3 |
+| 0:14 | 우대 미적용 고지 | `EV-0006` DEP-INT-001 met(L1) |
+| 0:30 | 숫자 오류 | "세율은 14%" → `EV-0008` DEP-TAX-001 met + `EV-0009` alert `number_mismatch` (14% vs 15.4%) |
+| 0:42 | 부분 고지 → 넛지 | `EV-0011` DEP-INT-002 partial(L1) → `EV-0012` partial(L3) → `EV-0013` nudge(차감률 또는 산출식) |
+| 0:55 | 되물음 → 재진술 | "중도해지이율이 뭐예요" → `EV-0015` explained → `EV-0016` rephrase → `EV-0018` adopted |
+| 1:15 | 이해 확인 | `EV-0020` confirmed(L3) |
+| 1:25 | 사실과 다른 안내 | "만기 지나도 금리 그대로" → `EV-0022` suspected(L2) → `EV-0024` violated(L3) |
+| 1:47 | 정정 | `EV-0030` DEP-INT-003 met(L1). 2:00 세율 15.4% 정정은 맞는 숫자라 이벤트 없음 |
+| 2:10 | 넛지 → 고지 전환 | 산식 설명 → `EV-0034` DEP-INT-002 met(L1) → `EV-0035` nudge adopted |
+| 2:40 | 부분 고지 | 예금자보호 1억(합산 미언급) → `EV-0038`·`EV-0039` partial → `EV-0040` nudge |
+| 2:56 | 위험 신호 | "딸이 알려준 계좌로" → `EV-0043` alert `risk_signal` critical (verdict 없음) |
+| 종료 | partial 1건 + unmet 1건 | 예금자보호 partial · 일부해지 제한 unmet. met 4 · partial 1 · unmet 1 · 위반 1 · 경보 3 · 채택 2 |
 
 시나리오를 예금 신규에서 해지로 바꾼 근거는 현장 인터뷰(중도해지가 감사 지적 항목, 주담대가 주력 상품).
 `01_기획/현장검증_인터뷰정리.md` 와 기획안 9장 참조.
 
-`supersedes` 체인이 네 군데 있다. 화면과 리포트는 **대체되지 않은 마지막 이벤트만** 읽는다.
+이 파일은 손으로 고치지 않는다. 대본(`assets/scenarios/preset-dep-a/script.json`)을 고치고
+`back/scripts/gen_scenario_trace.py` 로 다시 만든다. `supersedes` 체인이 여섯 군데 있다. 화면과 리포트는 **대체되지 않은 마지막 이벤트만** 읽는다.
 `validate.py` 가 종료 요약을 이벤트에서 다시 접어 대조하므로, 접기 규칙을 잘못 구현하면 즉시 드러난다.
 
 ## id 규칙

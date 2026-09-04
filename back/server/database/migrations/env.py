@@ -4,6 +4,10 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from server.bootstrap.settings import get_settings
+
+# entities import 는 모델을 Base.metadata 에 등록시킨다. 이 줄이 없으면
+# autogenerate 가 빈 마이그레이션을 만든다.
+from server.database import entities  # noqa: F401
 from server.database.base import Base
 
 # this is the Alembic Config object, which provides
@@ -20,6 +24,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
+# 접속 주소의 정본은 settings 한 곳이다. alembic.ini 에 적지 않는다
 config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
 # other values from the config, defined by the needs of env.py,

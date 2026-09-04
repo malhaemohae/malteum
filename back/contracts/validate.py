@@ -47,6 +47,14 @@ def _find_docs() -> str:
 DOCS = _find_docs()
 
 PACK_FIXTURE = "rulepack_DEP-2026.08-v4.json"
+# 시나리오 A 이벤트와 교차 검증하는 팩은 위 하나다. 그 외 팩(대출 등)도 스키마와
+# 근거 실재(3층)는 같은 잣대로 본다. 서버의 pack_dir 이 이 폴더라, 여기 있는 팩은
+# 전부 상담 화면에 나갈 수 있다.
+EXTRA_PACKS = sorted(
+    name
+    for name in (os.listdir(FIX) if os.path.isdir(FIX) else [])
+    if name.startswith("rulepack_") and name.endswith(".json") and name != PACK_FIXTURE
+)
 
 # 축별 허용 상태. events.schema.json 의 allOf 제약과 같은 표를 여기에도 둔다.
 # 두 곳에 두는 이유는 스키마가 없을 때도 이 검사가 돌아야 하기 때문이다.
@@ -86,6 +94,8 @@ def layer_schema(pack, events, ws):
             errors.append(f"[스키마] {label} @ {path}: {e.message}")
 
     check("rulepack.schema.json", pack, PACK_FIXTURE)
+    for name in EXTRA_PACKS:
+        check("rulepack.schema.json", load(name), name)
     for i, ev in enumerate(events):
         check("events.schema.json", ev, f"events[{i}] {ev.get('event_id')}")
     for i, m in enumerate(ws):
@@ -161,6 +171,7 @@ def layer_cross(pack, events, ws, cases):
 
     # 종료 요약이 이벤트를 접은 결과와 맞는가.
     # 요약은 파생물이므로 여기서 다시 계산해서 대조한다. 어긋나면 리포트가 거짓말을 한다.
+    required = [c for c, it in codes.items() if it["type"] == "required"]
     ended = [e for e in events if e["kind"] == "session_ended"]
     if len(ended) != 1:
         errors.append(f"[교차] session_ended 가 {len(ended)}개")
@@ -172,7 +183,6 @@ def layer_cross(pack, events, ws, cases):
                 v = e["verdict"]
                 final[(v["item_code"], v["axis"])] = v["state"]
 
-        required = [c for c, it in codes.items() if it["type"] == "required"]
         counted = {"met": 0, "partial": 0, "unmet": 0, "waived": 0}
         for c in required:
             counted[final.get((c, "omission"), "unmet")] += 1
@@ -197,6 +207,35 @@ def layer_cross(pack, events, ws, cases):
         )
         if s.get("assists_adopted", 0) != adopted:
             errors.append(f"[교차] 요약 assists_adopted={s.get('assists_adopted')} 인데 실제 {adopted}")
+
+    # 세션 머리말이 팩과 같은 상품을 가리키는가.
+    # 원천을 갈면 팩의 product 만 바뀌고 이벤트 쪽은 항목 코드만 치환되어 조용히
+    # 어긋난다. 실제로 팩은 ICBC 인데 이벤트는 신한을 가리킨 채 통과했다 (2026-08-30).
+    started = [e for e in events if e["kind"] == "session_started"]
+    if len(started) != 1:
+        errors.append(f"[교차] session_started 가 {len(started)}개")
+    else:
+        st = started[0]["session_started"]
+        if st["product"]["code"] != pack["product"]["code"]:
+            errors.append(
+                f"[교차] session_started.product={st['product']['code']} 인데 "
+                f"팩은 {pack['product']['code']}"
+            )
+        if st.get("item_count") != len(required):
+            errors.append(
+                f"[교차] session_started.item_count={st.get('item_count')} 인데 "
+                f"필수 항목은 {len(required)}개"
+            )
+
+    # ws 의 종료 요약이 이벤트의 종료 요약과 같은가.
+    # 두 fixture 는 같은 세션을 서로 다른 표면으로 적은 것이라 어긋나면 둘 중
+    # 하나가 거짓이다. ws 쪽은 지금까지 아무것과도 대조되지 않았다.
+    ws_ended = [m for m in ws if m.get("t") == "ended"]
+    if ws_ended and len(ended) == 1:
+        ev_summary = ended[0]["session_ended"]["summary"]
+        for key, got in ws_ended[0]["summary"].items():
+            if ev_summary.get(key) != got:
+                errors.append(f"[교차] ws ended.{key}={got} 인데 이벤트는 {ev_summary.get(key)}")
 
     # ws 메시지
     for i, m in enumerate(ws):
@@ -317,6 +356,10 @@ def main() -> int:
     layer_cross(pack, events, ws, cases)
     if not a.skip_pdf:
         layer_pdf(pack, events)
+        for name in EXTRA_PACKS:
+            extra = load(name)
+            print(f"  추가 팩 {extra['pack_version']}  항목 {len(extra['items'])}")
+            layer_pdf(extra, [])
 
     for n in notes:
         print(f"  · {n}")

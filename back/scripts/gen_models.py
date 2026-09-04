@@ -171,7 +171,7 @@ class Gen:
 
 
 def gen_ws(out: Path) -> None:
-    schema = json.loads((CONTRACTS / "ws_protocol.schema.json").read_text())
+    schema = json.loads((CONTRACTS / "ws_protocol.schema.json").read_text(encoding="utf-8"))
     g = Gen(schema)
     c2s = g.branches(g.defs["c2s"], "t")
     s2c = g.branches(g.defs["s2c"], "t")
@@ -188,7 +188,7 @@ def gen_ws(out: Path) -> None:
 
 
 def gen_events(out: Path) -> None:
-    schema = json.loads((CONTRACTS / "events.schema.json").read_text())
+    schema = json.loads((CONTRACTS / "events.schema.json").read_text(encoding="utf-8"))
     g = Gen(schema)
     kinds = g.branches(schema, "kind", suffix="Event")
     tail = (

@@ -12,6 +12,7 @@ from typing import Any
 import jsonschema
 
 from . import paths
+from .embedding import E5SmallEmbedding, EmbeddingModel
 from .pipeline import _load_find_span, canonical_json, count_exact_span
 from .source_manifest import build_run_manifest
 
@@ -79,6 +80,13 @@ def _korean_small_number(value: int) -> str:
 
 
 def _numeric_tokens(value: str, unit: str) -> set[str]:
+    """원문에 나올 수 있는 표기를 모은다.
+
+    금액은 한국어 문서에서 여러 모양으로 적힌다. `100000000원` · `100,000,000원`
+    · `1억원` · `1억 원`. 억 단위를 안 다루면 1억을 `10천만원` 으로 만들어 어느
+    원문과도 안 맞는다. 예금자보호 한도가 5천만원이던 때는 안 드러났고, 2025-09-01
+    시행 1억원 원천으로 갈아타면서 드러났다 (2026-08-30).
+    """
     tokens = {f"{value}{unit}"}
     try:
         number = Decimal(value)
@@ -88,7 +96,17 @@ def _numeric_tokens(value: str, unit: str) -> set[str]:
         integer = int(number)
         tokens.add(f"{integer:,}{unit}")
         if unit == "원" and integer > 0 and integer % 10_000 == 0:
-            tokens.add(f"{_korean_small_number(integer // 10_000)}만원")
+            # 억과 만을 함께 분해한다. 억의 배수만 따로 다루면 1억 5천만원이
+            # 만 단위로 떨어져 `15천만원` 이 된다.
+            eok, rest = divmod(integer, 100_000_000)
+            man = rest // 10_000
+            parts = []
+            if eok:
+                parts.append(f"{_korean_small_number(eok)}억")
+            if man:
+                parts.append(f"{_korean_small_number(man)}만")
+            head = " ".join(parts)
+            tokens.update({f"{head}원", f"{head} 원"})
     return tokens
 
 
@@ -143,7 +161,9 @@ def _revalidate_candidate(repo_root: Path, item: dict[str, Any], sources: dict[s
             raise CompileError(f"numeric_fact 조건 연결 오류: {item['code']}")
 
 
-def _schema_item(item: dict[str, Any], approval: dict[str, Any]) -> dict[str, Any]:
+def _schema_item(
+    item: dict[str, Any], approval: dict[str, Any], model: EmbeddingModel
+) -> dict[str, Any]:
     result = {
         key: item[key]
         for key in (
@@ -158,11 +178,15 @@ def _schema_item(item: dict[str, Any], approval: dict[str, Any]) -> dict[str, An
     }
     if item.get("axis"):
         result["axis"] = item["axis"]
-    for key in ("numeric_facts", "documents_required", "forbidden_examples"):
+    for key in ("numeric_facts", "documents_required", "forbidden_examples", "risk_examples"):
         if key in item:
             result[key] = item[key]
-    result["l1_patterns"] = []
-    result["embedding_id"] = f"e5:{item['code']}"
+    # L1 정규식 판정의 기준. 설정(candidate_rules)에서 오고, 없으면 그 항목은
+    # L1 을 건너뛰어 L2·L3 로 간다.
+    result["l1_patterns"] = item.get("l1_patterns", [])
+    # 접두어는 벡터를 만든 구현이 정한다. 모델이 바뀌면 벡터도 바뀌므로
+    # 식별자가 같으면 어느 모델 것인지 구분되지 않는다.
+    result["embedding_id"] = f"{model.id_prefix}:{item['code']}"
     result["approved_at"] = approval["approved_at"]
     result["approved_by"] = approval["approved_by"]
     return result
@@ -188,6 +212,7 @@ def _compile_pack(
     version: str,
     *,
     allow_unverified: bool,
+    model: EmbeddingModel,
 ) -> dict[str, Any]:
     required = {"approved_by", "approved_at", "item_codes", "bundle_sha256"}
     if (
@@ -223,7 +248,7 @@ def _compile_pack(
         _revalidate_candidate(repo_root, item, sources)
         if not allow_unverified:
             _verify_confirmed_freshness(code, item["evidence"]["doc_id"], sources, audit)
-        selected.append(_schema_item(item, approval))
+        selected.append(_schema_item(item, approval, model))
 
     pack = {
         "schema_version": "1",
@@ -231,7 +256,10 @@ def _compile_pack(
         "product": bundle["product"],
         "published_at": approval["approved_at"],
         "published_by": approval["approved_by"],
-        "embedding": {"model": "intfloat/multilingual-e5-small", "dim": 384, "normalized": True},
+        "embedding": {"model": model.name, "dim": model.dim, "normalized": model.normalized},
+        # ⑧ 용어 밀도 게이지가 세는 목록. 상품마다 다르므로 설정에서 가져온다.
+        # 실시간 판단 없이 이 목록 대조로만 세므로 게이지가 결정적이다.
+        "jargon_terms": bundle.get("jargon_terms", []),
         "sources": [
             {
                 key: source[key]
@@ -246,10 +274,15 @@ def _compile_pack(
 
 
 def compile_pack(
-    repo_root: Path, bundle: dict[str, Any], approval: dict[str, Any], version: str
+    repo_root: Path,
+    bundle: dict[str, Any],
+    approval: dict[str, Any],
+    version: str,
+    model: EmbeddingModel | None = None,
 ) -> dict[str, Any]:
     """운영 컴파일. 최신성이 confirmed인 승인 항목만 허용함."""
-    pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=False)
+    model = model or E5SmallEmbedding()
+    pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=False, model=model)
     attestation_payload = {
         "artifact_kind": "production_compiled",
         "approval_signature": approval["approval_signature"],
@@ -268,18 +301,30 @@ def compile_pack(
 
 
 def compile_synthetic_pack(
-    repo_root: Path, bundle: dict[str, Any], approval: dict[str, Any], version: str
+    repo_root: Path,
+    bundle: dict[str, Any],
+    approval: dict[str, Any],
+    version: str,
+    model: EmbeddingModel | None = None,
 ) -> dict[str, Any]:
     """스키마 경로 검증 전용. 반환 envelope는 운영 publish 입력이 될 수 없음."""
-    pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=True)
+    model = model or E5SmallEmbedding()
+    pack = _compile_pack(repo_root, bundle, approval, version, allow_unverified=True, model=model)
     return {"artifact_kind": "synthetic_dry_run", "production_publishable": False, "pack": pack}
 
 
-def publish_immutable(compiled: dict[str, Any], output_dir: Path) -> str:
+def verified_pack(compiled: dict[str, Any]) -> dict[str, Any]:
+    """운영 컴파일 envelope 에서 팩을 꺼낸다. 서명과 내용 해시를 둘 다 대조한다.
+
+    발행과 적재가 같은 검사를 거치게 하려고 함수로 뺐다. 적재 쪽이 이 검사를
+    건너뛰면 발행 시점부터 DB 에 들어가기 전까지의 구간(아티팩트 저장소·공유
+    폴더·수동 복사)에서 팩을 고쳐도 아무도 모른다. 팩은 창구 판정의 기준이라
+    금액 한 자리만 바뀌어도 시스템이 틀린 것을 가르치게 된다 (2026-08-30).
+    """
     if compiled.get("artifact_kind") != "production_compiled" or not compiled.get(
         "production_publishable"
     ):
-        raise CompileError("운영 컴파일 attestation이 없는 산출물은 발행할 수 없음")
+        raise CompileError("운영 컴파일 attestation이 없는 산출물은 쓸 수 없음")
     attestation_payload = {
         "artifact_kind": compiled["artifact_kind"],
         "approval_signature": compiled.get("approval_signature"),
@@ -297,6 +342,11 @@ def publish_immutable(compiled: dict[str, Any], output_dir: Path) -> str:
         canonical_json(pack).encode("utf-8")
     ).hexdigest() != compiled.get("pack_sha256"):
         raise CompileError("컴파일 뒤 pack 내용이 변경됨")
+    return pack
+
+
+def publish_immutable(compiled: dict[str, Any], output_dir: Path) -> str:
+    pack = verified_pack(compiled)
     version = pack.get("pack_version", "")
     if not re.fullmatch(r"[A-Z]{3,4}-\d{4}\.\d{2}-v\d+", version):
         raise CompileError("pack_version 명명 규칙 위반")

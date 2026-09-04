@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from copy import deepcopy
 from pathlib import Path
 
@@ -25,15 +26,6 @@ from rulepack import paths  # noqa: E402
 
 RULES = paths.config_dir(REPO_ROOT) / "candidate_rules.json"
 TEST_APPROVAL_KEY = "test-approval-key-that-is-at-least-32-bytes"
-
-
-@pytest.fixture(scope="module")
-def bundles(tmp_path_factory: pytest.TempPathFactory):
-    work = tmp_path_factory.mktemp("pipeline")
-    return {
-        product: build_product_bundle(REPO_ROOT, product, RULES, work / product)
-        for product in ("deposit", "loan")
-    }
 
 
 def _approval(
@@ -90,7 +82,15 @@ def test_two_product_build_is_deterministic_and_isolates_rejections(bundles) -> 
     )
 
 
-def test_risk_signal_is_review_required_instead_of_forced_into_schema_type(bundles) -> None:
+def test_risk_signal_uses_risk_type_and_never_forbidden(bundles) -> None:
+    """위험 신호는 `risk` 로 나가야 하고 `forbidden` 으로 우회하면 안 된다.
+
+    위험 신호는 고객 발화 대상이라 경보만 만든다. `forbidden` 으로 밀어넣으면
+    고객이 한 말이 은행원의 위반으로 표시되어 P6 위반이 된다.
+
+    계약에 `risk` 가 없던 8/26 에는 검토 대기로 묶는 것이 그 보호였다. v0.4
+    (`79ce386`, 8/27)가 type 을 추가해 이제 정상 발행된다 (2026-08-29).
+    """
     risks = [
         item
         for bundle in bundles.values()
@@ -98,8 +98,11 @@ def test_risk_signal_is_review_required_instead_of_forced_into_schema_type(bundl
         if item.get("candidate_kind") == "risk_signal"
     ]
     assert risks
-    assert {item["status"] for item in risks} == {"review_required"}
-    assert {item["reason_code"] for item in risks} == {"contract_gap_risk_type"}
+    assert {item["type"] for item in risks} == {"risk"}
+    assert {item["status"] for item in risks} == {"evidence_verified"}
+    # axis 는 required(omission)·forbidden(commission) 에만 붙는다. 위험 신호에
+    # axis 가 생기면 판정 축이 있다는 뜻이라 경보 전용이라는 성격과 어긋난다.
+    assert not [item for item in risks if item.get("axis")]
 
 
 def test_loan_third_party_repayment_risk_uses_current_article_20(bundles) -> None:
@@ -129,30 +132,18 @@ def test_compile_refuses_missing_approval_unverified_and_stale_source(
     with pytest.raises(CompileError, match="승인"):
         compile_pack(REPO_ROOT, bundles["deposit"], {}, "DEP-2026.08-v1")
 
-    unverified = _without_publication_blocker(bundles["deposit"], "DEP-INT-002")
-    with pytest.raises(CompileError, match="unverified_source"):
-        compile_pack(
-            REPO_ROOT,
-            unverified,
-            _approval(unverified, "DEP-INT-002", signed=True),
-            "DEP-2026.08-v1",
-        )
-
+    # 원천을 전부 현행본으로 갈아 실제 conflict 항목이 없어졌다(2026-08-30).
+    # 규칙 자체는 지켜야 하므로 항목을 그 상태로 만들어 검사한다.
+    stale = deepcopy(bundles["deposit"])
+    target = next(item for item in stale["items"] if item["code"] == "DEP-PRO-001")
+    target["freshness"] = "conflict"
+    target["publication_blocker"] = "stale_source"
     with pytest.raises(CompileError, match="stale_source"):
         compile_pack(
             REPO_ROOT,
-            bundles["deposit"],
-            _approval(bundles["deposit"], "DEP-PRO-001", signed=True),
+            stale,
+            _approval(stale, "DEP-PRO-001", signed=True),
             "DEP-2026.08-v1",
-        )
-
-    spoofed = deepcopy(unverified)
-    next(item for item in spoofed["items"] if item["code"] == "DEP-INT-002")["freshness"] = (
-        "confirmed"
-    )
-    with pytest.raises(CompileError, match="unverified_source"):
-        compile_pack(
-            REPO_ROOT, spoofed, _approval(spoofed, "DEP-INT-002", signed=True), "DEP-2026.08-v1"
         )
 
 
@@ -282,29 +273,37 @@ def test_source_refresh_classifies_every_non_fixture_candidate() -> None:
         status: sum(record["status"] == status for record in audit["candidates"].values())
         for status in ("confirmed", "unverified", "conflict")
     }
-    refresh = json.loads(
-        (paths.default_artifacts_dir(REPO_ROOT) / "source_refresh_20260826.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    # 감사 기록은 시점마다 새 파일로 쌓인다. 요약이 맞아야 하는 대상은 늘 최신본이다.
+    latest = sorted(paths.default_artifacts_dir(REPO_ROOT).glob("source_refresh_*.json"))[-1]
+    refresh = json.loads(latest.read_text(encoding="utf-8"))
     assert refresh["candidate_summary"] == {
         **status_counts,
         "excluded_negative_fixtures": 2,
     }
 
 
-def test_unreplaced_product_documents_keep_publication_blockers(bundles) -> None:
-    product_doc_ids = {"05_상품설명서_정기예금", "06_상품설명서_가계대출"}
-    product_items = [
+def _items_from(bundles, doc_id: str) -> list[dict]:
+    return [
         item
         for bundle in bundles.values()
         for item in bundle["items"]
-        if item["evidence"]["doc_id"] in product_doc_ids and "-REJ-" not in item["code"]
+        if item["evidence"]["doc_id"] == doc_id and "-REJ-" not in item["code"]
     ]
 
-    assert product_items
-    assert all(item.get("publication_blocker") for item in product_items)
-    assert {item["freshness"] for item in product_items} <= {"unverified", "conflict"}
+
+def test_current_sources_have_no_publication_blockers(bundles) -> None:
+    """원천을 전부 현행본으로 갈았으므로 상품 문서 기반 항목이 막히면 안 된다.
+
+    2026-08-30 에 정기예금 설명서를 심의 유효기간 내 현행본(1억원 한도 반영)으로
+    교체하며 마지막 차단이 풀렸다. 감사 갱신을 빠뜨리거나 원천을 되돌리면
+    `source_audit_hash_mismatch` 로 다시 막히고 여기서 잡힌다.
+    """
+    for doc_id in ("05_상품설명서_정기예금", "06_상품설명서_가계대출"):
+        items = _items_from(bundles, doc_id)
+        assert items, f"{doc_id} 를 근거로 쓰는 항목이 없음"
+        blocked = [i["code"] for i in items if i.get("publication_blocker")]
+        assert not blocked, f"{doc_id}: 아직 막힌 항목 {blocked}"
+        assert {i["freshness"] for i in items} == {"confirmed"}
 
 
 def test_compile_revalidates_tampered_bbox_numeric_value_unit_condition_and_doc_id(bundles) -> None:
@@ -314,13 +313,13 @@ def test_compile_revalidates_tampered_bbox_numeric_value_unit_condition_and_doc_
         ("condition", "무관한 조건", "조건"),
     ):
         changed = deepcopy(bundles["deposit"])
-        item = next(item for item in changed["items"] if item["code"] == "DEP-LIM-001")
+        item = next(item for item in changed["items"] if item["code"] == "DEP-PRO-001")
         item["numeric_facts"][0][field] = value
         with pytest.raises(CompileError, match=message):
             compile_synthetic_pack(
                 REPO_ROOT,
                 changed,
-                _approval(changed, "DEP-LIM-001", "synthetic-reviewer"),
+                _approval(changed, "DEP-PRO-001", "synthetic-reviewer"),
                 "DEP-2026.08-v2",
             )
 
@@ -515,3 +514,142 @@ def test_run_manifest_has_no_unmapped_source_ids() -> None:
     rules = json.loads(RULES.read_text(encoding="utf-8"))
     used = {rule["doc_id"] for items in rules["products"].values() for rule in items}
     assert used <= known
+
+
+def test_status_doc_matches_actual_counts(bundles) -> None:
+    """`docs/STATUS.md` 의 판정 표가 실제 build 결과와 같아야 한다.
+
+    문서의 숫자를 손으로 적으면 코드가 바뀔 때마다 조용히 어긋난다. 낡은 문서는
+    틀린 정보보다 나쁘므로 기계가 대조한다 (2026-08-29).
+    """
+    doc = (REPO_ROOT / "back" / "rulepack" / "docs" / "STATUS.md").read_text(encoding="utf-8")
+
+    for product, label in (("deposit", "예금 신규"), ("loan", "신용대출")):
+        items = bundles[product]["items"]
+        actual = (
+            sum(
+                1
+                for i in items
+                if i["status"] == "evidence_verified" and not i.get("publication_blocker")
+            ),
+            sum(1 for i in items if i["status"] == "review_required"),
+            sum(1 for i in items if i.get("publication_blocker")),
+            sum(1 for i in items if i["status"] == "rejected"),
+        )
+        row = re.search(rf"\| {label} \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|", doc)
+        assert row, f"STATUS.md 에 {label} 행이 없음"
+        assert tuple(int(g) for g in row.groups()) == actual, f"{label} 판정 표가 실물과 다름"
+
+
+def test_item_type_matches_who_the_article_binds(bundles) -> None:
+    """항목 type 은 근거 조문이 누구를 구속하는지와 맞아야 한다.
+
+    `forbidden` 은 은행원 발화, `risk` 는 고객 발화다. 뒤집히면 둘 중 하나가
+    난다. 은행원의 위반이 경보로만 처리되어 판정에서 빠지거나, 고객이 한 말이
+    은행원의 위반으로 표시되어 P6 를 어긴다.
+
+    금소법 제20조는 "금융상품판매업자등은 ... 해서는 아니 된다" 로 은행원을
+    구속한다. 예금거래기본약관 제6조는 "거래처는 ... 할 수 있다" 로 고객의
+    행위를 적는다. 실제로 `LOAN-RSK-001` 이 제20조를 근거로 두고 `risk` 로
+    분류돼 있었다 (2026-08-30).
+    """
+    은행원_구속 = {("금융소비자보호법", "제20조"), ("금융소비자보호법", "제21조")}
+    고객_행위 = {("예금거래기본약관", "제6조")}
+
+    for bundle in bundles.values():
+        for item in bundle["items"]:
+            basis = {(b["law"], b["article"]) for b in item["legal_basis"]}
+            if basis & 은행원_구속:
+                assert item["type"] != "risk", (
+                    f"{item['code']}: 은행원을 구속하는 조문인데 고객 발화(risk)로 분류됨"
+                )
+            if basis & 고객_행위 and item["type"] == "risk":
+                assert not item.get("axis"), f"{item['code']}: risk 에 axis 가 붙음"
+
+
+def test_product_list_comes_from_config_not_code() -> None:
+    """상품 목록의 진실 원천은 `config/products.json` 이다.
+
+    코드에 박아 두면 상품을 늘릴 때 설정과 코드를 둘 다 고쳐야 하고, 한쪽만
+    고치면 조용히 빠진다. 실제로 `cli.py` 가 `("deposit", "loan")` 을 박고
+    있었다 (2026-08-30).
+    """
+    from rulepack.cli import _products
+
+    config = json.loads((paths.config_dir(REPO_ROOT) / "products.json").read_text(encoding="utf-8"))
+    assert _products(REPO_ROOT) == sorted(config)
+
+
+def test_config_mismatch_says_which_file(tmp_path: Path) -> None:
+    """상품 설정 두 개가 어긋나면 어느 파일이 빠졌는지 말해야 한다.
+
+    `products.json` 에만 있고 `candidate_rules.json` 에 규칙이 없으면 전에는
+    맨 KeyError 로 죽어 원인을 알 수 없었다.
+    """
+    from rulepack.pipeline import PipelineError, build_product_bundle
+
+    rules = paths.config_dir(REPO_ROOT) / "candidate_rules.json"
+    with pytest.raises(PipelineError, match="products.json 에 없는 상품"):
+        build_product_bundle(REPO_ROOT, "nonexistent", rules, tmp_path / "x")
+
+
+def test_freshness_gate_reads_audit_not_bundle() -> None:
+    """최신성 판정은 번들이 아니라 `source_audit.json` 을 본다.
+
+    번들의 `freshness` 를 손대도 발행이 열리면 안 된다. 감사 기록이 진실 원천이고
+    번들은 그것을 옮겨 적은 사본이다. 2026-08-30 에 원천을 전부 현행본으로 갈아
+    실제 `unverified` 항목이 없어졌으므로 감사를 직접 만들어 검사한다.
+    """
+    from rulepack.compiler import _verify_confirmed_freshness
+
+    sources = {"05_상품설명서_정기예금": type("S", (), {"sha256": "abc"})()}
+
+    with pytest.raises(CompileError, match="unverified_source"):
+        _verify_confirmed_freshness("DEP-INT-002", "05_상품설명서_정기예금", sources, {})
+
+    audit = {
+        "candidates": {
+            "DEP-INT-002": {
+                "status": "unverified",
+                "source_doc_id": "05_상품설명서_정기예금",
+                "source_sha256": "abc",
+            }
+        }
+    }
+    with pytest.raises(CompileError, match="unverified_source"):
+        _verify_confirmed_freshness("DEP-INT-002", "05_상품설명서_정기예금", sources, audit)
+
+    # 감사가 confirmed 여도 원천 해시가 어긋나면 막는다.
+    audit["candidates"]["DEP-INT-002"]["status"] = "confirmed"
+    audit["candidates"]["DEP-INT-002"]["source_sha256"] = "다른해시"
+    with pytest.raises(CompileError, match="source_audit_hash_mismatch"):
+        _verify_confirmed_freshness("DEP-INT-002", "05_상품설명서_정기예금", sources, audit)
+
+
+def test_pack_carries_l1_patterns_and_jargon_terms_from_config(bundles) -> None:
+    """L1 패턴과 용어 목록은 설정에서 와서 팩까지 실려야 한다.
+
+    둘 다 컴파일러가 조용히 빈 값으로 뭉갤 수 있는 자리다. 실제로 `l1_patterns`
+    는 `result["l1_patterns"] = []` 로 고정돼 있어, 설정에 정규식을 아무리 적어도
+    팩에는 안 실렸다. 그러면 L1(정규식) 층이 통째로 놀고 모든 판정이 L2·L3 로
+    내려가 지연과 비용만 늘어난다. 빈 값은 예외를 내지 않으므로 테스트로만 잡힌다.
+    """
+    envelope = compile_synthetic_pack(
+        REPO_ROOT,
+        bundles["deposit"],
+        _approval(bundles["deposit"], "DEP-INT-002", "real-reviewer"),
+        "DEP-2026.08-v1",
+    )
+    pack = envelope["pack"]
+
+    products = json.loads(
+        (paths.config_dir(REPO_ROOT) / "products.json").read_text(encoding="utf-8")
+    )
+    assert pack["jargon_terms"] == products["deposit"]["jargon_terms"]
+    assert pack["jargon_terms"], "용어 밀도 게이지가 셀 대상이 하나도 없음"
+
+    from_bundle = {i["code"]: i.get("l1_patterns", []) for i in bundles["deposit"]["items"]}
+    carried = {i["code"]: i["l1_patterns"] for i in pack["items"] if i["l1_patterns"]}
+    assert carried, "L1 판정이 쓸 패턴이 팩에 하나도 안 실렸음"
+    for code, patterns in carried.items():
+        assert patterns == from_bundle[code]
