@@ -1,0 +1,458 @@
+{
+ "requested_chunk_s": 15,
+ "preset-dep-a": {
+  "actual_chunk_s": 15.040000000000001,
+  "chunk_len_frames": 188,
+  "n_chunks": 10,
+  "chunk_records": [
+   {
+    "idx": 0,
+    "dt_s": 0.15240588500455488,
+    "audio_covered_s": 15.040000000000001,
+    "finish_s": 15.192405885004556
+   },
+   {
+    "idx": 1,
+    "dt_s": 0.24820358799479436,
+    "audio_covered_s": 30.080000000000002,
+    "finish_s": 30.328203587994796
+   },
+   {
+    "idx": 2,
+    "dt_s": 0.2520650200021919,
+    "audio_covered_s": 45.120000000000005,
+    "finish_s": 45.372065020002196
+   },
+   {
+    "idx": 3,
+    "dt_s": 0.25007180200191215,
+    "audio_covered_s": 60.160000000000004,
+    "finish_s": 60.410071802001916
+   },
+   {
+    "idx": 4,
+    "dt_s": 0.24774376799177844,
+    "audio_covered_s": 75.2,
+    "finish_s": 75.44774376799178
+   },
+   {
+    "idx": 5,
+    "dt_s": 0.24673753800743725,
+    "audio_covered_s": 90.24000000000001,
+    "finish_s": 90.48673753800745
+   },
+   {
+    "idx": 6,
+    "dt_s": 0.2505043479904998,
+    "audio_covered_s": 105.28,
+    "finish_s": 105.5305043479905
+   },
+   {
+    "idx": 7,
+    "dt_s": 0.253645967997727,
+    "audio_covered_s": 120.32000000000001,
+    "finish_s": 120.57364596799773
+   },
+   {
+    "idx": 8,
+    "dt_s": 0.24855430799652822,
+    "audio_covered_s": 135.36,
+    "finish_s": 135.60855430799654
+   },
+   {
+    "idx": 9,
+    "dt_s": 0.25357822100340854,
+    "audio_covered_s": 147.432625,
+    "finish_s": 150.65357822100341
+   }
+  ],
+  "final_segments": [
+   "3.120 4.240 speaker_0",
+   "4.960 8.560 speaker_0",
+   "8.880 11.520 speaker_0",
+   "12.080 15.760 speaker_0",
+   "42.000 42.560 speaker_0",
+   "42.720 44.640 speaker_0",
+   "55.680 60.960 speaker_0",
+   "71.360 75.200 speaker_0",
+   "127.840 130.000 speaker_0",
+   "130.720 131.760 speaker_0",
+   "131.920 135.040 speaker_0",
+   "17.440 25.680 speaker_1",
+   "27.120 31.680 speaker_1",
+   "35.920 40.480 speaker_1",
+   "49.280 54.320 speaker_1",
+   "62.560 65.440 speaker_1",
+   "65.760 67.120 speaker_1",
+   "76.720 77.680 speaker_1",
+   "77.760 79.440 speaker_1",
+   "79.840 80.960 speaker_1",
+   "81.280 84.880 speaker_1",
+   "85.040 87.200 speaker_1",
+   "88.800 90.400 speaker_1",
+   "90.720 92.640 speaker_1",
+   "92.960 95.360 speaker_1",
+   "96.800 98.240 speaker_1",
+   "98.560 102.000 speaker_1",
+   "102.320 104.000 speaker_1",
+   "104.400 106.480 speaker_1",
+   "108.000 111.040 speaker_1",
+   "111.360 115.120 speaker_1",
+   "116.720 119.680 speaker_1",
+   "119.920 123.600 speaker_1",
+   "139.520 142.800 speaker_1",
+   "143.280 146.080 speaker_1"
+  ],
+  "line_results": [
+   {
+    "id": "A01",
+    "gt_speaker": "customer",
+    "delay_s": 14.316016087994797,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "A02",
+    "gt_speaker": "teller",
+    "delay_s": 4.6177035879947965,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A03",
+    "gt_speaker": "teller",
+    "delay_s": 13.585877520002196,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A04",
+    "gt_speaker": "teller",
+    "delay_s": 4.756315020002198,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A05",
+    "gt_speaker": "customer",
+    "delay_s": 0.399127520002196,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "A06",
+    "gt_speaker": "teller",
+    "delay_s": 6.097509302001917,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A07",
+    "gt_speaker": "customer",
+    "delay_s": 14.270056267991784,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "A08",
+    "gt_speaker": "teller",
+    "delay_s": 8.287431267991778,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A09",
+    "gt_speaker": "customer",
+    "delay_s": 15.054237538007456,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "A10",
+    "gt_speaker": "teller",
+    "delay_s": 3.127112538007438,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A11",
+    "gt_speaker": "teller",
+    "delay_s": 10.144816847990498,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A12",
+    "gt_speaker": "teller",
+    "delay_s": 13.957645967997735,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A13",
+    "gt_speaker": "teller",
+    "delay_s": 5.280833467997738,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A14",
+    "gt_speaker": "teller",
+    "delay_s": 11.918366807996534,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "A15",
+    "gt_speaker": "customer",
+    "delay_s": 0.2559918079965371,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "A16",
+    "gt_speaker": "teller",
+    "delay_s": 4.428453221003423,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   }
+  ]
+ },
+ "preset-loan-b": {
+  "actual_chunk_s": 15.040000000000001,
+  "chunk_len_frames": 188,
+  "n_chunks": 9,
+  "chunk_records": [
+   {
+    "idx": 0,
+    "dt_s": 0.13121892600611318,
+    "audio_covered_s": 15.040000000000001,
+    "finish_s": 15.171218926006114
+   },
+   {
+    "idx": 1,
+    "dt_s": 0.2519761709991144,
+    "audio_covered_s": 30.080000000000002,
+    "finish_s": 30.331976170999116
+   },
+   {
+    "idx": 2,
+    "dt_s": 0.24943265800538938,
+    "audio_covered_s": 45.120000000000005,
+    "finish_s": 45.369432658005394
+   },
+   {
+    "idx": 3,
+    "dt_s": 0.24949495001055766,
+    "audio_covered_s": 60.160000000000004,
+    "finish_s": 60.40949495001056
+   },
+   {
+    "idx": 4,
+    "dt_s": 0.25671373499790207,
+    "audio_covered_s": 75.2,
+    "finish_s": 75.4567137349979
+   },
+   {
+    "idx": 5,
+    "dt_s": 0.2474546309967991,
+    "audio_covered_s": 90.24000000000001,
+    "finish_s": 90.48745463099681
+   },
+   {
+    "idx": 6,
+    "dt_s": 0.24652225499448832,
+    "audio_covered_s": 105.28,
+    "finish_s": 105.52652225499449
+   },
+   {
+    "idx": 7,
+    "dt_s": 0.2485557189938845,
+    "audio_covered_s": 120.32000000000001,
+    "finish_s": 120.56855571899389
+   },
+   {
+    "idx": 8,
+    "dt_s": 0.2521183019998716,
+    "audio_covered_s": 127.79875,
+    "finish_s": 135.61211830199989
+   }
+  ],
+  "final_segments": [
+   "3.120 4.160 speaker_0",
+   "4.480 10.000 speaker_0",
+   "19.840 21.200 speaker_0",
+   "52.160 53.840 speaker_0",
+   "74.720 77.600 speaker_0",
+   "113.760 118.240 speaker_0",
+   "11.440 18.560 speaker_1",
+   "25.520 31.200 speaker_1",
+   "32.640 36.640 speaker_1",
+   "36.800 40.480 speaker_1",
+   "41.920 45.840 speaker_1",
+   "46.000 47.920 speaker_1",
+   "55.360 58.080 speaker_1",
+   "58.400 60.000 speaker_1",
+   "60.640 62.800 speaker_1",
+   "64.240 65.360 speaker_1",
+   "65.920 70.400 speaker_1",
+   "79.040 84.400 speaker_1",
+   "85.840 88.160 speaker_1",
+   "88.880 90.480 speaker_1",
+   "90.640 92.480 speaker_1",
+   "92.640 95.440 speaker_1",
+   "96.880 100.240 speaker_1",
+   "100.400 104.080 speaker_1",
+   "105.600 112.400 speaker_1",
+   "119.760 122.640 speaker_1",
+   "122.800 126.480 speaker_1"
+  ],
+  "line_results": [
+   {
+    "id": "B01",
+    "gt_speaker": "customer",
+    "delay_s": 5.112343926006114,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "B02",
+    "gt_speaker": "teller",
+    "delay_s": 11.782913670999118,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B03",
+    "gt_speaker": "customer",
+    "delay_s": 9.004038670999119,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "B04",
+    "gt_speaker": "teller",
+    "delay_s": 14.098120158005393,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B05",
+    "gt_speaker": "teller",
+    "delay_s": 4.817870158005398,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B06",
+    "gt_speaker": "teller",
+    "delay_s": 12.38911995001056,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B07",
+    "gt_speaker": "customer",
+    "delay_s": 6.392557450010557,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "B08",
+    "gt_speaker": "teller",
+    "delay_s": 12.6245887349979,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B09",
+    "gt_speaker": "teller",
+    "delay_s": 4.969588734997913,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B10",
+    "gt_speaker": "customer",
+    "delay_s": 12.796079630996815,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "B11",
+    "gt_speaker": "teller",
+    "delay_s": 6.023642130996805,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B12",
+    "gt_speaker": "teller",
+    "delay_s": 10.018272254994486,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B13",
+    "gt_speaker": "teller",
+    "delay_s": 1.341709754994497,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B14",
+    "gt_speaker": "teller",
+    "delay_s": 8.125680718993891,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   },
+   {
+    "id": "B15",
+    "gt_speaker": "customer",
+    "delay_s": 2.1896807189938983,
+    "reversals": 0,
+    "first_pred": "speaker_0",
+    "final_pred": "speaker_0"
+   },
+   {
+    "id": "B16",
+    "gt_speaker": "teller",
+    "delay_s": 9.021680801999878,
+    "reversals": 0,
+    "first_pred": "speaker_1",
+    "final_pred": "speaker_1"
+   }
+  ]
+ },
+ "peak_rss_mb_so_far": 1756.57421875
+}

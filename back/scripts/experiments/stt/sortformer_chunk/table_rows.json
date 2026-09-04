@@ -1,0 +1,142 @@
+[
+ {
+  "requested_chunk_s": 15,
+  "actual_chunk_s": 15.040000000000001,
+  "dt_mean": 0.23878935752605016,
+  "dt_max": 0.25671373499790207,
+  "rtf": 0.015876951963168226,
+  "delay_mean": 8.162668194905667,
+  "delay_max": 15.054237538007456,
+  "final_acc": {
+   "preset-dep-a": [
+    16,
+    16
+   ],
+   "preset-loan-b": [
+    16,
+    16
+   ]
+  },
+  "online_acc": {
+   "preset-dep-a": [
+    16,
+    16
+   ],
+   "preset-loan-b": [
+    16,
+    16
+   ]
+  },
+  "n_spk": {
+   "preset-dep-a": 2,
+   "preset-loan-b": 2
+  },
+  "reversals_total": 0,
+  "peak_rss_mb": 1756.57421875
+ },
+ {
+  "requested_chunk_s": 5,
+  "actual_chunk_s": 4.96,
+  "dt_mean": 0.14573929110727996,
+  "dt_max": 0.2005118009983562,
+  "rtf": 0.02938292159420967,
+  "delay_mean": 3.0332144440003037,
+  "delay_max": 5.083085363993433,
+  "final_acc": {
+   "preset-dep-a": [
+    16,
+    16
+   ],
+   "preset-loan-b": [
+    16,
+    16
+   ]
+  },
+  "online_acc": {
+   "preset-dep-a": [
+    16,
+    16
+   ],
+   "preset-loan-b": [
+    16,
+    16
+   ]
+  },
+  "n_spk": {
+   "preset-dep-a": 2,
+   "preset-loan-b": 2
+  },
+  "reversals_total": 0,
+  "peak_rss_mb": 1756.57421875
+ },
+ {
+  "requested_chunk_s": 2,
+  "actual_chunk_s": 2.0,
+  "dt_mean": 0.12164113263133913,
+  "dt_max": 0.1625438749906607,
+  "rtf": 0.060820566315669566,
+  "delay_mean": 1.2680224781572256,
+  "delay_max": 2.11756797700631,
+  "final_acc": {
+   "preset-dep-a": [
+    16,
+    16
+   ],
+   "preset-loan-b": [
+    16,
+    16
+   ]
+  },
+  "online_acc": {
+   "preset-dep-a": [
+    16,
+    16
+   ],
+   "preset-loan-b": [
+    16,
+    16
+   ]
+  },
+  "n_spk": {
+   "preset-dep-a": 2,
+   "preset-loan-b": 2
+  },
+  "reversals_total": 0,
+  "peak_rss_mb": 1756.57421875
+ },
+ {
+  "requested_chunk_s": 1,
+  "actual_chunk_s": 0.96,
+  "dt_mean": 0.112531278510485,
+  "dt_max": 0.16210881600272842,
+  "rtf": 0.1172200817817552,
+  "delay_mean": 0.5827948896884716,
+  "delay_max": 1.0567954649896123,
+  "final_acc": {
+   "preset-dep-a": [
+    16,
+    16
+   ],
+   "preset-loan-b": [
+    16,
+    16
+   ]
+  },
+  "online_acc": {
+   "preset-dep-a": [
+    16,
+    16
+   ],
+   "preset-loan-b": [
+    16,
+    16
+   ]
+  },
+  "n_spk": {
+   "preset-dep-a": 2,
+   "preset-loan-b": 2
+  },
+  "reversals_total": 0,
+  "peak_rss_mb": 1756.57421875
+ }
+]
