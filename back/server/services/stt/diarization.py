@@ -58,7 +58,11 @@ class TranscriptDiarization:
         self._segments: list[SpeakerSegment] = []
 
     def note(self, start_ms: int, end_ms: int, speaker_id: str) -> None:
-        self._segments.append(SpeakerSegment(start_ms, end_ms, speaker_id))
+        # 길이를 안 주는 공급자가 있다. 그대로 쌓으면 길이 0 구간이 되어 어떤 발화와도
+        # 겹치지 않고, 접착이 `_nearest` 로 내려가 신뢰도가 상한 0.5 에 묶인다.
+        # 발화 쪽도 같은 자리에서 최소 1ms 를 잡으므로(`speaker.py` `speaker_of`)
+        # 여기서도 그만큼 채워 두면 겹침이 성립한다
+        self._segments.append(SpeakerSegment(start_ms, max(end_ms, start_ms + 1), speaker_id))
 
     def segments(self) -> Sequence[SpeakerSegment]:
         return tuple(self._segments)
@@ -142,7 +146,9 @@ class SortformerDiarization:
         except Exception as e:  # noqa: BLE001  사이드카 장애가 상담을 끊지 않게 한다
             log.warning("화자 분리 사이드카에 오디오를 못 보냈습니다: %s: %s", type(e).__name__, e)
             self._unreachable = True
-            self._ws = None
+            # 다시 붙지 않기로 했으므로 읽기 태스크와 소켓도 여기서 거둔다. 참조만
+            # 버리면 상담이 끝날 때까지 태스크 하나와 소켓 하나가 그대로 남는다
+            await self.aclose()
 
     async def aclose(self) -> None:
         reader, ws, self._reader, self._ws = self._reader, self._ws, None, None

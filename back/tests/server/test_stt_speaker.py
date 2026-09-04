@@ -671,6 +671,63 @@ def test_a_missing_sidecar_leaves_the_session_running_without_diarization(monkey
     assert [(u.speaker, u.speaker_confidence) for u in submitted] == [("teller", None)]
 
 
+def test_a_sidecar_that_stops_taking_audio_leaves_no_task_or_socket_behind(monkeypatch):
+    """보내다 실패하면 다시 붙지 않기로 했으므로, 읽기 태스크와 소켓도 그때 거둔다.
+
+    참조만 버리면 상담이 끝날 때까지 태스크 하나와 소켓 하나가 그대로 남는다.
+    """
+    socket = _FakeSidecar([])
+
+    async def refuse(pcm: bytes) -> None:
+        raise OSError("사이드카가 끊겼습니다")
+
+    socket.send = refuse
+    _fake_websockets(monkeypatch, socket)
+    source = SortformerDiarization("ws://끊긴곳/ws")
+
+    async def run():
+        await source.feed(b"\x00\x00" * 100)  # 붙기는 했고 보내다 실패한다
+        return socket.closed, len(asyncio.all_tasks())
+
+    closed, tasks = asyncio.run(run())
+    assert closed
+    assert tasks == 1  # 지금 도는 것 하나뿐. 읽기 태스크가 남아 있지 않다
+
+
+def test_a_transcript_without_a_length_still_overlaps_the_number_it_carried():
+    """길이를 안 주는 공급자의 전사도 겹침으로 붙어야 한다.
+
+    길이 0 구간을 쌓으면 어떤 발화와도 겹치지 않아 접착이 `_nearest` 로 내려가고,
+    신뢰도가 추정 상한 0.5 에 묶여 게이트가 은행원 판정을 통째로 접는다.
+    """
+    clock = _Clock()
+    clock.now_ms = 10_000
+    source = TranscriptDiarization()
+    resolver = SpeakerResolver(source, RoleMapper(_MarkerJudge()))
+    submitted: list = []
+
+    async def submit(utterance):
+        submitted.append(utterance)
+
+    async def publish(message):
+        pass
+
+    stt = SttSession(clock, publish, submit, resolver, diarization=source)
+
+    async def run():
+        # duration_ms 도 start_ms 도 없다. 세션 시계로 메운 시각만 남는다
+        await stt._on_transcript(
+            Transcript(text="중도해지 기준으로 안내드리겠습니다.", final=True, speaker_id="s1")
+        )
+        await stt._releasing
+        await stt.aclose()
+
+    asyncio.run(run())
+
+    assert [(u.speaker, u.speaker_confidence) for u in submitted] == [("teller", 0.9)]
+    assert submitted[0].speaker_confidence >= SPEAKER_CONFIDENCE_THRESHOLD
+
+
 # --- 부팅 배선 ------------------------------------------------------------------
 
 

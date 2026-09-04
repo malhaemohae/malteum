@@ -13,3 +13,6 @@ def _no_live_adapters(monkeypatch):
     monkeypatch.setenv("APP_STT_PROVIDER", "deepgram")
     monkeypatch.setenv("APP_STT_BASE_URL", "")
     monkeypatch.setenv("APP_DIARIZATION_URL", "")
+    # 붙잡기 상한(DEC-7)도 지운다. 개발자가 .env 에서 이 값을 만지면 붙잡기를 재는
+    # 테스트가 코드와 무관하게 흔들린다
+    monkeypatch.delenv("APP_SPEAKER_HOLD_MS", raising=False)
