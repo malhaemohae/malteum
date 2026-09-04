@@ -8,6 +8,11 @@ Deepgram 은 오디오를 계속 밀어 넣으면 전사를 이어서 준다. Qw
 
     구간이 닫히는 조건   화자가 바뀌거나, `end_ms` 뒤 무음이 SEGMENT_GAP_MS 이상
 
+그 무음은 **화자 분리가 실제로 본 지점**(`diarized_ms`)에서 재지, 우리가 받은 PCM 의
+길이에서 재지 않는다. 사이드카는 청크 하나(0.96초)가 찬 뒤에야 구간을 늘려 주므로 두
+시계가 1초 남짓 어긋나고, 받은 길이로 재면 화자가 말하는 중에 발화를 닫아 앞 조각만
+전사되고 나머지가 사라진다.
+
 발화 안의 중간 결과는 내지 않는다(DEC-5). 청크를 줄이면 되돌림이 급증하는데다
 (2초 청크에서도 발화당 13 %) 이 어댑터는 발화가 끝난 뒤에야 보내므로 낼 것이 없다.
 최종 확정만 `final=True` 로 나가고, 화면의 "듣고 있음" 표시는 화자 분리 쪽이 맡는다.
@@ -110,34 +115,53 @@ class SegmentedFileSttStream:
 
     async def send(self, pcm: bytes) -> None:
         self._pcm += pcm
-        self._enqueue_closed(self.received_ms)
+        self._enqueue_closed()
 
     @property
     def received_ms(self) -> int:
         return len(self._pcm) // BYTES_PER_MS
 
+    @property
+    def diarized_ms(self) -> int:
+        """구간 목록이 **어디까지의 오디오를 보고** 나온 값인가. 닫힘을 재는 기준 시계다.
+
+        받은 PCM 길이(`received_ms`)로 재면 안 된다. 사이드카는 0.96초 청크 단위로
+        구간을 뒤늦게 늘려 주므로 두 시계가 0.1~1.1초 어긋나고, 그만큼 아직 오지 않은
+        구간을 무음으로 오해해 화자가 말하는 중에 발화를 닫아 버린다.
+
+        사이드카 클라이언트는 그 지점을 `covered_ms` 로 알려 준다(`diarization.py` 의
+        `SortformerDiarization`). 그 값이 없는 공급원(전사에 실려 온 번호를 쌓는 것과
+        미리 준 구간 목록)은 우리가 준 오디오를 곧바로 반영하므로 두 시계가 같다.
+        """
+        covered = getattr(self.diarization, "covered_ms", None)
+        return self.received_ms if covered is None else int(covered)
+
     async def aclose(self) -> None:
         # 마지막 구간은 뒤에 무음이 오지 않아 스스로 닫히지 않는다. 여기서 닫아야
         # 마지막 발화가 사라지지 않는다
-        self._enqueue_closed(self.received_ms, final=True)
+        self._enqueue_closed(final=True)
         await self._queue.put(None)
         await self._worker
         await self.client.aclose()
 
-    def _enqueue_closed(self, now_ms: int, *, final: bool = False) -> None:
+    def _enqueue_closed(self, *, final: bool = False) -> None:
         """닫힌 구간을 큐에 넣는다. 같은 화자가 이어 말한 구간은 하나로 합친다."""
+        received_ms, diarized_ms = self.received_ms, self.diarized_ms
         for run in _runs(self.diarization.segments(), self.adapter.segment_gap_ms):
-            if run.start_ms < self._closed_ms or run.end_ms - run.start_ms < MIN_SEGMENT_MS:
+            # 이미 보낸 앞부분은 잘라 내고 남은 뒤쪽만 보낸다. 사이드카가 뒤늦게 늘려
+            # 주거나 고쳐 잡은 구간은 시작이 `_closed_ms` 보다 앞서는데, 통째로 버리면
+            # 그 발화의 뒷부분이 사라진다
+            start_ms = max(run.start_ms, self._closed_ms)
+            if run.end_ms - start_ms < MIN_SEGMENT_MS:
                 continue
-            closed = final or now_ms - run.end_ms >= self.adapter.segment_gap_ms
-            if not closed:
+            if not final and diarized_ms - run.end_ms < self.adapter.segment_gap_ms:
                 # 시간 순서로 보고 있으므로 여기서 멈춘다. 뒤 구간이 먼저 닫혀도
                 # 앞 구간을 앞지르면 리포트의 순서가 뒤집힌다
                 break
-            if run.end_ms > now_ms:
+            if run.end_ms > received_ms:
                 break  # 아직 그 오디오를 다 받지 못했다
             self._closed_ms = run.end_ms
-            self._queue.put_nowait(run)
+            self._queue.put_nowait(SpeakerSegment(start_ms, run.end_ms, run.speaker_id))
 
     async def _transcribe_queued(self) -> None:
         while (run := await self._queue.get()) is not None:

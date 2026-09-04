@@ -22,6 +22,7 @@ dependencies = [
     "litellm>=1.98.0",
     "sentence-transformers==5.1.2",   # M3 L2 임베딩. 팩에 모델명이 기록되므로 정확히 고정
     "torch==2.9.1",                   # CPU 전용 휠. 자체 서버에 GPU 를 가정하지 않는다
+    "httpx>=0.27",                    # 발화 단위 전사 어댑터의 운영 경로 (services/stt/openai_file.py)
 ]
 
 [dependency-groups]
