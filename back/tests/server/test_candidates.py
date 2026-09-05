@@ -88,7 +88,9 @@ def test_verified_candidates_carry_coordinates(client):
     화면이 원문 위에 형광펜을 얹는 값이다(기능 ⑭)."""
     body = client.get(f"/api/documents/{DEPOSIT}/candidates").json()
     verified = [c for c in body["candidates"] if c["span_verified"]]
-    assert len(verified) == 6
+    # 05 정기예금 설명서 기반 후보. 2026-09-05 위법계약해지권(`DEP-TER-001`)·지급제한 사유
+    # (`DEP-PAY-001`)가 더해져 6 → 8. 팩 항목 수와 같이 움직이는 값이다
+    assert len(verified) == 8
     assert all(len(c["evidence"]["bbox"]) == 4 for c in verified)
 
 

@@ -1,7 +1,7 @@
 {
   "preset_id": "preset-loan-b",
   "title": "가계 신용대출 금리·한도 안내 상담",
-  "pack_version": "LOAN-2026.08-v6",
+  "pack_version": "LOAN-2026.08-v7",
   "product_code": "HNB-HOUSEHOLD-CREDIT",
   "mode": "replay",
   "customer_profile": { "type": "general", "tags": [] },
@@ -28,7 +28,7 @@
     "turn_order": "customer 가 먼저 말하고 이후 교대로. 같은 화자가 연속으로 말하는 구간은 lines 의 speaker 열이 진실",
     "voices_distinct": "남성·여성으로 갈라 화자 분리 정확도를 높인다"
   },
-  "pack_note": "기대 판정은 LOAN-2026.08-v6(2026-09-05 발행. l1_patterns 전 항목, 숫자 사실 3건: 연체가산 3%·중도상환 3년·청약철회 14일, 금리인하요구권 항목, 필요 서류 reference 항목 포함) 기준. 은행원은 금리인하요구권을 끝까지 말하지 않아 기획 9장 B 의 '누락' 장면이 된다",
+  "pack_note": "기대 판정은 LOAN-2026.08-v7(2026-09-05 발행. 필수 11항목 · l1_patterns 전 항목, 숫자 사실 5건: 연체가산 3%·중도상환 3년·청약철회 14일·위법계약해지 5년·1년, 필요 서류 reference · 대출빙자 risk 항목 포함) 기준. 2026-09-05 추가된 기한이익상실·인지세·위법계약해지 항목은 대본이 아직 다루지 않아 미고지로 남고, 상환방식 항목은 B09 가 방식만 말해 partial 이 된다. 은행원은 금리인하요구권을 끝까지 말하지 않아 기획 9장 B 의 '누락' 장면이 된다",
   "lines": [
     {
       "id": "B01", "start_ms": 3000, "speaker": "customer",
@@ -57,7 +57,8 @@
       "id": "B04", "start_ms": 25327, "speaker": "teller",
       "text": "소득에 비해 모든 대출의 원리금을 얼마나 갚아야 하는지 계산해서 심사하는 비율입니다.",
       "expect": [],
-      "note": "재진술 카드를 따라 말함"
+      "l3": [{"adopt": {"assist_type": "rephrase", "item_code": "LOAN-DSR-001"}}],
+      "note": "재진술 카드를 따라 말함. 카드 채택 기록은 L3(다른 대본과 같은 표기)"
     },
     {
       "id": "B05", "start_ms": 32471, "speaker": "teller",
@@ -92,6 +93,7 @@
       "id": "B09", "start_ms": 64032, "speaker": "teller",
       "text": "그리고 상환은 원리금균등으로만 가능합니다. 다른 상환방식은 안 됩니다.",
       "expect": [
+        "verdict LOAN-RPY-001 omission partial L1 (상환방식만 채움. 총 부담액 차이 미언급)",
         "verdict LOAN-RSK-001 commission suspected L1",
         "alert forbidden_phrase warning LOAN-RSK-001",
         "verdict LOAN-RSK-001 commission violated L3 (LLM 필요)"
@@ -148,10 +150,11 @@
     }
   ],
   "expected_summary": {
-    "items_total": 7, "met": 5, "partial": 0, "unmet": 2, "waived": 0, "violations": 2, "alerts": 2,
+    "items_total": 11, "met": 5, "partial": 1, "unmet": 5, "waived": 0, "violations": 2, "alerts": 2, "assists_adopted": 1,
     "met_codes": ["LOAN-DSR-001", "LOAN-INT-001", "LOAN-PRE-001", "LOAN-ARR-001", "LOAN-WDR-001"],
-    "unmet_codes": ["LOAN-CIC-001", "LOAN-RDR-001"],
+    "partial_codes": ["LOAN-RPY-001"],
+    "unmet_codes": ["LOAN-CIC-001", "LOAN-RDR-001", "LOAN-EXP-001", "LOAN-FEE-001", "LOAN-TER-001"],
     "violated_codes": ["LOAN-BAN-001", "LOAN-RSK-001"],
-    "note": "LOAN-2026.08-v6 기준. violations 2 는 L3 확정값이고 LLM 이 없으면 suspected 로 남는다"
+    "note": "LOAN-2026.08-v7 기준. 필수 11항목 중 2026-09-05 추가분 4건은 대본 미반영(EXP·FEE·TER 미고지, RPY partial). violations 2 는 L3 확정값이고 LLM 이 없으면 suspected 로 남는다"
   }
 }

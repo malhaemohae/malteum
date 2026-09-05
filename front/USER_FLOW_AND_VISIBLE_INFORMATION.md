@@ -216,7 +216,7 @@
 
 현재 백엔드 fixture와 `assets/scenarios/preset-loan-b`의 기준은 다음이다.
 
-- 팩: `LOAN-2026.08-v6`
+- 팩: `LOAN-2026.08-v7`
 - 상품: `하나은행 가계 신용대출`
 - 상품 코드: `HNB-HOUSEHOLD-CREDIT`
 - 필수 항목: 금리 구성·변동금리 위험, 금리인하요구권, 연체이자율, 중도상환수수료, DSR, 청약철회권, 신용정보 조회·동의
@@ -261,7 +261,7 @@
 
 | 상태 | 항목 | 현재 동작 |
 | --- | --- | --- |
-| 해결 | 상품·팩 불일치 | 프론트가 `ICBC-KRW-TD / DEP-2026.08-v4`와 `HNB-HOUSEHOLD-CREDIT / LOAN-2026.08-v6`를 사용하고 서버 preset·briefing과 맞춘다 |
+| 해결 | 상품·팩 불일치 | 프론트가 `ICBC-KRW-TD / DEP-2026.08-v4`와 `HNB-HOUSEHOLD-CREDIT / LOAN-2026.08-v7`를 사용하고 서버 preset·briefing과 맞춘다 |
 | 해결 | LIVE 시작 행동 | LIVE에서는 브리핑 후 대시보드의 `녹음 시작` 버튼을 눌러야 마이크가 켜지도록 문구·튜토리얼·실행을 일치시켰다 |
 | 해결 | 서버 TRACE | 서버 이력의 `TRACE 재생`은 `POST /api/sessions`에 `source_session_id`를 보내고 서버 WS를 연결한다 |
 | 해결 | replay preset | preset 목록을 조회하고 `audio_ref`를 세션 생성에 전달한다. 시연 자산 경로도 안전한 기본값으로 보완한다 |
@@ -313,7 +313,7 @@
 - `back/contracts/api.openapi.yaml`: REST path, 응답, 인증, status code
 - `back/contracts/fixtures/README.md`: 현재 fixture의 정본 목록과 시나리오 A 요약
 - `back/contracts/fixtures/rulepack_DEP-2026.08-v4.json`: 현재 예금 팩
-- `back/contracts/fixtures/rulepack_LOAN-2026.08-v6.json`: 현재 가계 신용대출 팩
+- `back/contracts/fixtures/rulepack_LOAN-2026.08-v7.json`: 현재 가계 신용대출 팩
 - `back/contracts/fixtures/events_scenario_a.json`: 서버 trace/report 테스트 입력
 - `assets/scenarios/SCRIPT.md`: 시나리오 대사·시각·기대 판정·오디오 제약
 
@@ -354,7 +354,7 @@
 2026-09-05 현재 다음을 확인했다.
 
 - 프론트 `npx tsc --noEmit`: 통과
-- 현재 `DEP-2026.08-v4`·`LOAN-2026.08-v6` fixture의 pack version·상품명·상품 코드·항목 수: 대조 완료
+- 현재 `DEP-2026.08-v4`·`LOAN-2026.08-v7` fixture의 pack version·상품명·상품 코드·항목 수: 대조 완료
 - 프론트 대시보드의 `100vh/overflow:hidden`과 transcript/checklist/evidence 내부 목록 스크롤: CSS·JSX 대조 완료
 - `back/.venv`: `uv sync --dev --link-mode=copy` 완료. 선언된 런타임·개발 의존성 설치와 핵심 모듈 import 확인
 - 실제 `back/.venv` 서버 핵심 테스트: `13 passed, 8 warnings`

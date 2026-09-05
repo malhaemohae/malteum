@@ -6,7 +6,8 @@ fixture 는 손으로 옮겨 적는다. 아무 테스트도 둘을 비교하지 
 numeric_facts, `contracts/fixtures/README.md` 참조)가 소리 없이 지워진다.
 의도된 드리프트를 allowlist 로 못박아 양방향 모두 빨간 테스트가 되게 한다.
 
-대출 fixture(`LOAN-2026.08-v6`, 2026-09-05)도 같은 대조를 받는다. 서버의 `pack_dir`
+대출 fixture(`LOAN-2026.08-v7`, 2026-09-05)와 예금 v5(같은 날)도 같은 대조를 받는다. 서버의
+`pack_dir`
 이 fixtures 폴더라 이 파일이 시연 서버가 읽는 대출 팩 그 자체다.
 """
 
@@ -25,8 +26,8 @@ PACKS = {
     # 2026-09-03 예금 v4 를 canonical 에서 다시 발행하면서 옛 원천 0.10% 임시 부채
     # (`DEP-INT-002` numeric_facts · numeric l1 패턴)가 사라졌다. 이제 두 팩 모두
     # 드리프트 0 이 정상이고, 하나라도 생기면 fixture 를 손으로 고친 것이다.
-    "deposit": ("rulepack_DEP-2026.08-v4.json", set(), set()),
-    "loan": ("rulepack_LOAN-2026.08-v6.json", set(), set()),
+    "deposit": ("rulepack_DEP-2026.08-v5.json", set(), set()),
+    "loan": ("rulepack_LOAN-2026.08-v7.json", set(), set()),
 }
 
 # compiler._schema_item 이 번들에서 팩으로 옮기는 내용 키. 승인 메타(approved_*)와

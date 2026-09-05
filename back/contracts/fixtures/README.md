@@ -4,8 +4,9 @@
 
 | 파일 | 무엇 | 누가 쓰나 |
 | --- | --- | --- |
-| `rulepack_DEP-2026.08-v4.json` | 규정 팩 실물 1건. 항목 9개 (risk 타입 1개 포함). 중도해지 상담용. 2026-09-03 canonical 에서 재발행(옛 원천 0.10% 제거, 세율 15.4% 숫자 사실 추가) | M3 발행 결과의 정답 · M2 로드 테스트 입력 · 시연 서버가 읽는 예금 팩 |
-| `rulepack_LOAN-2026.08-v6.json` | 가계 신용대출 팩. 항목 10개 (forbidden 2개 · reference 1개 포함, 숫자 사실 3건, 금리인하요구권·필요 서류 포함. 2026-09-05 발행). 시연 B(금리·한도 안내)용. 이벤트·판정 케이스와 교차 검증은 하지 않고 스키마·근거 실재만 본다 | 시연 서버가 읽는 대출 팩(`pack_dir` 이 이 폴더) |
+| `rulepack_DEP-2026.08-v4.json` | 예금 팩 옛 버전. 항목 9개 (risk 타입 1개 포함). 서버 `default_pack_version` · 시연 A 대본 · 이벤트 fixture · M1/M2 테스트가 이 파일명을 고정하고 있어 v5 발행 뒤에도 남겨 둠(2026-09-05). 그 고정을 옮기면 제거 |
+| `rulepack_DEP-2026.08-v5.json` | 예금 팩 최신. 항목 12개 (required 8 · forbidden 1 · reference 2 · risk 1). 2026-09-05 위법계약해지권 · 지급제한 사유 · 해지 서류 추가. canonical 대조 테스트가 보는 예금 팩 | M3 발행 결과의 정답 · M2 로드 테스트 입력 · 시연 서버가 읽는 예금 팩 |
+| `rulepack_LOAN-2026.08-v7.json` | 가계 신용대출 팩. 항목 15개 (required 11 · forbidden 2 · reference 1 · risk 1, 숫자 사실 5건). 2026-09-05 발행. 기한이익상실 · 상환방식 · 인지세 · 위법계약해지권 · 대출빙자 위험 신호 추가. 시연 B(금리·한도 안내)용. 이벤트·판정 케이스와 교차 검증은 하지 않고 스키마·근거 실재만 본다 | 시연 서버가 읽는 대출 팩(`pack_dir` 이 이 폴더) |
 | `events_scenario_a.json` | 시연 시나리오 A(중도해지 상담)의 이벤트 열 48건. `assets/scenarios/preset-dep-a/script.json` 에서 `scripts/gen_scenario_trace.py` 로 생성 | trace 재생 · 리포트 생성 · 접기 함수 테스트 |
 | `ws_messages.json` | c2s·s2c 메시지 26건 | M4 프런트 개발 시 서버 없이 화면 그리기 |
 | `judge_cases.json` | 판정 입출력 쌍 17건 | M2 엔진의 통과 기준 |

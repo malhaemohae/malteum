@@ -176,7 +176,7 @@ recall@3 실패는 `DEP-PRO-001`(6위) · `DEP-LIM-001`(4위) 둘. 대출은 쉬
 
 재현 조건 세 가지를 지켜야 이 표와 대조가 된다.
 
-- **팩 경로를 명시한다.** 예금은 `contracts/fixtures/rulepack_DEP-2026.08-v4.json`, 대출은 `contracts/fixtures/rulepack_LOAN-2026.08-v6.json`. 인자 없는 기본 실행은 `rulepack/artifacts/` 의 로컬 팩을 집는데, 그 폴더에는 옛 3항목짜리 검증용 팩이 남아 있을 수 있어 수치가 통째로 어긋난다
+- **팩 경로를 명시한다.** 예금은 `contracts/fixtures/rulepack_DEP-2026.08-v5.json`, 대출은 `contracts/fixtures/rulepack_LOAN-2026.08-v7.json`. 인자 없는 기본 실행은 `rulepack/artifacts/` 의 로컬 팩을 집는데, 그 폴더에는 옛 3항목짜리 검증용 팩이 남아 있을 수 있어 수치가 통째로 어긋난다
 - **측정 검색면은 `pack_embeddings` 기준이다**(예시·쉬운 말마다 행 하나, 항목 점수는 행 최고점). 엔진의 `MemoryVectorIndex` 는 항목 전체를 한 문자열로 합쳐 벡터 하나만 만들므로(`engine/adapters/vector_index/memory.py` 의 `item_text`) 이 표의 수치가 그 경로로 그대로 옮겨지지 않는다. 두 검색면이 통일되기 전까지 이 표는 행 단위 검색면의 수치다
 - `DEP-BAN-001` 예시 보강(9/1) 후 "만기 지나도 금리 그대로예요"가 1위(0.913)인 것은 골든 발화와 예시 문장이 거의 같아서다. 이 케이스는 예시가 검색면에 실렸는지의 확인용이고, 일반화(다르게 표현한 위반 발화)는 별도 패러프레이즈 케이스가 필요하다
 

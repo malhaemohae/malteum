@@ -64,6 +64,30 @@
       "kind": "related"
     },
     {
+      "id": "dep-doc2-termination-documents",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "해지하려면 통장이랑 도장 가져와야 하나요?",
+      "expected": ["DEP-DOC-002"],
+      "kind": "related"
+    },
+    {
+      "id": "dep-ter1-illegal-contract",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "가입할 때 설명을 안 해줬으면 계약 해지 요구할 수 있나요?",
+      "expected": ["DEP-TER-001"],
+      "kind": "related"
+    },
+    {
+      "id": "dep-pay1-payment-restriction",
+      "product": "deposit",
+      "speaker": "customer",
+      "utterance": "계좌에 압류가 걸리면 이자도 못 받나요?",
+      "expected": ["DEP-PAY-001"],
+      "kind": "related"
+    },
+    {
       "id": "dep-ban1-after-maturity-assertion",
       "product": "deposit",
       "speaker": "teller",
@@ -178,6 +202,46 @@
       "speaker": "customer",
       "utterance": "서류는 뭐 준비해야 하나요? 재직증명서도 필요해요?",
       "expected": ["LOAN-DOC-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-exp1-acceleration",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "이자 한 달 밀리면 대출 전부 갚으라고 하나요?",
+      "expected": ["LOAN-EXP-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-rpy1-repayment-method",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "원리금균등이랑 만기일시 중에 뭐가 이자가 덜 나가요?",
+      "expected": ["LOAN-RPY-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-fee1-stamp-duty",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "대출 받을 때 인지세 같은 비용도 따로 내요?",
+      "expected": ["LOAN-FEE-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-ter1-illegal-contract",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "설명을 제대로 안 해줬으면 나중에 계약 해지 요구할 수 있어요?",
+      "expected": ["LOAN-TER-001"],
+      "kind": "related"
+    },
+    {
+      "id": "loan-vph1-refinance-scam",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "저금리로 갈아타 준다는 문자가 와서 앱을 깔았는데 그 계좌로 먼저 갚으면 되죠?",
+      "expected": ["LOAN-VPH-001"],
       "kind": "related"
     },
     {

@@ -1,5 +1,5 @@
 {
-  "audit_version": "2026-08-30",
+  "audit_version": "2026-09-05",
   "default": {
     "status": "unverified",
     "reason": "공식 1차 출처와 후보별 시행 기준 대조 미완료"
@@ -55,6 +55,27 @@
       "checked_at": "2026-08-26",
       "official_url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/예금거래기본약관(개정후).pdf",
       "reason": "공식 게시 파일과 로컬 원천의 SHA-256 및 페이지 수가 일치"
+    },
+    "DEP-DOC-002": {
+      "status": "confirmed",
+      "source_doc_id": "03_예금거래기본약관",
+      "source_sha256": "126ac2b135444466e52592598cd66bd39ecb92d14336efdbf291c5001027d01b",
+      "checked_at": "2026-09-05",
+      "reason": "은행연합회 표준약관(씨티은행 게시본) 제10조 지급·해지청구. 해시 일치"
+    },
+    "DEP-TER-001": {
+      "status": "confirmed",
+      "source_doc_id": "05_상품설명서_정기예금",
+      "source_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "checked_at": "2026-09-05",
+      "reason": "심의 유효기간 내 원화정기예금 설명서 p.3 위법계약해지권 행사 기간(5년·1년). 법 제47조"
+    },
+    "DEP-PAY-001": {
+      "status": "confirmed",
+      "source_doc_id": "05_상품설명서_정기예금",
+      "source_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "checked_at": "2026-09-05",
+      "reason": "심의 유효기간 내 원화정기예금 설명서 p.1 원금·이자 지급제한 사유. 시행령 제13조제5항 제4호에 대응"
     },
     "DEP-BAN-001": {
       "status": "confirmed",
@@ -128,6 +149,34 @@
       "checked_at": "2026-09-05",
       "reason": "구비서류 목록이 있는 유일한 공식 원천인 BEST 신용대출 상품 공시(심의필 제2025-상품공시-1055호, 유효 2025.12.26~2027.11.30) 웹페이지 스냅샷. 은행 배포 PDF 3종에는 구비서류 문구가 없어 검토 대기였음"
     },
+    "LOAN-EXP-001": {
+      "status": "confirmed",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-09-05",
+      "reason": "2025.01 개정 공식 설명서 p.7 기한이익상실 안내. 시행령 제13조제6항 제2호·제3호(신용에 미치는 영향 · 연체에 따른 그 밖의 불이익)에 대응"
+    },
+    "LOAN-RPY-001": {
+      "status": "confirmed",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-09-05",
+      "reason": "2025.01 개정 공식 설명서 p.6 상환방법별 총 원리금 부담액 안내. 법 제19조제1항제1호라목2)에 대응"
+    },
+    "LOAN-FEE-001": {
+      "status": "confirmed",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-09-05",
+      "reason": "2025.01 개정 공식 설명서 p.2 인지세 안내. 법 제19조제1항제1호라목4)(부담 총액)에 대응. 인지세액 표는 은행·고객 분담 전 총액이라 숫자 사실로 두지 않음"
+    },
+    "LOAN-TER-001": {
+      "status": "confirmed",
+      "source_doc_id": "06_상품설명서_가계대출",
+      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "checked_at": "2026-09-05",
+      "reason": "2025.01 개정 공식 설명서 p.3 위법계약해지권 행사 기간(5년·1년). 법 제47조"
+    },
     "LOAN-BAN-001": {
       "status": "confirmed",
       "source_doc_id": "01_금융소비자보호법",
@@ -143,6 +192,13 @@
       "checked_at": "2026-08-26",
       "official_url": "https://www.law.go.kr/lsLinkCommonInfo.do?lsJoLnkSeq=1029913371",
       "reason": "현행 금융소비자보호법 제20조와 로컬 원문 span 일치 확인"
+    },
+    "LOAN-VPH-001": {
+      "status": "confirmed",
+      "source_doc_id": "10_보이스피싱_피해예방_10계명",
+      "source_sha256": "6aab0530eea252725f3c5215519ba635d7d1aabf2ac2b32a4443e0da2040f8c3",
+      "checked_at": "2026-09-05",
+      "reason": "금융위원회 2026-02-10 보도자료 PDF p.3 대출빙자형 수법. 07 대책 문서에는 대출빙자 문구가 없어 원천 추가"
     }
   }
 }
