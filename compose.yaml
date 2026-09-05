@@ -98,6 +98,25 @@ services:
       retries: 30             # 첫 기동은 가중치를 내려받고 올리느라 몇 분 걸린다
       start_period: 120s
 
+  # 심사위원이 보는 화면. nginx 가 `/` 를 3000 으로 넘긴다(deploy/nginx/malteum.conf).
+  # 없으면 API 는 멀쩡한데 루트가 502 다
+  front:
+    build:
+      context: ./front
+      args:
+        # 브라우저가 아니라 이 컨테이너가 부르는 주소라 compose 망 안쪽 이름을 쓴다
+        MALTEUM_BACKEND_URL: http://server:8000
+        # 브라우저가 읽는 값이라 빌드 때 번들에 박힌다. **비워 두는 것이 기본이다** —
+        # 비면 프런트가 자기 주소에서 `wss://<호스트>/ws` 를 만들어 nginx 를 그대로 타고,
+        # 도메인이 바뀌어도 다시 안 구워도 된다. 백엔드가 다른 호스트일 때만 절대 URL
+        NEXT_PUBLIC_MALTEUM_WS_URL: ${NEXT_PUBLIC_MALTEUM_WS_URL:-}
+        NEXT_PUBLIC_MALTEUM_API_BASE_URL: /api
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "${FRONT_PORT:-3000}:3000"
+
 volumes:
   pgdata:
   hfcache:
