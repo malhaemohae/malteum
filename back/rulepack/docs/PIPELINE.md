@@ -5,7 +5,7 @@
 ## 데이터 흐름
 
 ```
-assets/03_규정문서/*.pdf  (7종)
+assets/03_규정문서/*.pdf  (8종. 08 은 웹 공시 스냅샷)
     │  source_manifest.py    MANIFEST 파싱 · SHA-256 · page_count · 파서 버전 고정
     ▼
 구조 JSON
