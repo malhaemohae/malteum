@@ -12,9 +12,10 @@ def test_fixture_pack_loads(pack_json):
     pack = load_pack(FakePackSource(pack_json), PACK_VERSION)
     assert pack.pack_version == PACK_VERSION
     assert pack.embedding_dim == 384
-    assert len(pack.items) == 9
+    assert len(pack.items) == 12  # v6: required 8 · forbidden 1 · reference 2 · risk 1
     assert [it.code for it in pack.required_items()] == [
         "DEP-INT-001", "DEP-INT-002", "DEP-INT-003", "DEP-PRO-001", "DEP-TAX-001", "DEP-LIM-001",
+        "DEP-TER-001", "DEP-PAY-001",
     ]  # fmt: skip
     assert [it.code for it in pack.forbidden_items()] == ["DEP-BAN-001"]
     assert pack.item("DEP-DOC-001").type == "reference"

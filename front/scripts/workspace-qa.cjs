@@ -61,7 +61,7 @@ if(require.main===module) (async () => {
   // Catalog-only fixtures for layout QA when PostgreSQL is unavailable. Sessions,
   // WebSocket judgement, evidence, events and reports still use the real backend.
   if (fixtureCatalog) {
-    const packs = ['DEP-2026.08-v4','LOAN-2026.08-v5'].map(version => JSON.parse(fs.readFileSync(path.resolve(__dirname,`../../back/contracts/fixtures/rulepack_${version}.json`),'utf8')));
+    const packs = ['DEP-2026.08-v6','LOAN-2026.08-v7'].map(version => JSON.parse(fs.readFileSync(path.resolve(__dirname,`../../back/contracts/fixtures/rulepack_${version}.json`),'utf8')));
     const docs = [...new Map(packs.flatMap(pack=>pack.sources).map(source=>[source.doc_id,source])).values()];
     await page.route('**/api/packs**', route => {
       const pathname=decodeURIComponent(new URL(route.request().url()).pathname);

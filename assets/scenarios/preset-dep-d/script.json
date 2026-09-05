@@ -1,0 +1,310 @@
+{
+  "preset_id": "preset-dep-d",
+  "title": "정기예금 신규 가입 상담",
+  "pack_version": "DEP-2026.08-v6",
+  "product_code": "ICBC-KRW-TD",
+  "mode": "replay",
+  "customer_profile": {
+    "type": "general",
+    "tags": []
+  },
+  "duration_ms": 160380,
+  "audio": {
+    "output": "audio.wav",
+    "sample_rate": 16000,
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "min_gap_ms": 1000,
+    "gap_ms": 1200,
+    "alert_gap_ms": 4000,
+    "tts_model": "eleven_multilingual_v2",
+    "placement": "클립을 앞 클립 끝 + gap_ms 에 이어 놓는다. 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 gap_ms 대신 alert_gap_ms 를 둔다. 화자가 바뀌는 자리의 무음(min_gap_ms 이상)이 화자 분리가 발화를 가르는 조건. start_ms 는 추정치라 make_scenario_audio.py --write-start 가 되쓴다"
+  },
+  "speakers": {
+    "teller": {
+      "name": "박민수",
+      "voice": "30대 남성, 차분한 톤",
+      "desc": "가상 인물. 은행 창구 직원",
+      "tts": {
+        "provider": "elevenlabs",
+        "voice_id": "CxErO97xpQgQXYmapDKX",
+        "speed": 1.0
+      }
+    },
+    "customer": {
+      "name": "이수진",
+      "voice": "30대 여성, 보통 톤",
+      "desc": "가상 인물. 정기예금 신규 가입 고객",
+      "tts": {
+        "provider": "elevenlabs",
+        "voice_id": "8jHHF8rMqMlg8if2mOUe",
+        "speed": 1.0
+      }
+    }
+  },
+  "diarization_hint": {
+    "first_speaker": "customer",
+    "turn_order": "customer 가 먼저 말하고 이후 교대로. 같은 화자가 연속으로 말하는 구간은 lines 의 speaker 열이 진실",
+    "voices_distinct": "남성·여성으로 갈라 화자 분리 정확도를 높인다"
+  },
+  "pack_note": "기대 판정은 DEP-2026.08-v6 기준. A(해지)와 짝을 이루는 가입 상담이다. 필수 8항목을 전부 고지해 끝에는 미고지가 0 인 '깨끗한 리포트' 를 보여준다. 결함은 세 번 나온다. 금지 발언(L2 예시 유사도) · 숫자 오류(위법계약해지 기한 3년 ↔ 5년) · 위험 신호(아들이 알려준 계좌). 2026-09-05 추가 항목 3건 중 required 둘(위법계약해지권 · 지급제한 사유)이 들어가고, 지급제한의 '질권' 에서 되물음 재진술이 난다",
+  "lines": [
+    {
+      "id": "D01",
+      "start_ms": 3000,
+      "speaker": "customer",
+      "text": "안녕하세요. 여유 자금이 좀 생겨서 1년짜리 정기예금에 넣어 두려고요.",
+      "tts_text": "안녕하세요. 여유 자금이 좀 생겨서 일 년짜리 정기예금에 넣어 두려고요.",
+      "expect": [],
+      "note": "가입 문의 = 계약 체결 권유 상황. 금소법 §19① 첫째 분기로 설명의무 발동. 물음표 없이"
+    },
+    {
+      "id": "D02",
+      "start_ms": 9855,
+      "speaker": "teller",
+      "text": "네, 12개월 만기 기본이자율은 연 3.2%이고, 자동이체 조건을 채우시면 우대이자율이 더해집니다.",
+      "tts_text": "네, 십이 개월 만기 기본이자율은 연 삼 점 이 퍼센트이고, 자동이체 조건을 채우시면 우대이자율이 더해집니다.",
+      "expect": [
+        "verdict DEP-INT-001 omission met L1"
+      ],
+      "note": "적용 이자율과 우대 조건. 3.2% 는 팩에 숫자 사실이 없어 대조되지 않음. '1년 만기' 라고 하면 위법계약해지권의 '1년' 패턴 + 숫자 맥락으로 TER partial 이 먼저 뜬다(실측). '12개월' 로 피함"
+    },
+    {
+      "id": "D03",
+      "start_ms": 19030,
+      "speaker": "teller",
+      "text": "받으시는 이자에는 과세가 되고, 세율은 15.4%입니다.",
+      "tts_text": "받으시는 이자에는 과세가 되고, 세율은 십오 점 사 퍼센트입니다.",
+      "expect": [
+        "verdict DEP-TAX-001 omission met L1",
+        "alert 없음 (15.4% == 설명서 p.1)"
+      ],
+      "note": "세금. A 와 달리 처음부터 맞는 숫자"
+    },
+    {
+      "id": "D04",
+      "start_ms": 27525,
+      "speaker": "teller",
+      "text": "만기 전에 중도해지하시면 중도해지이율이 적용되어 이자가 줄어듭니다.",
+      "expect": [
+        "verdict DEP-INT-002 omission partial L1 (빠진 요소: 차감률 또는 산출식)",
+        "assist nudge missing_item DEP-INT-002 (LLM 필요)"
+      ],
+      "l3": [
+        {
+          "verdict": {
+            "item_code": "DEP-INT-002",
+            "axis": "omission",
+            "state": "partial",
+            "missing_elements": [
+              "차감률 또는 산출식"
+            ]
+          }
+        },
+        {
+          "nudge": "DEP-INT-002"
+        }
+      ],
+      "note": "부분 고지. 요소 2개(불이익 · 적용 이율)로 partial, 산식이 빠졌다는 넛지가 L3 뒤에 붙는다"
+    },
+    {
+      "id": "D05",
+      "start_ms": 36890,
+      "speaker": "teller",
+      "text": "그리고 이 예금은 중간에 해지하셔도 손해 보실 일은 없습니다.",
+      "expect": [
+        "verdict DEP-BAN-001 commission suspected L2",
+        "alert forbidden_phrase warning DEP-BAN-001",
+        "verdict DEP-BAN-001 commission violated L3 (LLM 필요)"
+      ],
+      "l3": [
+        {
+          "verdict": {
+            "item_code": "DEP-BAN-001",
+            "axis": "commission",
+            "state": "violated"
+          }
+        }
+      ],
+      "note": "금지 발언. 팩 forbidden_examples 의 문장 그대로라 L2 예시 유사도로 잡힌다. 직전 partial 고지와 모순. 첫 은행원 결함"
+    },
+    {
+      "id": "D06",
+      "start_ms": 45820,
+      "speaker": "customer",
+      "text": "그래요. 그럼 마음 편하게 넣어도 되겠네요.",
+      "expect": [],
+      "note": "고객이 틀린 안내를 믿는 장면"
+    },
+    {
+      "id": "D07",
+      "start_ms": 50500,
+      "speaker": "teller",
+      "text": "아, 정확히 다시 말씀드리겠습니다. 중도해지하시면 중도해지이율이 적용되는데, 약정이율에 경과기간별 차감률을 곱해서 계산하기 때문에 이자가 많이 줄어듭니다.",
+      "expect": [
+        "verdict DEP-INT-002 omission met L1"
+      ],
+      "l3": [
+        {
+          "adopt": {
+            "assist_type": "nudge",
+            "item_code": "DEP-INT-002"
+          }
+        }
+      ],
+      "note": "정정이 곧 넛지 채택. '차감률' 로 빠진 요소가 채워져 partial → met. '손해' 라는 단어를 다시 쓰지 않는다(금지 예시와 재충돌 방지)"
+    },
+    {
+      "id": "D08",
+      "start_ms": 64170,
+      "speaker": "teller",
+      "text": "만기 후에는 만기후이자율이 적용되어 기간이 지날수록 낮아집니다.",
+      "expect": [
+        "verdict DEP-INT-003 omission met L1"
+      ],
+      "note": "만기 후 이자율. 두 키워드 모두"
+    },
+    {
+      "id": "D09",
+      "start_ms": 70445,
+      "speaker": "teller",
+      "text": "이 예금은 예금자보호법에 따라 원금과 이자를 합쳐 1인당 1억 원까지 보호되고, 저희 은행의 다른 예금과 합산해서 계산됩니다.",
+      "tts_text": "이 예금은 예금자보호법에 따라 원금과 이자를 합쳐 일인당 일억 원까지 보호되고, 저희 은행의 다른 예금과 합산해서 계산됩니다.",
+      "expect": [
+        "verdict DEP-PRO-001 omission met L1"
+      ],
+      "note": "예금자보호 3요소 전부(대상 · 1억 · 합산). A 에서는 합산을 빼 partial 로 두었던 항목. STT 가 '1억' 을 숫자로 내야 한도 요소가 잡힘"
+    },
+    {
+      "id": "D10",
+      "start_ms": 81795,
+      "speaker": "teller",
+      "text": "이 예금은 일부해지가 안 되고, 해지하시면 전액이 한 번에 나옵니다.",
+      "expect": [
+        "verdict DEP-LIM-001 omission met L1"
+      ],
+      "note": "일부해지 제한. A 에서 끝까지 미고지였던 항목. 요소가 하나라 키워드 하나로 met"
+    },
+    {
+      "id": "D11",
+      "start_ms": 88505,
+      "speaker": "teller",
+      "text": "계좌에 압류나 가압류, 질권이 설정되면 원금과 이자 지급이 제한됩니다.",
+      "expect": [
+        "verdict DEP-PAY-001 omission met L1"
+      ],
+      "note": "원금·이자 지급제한 사유(2026-09-05 추가, 시행령 §13⑤ 4호)"
+    },
+    {
+      "id": "D12",
+      "start_ms": 95360,
+      "speaker": "customer",
+      "text": "네에, 질권설정이 뭐예요?",
+      "tts_text": "네에... 질권설정이 뭐예요?",
+      "expect": [
+        "verdict DEP-PAY-001 comprehension explained L2",
+        "assist rephrase customer_reask DEP-PAY-001 text=계좌에 압류·가압류·질권설정이 걸리면 원금과 이자를 찾을 수 없습니다."
+      ],
+      "note": "⑥-B 되물음. 직전에 설명된 PAY 가 대상. '질권이 뭐예요' 라고 하면 유사도가 예금자보호(PRO) 쪽으로 붙어 엉뚱한 카드가 떴다(실측). 팩 문구와 같은 '질권설정' 으로"
+    },
+    {
+      "id": "D13",
+      "start_ms": 101390,
+      "speaker": "teller",
+      "text": "계좌에 압류나 가압류, 질권설정이 걸리면 원금과 이자를 찾을 수 없다는 뜻입니다.",
+      "expect": [],
+      "l3": [
+        {
+          "adopt": {
+            "assist_type": "rephrase",
+            "item_code": "DEP-PAY-001"
+          }
+        }
+      ],
+      "note": "재진술 카드를 따라 말함. PAY 는 이미 met 이라 판정 없음"
+    },
+    {
+      "id": "D14",
+      "start_ms": 109115,
+      "speaker": "customer",
+      "text": "아, 다른 데서 걸어 놓은 게 있으면 못 찾는다는 거네요.",
+      "expect": [],
+      "l3": [
+        {
+          "verdict": {
+            "item_code": "DEP-PAY-001",
+            "axis": "comprehension",
+            "state": "confirmed"
+          }
+        }
+      ],
+      "note": "이해 확인(L3). 물음표 없이"
+    },
+    {
+      "id": "D15",
+      "start_ms": 114955,
+      "speaker": "teller",
+      "text": "가입 후에 설명이 잘못됐다고 판단되시면 위법계약 해지를 요구하실 수 있고, 계약서류를 받은 날부터 3년 안에 하셔야 합니다.",
+      "tts_text": "가입 후에 설명이 잘못됐다고 판단되시면 위법계약 해지를 요구하실 수 있고, 계약서류를 받은 날부터 삼 년 안에 하셔야 합니다.",
+      "expect": [
+        "verdict DEP-TER-001 omission met L1",
+        "alert number_mismatch warning said=3년 reference=5년"
+      ],
+      "note": "⑤ 숫자 오류. 위법계약해지권(2026-09-05 추가, 법 §47)의 기한은 5년. 항목은 설명했으니 met(요소 '받은 날부터' 가 기간 요소를 채움), 숫자는 별개 축"
+    },
+    {
+      "id": "D16",
+      "start_ms": 128960,
+      "speaker": "teller",
+      "text": "죄송합니다, 기간을 정확히 말씀드리면 계약서류를 받은 날부터 5년, 위반을 안 날부터 1년 안에 요구하실 수 있습니다.",
+      "tts_text": "죄송합니다, 기간을 정확히 말씀드리면 계약서류를 받은 날부터 오 년, 위반을 안 날부터 일 년 안에 요구하실 수 있습니다.",
+      "expect": [
+        "alert 없음 (5년 · 1년 == 설명서 p.3)"
+      ],
+      "note": "숫자 정정. 두 숫자가 모두 사실과 같아 경보 0"
+    },
+    {
+      "id": "D17",
+      "start_ms": 142530,
+      "speaker": "customer",
+      "text": "네, 그럼 가입할게요. 돈은 아들이 알려준 계좌에서 옮겨 넣으면 되겠죠.",
+      "expect": [
+        "alert risk_signal critical DEP-RSK-001 (verdict 없음)"
+      ],
+      "note": "⑦ 위험 신호. L1 정규식 '아들이 알려준' 적중. 물음표 없이 끝냄"
+    },
+    {
+      "id": "D18",
+      "start_ms": 152330,
+      "speaker": "teller",
+      "text": "아드님 계좌라면 본인 확인이 먼저 필요합니다. 실명확인증표, 신분증을 먼저 보여주시겠어요?",
+      "expect": [],
+      "note": "마무리. 필요 서류(DEP-DOC-001 실명확인증표) 언급. 은행원 발화라 되물음 패턴 대상 아님"
+    }
+  ],
+  "expected_summary": {
+    "items_total": 8,
+    "met": 8,
+    "partial": 0,
+    "unmet": 0,
+    "waived": 0,
+    "violations": 1,
+    "alerts": 3,
+    "assists_adopted": 2,
+    "met_codes": [
+      "DEP-INT-001",
+      "DEP-TAX-001",
+      "DEP-INT-002",
+      "DEP-INT-003",
+      "DEP-PRO-001",
+      "DEP-LIM-001",
+      "DEP-PAY-001",
+      "DEP-TER-001"
+    ],
+    "unmet_codes": [],
+    "violated_codes": [
+      "DEP-BAN-001"
+    ],
+    "note": "DEP-2026.08-v6 기준. violations 1 과 assists_adopted 2(넛지 채택 · 재진술 채택)는 L3 가 붙었을 때의 값. alerts 3 = 금지 발언 1 · 숫자 오류 1 · 위험 신호 1"
+  }
+}

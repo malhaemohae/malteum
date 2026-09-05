@@ -39,7 +39,7 @@ def bundles() -> dict[str, dict]:
 
 @pytest.fixture(scope="session")
 def run_manifest():
-    """원천 7종의 해시·쪽수·파서 신원. 쪽수와 원천 수의 진실 원천이다."""
+    """원천 전체의 해시·쪽수·파서 신원. 쪽수와 원천 수의 진실 원천이다."""
     from rulepack.source_manifest import build_run_manifest
 
     return build_run_manifest(REPO_ROOT)

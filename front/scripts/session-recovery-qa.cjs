@@ -19,13 +19,13 @@ function open(id, mode) {
   return { ws, messages, wait: async predicate => { const until = Date.now() + 25000; while (!messages.some(predicate) && Date.now() < until) await new Promise(resolve => setTimeout(resolve, 80)); assert.ok(messages.some(predicate), `WS condition not met: ${JSON.stringify(messages.map(m => ({t:m.t,code:m.code})))}`); } };
 }
 async function seed(empty = false, mode = 'text') {
-  const session = await request('/sessions', { mode, pack_version: 'DEP-2026.08-v4', ...(mode === 'replay' ? { preset_id: 'preset-dep-a', audio_ref: 'scenarios/preset-dep-a/audio.wav' } : {}) });
+  const session = await request('/sessions', { mode, pack_version: 'DEP-2026.08-v6', ...(mode === 'replay' ? { preset_id: 'preset-dep-a', audio_ref: 'scenarios/preset-dep-a/audio.wav' } : {}) });
   created.push({ id: session.session_id, mode });
   const connection = open(session.session_id, mode);
   try {
     await connection.wait(m => m.t === 'ready');
     if (!empty && mode === 'text') {
-      const pack = await request('/packs/DEP-2026.08-v4');
+      const pack = await request('/packs/DEP-2026.08-v6');
       connection.ws.send(JSON.stringify({ t: 'text_utterance', speaker: 'customer', text: '중도해지이율이 뭐예요?' }));
       await connection.wait(m => m.t === 'utterance');
       connection.ws.send(JSON.stringify({ t: 'mark_met', item_code: pack.items.find(i => i.type === 'required').code }));

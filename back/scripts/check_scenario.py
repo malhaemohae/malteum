@@ -244,11 +244,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--timeout", type=float, default=0, help="0 이면 대본 길이 + 60초")
     args = ap.parse_args(argv)
 
-    presets = (
-        [p.parent.name for p in sorted(SCENARIOS.glob("*/script.json"))]
-        if args.all
-        else [args.preset]
-    )
+    if args.all:
+        # 대본만 있고 음원이 아직 없는 프리셋(C · D 처럼)은 건너뛴다. 첫 미제작 대본에서
+        # SystemExit 로 죽으면 그 뒤 프리셋이 검사되지 않은 채 실패로 보인다 (2026-09-06).
+        presets = []
+        for p in sorted(SCENARIOS.glob("*/script.json")):
+            script = json.loads(p.read_text(encoding="utf-8"))
+            if (p.parent / script["audio"]["output"]).is_file():
+                presets.append(p.parent.name)
+            else:
+                print(f"건너뜀 {p.parent.name}: 음원 없음", file=sys.stderr)
+    else:
+        presets = [args.preset]
     if not presets or presets == [None]:
         ap.error("preset 을 주거나 --all 을 쓰세요")
 

@@ -32,8 +32,25 @@ POSITIVE = {
     "LOAN-DSR-001": "DSR을 산출해서 심사에 활용합니다.",
     "LOAN-WDR-001": "14일 안에 청약철회 의사를 밝히고 대출금을 반환하시면 됩니다.",
     "LOAN-CIC-001": "심사를 위해 신용정보를 조회하니 동의가 필요합니다.",
+    "LOAN-EXP-001": (
+        "이자를 한 달 넘게 연체하시면 기한이익이 상실되어 원금 전체를 한꺼번에 갚으셔야 하고 "
+        "연체 정보가 신용정보에 등록됩니다."
+    ),
+    "LOAN-RPY-001": (
+        "원리금균등으로 갚으실지 만기일시로 갚으실지에 따라 만기까지 내는 총 이자가 달라집니다."
+    ),
+    "LOAN-FEE-001": (
+        "대출 약정 때 인지세가 붙는데 5천만원 이하는 비과세이고 금액 구간에 따라 세액이 달라집니다."
+    ),
+    # '5년 안에서 … 1년 안에' 는 중도상환수수료의 `(년)(이내|안)` 패턴을 건드려 PRE partial 이
+    # 났던 문구(SCRIPT.md 3c). 대본 C 와 같은 '5년, … 1년까지' 로 둔다
+    "LOAN-TER-001": (
+        "설명의무 위반이 있었다면 위법계약해지를 요구할 수 있고, 계약 체결일부터 5년, "
+        "위반을 안 날부터 1년까지 가능합니다."
+    ),
     "LOAN-BAN-001": "심사는 무조건 승인됩니다.",
     "LOAN-RSK-001": "다른 상환방식은 안 됩니다.",
+    "LOAN-VPH-001": "저금리로 갈아타 준다는 문자를 받고 앱을 깔았어요.",
 }
 
 # 금지 패턴에 걸리면 안 되는 은행원 문장. 정정·정상 안내가 위반으로 뜨면 경보 무시가 시작된다
@@ -105,6 +122,24 @@ def test_loan_patterns_catch_natural_teller_sentences(rules) -> None:
         else:
             # 금지는 요소 하나만 걸려도 suspected 다 (matcher.forbidden_verdict)
             assert hit, f"{code}: '{sentence}' 를 못 잡음"
+
+
+def test_loan_positive_sentences_do_not_leak_into_other_required_items(rules) -> None:
+    """한 항목의 대표 문장이 다른 필수 항목의 요소를 2개 이상 채우면 그 항목이 잘못 met 된다.
+
+    숫자 단위(년 · % · 일)가 든 문장은 그 단위를 가진 다른 항목의 패턴까지 건드린다.
+    대본 C 의 위법계약해지 대사가 중도상환수수료 항목을 partial 로 만든 것이 그 예다
+    (SCRIPT.md 3c, 2026-09-06). 요소 1개 히트는 '주제 언급' 으로 판정되지 않으므로 허용한다.
+    """
+    by_code = {r["code"]: r for r in rules["loan"] if r["type"] == "required"}
+    for code, sentence in POSITIVE.items():
+        for other, rule in by_code.items():
+            if other == code:
+                continue
+            leaked = _hit_elements(rule, sentence)
+            assert len(leaked) < 2, (
+                f"{code} 문장이 {other} 의 요소 {sorted(leaked)} 를 채움: {sentence}"
+            )
 
 
 def test_loan_forbidden_patterns_do_not_hit_corrections(rules) -> None:

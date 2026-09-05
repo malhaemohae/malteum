@@ -9,7 +9,7 @@ const { reduceServer } = require('../lib/workspace-model.ts');
 const { nextAudioSequence, rememberAudioSequence } = require('../lib/session-index.ts');
 const fixture = name => JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../back/contracts/fixtures', name), 'utf8'));
 const events = fixture('events_scenario_a.json');
-const pack = fixture('rulepack_DEP-2026.08-v4.json');
+const pack = fixture('rulepack_DEP-2026.08-v6.json');
 const messages = fixture('ws_messages.json');
 const ready = messages.find(m => m.t === 'ready');
 const detail = { session_id: ready.session_id, pack_version: ready.pack_version, mode: 'replay', status: 'running', started_at: events[0].occurred_at, items: ready.items };

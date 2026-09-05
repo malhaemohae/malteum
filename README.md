@@ -15,7 +15,7 @@
 │   └── regwatch/     규정 개정 일일 감시 (임한빈). 완전 독립, 표준 라이브러리만
 ├── db/               init.sql (pgvector 확장)
 ├── docs/기획/         핵심기획안 (md·PDF) · 현장검증 인터뷰 · 검증 기록 · 와이어프레임. 구현의 컨텍스트
-├── assets/           03_규정문서/ (규정 PDF 7종) · scenarios/<id>/ (script.json 대본 · audio.wav 는 git 제외)
+├── assets/           03_규정문서/ (규정 PDF 10종. 08 은 웹 공시 스냅샷) · scenarios/<id>/ (script.json 대본 · audio.wav 는 git 제외)
 └── compose.yaml      postgres16+pgvector · server
 ```
 

@@ -10,7 +10,7 @@ for (const extension of ['.ts', '.tsx']) {
 }
 const { landingPreview } = require('../lib/landing-preview.ts');
 const messages = require('../../back/contracts/fixtures/ws_messages.json');
-const pack = require('../../back/contracts/fixtures/rulepack_DEP-2026.08-v4.json');
+const pack = require('../../back/contracts/fixtures/rulepack_DEP-2026.08-v6.json');
 const events = require('../../back/contracts/fixtures/events_scenario_a.json');
 const Landing = require('../components/marketing-showcase.tsx').default;
 let starts = 0;

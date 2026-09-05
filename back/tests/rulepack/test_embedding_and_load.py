@@ -392,7 +392,7 @@ def test_load_rejects_pack_that_breaks_contract() -> None:
     from load_pack import LoadError, check_contract
 
     real = json.loads(
-        (REPO_ROOT / "back" / "contracts" / "fixtures" / "rulepack_DEP-2026.08-v4.json").read_text(
+        (REPO_ROOT / "back" / "contracts" / "fixtures" / "rulepack_DEP-2026.08-v6.json").read_text(
             encoding="utf-8"
         )
     )
