@@ -178,7 +178,10 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 await _assist(assist.ask(session, pipeline, msg.question, conn.send), conn)
             elif msg.t == "assist_request":
                 await _assist(
-                    assist.assist_request(session, pipeline, msg.assist_type, conn.send), conn
+                    assist.assist_request(
+                        session, pipeline, msg.assist_type, conn.send, msg.item_code
+                    ),
+                    conn,
                 )
     except WebSocketDisconnect:
         pass

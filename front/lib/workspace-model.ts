@@ -89,7 +89,7 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
       next.interventions = [...remaining, intervention].sort((a, b) => a.priority - b.priority);
     }
     if (kind === 'answer') next.query = { question: current.query?.question ?? '', answer: text, evidenceRef: reference, pending: false };
-    if (current.action?.kind === 'rephrase' && current.action.itemCode === message.item_code && kind === 'rephrase') next.action = { ...current.action, pending: false, message: '쉬운 말 안내가 도착했습니다.', result: { text, evidenceRef: reference } };
+    if (current.action?.kind === 'rephrase' && kind === 'rephrase' && (current.action.itemCode == null || current.action.itemCode === message.item_code)) next.action = { ...current.action, pending: false, itemCode: typeof message.item_code === 'string' ? message.item_code : current.action.itemCode, message: current.action.itemCode == null ? '직전 발화를 쉬운 말로 바꿨습니다.' : '쉬운 말이 상담 기록에 남았습니다.', result: { text, evidenceRef: reference } };
     if (current.action?.kind === 'acknowledge' && message.acknowledged === true && current.action.pending && current.action.ref === message.acknowledged_ref) next.action = { ...current.action, pending: false, message: '확인 기록이 서버에 저장됐습니다.' };
   }
   if (message.t === 'progress') next.progress = { met: Number(message.met), partial: Number(message.partial ?? 0), total: Number(message.items_total), density: typeof message.term_density === 'string' ? message.term_density : undefined };

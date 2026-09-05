@@ -189,3 +189,33 @@ def test_seq_continues_across_reconnect_and_resume_replays_the_gap():
     assert seqs == sorted(seqs), f"재전송이 순서를 잃었습니다: {seqs}"
     assert all(s > 0 for s in seqs), f"from_seq 이하를 다시 보냈습니다: {seqs}"
     assert ready["seq"] in seqs, "재접속 뒤 보낸 것도 로그에 남아야 한다"
+
+
+def test_assist_request_with_item_code_returns_that_items_plain_language():
+    """체크리스트의 `쉬운 말` 은 그 항목의 승인 문장이다(⑥-A). 직전 발화와 무관해야 한다.
+
+    서버가 `item_code` 를 무시하면 다른 항목의 문장이 돌아와 프런트가 15초를 기다렸다.
+    """
+    with _client() as client, client.websocket_connect("/ws") as sock:
+        sock.send_json({"t": "hello", "mode": "text", "session_id": "SMOKE-ASSIST-02"})
+        ready = sock.receive_json()
+        assert ready["t"] == "ready"
+        target = next(
+            item for item in ready["items"] if item.get("plain_language")
+        )
+        sock.send_json(
+            {"t": "assist_request", "assist_type": "rephrase", "item_code": target["item_code"]}
+        )
+        got = sock.receive_json()
+        while got["t"] == "ping":
+            got = sock.receive_json()
+        check_s2c(got)
+        assert got["t"] == "assist" and got["assist_type"] == "rephrase"
+        assert got["item_code"] == target["item_code"]
+        assert got["text"] == target["plain_language"][0]
+
+        sock.send_json({"t": "assist_request", "assist_type": "rephrase", "item_code": "NOPE-000"})
+        got = sock.receive_json()
+        while got["t"] == "ping":
+            got = sock.receive_json()
+        assert got["t"] == "error" and "팩에 없는 항목" in got["message"]

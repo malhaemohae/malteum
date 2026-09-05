@@ -40,14 +40,36 @@ async def ask(session: Session, pipeline: Pipeline, question: str, publish: Publ
 
 
 async def assist_request(
-    session: Session, pipeline: Pipeline, assist_type: str, publish: Publish
+    session: Session,
+    pipeline: Pipeline,
+    assist_type: str,
+    publish: Publish,
+    item_code: str | None = None,
 ) -> str | None:
     """기능 ⑥-B·②·④ 의 수동 버튼. 자동 트리거가 놓쳤을 때 사람이 보완한다(P3 방향).
 
-    계약의 `item_code` 는 아직 쓰지 않는다. engine 의 rephrase·documents·briefing 표면이
-    그 인자를 받지 않아, 여기서 받아 두면 무시되는 값이 하나 생긴다.
+    `item_code` 가 오면 **그 항목**의 쉬운 말이다(⑥-A 승인 문장, 실시간 비용 0). 은행원이
+    체크리스트에서 항목을 짚어 누른 것이라 직전 발화와 무관하게 그 항목을 돌려준다.
+    없으면 예전대로 직전 은행원 발화를 다시 말한다(⑥-B). 프런트가 `item_code` 를
+    보내는데 서버가 무시하면 다른 항목의 문장이 돌아와 화면이 15초를 헛되이 기다렸다.
     """
     engine = pipeline.engine
+    if assist_type == "rephrase" and item_code:
+        item = session.pack.item(item_code)
+        if item is None:
+            return f"팩에 없는 항목입니다: {item_code}"
+        if not item.plain_language:
+            return f"이 항목에는 승인된 쉬운 말이 없습니다: {item.name}"
+        source = session.last_teller_utterance
+        payload = AssistPayload(
+            assist_type="rephrase",
+            text=item.plain_language[0],
+            item_code=item.code,
+            trigger="manual_button",
+            source_utterance_ref=source.utterance_id if source else None,
+            evidence=item.evidence,
+        )
+        return await _publish(session, pipeline, payload, publish)
     if assist_type == "rephrase":
         source = session.last_teller_utterance
         if source is None:

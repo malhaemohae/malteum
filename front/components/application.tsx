@@ -74,7 +74,7 @@ export default function Application() {
     const tracked = ['mark_met', 'mark_waived', 'acknowledge'].includes(String(value.t)) || (value.t === 'assist_request' && value.assist_type === 'rephrase');
     if (tracked && current.current.action?.pending) return false;
     if (tracked) {
-      const action = { kind: value.t === 'assist_request' ? 'rephrase' : String(value.t), itemCode: typeof value.item_code === 'string' ? value.item_code : undefined, ref: typeof value.alert_ref === 'string' ? value.alert_ref : undefined, pending: true, message: value.t === 'assist_request' ? '쉬운 말 안내를 요청하고 있습니다.' : '변경 사항을 서버에 기록하고 있습니다.' };
+      const action = { kind: value.t === 'assist_request' ? 'rephrase' : String(value.t), itemCode: typeof value.item_code === 'string' ? value.item_code : undefined, ref: typeof value.alert_ref === 'string' ? value.alert_ref : undefined, pending: true, message: value.t === 'assist_request' ? (value.item_code ? '쉬운 말을 상담 기록에 남기고 있습니다.' : '직전 발화를 쉬운 말로 바꾸고 있습니다.') : '변경 사항을 서버에 기록하고 있습니다.' };
       update(previous => previous ? { ...previous, error: undefined, action } : previous);
       const id = current.current?.id;
       setTimeout(() => { if (current.current?.id === id && current.current.action === action && action.pending) update(previous => previous ? { ...previous, action: { ...action, pending: false, message: '서버 응답이 지연되고 있습니다. 다시 요청해 주세요.' } } : previous); }, 15000);
