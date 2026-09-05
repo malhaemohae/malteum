@@ -154,7 +154,8 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
     }
     setZoom(next); setMode('free');
   }
-  function go(next: number) { if (next < 1 || (pageCount && next > pageCount)) return; setPage(next); if (next !== value.page) { setMode('page'); } else setMode('focus'); }
+  // 페이지 수를 아직 모르면 다음 장이 있는지도 모른다. 앞으로는 못 가게 막는다.
+  function go(next: number) { if (next < 1 || (pageCount ? next > pageCount : next > page)) return; setPage(next); if (next !== value.page) { setMode('page'); } else setMode('focus'); }
   const url = sourceUrl(value.source_url);
   return <div className="wb-ev" onKeyDown={event => { if (event.key === 'ArrowLeft') go(page - 1); if (event.key === 'ArrowRight') go(page + 1); }}>
     <aside className="wb-ev-side">
@@ -170,7 +171,7 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
         <div className="wb-ev-pager" role="group" aria-label="페이지 이동">
           <button type="button" aria-label="이전 페이지" disabled={page <= 1} onClick={() => go(page - 1)}>‹</button>
           <span>p.{page}{pageCount ? ` / ${pageCount}` : ''}</span>
-          <button type="button" aria-label="다음 페이지" disabled={Boolean(pageCount && page >= pageCount)} onClick={() => go(page + 1)}>›</button>
+          <button type="button" aria-label="다음 페이지" disabled={!pageCount || page >= pageCount} onClick={() => go(page + 1)}>›</button>
           {!onEvidencePage && <button type="button" className="wb-ev-back" onClick={() => go(value.page)}>근거 위치로 (p.{value.page})</button>}
         </div>
         <div className="wb-ev-zoom" role="group" aria-label="확대">
