@@ -103,10 +103,12 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
   if (message.t === 'progress') next.progress = { met: Number(message.met), partial: Number(message.partial ?? 0), total: Number(message.items_total), density: typeof message.term_density === 'string' ? message.term_density : undefined };
   if (message.t === 'error') {
     const reason = String(message.message ?? '서버 처리 오류');
-    // A refused ask/assist is an answer to that request, not a session fault: show it in place.
+    // 서버 오류에는 어느 요청에 대한 것인지가 없다. 배너에 반드시 남기고,
+    // 기다리던 요청은 모두 함께 풀어 준다. 하나만 풀면 나머지가 15초 뒤 헛된
+    // 지연 안내로 끝난다.
+    next.error = reason;
     if (current.query?.pending) next.query = { ...current.query, pending: false, answer: reason };
-    else if (current.action?.pending) next.action = { ...current.action, pending: false, message: reason };
-    else next.error = reason;
+    if (current.action?.pending) next.action = { ...current.action, pending: false, message: reason };
   }
   if (message.t === 'ended') { next.status = 'ended'; next.ending = false; next.reportUrl = typeof message.report_url === 'string' ? message.report_url : undefined; }
   return next;
