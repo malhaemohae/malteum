@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './workspace.css';
+import './workspace-service.css';
+import './landing-showcase.css';
 
 export const metadata: Metadata = {
   title: '말틈 — 상담 컴플라이언스',
