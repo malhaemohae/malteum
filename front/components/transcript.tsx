@@ -17,30 +17,36 @@ function Bubble({ row, onSelect }: { row: Utterance; onSelect: (row: Utterance) 
 // The transcript scrolls like a chat window: it follows the newest utterance until the
 // reader scrolls up, then holds still and offers a jump back to the latest message.
 const FOLLOW_THRESHOLD = 32;
+const SETTLE_FRAMES = 60;
 export function Transcript({ items, onSelect, empty = '첫 발화를 기다리고 있습니다.' }: { items: Utterance[]; onSelect: (row: Utterance) => void; empty?: string }) {
   const area = useRef<HTMLDivElement>(null);
   const [following, setFollowing] = useState(true);
   const [unread, setUnread] = useState(0);
   const suppressScroll = useRef(false);
+  const settleFrame = useRef<number | undefined>(undefined);
   const seen = useRef(items.length);
-  const contentSignature = items.map(row => `${row.id}:${row.t_ms}:${row.text}`).join("\\u001f");
+  // 부드러운 스크롤이 끝날 때까지만 스크롤 이벤트를 무시한다. 읽는 사람이 도중에
+  // 위로 올려 애니메이션이 취소되면 끝에 닿지 못하므로, 프레임 수로 반드시 풀어 준다.
   const scrollToEnd = (behavior: ScrollBehavior) => {
     const host = area.current; if (!host) return;
     suppressScroll.current = true;
     host.scrollTo({ top: host.scrollHeight, behavior });
+    if (settleFrame.current !== undefined) cancelAnimationFrame(settleFrame.current);
+    let framesLeft = SETTLE_FRAMES;
     const settle = () => {
-      const current = area.current; if (!current) return;
-      const atEnd = current.scrollHeight - current.scrollTop - current.clientHeight <= FOLLOW_THRESHOLD;
-      if (atEnd) { suppressScroll.current = false; return; }
-      requestAnimationFrame(settle);
+      const current = area.current;
+      const atEnd = !!current && current.scrollHeight - current.scrollTop - current.clientHeight <= FOLLOW_THRESHOLD;
+      if (!current || atEnd || framesLeft-- <= 0) { suppressScroll.current = false; settleFrame.current = undefined; return; }
+      settleFrame.current = requestAnimationFrame(settle);
     };
-    requestAnimationFrame(settle);
+    settleFrame.current = requestAnimationFrame(settle);
   };
+  useEffect(() => () => { if (settleFrame.current !== undefined) cancelAnimationFrame(settleFrame.current); }, []);
   useLayoutEffect(() => {
     if (following) { scrollToEnd(items.length - seen.current > 1 ? 'auto' : 'smooth'); setUnread(0); }
     else setUnread(value => value + Math.max(0, items.length - seen.current));
     seen.current = items.length;
-  }, [contentSignature, following]);
+  }, [items, following]);
   useEffect(() => {
     const host = area.current; if (!host) return;
     // Keep the newest message in view when the pane itself changes size (responsive layout, fonts).
