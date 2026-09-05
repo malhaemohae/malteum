@@ -1,8 +1,47 @@
 /* Shared control polish for the operational shell and the landing page.
-   Text is not selectable by default; only reading surfaces and inputs opt back in. */
+   1) Text is not selectable by default; only reading surfaces and inputs opt back in.
+   2) <select> follows the workspace tokens instead of the OS widget, with a styled
+      picker where the browser supports customizable select (Chrome/Edge 135+). */
 
 /* 1. Selection policy */
 .wb,.wb-modal,.mlp{-webkit-user-select:none;user-select:none}
 .wb img,.wb-modal img,.mlp img{-webkit-user-drag:none;user-drag:none}
 .wb-reader-copy,.wb-chat-text,.wb-evidence-meta,.wb-speaker-script,.wb-trace-start-content p,
 .wb input,.wb textarea,.wb-modal input,.wb-modal textarea{-webkit-user-select:text;user-select:text}
+
+/* 2. Select control (closed state, every browser) */
+.wb select,.wb-modal select{
+  -webkit-appearance:none;appearance:none;
+  padding:8px 34px 8px 12px;min-height:38px;
+  font-weight:600;color:var(--ink);cursor:pointer;
+  background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2359747d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 11px center/16px 16px;
+  transition:border-color .15s,background-color .15s,box-shadow .15s;
+}
+.wb select:hover:not(:disabled),.wb-modal select:hover:not(:disabled){border-color:#98c8cc;background-color:#f6fbfc}
+.wb select:disabled,.wb-modal select:disabled{opacity:.45;cursor:not-allowed}
+.wb select:focus-visible,.wb-modal select:focus-visible{outline:3px solid #59b5ca;outline-offset:2px}
+.wb .wb-composer select{width:auto;min-width:96px;flex-shrink:0}
+.wb .wb-toolbar>label{font-size:13px;color:var(--muted);font-weight:600}
+
+/* 3. Customizable select: style the open picker with the same tokens */
+@supports (appearance: base-select) {
+  .wb select,.wb-modal select,.wb select::picker(select),.wb-modal select::picker(select){appearance:base-select}
+  .wb select::picker-icon,.wb-modal select::picker-icon{display:none}
+  .wb select:open,.wb-modal select:open{border-color:#59b5ca;background-color:#f6fbfc}
+  .wb select::picker(select),.wb-modal select::picker(select){
+    margin-top:6px;padding:6px;min-width:anchor-size(self-inline);
+    border:1px solid #cfe0e3;border-radius:12px;background:#fff;color:var(--ink);
+    box-shadow:0 14px 36px #17394224,0 2px 6px #1739420f;
+    font:inherit;letter-spacing:inherit;
+  }
+  .wb select option,.wb-modal select option{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 12px;border-radius:8px;font-size:14px;font-weight:500;line-height:1.4;
+    color:var(--ink);cursor:pointer;white-space:nowrap;
+  }
+  .wb select option:hover,.wb-modal select option:hover,
+  .wb select option:focus-visible,.wb-modal select option:focus-visible{background:#eaf6fa;color:#087e9f;outline:0}
+  .wb select option:checked,.wb-modal select option:checked{background:#e4f2f3;color:#116b75;font-weight:650}
+  .wb select option::checkmark,.wb-modal select option::checkmark{order:1;margin-left:auto;color:#087e9f;font-size:12px}
+  .wb select option:disabled,.wb-modal select option:disabled{opacity:.45;cursor:not-allowed}
+}
