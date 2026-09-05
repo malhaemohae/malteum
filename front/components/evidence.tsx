@@ -9,6 +9,8 @@ import { Empty } from './workspace';
 // Nothing here judges or rewrites evidence; it only shows what the server returned.
 
 const ZOOM_MAX = 4, ZOOM_STEP = 1.3;
+// 화면 배율에 맞춰 서버에 요청할 렌더 배율. 확대할수록 더 큰 이미지를 받는다
+const pageScale = (zoom: number) => (zoom >= 2.4 ? 4 : zoom >= 1.4 ? 3 : 2);
 type Rect = { x: number; y: number; w: number; h: number };
 
 export function sourceUrl(value?: string) { try { const parsed = new URL(value ?? ''); return ['https:', 'http:'].includes(parsed.protocol) ? parsed.href : undefined; } catch { return undefined; } }
@@ -83,7 +85,7 @@ function usePageCount(docId: string) {
 
 // --- the page canvas: one image, one highlight, arbitrary zoom ------------------------------
 function PageCanvas({ docId, docTitle, page, zoom, rect, ratio, onNatural, onError, retry = 0, interactive = true, viewportRef, children }: { docId: string; docTitle?: string; page: number; zoom: number; rect: Rect | null; ratio: number; onNatural?: (size: { width: number; height: number; scale: number }) => void; onError?: () => void; retry?: number; interactive?: boolean; viewportRef: React.RefObject<HTMLDivElement>; children?: ReactNode }) {
-  const scale = zoom >= 2.4 ? 4 : zoom >= 1.4 ? 3 : 2;
+  const scale = pageScale(zoom);
   const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   function down(event: PointerEvent<HTMLDivElement>) { if (!interactive || event.button !== 0) return; const host = viewportRef.current; if (!host) return; drag.current = { x: event.clientX, y: event.clientY, left: host.scrollLeft, top: host.scrollTop }; host.setPointerCapture(event.pointerId); host.dataset.dragging = 'true'; }
   function move(event: PointerEvent<HTMLDivElement>) { const host = viewportRef.current; const start = drag.current; if (!host || !start) return; host.scrollLeft = start.left - (event.clientX - start.x); host.scrollTop = start.top - (event.clientY - start.y); }
@@ -111,8 +113,7 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const pageCount = usePageCount(value.doc_id);
   const ratio = pageRatio(value, natural);
-  const renderScale = zoom >= 2.4 ? 4 : zoom >= 1.4 ? 3 : 2;
-  const rect = useMemo(() => highlightRect(value, natural ? [natural.width / natural.scale, natural.height / natural.scale] : undefined), [value, natural, renderScale]);
+  const rect = useMemo(() => highlightRect(value, natural ? [natural.width / natural.scale, natural.height / natural.scale] : undefined), [value, natural]);
   const onEvidencePage = page === value.page;
   useEffect(() => { setPage(value.page); setMode('width'); setImageError(false); }, [value]);
   useEffect(() => { setImageError(false); }, [page]);
@@ -202,7 +203,7 @@ export function EvidenceCard({ title, evidenceRef, evidence, onOpen }: { title?:
   const [failed, setFailed] = useState(false);
   const [imageRetry, setImageRetry] = useState(0);
   const ratio = value ? pageRatio(value, natural) : Math.SQRT2;
-  const rect = value ? highlightRect(value, natural ? [natural.width / natural.scale, natural.height / natural.scale] : undefined) : null;
+  const rect = useMemo(() => (value ? highlightRect(value, natural ? [natural.width / natural.scale, natural.height / natural.scale] : undefined) : null), [value, natural]);
   const zoom = focusZoom(rect, size, ratio);
   // A stale page from the previous evidence must not decide this card's aspect ratio.
   useEffect(() => { setNatural(null); setFailed(false); }, [value?.doc_id, value?.page]);
@@ -211,13 +212,13 @@ export function EvidenceCard({ title, evidenceRef, evidence, onOpen }: { title?:
     const host = viewport.current; if (!host) return;
     const observer = new ResizeObserver(([entry]) => setSize(current => current.width === entry.contentRect.width && current.height === entry.contentRect.height ? current : { width: entry.contentRect.width, height: entry.contentRect.height }));
     observer.observe(host); return () => observer.disconnect();
-  }, [value]);
+  }, []);
   useLayoutEffect(() => {
     const host = viewport.current; if (!host || size.width === 0) return;
     const canvasWidth = size.width * zoom; const canvasHeight = canvasWidth * ratio;
     const centre = rect ? { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 } : { x: 0.5, y: 0.15 };
     host.scrollTo({ left: Math.max(0, centre.x * canvasWidth - size.width / 2), top: Math.max(0, centre.y * canvasHeight - size.height / 2) });
-  }, [rect, ratio, size, zoom, value]);
+  }, [rect, ratio, size, zoom]);
   if (!evidenceRef && !evidence) return null;
   if (fetched.loading && !value) return <div className="wb-ev-card is-loading"><span className="wb-ev-label">{title ?? '근거'}</span><Empty>근거를 불러오고 있습니다.</Empty></div>;
   if (!value) return <div className="wb-ev-card is-loading"><span className="wb-ev-label">{title ?? '근거'}</span><Empty>{fetched.error ? <>{fetched.error}<button type="button" onClick={fetched.retry}>근거 다시 불러오기</button></> : '이 안내에는 연결된 근거가 없습니다.'}</Empty></div>;

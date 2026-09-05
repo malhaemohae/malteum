@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApiBriefing, ApiHealth, ApiPack, ApiPackItem, malteumApi } from '../lib/api';
-import { evidenceForItem, friendlyError, itemTypeNames, kindNames, latestPacks, LiveSession, modeNames, NavItem, ReadyItem, sessionScreen, statusNames, timeLabel } from '../lib/workspace-model';
+import { evidenceForItem, friendlyError, itemTypeNames, STT_UNCONFIGURED, kindNames, latestPacks, LiveSession, modeNames, NavItem, ReadyItem, sessionScreen, statusNames, timeLabel } from '../lib/workspace-model';
 import { DetailSections, detailSections, Empty, Feedback, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
 import { speakerLabel, Transcript } from './transcript';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
@@ -83,7 +83,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
   // 근거는 판정이 실어 준 event_id 가 우선. 없으면 팩 항목에 걸린 원문 위치를 쓴다.
   const itemEvidence = pack && packItem ? evidenceForItem(pack, packItem) : null;
   const intervention = session.interventions[0]; const canWrite = session.status === 'connected' && session.mode !== 'trace' && !session.ending;
-  const notice = micError || friendlyError(session.error) || replaySound?.error || (session.mode === 'live' && !session.textFallback && health?.checks?.stt === 'unconfigured' ? '음성 전사 서버가 설정되지 않았습니다. 녹음은 가능하지만 전사·판정에는 STT 설정이 필요합니다.' : '');
+  const notice = micError || friendlyError(session.error) || replaySound?.error || (session.mode === 'live' && !session.textFallback && health?.checks?.stt === 'unconfigured' ? STT_UNCONFIGURED : '');
   function resolve() { if (intervention?.alert) { onCommand({ t: 'acknowledge', alert_ref: intervention.id }); return; } onDismiss(); }
   const manualPending = Boolean(session.action?.pending);
   const screen = sessionScreen(session.mode); const playback = screen === 'playback';
