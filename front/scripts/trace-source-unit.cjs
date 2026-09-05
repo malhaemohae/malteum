@@ -1,0 +1,48 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const ts = require('typescript');
+require.extensions['.ts'] = (module, filename) => module._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText, filename);
+const { malteumApi, ApiError } = require('../lib/api.ts');
+const { rememberTraceSource, rememberedTraceSource, resolveTraceSource, traceCandidates, serverHistory } = require('../lib/trace-source.ts');
+const storage = new Map(); global.localStorage = {getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)};
+const trace = {session_id:'trace',mode:'trace',status:'ended',started_at:'2026-09-05T00:00:00Z',pack_version:'pack'};
+const source = {...trace,session_id:'source',mode:'live'};
+const original = {...malteumApi};
+const playable = {kind:'utterance',event_id:'event',seq_in_session:1,utterance:{text:'원본 발화',t_ms:0,speaker:'customer'}};
+(async()=>{
+ try {
+  malteumApi.events=async()=>({events:[]});
+  assert.equal(await resolveTraceSource(trace),null,'legacy empty TRACE needs an explicit choice, not a guessed source');
+  malteumApi.events=async()=>({events:[playable]});
+  assert.equal((await resolveTraceSource(trace)).session_id,'trace','TRACE with stored events can replay directly');
+  malteumApi.events=async()=>({events:[]});
+  rememberTraceSource('trace','source'); malteumApi.session=async()=>source;
+  assert.equal((await resolveTraceSource(trace)).session_id,'source');
+  assert.equal(rememberedTraceSource('trace'),'source');
+  assert.ok([...storage.values()].every(value=>value==='source'),'only the exact source identifier is persisted');
+  rememberTraceSource('chain','trace');
+  malteumApi.session=async id=>id==='trace'?trace:source;
+  assert.equal((await resolveTraceSource({...trace,session_id:'chain'})).session_id,'source');
+  rememberTraceSource('cycle1','cycle2'); rememberTraceSource('cycle2','cycle1');
+  malteumApi.session=async id=>({...trace,session_id:id});
+  assert.equal(await resolveTraceSource({...trace,session_id:'cycle1'}),null,'cycle offers selection, never loops');
+  malteumApi.session=async()=>{throw new ApiError('not found',404,{})};
+  assert.equal(await resolveTraceSource(trace),null,'missing cached source offers selection');
+  malteumApi.session=async()=>{throw new ApiError('server unavailable',503,{})};
+  await assert.rejects(resolveTraceSource(trace),/unavailable/,'network failure is not disguised as missing data');
+  const rows=[source,{...source,session_id:'empty'},{...source,session_id:'failed'},{...source,session_id:'running',status:'running'},{...source,session_id:'other-pack',pack_version:'other'},trace];
+  malteumApi.sessions=async(_mode,cursor)=>cursor?{sessions:rows.slice(2),next_cursor:null}:{sessions:rows.slice(0,2),next_cursor:'next'};
+  malteumApi.events=async id=>{if(id==='failed')throw new Error('offline');return {events:id==='source'?[playable]:[]};};
+  const candidates=await traceCandidates(trace);
+  assert.deepEqual(candidates.map(c=>c.record.session_id).sort(),['failed','source']);
+  assert.equal(candidates.find(c=>c.record.session_id==='source').preview,'원본 발화');
+  assert.equal(candidates.find(c=>c.record.session_id==='source').utterances,1);
+  assert.equal(candidates.find(c=>c.record.session_id==='failed').playable,false);
+  malteumApi.sessions=async()=>({sessions:[],next_cursor:'loop'});
+  await assert.rejects(serverHistory(),/반복/);
+  global.localStorage={getItem:()=>{throw new Error('disabled')},setItem:()=>{throw new Error('disabled')}};
+  rememberTraceSource('private','source');
+  assert.equal(rememberedTraceSource('private'),'source','storage failure keeps the current tab usable');
+  console.log('PASS: TRACE is not blocked by mode; exact links, missing links, cycles, failed requests, full pagination, real-event candidates, IDs-only storage and private mode');
+ } finally {Object.assign(malteumApi,original)}
+})().catch(error=>{console.error(error);process.exitCode=1});

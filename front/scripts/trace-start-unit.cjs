@@ -1,0 +1,38 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const ts = require('typescript');
+require.extensions['.ts']=(module,filename)=>module._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,filename);
+const {hasStoredUtterance,waitingForTraceUtterance}=require('../lib/trace-start.ts');
+const {newLiveSession,reduceServer}=require('../lib/workspace-model.ts');
+const fixtures=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../back/contracts/fixtures/ws_messages.json'),'utf8'));
+let active=newLiveSession('test','/ws','trace','DEP-2026.08-v4');
+assert.equal(waitingForTraceUtterance(active),true);
+for(const kind of ['ready','progress','partial','verdict']){
+ const message=fixtures.find(m=>m.t===kind);assert.ok(message);
+ active=reduceServer(active,{...message,seq:undefined});
+ assert.equal(waitingForTraceUtterance(active),true,`${kind} must not dismiss the first-utterance loading screen`);
+}
+assert.equal(waitingForTraceUtterance({...active,status:'disconnected'}),true,'show the recoverable error view in the same screen');
+assert.equal(waitingForTraceUtterance({...active,ending:true}),true,'keep the stop-pending view until server confirms');
+assert.equal(waitingForTraceUtterance({...active,status:'ended'}),false);
+assert.equal(waitingForTraceUtterance({...active,traceHasUtterances:false}),false,'judgement-only records cannot wait for a nonexistent utterance');
+for(const mode of ['live','text','replay'])assert.equal(waitingForTraceUtterance({...active,mode}),false);
+active=reduceServer(active,{...fixtures.find(m=>m.t==='utterance'),seq:undefined});
+assert.equal(waitingForTraceUtterance(active),false,'first received final utterance reveals the dashboard');
+assert.equal(waitingForTraceUtterance({...active,status:'disconnected'}),false,'later reconnection does not hide an existing conversation');
+assert.equal(hasStoredUtterance([{kind:'verdict'}]),false);
+assert.equal(hasStoredUtterance([{kind:'utterance',utterance:{text:'   '}}]),false);
+assert.equal(hasStoredUtterance([{kind:'utterance',utterance:{text:'저장된 발화'}}]),true);
+console.log('PASS: TRACE first-final-utterance gating, ready/partial/verdict/progress waits, other modes unchanged, ending/error and judgement-only records');
+require.extensions['.tsx']=(module,filename)=>module._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText,filename);
+const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');
+const {TraceStart}=require('../components/trace-start.tsx');
+const render=session=>renderToStaticMarkup(React.createElement(TraceStart,{session,onEnd:()=>{},onRetry:()=>{},onHistory:()=>{}}));
+const blank=newLiveSession('test','/ws','trace','DEP-2026.08-v4');
+assert.match(render(blank),/저장된 상담에 연결/);
+assert.match(render({...blank,status:'connected'}),/첫 발화를 불러오고/);
+const disconnected=render({...blank,status:'disconnected',error:'연결 오류'});
+assert.match(disconnected,/다시 연결/);assert.match(disconnected,/연결 오류/);assert.doesNotMatch(disconnected,/wb-trace-spinner/);
+assert.match(render({...blank,status:'connected',ending:true}),/중지 확인 중/);
+console.log('PASS: rendered loading/connection-error/retry/stop-pending states');
