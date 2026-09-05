@@ -1,0 +1,44 @@
+/* Evidence viewer and card. The page image is the main object; the quote is its caption. */
+.wb-ev{display:grid;grid-template-columns:minmax(220px,.62fr) minmax(0,1.38fr);gap:18px;flex:1;min-height:0}
+.wb-ev-side{display:flex;flex-direction:column;gap:14px;min-height:0;overflow:auto;padding-right:4px}
+.wb-ev-doc{display:flex;flex-direction:column;gap:3px}
+.wb-ev-doc strong{font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+.wb-ev-doc small{color:var(--muted)}
+.wb-ev-label{display:block;font-size:11px;font-weight:700;letter-spacing:.02em;color:#087e9f;white-space:nowrap}
+.wb-ev-quote{display:flex;flex-direction:column;gap:6px}
+.wb-ev-quote blockquote{margin:0 0 10px;padding:10px 12px;border-left:3px solid #55b4d0;background:#e9f6f9;border-radius:0 10px 10px 0;font-size:15px;line-height:1.7;font-weight:550;overflow-wrap:anywhere;-webkit-user-select:text;user-select:text}
+.wb-ev-quote p{margin:0 0 10px;font-size:13px;line-height:1.65;color:var(--ink);-webkit-user-select:text;user-select:text}
+.wb-ev-source{font-size:13px;font-weight:650;color:var(--teal);text-decoration:underline;text-underline-offset:3px;margin-top:auto}
+.wb-ev-main{display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}
+.wb-ev-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;flex-shrink:0}
+.wb-ev-pager,.wb-ev-zoom{display:flex;align-items:center;gap:6px}
+.wb .wb-ev-pager button,.wb-modal .wb-ev-pager button,.wb .wb-ev-zoom button,.wb-modal .wb-ev-zoom button{min-height:30px;padding:4px 10px;font-size:12px}
+.wb-ev-pager>span,.wb-ev-zoom>span{font-size:12px;color:var(--muted);min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
+.wb-modal .wb-ev-zoom button[aria-pressed=true]{background:#e4f2f3;border-color:#c8e2e5;color:#116b75}
+.wb-modal .wb-ev-back{color:#087e9f;border-color:#b9dbe5}
+.wb-ev-viewport{position:relative;flex:1;min-height:0;overflow:auto;background:#e8eef0;border:1px solid var(--line);border-radius:12px;scrollbar-width:thin}
+.wb-ev-viewport[data-interactive=true]{cursor:grab;touch-action:none}
+.wb-ev-viewport[data-dragging=true]{cursor:grabbing}
+.wb-ev-viewport[data-interactive=false]{overflow:hidden;pointer-events:none}
+.wb-ev-canvas{position:relative;display:block;background:#fff;box-shadow:0 1px 4px #17394214}
+.wb-ev-canvas img{display:block;width:100%;height:100%;object-fit:fill;-webkit-user-drag:none;user-drag:none}
+.wb-ev-highlight{position:absolute;box-sizing:content-box;padding:2px 3px;margin:-2px -3px;background:#ffd84d66;outline:2px solid #e2b52b;border-radius:3px;pointer-events:none;box-shadow:0 0 0 6px #ffd84d24}
+.wb-ev-hint{font-size:11px;color:var(--muted);flex-shrink:0}
+/* Card inside the guide panel */
+.wb .wb-ev-card,.wb-modal .wb-ev-card{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%;padding:12px;text-align:left;white-space:normal;background:#fff;border:1px solid var(--line);border-radius:12px;font-weight:500;line-height:1.5;min-height:0;flex-shrink:0}
+.wb .wb-ev-card:hover:not(:disabled){background:#fff;border-color:#55b4d0;box-shadow:0 4px 14px #17394214;color:var(--ink)}
+.wb-ev-card.is-loading{cursor:default}
+.wb-ev-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.wb-ev-card-head small{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wb-ev-card-preview{display:block;height:128px;border-radius:9px;overflow:hidden}
+.wb-ev-card-preview .wb-ev-viewport{height:100%;border-radius:9px}
+.wb-ev-card-quote{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;line-height:1.6;color:var(--ink)}
+.wb-ev-card-cta{font-size:12px;font-weight:650;color:#087e9f}
+@media(max-width:800px),(max-height:600px){
+  .wb-ev{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(220px,1fr)}
+  .wb-ev-side{overflow:visible;gap:8px}
+  .wb-ev-quote blockquote{margin-bottom:0;font-size:14px}
+  .wb-ev-quote p{display:none}
+  .wb-ev-source{margin-top:0}
+  .wb-ev-card-preview{height:104px}
+}

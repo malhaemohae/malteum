@@ -16,7 +16,8 @@ import MarketingLanding from './marketing-showcase';
 import { Briefing, Dashboard, Preparation } from './consultation';
 import { SpeakerIntroModal } from './speaker-intro';
 import { DocumentsScreen, HistoryScreen, PackScreen, ReportScreen } from './operations';
-import { Empty, EvidenceView, Modal, Notice, TextPages } from './workspace';
+import { Empty, Modal, Notice, TextPages } from './workspace';
+import { EvidenceView, loadEvidence } from './evidence';
 
 export default function Application() {
   const [screen, setScreen] = useState<Screen>('landing'); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
@@ -206,7 +207,7 @@ export default function Application() {
   async function openEvidence(ref: string) {
     const requestId = ++evidenceRequest.current; setEvidence({ loading: true });
     try {
-      const value = await malteumApi.evidence(ref);
+      const value = await loadEvidence(ref);
       let sourcePack = pack;
       // A report may belong to a different pack from the active consultation.
       // Resolve its immutable version; never attach an unrelated source URL.

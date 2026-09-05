@@ -13,6 +13,8 @@ export type LiveSession = {
   progress?: { met: number; partial: number; total: number; density?: string };
   error?: string; textFallback?: boolean; ending: boolean; reportUrl?: string; seconds: number;
   traceHasUtterances?: boolean;
+  // Newest judgement that carried evidence. The guide panel shows it while no intervention is open.
+  recentEvidence?: { ref: string; itemCode: string; name: string };
   query?: { question: string; answer?: string; evidenceRef?: string; pending: boolean };
   action?: { kind: string; itemCode?: string; ref?: string; pending: boolean; message: string; result?: { text: string; evidenceRef?: string } };
 };
@@ -65,6 +67,7 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
     const key = `${message.item_code}:${message.axis}`; const ver = Number(message.ver ?? 0);
     if (ver > (current.versions[key] ?? -1)) {
       next.versions = { ...current.versions, [key]: ver };
+      if (message.axis === 'omission' && typeof message.evidence_ref === 'string') next.recentEvidence = { ref: message.evidence_ref, itemCode: String(message.item_code), name: current.items.find(item => item.code === message.item_code)?.name ?? String(message.item_code) };
       if (message.axis === 'omission') next.items = current.items.map(item => item.code === message.item_code ? { ...item, state: String(message.state), missing: Array.isArray(message.missing_elements) ? message.missing_elements.map(String) : [], evidenceRef: typeof message.evidence_ref === 'string' ? message.evidence_ref : item.evidenceRef, decidedBy: typeof message.decided_by === 'string' ? message.decided_by : undefined } : item);
       if (current.action?.pending && ['mark_met', 'mark_waived'].includes(current.action.kind) && current.action.itemCode === message.item_code && message.decided_by === 'human') next.action = { ...current.action, pending: false, message: '수동 변경이 서버에 저장됐습니다.' };
     }

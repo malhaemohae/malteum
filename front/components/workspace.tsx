@@ -1,7 +1,6 @@
 'use client';
 
 import { DependencyList, KeyboardEvent, ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ApiEvidence, apiUrl } from '../lib/api';
 import { errorText, NavItem, Screen } from '../lib/workspace-model';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
 
@@ -105,31 +104,4 @@ export function Modal({ title, onClose, children, actions, className = '', trapF
   return <dialog ref={ref} className={`wb-modal ${className}`} onKeyDown={keepFocus} onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }} aria-label={title}><div ref={frame} className="wb-modal-frame"><header className="wb-panel-head"><h2>{title}</h2><button type="button" autoFocus aria-label="닫기" onClick={onClose}>✕</button></header><div className="wb-modal-body">{children}</div>{actions && <footer className="wb-actions">{actions}</footer>}</div></dialog>;
 }
 
-export function sourceUrl(value?: string) { try { const parsed = new URL(value ?? ''); return ['https:', 'http:'].includes(parsed.protocol) ? parsed.href : undefined; } catch { return undefined; } }
-
-export function EvidenceView({ value }: { value: ApiEvidence }) {
-  const [tab, setTab] = useState<'quote' | 'page'>('quote'); const [imageError, setImageError] = useState(false); const [natural, setNatural] = useState<{ width: number; height: number } | null>(null);
-  const [wide, setWide] = useState(false);
-  const [pageRequested, setPageRequested] = useState(false);
-  const imageHost = useRef<HTMLDivElement>(null);
-  const [imageBox, setImageBox] = useState<{ width: number; height: number } | null>(null);
-  useEffect(() => { const query = window.matchMedia('(min-width:801px)'); const change = () => setWide(query.matches); change(); query.addEventListener('change', change); return () => query.removeEventListener('change', change); }, []);
-  useEffect(() => { if (wide || tab === 'page') setPageRequested(true); }, [wide, tab]);
-  useLayoutEffect(() => {
-    const host = imageHost.current; if (!host || !natural) return;
-    const observer = new ResizeObserver(([entry]) => { const width = Math.min(entry.contentRect.width, entry.contentRect.height * natural.width / natural.height); setImageBox({ width, height: width * natural.height / natural.width }); });
-    observer.observe(host); return () => observer.disconnect();
-  }, [natural, wide, tab, imageError, pageRequested]);
-  const imageUrl = value.page_image_url ?? `/api/documents/${encodeURIComponent(value.doc_id)}/pages/${value.page}.png`;
-  useEffect(() => { setTab('quote'); setImageError(false); setNatural(null); }, [value]);
-  const size = value.page_size ?? (natural ? [natural.width / 2, natural.height / 2] : undefined);
-  const url = sourceUrl(value.source_url);
-  return <>
-    <div className="wb-evidence-meta"><strong>{value.doc_title ?? value.doc_id}</strong><span>p.{value.page}{value.publisher ? ` · ${value.publisher}` : ''}{value.snapshot_date ? ` · ${value.snapshot_date}` : ''} {url && <a href={url} target="_blank" rel="noopener noreferrer">출처 원문 열기 ↗</a>}</span></div>
-    {!wide && <Tabs value={tab} onChange={setTab} items={[{ value: 'quote', label: '인용 원문' }, { value: 'page', label: 'PDF 페이지' }]} />}
-    <div className="wb-evidence-content" data-wide={wide}>
-      {(wide || tab === 'quote') && <TextPages text={`${value.span}${value.legal_basis ? `\n\n법적 근거\n${value.legal_basis}` : ''}${value.context ? `\n\n문맥\n${value.context}` : ''}`} />}
-      {pageRequested && <div className="wb-page-image" ref={imageHost} hidden={!wide && tab !== 'page'}>{imageError ? <Empty>원문 페이지 이미지를 불러오지 못했습니다. 인용 원문은 계속 확인할 수 있습니다.</Empty> : <div className="wb-page-canvas" style={imageBox ?? undefined}><img src={apiUrl(imageUrl)} alt={`${value.doc_title ?? value.doc_id} ${value.page}페이지`} onError={() => setImageError(true)} onLoad={event => setNatural({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })} />{value.bbox && size && <span className="wb-highlight" style={{ left: `${value.bbox[0] / size[0] * 100}%`, top: `${(size[1] - value.bbox[3]) / size[1] * 100}%`, width: `${(value.bbox[2] - value.bbox[0]) / size[0] * 100}%`, height: `${(value.bbox[3] - value.bbox[1]) / size[1] * 100}%` }} />}</div>}</div>}
-    </div>
-  </>;
-}
+export { EvidenceView, sourceUrl } from './evidence';
