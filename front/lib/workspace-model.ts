@@ -11,6 +11,7 @@ export type LiveSession = {
   partial: string; interventions: Intervention[]; versions: Record<string, number>; seen: string[];
   progress?: { met: number; partial: number; total: number; density?: string };
   error?: string; textFallback?: boolean; ending: boolean; reportUrl?: string; seconds: number;
+  traceHasUtterances?: boolean;
   query?: { question: string; answer?: string; evidenceRef?: string; pending: boolean };
 };
 

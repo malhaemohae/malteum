@@ -22,7 +22,6 @@ export function sessionHandshake(active: Pick<LiveSession, 'id' | 'mode' | 'seq'
 
 export function traceBlockedReason(record: ApiSessionSummary) {
   if (record.status === 'running') return '상담을 종료하면 TRACE를 재생할 수 있습니다.';
-  if (record.mode === 'trace') return 'TRACE 이력이 아닌 원본 상담에서 재생해 주세요.';
   return '';
 }
 

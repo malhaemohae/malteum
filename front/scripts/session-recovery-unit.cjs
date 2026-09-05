@@ -14,7 +14,7 @@ const messages = fixture('ws_messages.json');
 const ready = messages.find(m => m.t === 'ready');
 const detail = { session_id: ready.session_id, pack_version: ready.pack_version, mode: 'replay', status: 'running', started_at: events[0].occurred_at, items: ready.items };
 assert.match(traceBlockedReason(detail), /종료/);
-assert.match(traceBlockedReason({...detail,status:'ended',mode:'trace'}), /원본/);
+assert.equal(traceBlockedReason({...detail,status:'ended',mode:'trace'}), '', 'TRACE mode alone must not block replay');
 for (const status of ['ended','aborted','timeout']) assert.equal(traceBlockedReason({...detail,status}), '');
 assert.equal(isPlayableEvent({kind:'session_started'}), false);
 assert.equal(isPlayableEvent({kind:'session_ended'}), false);
