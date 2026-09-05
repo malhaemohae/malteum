@@ -9,7 +9,7 @@ import './controls.css';
 import './evidence.css';
 
 export const metadata: Metadata = {
-  title: '말틈 — 상담 컴플라이언스',
+  title: '말틈 · 상담 컴플라이언스',
   description: '규정과 상품설명서 기준으로 상담을 확인하는 말틈 견본 화면',
 };
 
