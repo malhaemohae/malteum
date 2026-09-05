@@ -9,7 +9,7 @@ from server.bootstrap.settings import Settings
 from server.main import create_app
 
 FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
-PACK_VERSION = "DEP-2026.08-v4"
+PACK_VERSION = "DEP-2026.08-v6"
 
 
 def _client() -> TestClient:

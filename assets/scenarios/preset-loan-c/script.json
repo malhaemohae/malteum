@@ -1,0 +1,275 @@
+{
+  "preset_id": "preset-loan-c",
+  "title": "신용대출 대환 문의와 연체·해지 안내",
+  "pack_version": "LOAN-2026.08-v7",
+  "product_code": "HNB-HOUSEHOLD-CREDIT",
+  "mode": "replay",
+  "customer_profile": {
+    "type": "general",
+    "tags": []
+  },
+  "duration_ms": 156855,
+  "audio": {
+    "output": "audio.wav",
+    "sample_rate": 16000,
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "min_gap_ms": 1000,
+    "gap_ms": 1200,
+    "alert_gap_ms": 4000,
+    "tts_model": "eleven_multilingual_v2",
+    "placement": "클립을 앞 클립 끝 + gap_ms 에 이어 놓는다. 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 gap_ms 대신 alert_gap_ms 를 둔다. 화자가 바뀌는 자리의 무음(min_gap_ms 이상)이 화자 분리가 발화를 가르는 조건. start_ms 는 추정치라 make_scenario_audio.py --write-start 가 되쓴다"
+  },
+  "speakers": {
+    "teller": {
+      "name": "박민수",
+      "voice": "30대 남성, 차분한 톤",
+      "desc": "가상 인물. 은행 창구 직원",
+      "tts": {
+        "provider": "elevenlabs",
+        "voice_id": "CxErO97xpQgQXYmapDKX",
+        "speed": 1.0
+      }
+    },
+    "customer": {
+      "name": "이수진",
+      "voice": "30대 여성, 보통 톤",
+      "desc": "가상 인물. 기존 신용대출 고객, 대환 문자를 받고 방문",
+      "tts": {
+        "provider": "elevenlabs",
+        "voice_id": "8jHHF8rMqMlg8if2mOUe",
+        "speed": 1.0
+      }
+    }
+  },
+  "diarization_hint": {
+    "first_speaker": "customer",
+    "turn_order": "customer 가 먼저 말하고 이후 교대로. 같은 화자가 연속으로 말하는 구간은 lines 의 speaker 열이 진실",
+    "voices_distinct": "남성·여성으로 갈라 화자 분리 정확도를 높인다"
+  },
+  "pack_note": "기대 판정은 LOAN-2026.08-v7 기준. B 가 못 보여준 것을 모아 놓은 대본이다. 2026-09-05 추가 항목 4건(기한이익상실 · 상환방식 · 인지세 · 위법계약해지)을 전부 고지하고, 대출 팩의 첫 risk 항목(대출빙자 보이스피싱)을 고객 첫 대사에서 띄운다. 숫자 오류(연체가산 5% ↔ 3%) · 단정 금지 발언 · 되물음 재진술 · 서류 안내가 한 번씩 나온다. B 와 겹치지 않게 변동금리 · DSR · 중도상환 · 청약철회는 의도적으로 미고지로 둔다",
+  "lines": [
+    {
+      "id": "C01",
+      "start_ms": 3000,
+      "speaker": "customer",
+      "text": "안녕하세요. 어제 저금리 대환대출 문자를 받고 앱을 깔았는데, 기존 대출을 먼저 갚으면 한도가 더 나온다고 하더라고요.",
+      "expect": [
+        "alert risk_signal critical LOAN-VPH-001 (verdict 없음)"
+      ],
+      "note": "⑦ 위험 신호. 대출빙자 보이스피싱의 세 신호(대환 문자 · 앱 설치 · 기존 대출 선상환)를 한 문장에. L1 정규식 '대환' 적중. 첫 결함이 고객 쪽에서 3초에 나옴"
+    },
+    {
+      "id": "C02",
+      "start_ms": 16570,
+      "speaker": "teller",
+      "text": "고객님, 그건 대출빙자 보이스피싱일 가능성이 큽니다. 저희는 문자로 갈아타기를 권하거나 다른 계좌로 먼저 갚으라고 하지 않습니다.",
+      "expect": [],
+      "note": "위험 신호에 대한 응대. 은행원 발화라 risk 판정 대상이 아님(gate 는 고객 발화만 봄)"
+    },
+    {
+      "id": "C03",
+      "start_ms": 28210,
+      "speaker": "teller",
+      "text": "대신 신용상태가 좋아지셨으면 금리인하요구를 하실 수 있고, 다만 대상이 아닌 상품도 있습니다.",
+      "expect": [
+        "verdict LOAN-RDR-001 omission met L1"
+      ],
+      "note": "금리인하요구권. B 에서 끝까지 미고지였던 항목을 여기서는 정상 고지"
+    },
+    {
+      "id": "C04",
+      "start_ms": 36950,
+      "speaker": "teller",
+      "text": "심사를 위해 신용정보를 조회하게 되는데, 조회 동의를 먼저 받겠습니다.",
+      "expect": [
+        "verdict LOAN-CIC-001 omission met L1"
+      ],
+      "note": "신용정보 조회와 동의. B 에서 미고지였던 항목"
+    },
+    {
+      "id": "C05",
+      "start_ms": 43805,
+      "speaker": "customer",
+      "text": "네, 동의할게요. 그런데 이번에는 갚는 방식도 한번 바꿔 보고 싶어요.",
+      "expect": [],
+      "note": "물음표 없이. '갚는 방식' 은 고객 발화라 RPY 판정 대상 아님"
+    },
+    {
+      "id": "C06",
+      "start_ms": 50660,
+      "speaker": "teller",
+      "text": "원리금균등으로 갚으실지 만기일시로 갚으실지에 따라 만기까지 내는 총 이자가 달라집니다.",
+      "expect": [
+        "verdict LOAN-RPY-001 omission met L1"
+      ],
+      "note": "상환방식과 총 부담액(2026-09-05 추가 항목, 금소법 §19①1.라.2). test_l1_patterns 의 대표 문장 그대로"
+    },
+    {
+      "id": "C07",
+      "start_ms": 58820,
+      "speaker": "teller",
+      "text": "그리고 지금 조건이면 한도는 이만큼 확실히 나옵니다.",
+      "expect": [
+        "verdict LOAN-BAN-001 commission suspected L1",
+        "alert forbidden_phrase warning LOAN-BAN-001",
+        "verdict LOAN-BAN-001 commission violated L3 (LLM 필요)"
+      ],
+      "l3": [
+        {
+          "verdict": {
+            "item_code": "LOAN-BAN-001",
+            "axis": "commission",
+            "state": "violated"
+          }
+        }
+      ],
+      "note": "심사 통과 단정. 팩 forbidden_examples 그대로. L1 정규식 '확실히 나옵' 적중"
+    },
+    {
+      "id": "C08",
+      "start_ms": 67025,
+      "speaker": "customer",
+      "text": "그럼 그 금액으로 계획을 세워도 되겠네요.",
+      "expect": [],
+      "note": "고객이 단정을 믿는 장면"
+    },
+    {
+      "id": "C09",
+      "start_ms": 71560,
+      "speaker": "teller",
+      "text": "아, 정확히는 심사 결과에 따라 한도가 달라질 수 있어서 확정은 아닙니다.",
+      "expect": [],
+      "note": "정정. 금지 예시 어휘('확정이라고 보시면')를 피해 '확정은 아닙니다' 로"
+    },
+    {
+      "id": "C10",
+      "start_ms": 78705,
+      "speaker": "teller",
+      "text": "이자를 한 달 넘게 연체하시면 기한이익이 상실되어 원금 전체를 한꺼번에 갚으셔야 하고, 연체 정보가 신용정보에 등록됩니다.",
+      "expect": [
+        "verdict LOAN-EXP-001 omission met L1"
+      ],
+      "note": "기한이익상실(2026-09-05 추가, 시행령 §13⑥). 두 요소(사유 · 불이익) 모두. '신용정보' 가 CIC 를 다시 치지만 이미 met 이라 판정 없음"
+    },
+    {
+      "id": "C11",
+      "start_ms": 89765,
+      "speaker": "customer",
+      "text": "네에, 기한이익이 뭐예요?",
+      "tts_text": "네에... 기한이익이 뭐예요?",
+      "expect": [
+        "verdict LOAN-EXP-001 comprehension explained L2",
+        "assist rephrase customer_reask LOAN-EXP-001 text=이자를 한 달 넘게 연체하면 대출을 만기 전에 한꺼번에 갚아야 하는 기한이익상실이 됩니다."
+      ],
+      "note": "⑥-B 되물음. '뭐예요' 패턴. 직전에 설명된 EXP 가 대상"
+    },
+    {
+      "id": "C12",
+      "start_ms": 95795,
+      "speaker": "teller",
+      "text": "이자를 한 달 넘게 연체하면 대출을 만기 전에 한꺼번에 갚아야 하는 기한이익상실이 됩니다.",
+      "expect": [],
+      "l3": [
+        {
+          "adopt": {
+            "assist_type": "rephrase",
+            "item_code": "LOAN-EXP-001"
+          }
+        }
+      ],
+      "note": "재진술 카드를 그대로 따라 말함. 카드 채택 기록은 L3"
+    },
+    {
+      "id": "C13",
+      "start_ms": 104245,
+      "speaker": "teller",
+      "text": "연체하시면 대출이자율에 연체가산이자율 연 5%가 더해진 연체이자율이 적용됩니다.",
+      "tts_text": "연체하시면 대출이자율에 연체가산이자율 연 오 퍼센트가 더해진 연체이자율이 적용됩니다.",
+      "expect": [
+        "verdict LOAN-ARR-001 omission met L1",
+        "alert number_mismatch warning said=5% reference=연 3%"
+      ],
+      "note": "⑤ 숫자 오류. 설명서 p.7 은 연 3%. 항목은 설명했으니 met, 숫자는 별개 축(A 의 세율 장면과 같은 구조)"
+    },
+    {
+      "id": "C14",
+      "start_ms": 114625,
+      "speaker": "teller",
+      "text": "죄송합니다, 연체가산이자율은 연 3%입니다.",
+      "tts_text": "죄송합니다, 연체가산이자율은 연 삼 퍼센트입니다.",
+      "expect": [
+        "alert 없음 (3% == 설명서 p.7)"
+      ],
+      "note": "숫자 정정. 맞는 숫자엔 경보 0. 다른 숫자를 함께 말하지 않는다"
+    },
+    {
+      "id": "C15",
+      "start_ms": 122105,
+      "speaker": "teller",
+      "text": "대출 약정 때 인지세가 붙는데, 5천만원 이하는 비과세이고 금액 구간에 따라 세액이 정해집니다.",
+      "tts_text": "대출 약정 때 인지세가 붙는데, 오천만 원 이하는 비과세이고 금액 구간에 따라 세액이 정해집니다.",
+      "expect": [
+        "verdict LOAN-FEE-001 omission met L1"
+      ],
+      "note": "인지세 등 부대비용(2026-09-05 추가, 법 §19①1.라.4). 인지세액은 숫자 사실이 아니라 대조 없음"
+    },
+    {
+      "id": "C16",
+      "start_ms": 130990,
+      "speaker": "teller",
+      "text": "설명이 잘못됐다면 위법계약 해지를 요구하실 수 있고, 계약 체결일부터 5년, 위반을 안 날부터 1년까지 가능합니다.",
+      "tts_text": "설명이 잘못됐다면 위법계약 해지를 요구하실 수 있고, 계약 체결일부터 오 년, 위반을 안 날부터 일 년까지 가능합니다.",
+      "expect": [
+        "verdict LOAN-TER-001 omission met L1",
+        "alert 없음 (5년 · 1년 == 설명서 p.3)"
+      ],
+      "note": "위법계약해지권(2026-09-05 추가, 법 §47). 숫자 사실 둘이 모두 맞음. '년 안에' 라고 하면 중도상환수수료 항목의 '(년)(이내|안)' 패턴이 걸려 PRE partial + 5년↔3년 오경보가 났다(실측). '년까지' 로 피함"
+    },
+    {
+      "id": "C17",
+      "start_ms": 144270,
+      "speaker": "teller",
+      "text": "진행하시려면 소득증명서류와 재직증명서를 준비해 주세요. 신분증도 함께 가져오시면 됩니다.",
+      "expect": [],
+      "note": "④ 서류 안내. LOAN-DOC-001(reference)의 서류 카드 문구와 같은 서류. 판정 대상 아님"
+    },
+    {
+      "id": "C18",
+      "start_ms": 152575,
+      "speaker": "customer",
+      "text": "네, 알겠습니다. 문자로 온 건 무시할게요.",
+      "expect": [],
+      "note": "마무리. 변동금리 · DSR · 중도상환 · 청약철회는 끝까지 말하지 않아 미고지 4건"
+    }
+  ],
+  "expected_summary": {
+    "items_total": 11,
+    "met": 7,
+    "partial": 0,
+    "unmet": 4,
+    "waived": 0,
+    "violations": 1,
+    "alerts": 3,
+    "assists_adopted": 1,
+    "met_codes": [
+      "LOAN-RDR-001",
+      "LOAN-CIC-001",
+      "LOAN-RPY-001",
+      "LOAN-EXP-001",
+      "LOAN-ARR-001",
+      "LOAN-FEE-001",
+      "LOAN-TER-001"
+    ],
+    "unmet_codes": [
+      "LOAN-INT-001",
+      "LOAN-DSR-001",
+      "LOAN-PRE-001",
+      "LOAN-WDR-001"
+    ],
+    "violated_codes": [
+      "LOAN-BAN-001"
+    ],
+    "note": "LOAN-2026.08-v7 기준. violations 1 은 L3 확정값이고 LLM 이 없으면 suspected 로 남는다. alerts 3 = 위험 신호 1 · 금지 발언 1 · 숫자 오류 1. assists_adopted 1 은 되물음 재진술 카드(L3)"
+  }
+}

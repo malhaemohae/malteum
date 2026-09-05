@@ -1,0 +1,138 @@
+{
+  "audit_version": "2026-09-05",
+  "checked_at": "2026-09-05T00:00:00+09:00",
+  "scope": "원천 08(BEST 신용대출 상품 공시 웹 스냅샷) · 09(금소법 시행령) · 10(보이스피싱 피해예방 10계명) 추가와 후보 8건 추가(LOAN-EXP/RPY/FEE/TER/VPH, DEP-DOC-002/TER/PAY) · LOAN-DOC-001 근거 교체에 따른 감사. 기존 7종은 로컬 해시가 2026-09-03 기록과 같은지만 확인했고 원격 재수신은 하지 않음",
+  "candidate_summary": {
+    "confirmed": 27,
+    "unverified": 0,
+    "conflict": 0,
+    "excluded_negative_fixtures": 2
+  },
+  "sources": [
+    {
+      "doc_id": "01_금융소비자보호법",
+      "local_sha256": "b56cdf92197ae2fc43c727d6a060d31028cad1ff40a4f72f912575cc36f04a10",
+      "local_page_count": 31,
+      "official_url": "https://www.law.go.kr/LSW/lsPdfPrint.do?ancYnChk=0&lsiSeq=252409&efYd=20231012&efGubun=Y&joAllCheck=Y&joEfOutPutYn=on&mokChaChk=N&bylChaChk=N",
+      "snapshot_date": "2026-08-23",
+      "verdict": "local_unchanged_since_20260903",
+      "note": "이번 감사에서는 원격 재수신을 하지 않음. 로컬 해시가 2026-09-03 기록과 같은지만 대조"
+    },
+    {
+      "doc_id": "02_설명의무_이행_가이드라인",
+      "local_sha256": "db5f006d2ab1faeaa556539f8bd7adbe5c5931871beb7985c1dedbf2c93c4793",
+      "local_page_count": 20,
+      "official_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=76243&fileTy=ATTACH&fileNo=2",
+      "snapshot_date": "2026-08-23",
+      "verdict": "not_in_20260903_record",
+      "note": "2026-09-03 감사 기록에 없던 원천(후보가 쓰지 않아 감사 범위 밖). 원격 재수신은 하지 않았고 로컬 해시·쪽수만 기록"
+    },
+    {
+      "doc_id": "03_예금거래기본약관",
+      "local_sha256": "126ac2b135444466e52592598cd66bd39ecb92d14336efdbf291c5001027d01b",
+      "local_page_count": 9,
+      "official_url": "https://www.citibank.co.kr/cgrp_pjt/down/kor/deposit/Terms/예금거래기본약관(개정후).pdf",
+      "snapshot_date": "2026-08-23",
+      "verdict": "local_unchanged_since_20260903",
+      "note": "이번 감사에서는 원격 재수신을 하지 않음. 로컬 해시가 2026-09-03 기록과 같은지만 대조"
+    },
+    {
+      "doc_id": "04_은행여신거래기본약관_가계용",
+      "local_sha256": "d043424d5f9bdb41703f0afc0fbb4d343e7377010a00ac223694a9eec358262f",
+      "local_page_count": 9,
+      "official_url": "https://spot.wooribank.com/pot/bbs?cmd=download&BOARD_ID=B00179&ARTICLE_ID=3303&ATTACH_ID=28132",
+      "snapshot_date": "2026-08-23",
+      "verdict": "local_unchanged_since_20260903",
+      "note": "이번 감사에서는 원격 재수신을 하지 않음. 로컬 해시가 2026-09-03 기록과 같은지만 대조"
+    },
+    {
+      "doc_id": "05_상품설명서_정기예금",
+      "local_sha256": "fcb9a663df87d9a3bf0e00677fdca1fc0ededbec4132bffa6f23b346d9d581b2",
+      "local_page_count": 4,
+      "official_url": "https://v.icbc.com.cn/userfiles/resources/icbc/haiwai/seoul/download/202509_omd_krwtd.pdf",
+      "snapshot_date": "2026-08-23",
+      "verdict": "local_unchanged_since_20260903",
+      "note": "이번 감사에서는 원격 재수신을 하지 않음. 로컬 해시가 2026-09-03 기록과 같은지만 대조"
+    },
+    {
+      "doc_id": "06_상품설명서_가계대출",
+      "local_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
+      "local_page_count": 24,
+      "official_url": "https://image.kebhana.com/cont/download/documents/manual/0000005060618_20250113_m.pdf",
+      "snapshot_date": "2026-08-23",
+      "verdict": "local_unchanged_since_20260903",
+      "note": "이번 감사에서는 원격 재수신을 하지 않음. 로컬 해시가 2026-09-03 기록과 같은지만 대조"
+    },
+    {
+      "doc_id": "07_제2차_금융분야_보이스피싱_대책",
+      "local_sha256": "fd52cdcb19af152a9c2c6eabe5f52a6e15e81683c747fb578d38e980c947c37c",
+      "local_page_count": 18,
+      "official_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=79511&fileTy=ATTACH&fileNo=4",
+      "snapshot_date": "2026-08-23",
+      "verdict": "not_in_20260903_record",
+      "note": "2026-09-03 감사 기록에 없던 원천(후보가 쓰지 않아 감사 범위 밖). 원격 재수신은 하지 않았고 로컬 해시·쪽수만 기록"
+    },
+    {
+      "doc_id": "08_상품공시_BEST신용대출",
+      "local_sha256": "9bc0871be129a95e513149bac647f9b2e100398eb0dad20b67c117fc2b0b885d",
+      "local_page_count": 3,
+      "official_url": "https://www.kebhana.com/cont/mall/mall08/mall0802/mall080204/1431602_115200.jsp",
+      "snapshot_date": "2026-09-05",
+      "verdict": "added_web_snapshot",
+      "review_number": "제2025-상품공시-1055호(2025.12.26)",
+      "review_valid_through": "2027-11-30",
+      "companion_html_sha256": "a1295f8fbf3ccc09263d8891a6d7aef5566b8830a2736a7b4986f6f7a864797d",
+      "note": "하나은행 배포 대출 설명서 PDF 3종과 서식자료실에 구비서류 문구가 없어 상품 공시 웹페이지를 PDF 로 인쇄한 스냅샷. 원본 HTML 을 같은 이름으로 함께 보관. p.2 필요서류 3건과 p.3 심의필·유효기간을 find_span 으로 확인"
+    },
+    {
+      "doc_id": "09_금융소비자보호법_시행령",
+      "local_sha256": "4c53f5608edcb94904b058276c1d9067b8756fbefd1bbbc0eda90949af7deaa7",
+      "local_page_count": 33,
+      "official_url": "https://www.law.go.kr/LSW/lsPdfPrint.do?ancYnChk=0&lsiSeq=253255&efYd=20231102&efGubun=Y&joAllCheck=Y&joEfOutPutYn=on&mokChaChk=N&bylChaChk=N",
+      "snapshot_date": "2026-09-05",
+      "verdict": "added_official_pdf",
+      "revision": "대통령령 제33656호, 시행 2023.11.2",
+      "note": "법 §19①1 각 목의 '대통령령으로 정하는 사항' 목록(§13). 후보 근거 span 은 상품 문서에 두고 legal_basis 표기 근거로 씀"
+    },
+    {
+      "doc_id": "10_보이스피싱_피해예방_10계명",
+      "local_sha256": "6aab0530eea252725f3c5215519ba635d7d1aabf2ac2b32a4443e0da2040f8c3",
+      "local_page_count": 8,
+      "official_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=86250&fileTy=ATTACH&fileNo=2",
+      "snapshot_date": "2026-09-05",
+      "verdict": "added_official_pdf",
+      "published": "2026-02-10",
+      "note": "금융위 보도자료 첨부 PDF. p.3 대출빙자형 수법 문장이 LOAN-VPH-001 의 근거. 07 대책 문서에는 대출빙자 문구가 없었음"
+    }
+  ],
+  "official_references": [
+    {
+      "topic": "예금보호한도 1억원",
+      "url": "https://www.fsc.go.kr/no010101/85200"
+    },
+    {
+      "topic": "2026년 스트레스 DSR 운영",
+      "url": "https://www.fsc.go.kr/no010101/86914"
+    },
+    {
+      "topic": "은행법 제30조의2",
+      "url": "https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=02&joNo=0030&lsiSeq=282001&urlMode=lsScJoRltInfoR"
+    },
+    {
+      "topic": "신용정보법 제32조",
+      "url": "https://www.law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1025127945"
+    },
+    {
+      "topic": "하나은행 BEST 신용대출 상품 공시",
+      "url": "https://www.kebhana.com/cont/mall/mall08/mall0802/mall080204/1431602_115200.jsp"
+    },
+    {
+      "topic": "금융소비자보호법 시행령 제13조(설명의무)",
+      "url": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=253255"
+    },
+    {
+      "topic": "금융위 보이스피싱 피해예방 10계명 보도자료",
+      "url": "https://www.fsc.go.kr/no010101/86250"
+    }
+  ]
+}

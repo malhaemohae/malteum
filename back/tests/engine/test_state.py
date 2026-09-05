@@ -13,7 +13,8 @@ def test_initial_state_required_unmet_forbidden_clean(pack_json):
     pack = engine.load_pack(PACK_VERSION)
     state = engine.initial_state("S1", pack, "text")
     by_code = {s.item_code: s for s in state.items}
-    assert len(by_code) == 7  # reference(DEP-DOC-001)·risk(DEP-RSK-001) 항목은 제외
+    # required 8 + forbidden 1. reference(DOC-001·002)·risk(RSK-001) 항목은 제외
+    assert len(by_code) == 9
     assert all(by_code[c].state == "unmet" for c in ("DEP-INT-002", "DEP-PRO-001"))
     assert all(by_code[c].state == "clean" for c in ("DEP-BAN-001", "DEP-BAN-001"))
     assert state.unmet_codes() == tuple(it.code for it in pack.required_items())

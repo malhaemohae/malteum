@@ -13,22 +13,88 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 from rulepack import paths  # noqa: E402
 
 
-def test_run_manifest_fixes_all_seven_sources_and_parser_identity() -> None:
+def test_run_manifest_fixes_all_ten_sources_and_parser_identity() -> None:
     run = build_run_manifest(REPO_ROOT)
 
     assert run.parser.name == "opendataloader-pdf"
     assert run.parser.version == "2.3.0"
-    assert len(run.sources) == 7
+    assert len(run.sources) == 10
     # 06 가계대출 설명서를 2025.01 개정본(24쪽)으로 교체하며 26 -> 24 로,
-    # 05 정기예금 설명서를 현행본(4쪽)으로 교체하며 7 -> 4 로 줄었다
-    assert sum(source.page_count for source in run.sources) == 115
+    # 05 정기예금 설명서를 현행본(4쪽)으로 교체하며 7 -> 4 로 줄었다.
+    # 2026-09-05 에 08 BEST 신용대출 상품 공시 스냅샷(3쪽) · 09 금소법 시행령(33쪽)
+    # · 10 보이스피싱 피해예방 10계명(8쪽)이 더해져 115 -> 159
+    assert sum(source.page_count for source in run.sources) == 159
 
     for source in run.sources:
         expected = hashlib.sha256(source.path.read_bytes()).hexdigest()
         assert source.sha256 == expected
-        assert source.snapshot_date == "2026-08-23"
         assert source.path.parent == paths.docs_dir(REPO_ROOT)
         assert source.path.name == f"{source.doc_id}.pdf"
+
+    # 2026-09-05 에 받은 세 원천만 자기 행의 날짜를 쓰고, 나머지는 수집 확인 일자를 쓴다
+    by_id = {source.doc_id: source.snapshot_date for source in run.sources}
+    for later in (
+        "08_상품공시_BEST신용대출",
+        "09_금융소비자보호법_시행령",
+        "10_보이스피싱_피해예방_10계명",
+    ):
+        assert by_id.pop(later) == "2026-09-05", later
+    assert set(by_id.values()) == {"2026-08-23"}
+
+
+def _row(filename: str, status: str = "확보") -> str:
+    link = "[제목](https://example.com/a.pdf)"
+    return f"| `{filename}` | 법령 | 법제처 | {link} | 1p / 1자 | {status} | 근거 |"
+
+
+def _synthetic_docs(tmp_path: Path, rows: list[str], pdfs: list[str]) -> Path:
+    """표와 폴더만 있는 최소 배치. 표·폴더 대조는 PDF 를 열기 전에 끝나므로 빈 파일로 충분하다."""
+    root = tmp_path / "repo"
+    docs = root / "assets" / "03_규정문서"
+    docs.mkdir(parents=True)
+    header = (
+        "수집 확인 2026-08-23\n\n"
+        "| 파일 | 분류 | 발행 기관 | 문서 | 규모 | 상태 | 무엇의 근거 |\n"
+        "| --- | --- | --- | --- | --- | --- | --- |\n"
+    )
+    (docs / "MANIFEST.md").write_text(header + "\n".join(rows) + "\n", encoding="utf-8")
+    for name in pdfs:
+        (docs / name).write_bytes(b"")
+    return root
+
+
+def test_manifest_rejects_pdf_missing_from_table_or_folder(tmp_path: Path) -> None:
+    """표와 폴더가 어긋나면 어느 쪽이 빠졌는지 말하고 멈춘다.
+
+    옛 코드는 행 개수를 7 로 박아 두었다. 그러면 원천을 늘릴 때 코드를 고쳐야 하고,
+    표에 없는 PDF 는 조용히 원천에서 빠진다 (2026-09-05).
+    """
+    from rulepack import source_manifest
+
+    root = _synthetic_docs(tmp_path, [_row("01_x.pdf")], ["01_x.pdf", "99_표에_없는_문서.pdf"])
+    with pytest.raises(source_manifest.ManifestError, match="폴더에만.*99_표에_없는_문서"):
+        build_run_manifest(root)
+
+    (root / "assets" / "03_규정문서" / "99_표에_없는_문서.pdf").unlink()
+    (root / "assets" / "03_규정문서" / "01_x.pdf").unlink()
+    with pytest.raises(source_manifest.ManifestError, match="표에만.*01_x"):
+        build_run_manifest(root)
+
+
+def test_manifest_rejects_duplicate_row_and_empty_table(tmp_path: Path) -> None:
+    """같은 PDF 가 두 행이면 팩 `sources` 에 두 번 실리므로 집합 비교와 따로 잡는다.
+
+    옛 행 개수 상수가 우연히 막아 주던 것이라, 집합 비교로 바꾸면서 명시 검사로 남겼다.
+    """
+    from rulepack import source_manifest
+
+    root = _synthetic_docs(tmp_path, [_row("01_x.pdf"), _row("01_x.pdf")], ["01_x.pdf"])
+    with pytest.raises(source_manifest.ManifestError, match="두 번.*01_x"):
+        build_run_manifest(root)
+
+    root = _synthetic_docs(tmp_path / "empty", [], ["01_x.pdf"])
+    with pytest.raises(source_manifest.ManifestError, match="PDF 행이 없음"):
+        build_run_manifest(root)
 
 
 def test_manifest_rejects_a_source_path_outside_regulation_directory(tmp_path: Path) -> None:

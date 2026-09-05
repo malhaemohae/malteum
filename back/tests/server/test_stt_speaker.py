@@ -51,7 +51,7 @@ FIXTURE = json.loads(
     (BACK / "tests" / "fixtures" / "sortformer_scenarios.json").read_text(encoding="utf-8")
 )
 SCENARIOS = BACK.parent / "assets" / "scenarios"
-PACK_VERSION = "DEP-2026.08-v4"
+PACK_VERSION = "DEP-2026.08-v6"
 
 # 대본에서 은행원이 쓰는 안내·설명 어휘. 가짜 심판이 이것만 보고 답한다
 TELLER_MARKS = ("안내", "적용", "계산", "심사")

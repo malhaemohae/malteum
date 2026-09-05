@@ -8,7 +8,7 @@ const {apiUrl} = require('../lib/api.ts');
 const messages = JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../back/contracts/fixtures/ws_messages.json'),'utf8'));
 const ready=messages.find(m=>m.t==='ready');
 let state=reduceServer(newLiveSession(ready.session_id,'/ws','replay',ready.pack_version),ready);
-assert.equal(state.items.length,6); assert.equal(state.progress,undefined,'do not calculate progress from checklist');
+assert.equal(state.items.length,8);  // v6: 체크리스트는 required 8 (ready 의 forbidden 행은 제외) assert.equal(state.progress,undefined,'do not calculate progress from checklist');
 const verdict=messages.find(m=>m.t==='verdict'&&m.axis==='omission');
 state=reduceServer(state,verdict);assert.equal(state.items.find(i=>i.code===verdict.item_code).state,verdict.state);
 const corrected={...verdict,event_id:'QA-HIGH-VER',seq:99,ver:3,state:'partial'};
@@ -44,7 +44,7 @@ assert.ok(reportHtml({session_id:'empty',pack_version:'test',generated_at:''}).i
 const printed=reportHtml({session_id:'qa',pack_version:'test',generated_at:'',sections:{omission:[{name:'<script>bad</script>',state:'met'}],risk_signals:[{message:'확인 기록'}]}});
 assert.ok(printed.includes('&lt;script&gt;bad&lt;/script&gt;')&&!printed.includes('<script>bad'),'server report text must be escaped');
 assert.ok(printed.includes('확인 기록'),'print includes all sections regardless of active tab');
-const pack=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../back/contracts/fixtures/rulepack_DEP-2026.08-v4.json'),'utf8'));
+const pack=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../back/contracts/fixtures/rulepack_DEP-2026.08-v6.json'),'utf8'));
 const item=pack.items.find(i=>i.evidence);const evidence=evidenceForItem(pack,item);
 assert.equal(evidence.span,item.evidence.span);assert.equal(evidence.page,item.evidence.page);
 console.log('PASS: contract fixture states, independent axes, out-of-order versions, priority, grounding, server progress, STT fallback, evidence and PDF URLs.');

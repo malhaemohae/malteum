@@ -52,7 +52,7 @@ def probes():
     auth = {"Authorization": f"Bearer {TOKEN}"}
     approve = "/documents/{doc_id}/candidates/{candidate_id}/approve"
     bad_pack = json.loads(
-        (CONTRACTS / "fixtures" / "rulepack_DEP-2026.08-v4.json").read_text("utf-8")
+        (CONTRACTS / "fixtures" / "rulepack_DEP-2026.08-v6.json").read_text("utf-8")
     )
     bad_pack["items"][0]["evidence"]["span"] = "원문에 없는 문장입니다"
 

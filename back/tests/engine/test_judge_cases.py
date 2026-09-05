@@ -290,7 +290,7 @@ def test_answer_from_pack_item_and_rephrase(engine, pack):
 def test_briefing_and_documents(engine, pack):
     state = engine.initial_state("S-TEST", pack, "text")
     b = engine.briefing(pack, "general")
-    assert b.assist_type == "briefing" and "6개" in b.text
+    assert b.assist_type == "briefing" and "8개" in b.text  # v6 필수 8항목
     d = engine.documents(pack, state)
     assert (
         d.assist_type == "documents" and "실명확인증표" in d.text and d.item_code == "DEP-DOC-001"

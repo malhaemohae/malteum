@@ -64,7 +64,7 @@ def test_validation_error_is_also_contract_shaped(client, codes):
 
 def test_conflict_and_detail_survive(client, codes):
     """422 의 rejected_items 처럼 라우터가 실은 detail 이 살아남아야 한다."""
-    pack = json.loads((CONTRACTS / "fixtures" / "rulepack_DEP-2026.08-v4.json").read_text("utf-8"))
+    pack = json.loads((CONTRACTS / "fixtures" / "rulepack_DEP-2026.08-v6.json").read_text("utf-8"))
     pack["items"][0]["evidence"]["span"] = "원문에 없는 문장입니다"
     got = client.post("/api/packs/publish", json=pack, headers={"Authorization": f"Bearer {TOKEN}"})
     assert got.status_code == 422

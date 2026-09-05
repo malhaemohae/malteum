@@ -130,7 +130,7 @@ def test_it_renders_without_a_font_file_in_the_repo():
     body = report_pdf.render(
         {
             "session_id": "S1",
-            "pack_version": "DEP-2026.08-v4",
+            "pack_version": "DEP-2026.08-v6",
             "sections": {
                 "summary": {"items_total": 6, "met": 4},
                 "omission": [

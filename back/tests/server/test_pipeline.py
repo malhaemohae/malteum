@@ -56,7 +56,7 @@ class RefiningEngine(StubEngine):
 def _fixture_session(engine, session_id):
     store = MemoryEventStore()
     registry = SessionRegistry(engine, store)
-    session = registry.open("DEP-2026.08-v4", "text", session_id=session_id)
+    session = registry.open("DEP-2026.08-v6", "text", session_id=session_id)
     return store, session, Pipeline(engine, store)
 
 
@@ -68,7 +68,7 @@ async def test_submit_utterance_persists_and_publishes_with_supersedes():
     store = MemoryEventStore()
     registry = SessionRegistry(engine, store)
     pipeline = Pipeline(engine, store)
-    session = registry.open("DEP-2026.08-v4", "text", session_id="FIXT-SESS-0B")
+    session = registry.open("DEP-2026.08-v6", "text", session_id="FIXT-SESS-0B")
     sent = []
 
     async def publish(m):
@@ -150,13 +150,13 @@ def test_restored_session_keeps_the_original_t_ms_origin():
     registry = SessionRegistry(engine, store)
     pipeline = Pipeline(engine, store)
 
-    session = registry.open("DEP-2026.08-v4", "text", session_id="FIXT-SESS-0E")
+    session = registry.open("DEP-2026.08-v6", "text", session_id="FIXT-SESS-0E")
     started = pipeline.start(
         session, "text", {"code": "x", "name": "x", "category": "deposit"}, "general"
     )
     registry.close("FIXT-SESS-0E")  # 연결이 끊긴 상황
 
-    revived = registry.open("DEP-2026.08-v4", "text", session_id="FIXT-SESS-0E")
+    revived = registry.open("DEP-2026.08-v6", "text", session_id="FIXT-SESS-0E")
     assert revived.restored
     origin = datetime.fromisoformat(started["occurred_at"]).astimezone(UTC)
     assert revived.started_at == origin

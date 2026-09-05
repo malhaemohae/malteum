@@ -18,7 +18,7 @@ from server.main import create_app
 
 CONTRACTS = Path(__file__).resolve().parents[2] / "contracts"
 TOKEN = "test-admin-token"
-PACK = json.loads((CONTRACTS / "fixtures" / "rulepack_DEP-2026.08-v4.json").read_text("utf-8"))
+PACK = json.loads((CONTRACTS / "fixtures" / "rulepack_DEP-2026.08-v6.json").read_text("utf-8"))
 
 
 def _client(token: str | None = TOKEN) -> TestClient:

@@ -12,7 +12,7 @@ async function check(name,resource,init,expected,authenticated=true){
   await check('extraction requires auth',`/documents/${doc}/extraction`,{},401,false);
   const extraction=await(await check('authenticated extraction',`/documents/${doc}/extraction`,{},200)).json();
   assert.ok(extraction.blocks.length>0);
-  const pack=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../back/contracts/fixtures/rulepack_DEP-2026.08-v4.json'),'utf8'));
+  const pack=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../back/contracts/fixtures/rulepack_DEP-2026.08-v6.json'),'utf8'));
   const publish={method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pack)};
   await check('publish requires auth','/packs/publish',publish,401,false);
   await check('immutable pack cannot be overwritten','/packs/publish',publish,409);

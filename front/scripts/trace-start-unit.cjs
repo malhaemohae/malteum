@@ -6,7 +6,7 @@ require.extensions['.ts']=(module,filename)=>module._compile(ts.transpileModule(
 const {hasStoredUtterance,waitingForTraceUtterance}=require('../lib/trace-start.ts');
 const {newLiveSession,reduceServer}=require('../lib/workspace-model.ts');
 const fixtures=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../back/contracts/fixtures/ws_messages.json'),'utf8'));
-let active=newLiveSession('test','/ws','trace','DEP-2026.08-v4');
+let active=newLiveSession('test','/ws','trace','DEP-2026.08-v6');
 assert.equal(waitingForTraceUtterance(active),true);
 for(const kind of ['ready','progress','partial','verdict']){
  const message=fixtures.find(m=>m.t===kind);assert.ok(message);
@@ -29,7 +29,7 @@ require.extensions['.tsx']=(module,filename)=>module._compile(ts.transpileModule
 const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');
 const {TraceStart}=require('../components/trace-start.tsx');
 const render=session=>renderToStaticMarkup(React.createElement(TraceStart,{session,onEnd:()=>{},onRetry:()=>{},onHistory:()=>{}}));
-const blank=newLiveSession('test','/ws','trace','DEP-2026.08-v4');
+const blank=newLiveSession('test','/ws','trace','DEP-2026.08-v6');
 assert.match(render(blank),/저장된 상담에 연결/);
 assert.match(render({...blank,status:'connected'}),/첫 발화를 불러오고/);
 const disconnected=render({...blank,status:'disconnected',error:'연결 오류'});
