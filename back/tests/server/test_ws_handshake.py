@@ -200,9 +200,7 @@ def test_assist_request_with_item_code_returns_that_items_plain_language():
         sock.send_json({"t": "hello", "mode": "text", "session_id": "SMOKE-ASSIST-02"})
         ready = sock.receive_json()
         assert ready["t"] == "ready"
-        target = next(
-            item for item in ready["items"] if item.get("plain_language")
-        )
+        target = next(item for item in ready["items"] if item.get("plain_language"))
         sock.send_json(
             {"t": "assist_request", "assist_type": "rephrase", "item_code": target["item_code"]}
         )
@@ -212,7 +210,7 @@ def test_assist_request_with_item_code_returns_that_items_plain_language():
         check_s2c(got)
         assert got["t"] == "assist" and got["assist_type"] == "rephrase"
         assert got["item_code"] == target["item_code"]
-        assert got["text"] == target["plain_language"][0]
+        assert got["text"] == "\n".join(target["plain_language"])
 
         sock.send_json({"t": "assist_request", "assist_type": "rephrase", "item_code": "NOPE-000"})
         got = sock.receive_json()

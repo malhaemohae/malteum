@@ -60,13 +60,14 @@ async def assist_request(
             return f"팩에 없는 항목입니다: {item_code}"
         if not item.plain_language:
             return f"이 항목에는 승인된 쉬운 말이 없습니다: {item.name}"
-        source = session.last_teller_utterance
+        if item.evidence is None:
+            return NO_BASIS
         payload = AssistPayload(
             assist_type="rephrase",
-            text=item.plain_language[0],
+            text="\n".join(item.plain_language),
             item_code=item.code,
             trigger="manual_button",
-            source_utterance_ref=source.utterance_id if source else None,
+            source_utterance_ref=None,
             evidence=item.evidence,
         )
         return await _publish(session, pipeline, payload, publish)
