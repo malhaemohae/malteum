@@ -8,7 +8,7 @@ import { Empty } from './workspace';
 // reader zoom out to the whole page and walk to neighbouring pages of the same document.
 // Nothing here judges or rewrites evidence; it only shows what the server returned.
 
-const ZOOM_MIN = 1, ZOOM_MAX = 4, ZOOM_STEP = 1.3;
+const ZOOM_MAX = 4, ZOOM_STEP = 1.3;
 type Rect = { x: number; y: number; w: number; h: number };
 
 export function sourceUrl(value?: string) { try { const parsed = new URL(value ?? ''); return ['https:', 'http:'].includes(parsed.protocol) ? parsed.href : undefined; } catch { return undefined; } }
@@ -27,11 +27,19 @@ function pageRatio(evidence: Pick<ApiEvidence, 'page_size'>, natural: { width: n
   return Math.SQRT2; // A4 until the image tells us otherwise
 }
 function pageImageUrl(docId: string, page: number, scale: number, retry = 0) { const base = apiUrl(`/documents/${encodeURIComponent(docId)}/pages/${page}.png${scale === 2 ? "" : `?scale=${scale}`}`); return retry ? `${base}${base.includes("?") ? "&" : "?"}retry=${retry}` : base; }
+// The canvas width is `zoom` times the viewport width, so a whole page fits only when the
+// resulting height also fits. Anything larger crops the page and calling that "whole page" lies.
+function fitZoom(viewport: { width: number; height: number }, ratio: number) {
+  if (viewport.width <= 0 || viewport.height <= 0 || ratio <= 0) return 1;
+  return Math.min(1, viewport.height / (viewport.width * ratio));
+}
 // Zoom so the highlighted span fills about half of the viewport width without cutting its height.
 function focusZoom(rect: Rect | null, viewport: { width: number; height: number }, ratio: number) {
-  if (!rect || viewport.width <= 0 || viewport.height <= 0) return 1.6;
+  // Never zoom out past a whole page: below that the reader loses the sheet and gains nothing.
+  const floor = fitZoom(viewport, ratio);
+  if (!rect || viewport.width <= 0 || viewport.height <= 0) return Math.max(floor, 1.6);
   const byWidth = 0.55 / rect.w; const byHeight = (0.45 * viewport.height) / (rect.h * viewport.width * ratio);
-  return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.min(byWidth, byHeight)));
+  return Math.min(ZOOM_MAX, Math.max(floor, Math.min(byWidth, byHeight)));
 }
 
 // --- shared caches: evidence by ref, page counts by document --------------------------------
@@ -93,8 +101,10 @@ function PageCanvas({ docId, page, zoom, rect, ratio, onNatural, onError, retry 
 export function EvidenceView({ value }: { value: ApiEvidence }) {
   const viewport = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(value.page);
-  const [zoom, setZoom] = useState(1.6);
-  const [mode, setMode] = useState<'focus' | 'page' | 'free'>('focus');
+  const [zoom, setZoom] = useState(1);
+  // width: the default. The sheet fits side to side, so nothing scrolls horizontally.
+  // focus: zoom into the highlight. page: the whole sheet. free: whatever the buttons left.
+  const [mode, setMode] = useState<'width' | 'focus' | 'page' | 'free'>('width');
   const [natural, setNatural] = useState<{ width: number; height: number; scale: number } | null>(null);
   const [imageError, setImageError] = useState(false);
   const [imageRetry, setImageRetry] = useState(0);
@@ -104,29 +114,39 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
   const renderScale = zoom >= 2.4 ? 4 : zoom >= 1.4 ? 3 : 2;
   const rect = useMemo(() => highlightRect(value, natural ? [natural.width / natural.scale, natural.height / natural.scale] : undefined), [value, natural, renderScale]);
   const onEvidencePage = page === value.page;
-  useEffect(() => { setPage(value.page); setMode('focus'); setImageError(false); }, [value]);
+  useEffect(() => { setPage(value.page); setMode('width'); setImageError(false); }, [value]);
   useEffect(() => { setImageError(false); }, [page]);
   useLayoutEffect(() => {
     const host = viewport.current; if (!host) return;
-    const measure = () => {
-      const box = host.getBoundingClientRect();
-      setViewportSize(current => current.width === box.width && current.height === box.height ? current : { width: box.width, height: box.height });
-    };
-    measure(); window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, []);  // Focus mode recomputes the zoom from the live viewport size and centres the highlight.
+    // The dialog lays out after this effect runs, so a one-off read returns 0 and every
+    // zoom mode below bails out. Observe the element itself instead of the window.
+    const observer = new ResizeObserver(([entry]) => setViewportSize(current =>
+      current.width === entry.contentRect.width && current.height === entry.contentRect.height
+        ? current : { width: entry.contentRect.width, height: entry.contentRect.height }));
+    observer.observe(host); return () => observer.disconnect();
+  }, []);
+  // Focus centres the highlight; page fits one sheet in the viewport. Both need a measured host.
   useLayoutEffect(() => {
     const host = viewport.current; if (!host || viewportSize.width === 0) return;
+    if (mode === 'width') {
+      setZoom(1);
+      // Width already fits; only the vertical position has to find the quote.
+      const canvasHeight = viewportSize.width * ratio;
+      const centre = rect && onEvidencePage ? rect.y + rect.h / 2 : 0;
+      host.scrollTo({ left: 0, top: Math.max(0, centre * canvasHeight - viewportSize.height / 2), behavior: 'auto' });
+    }
     if (mode === 'focus' && onEvidencePage) {
       const next = focusZoom(rect, viewportSize, ratio); setZoom(next);
       const canvasWidth = viewportSize.width * next; const canvasHeight = canvasWidth * ratio;
       const centre = rect ? { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 } : { x: 0.5, y: 0.2 };
       host.scrollTo({ left: Math.max(0, centre.x * canvasWidth - viewportSize.width / 2), top: Math.max(0, centre.y * canvasHeight - viewportSize.height / 2), behavior: 'auto' });
     }
-    if (mode === 'page') { setZoom(1); host.scrollTo({ left: 0, top: 0 }); }
+    if (mode === 'page') { setZoom(fitZoom(viewportSize, ratio)); host.scrollTo({ left: 0, top: 0 }); }
   }, [mode, onEvidencePage, rect, ratio, viewportSize, page]);
   function stepZoom(direction: 1 | -1) {
-    const host = viewport.current; const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, direction > 0 ? zoom * ZOOM_STEP : zoom / ZOOM_STEP));
+    const host = viewport.current;
+    const floor = fitZoom(viewportSize, ratio);
+    const next = Math.min(ZOOM_MAX, Math.max(floor, direction > 0 ? zoom * ZOOM_STEP : zoom / ZOOM_STEP));
     if (host && viewportSize.width > 0) {
       // Keep the point at the centre of the viewport where it is while the canvas grows.
       const factor = next / zoom; const cx = host.scrollLeft + viewportSize.width / 2; const cy = host.scrollTop + viewportSize.height / 2;
@@ -154,16 +174,19 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
           {!onEvidencePage && <button type="button" className="wb-ev-back" onClick={() => go(value.page)}>근거 위치로 (p.{value.page})</button>}
         </div>
         <div className="wb-ev-zoom" role="group" aria-label="확대">
+          <button type="button" aria-pressed={mode === 'width'} onClick={() => setMode('width')}>폭 맞춤</button>
           <button type="button" aria-pressed={mode === 'focus'} disabled={!onEvidencePage} onClick={() => setMode('focus')}>근거 확대</button>
           <button type="button" aria-pressed={mode === 'page'} onClick={() => setMode('page')}>전체 페이지</button>
-          <button type="button" aria-label="축소" disabled={zoom <= ZOOM_MIN} onClick={() => stepZoom(-1)}>－</button>
+          <button type="button" aria-label="축소" disabled={zoom <= fitZoom(viewportSize, ratio) + 0.001} onClick={() => stepZoom(-1)}>－</button>
           <span>{Math.round(zoom * 100)}%</span>
           <button type="button" aria-label="확대" disabled={zoom >= ZOOM_MAX} onClick={() => stepZoom(1)}>＋</button>
         </div>
       </div>
+      <div className="wb-ev-stage" onDoubleClick={() => setMode(mode === 'focus' ? 'width' : 'focus')}>
       {imageError ? <div className="wb-ev-image-error"><Empty>p.{page} 이미지를 불러오지 못했습니다. 인용 문장은 왼쪽에서 계속 확인할 수 있습니다.<button type="button" onClick={() => { setImageError(false); setImageRetry(value => value + 1); }}>이미지 다시 불러오기</button></Empty></div>
         : <PageCanvas docId={value.doc_id} page={page} zoom={zoom} rect={onEvidencePage ? rect : null} ratio={ratio} viewportRef={viewport} onNatural={setNatural} retry={imageRetry} onError={() => setImageError(true)} />}
-      <small className="wb-ev-hint">{onEvidencePage ? '형광펜이 근거 문장입니다. 끌어서 주변 문맥을 보거나 전체 페이지로 넓히세요.' : '근거가 아닌 페이지입니다. 원문 문맥 확인용으로만 보세요.'}</small>
+      </div>
+      <small className="wb-ev-hint">{onEvidencePage ? '형광펜이 근거 문장입니다. 두 번 누르면 그 자리를 확대하고, 끌어서 주변을 봅니다.' : '근거가 아닌 페이지입니다. 원문 문맥 확인용으로만 보세요.'}</small>
     </section>
   </div>;
 }
