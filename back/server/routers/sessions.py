@@ -24,12 +24,14 @@ from pathlib import Path
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query, Request, UploadFile
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from contracts.engine_contract import Mode
 from engine.pack.source import PackNotFound
 from server.generated.api import Report, SessionDetail, SessionSummary
 from server.services import report as report_builder
+from server.services import report_pdf
 from server.services.event.envelope import ID_MAX, ID_MIN, valid_id
 from server.services.stt import audio
 
@@ -293,11 +295,11 @@ async def upload_audio(session_id: str, request: Request, file: UploadFile) -> d
     }
 
 
-@router.get("/sessions/{session_id}/report")
-def get_report(session_id: str, request: Request) -> dict[str, Any]:
-    """증빙 리포트. 이벤트를 접어 만들고 PDF 와 같은 내용을 준다(계약).
+def _report(session_id: str, request: Request) -> dict[str, Any]:
+    """리포트 한 벌. JSON 경로와 PDF 경로가 이것을 나눠 쓴다.
 
-    dict 로 내보내는 이유는 `get_session` 과 같다 — `_contract_json` 주석 참조.
+    계약이 두 경로에 **같은 내용**을 요구하므로 만드는 자리를 하나로 둔다. 각자
+    만들면 언젠가 다른 수를 말하고, 그러면 증빙으로 못 쓴다.
     """
     runtime = request.app.state.runtime
     events = runtime.event_store.of_session(session_id)
@@ -309,6 +311,35 @@ def get_report(session_id: str, request: Request) -> dict[str, Any]:
         doc = runtime.pack_source.read(pack_version)
     except PackNotFound as e:
         raise HTTPException(404, "규정 팩이 없습니다.") from e
-    return _contract_json(
-        Report.model_validate(report_builder.build(session_id, events, runtime.engine, pack, doc))
+    return report_builder.build(session_id, events, runtime.engine, pack, doc)
+
+
+@router.get("/sessions/{session_id}/report")
+def get_report(session_id: str, request: Request) -> dict[str, Any]:
+    """증빙 리포트. 이벤트를 접어 만들고 PDF 와 같은 내용을 준다(계약).
+
+    dict 로 내보내는 이유는 `get_session` 과 같다 — `_contract_json` 주석 참조.
+    """
+    return _contract_json(Report.model_validate(_report(session_id, request)))
+
+
+@router.get(
+    "/sessions/{session_id}/report.pdf",
+    response_class=Response,
+    responses={200: {"content": {"application/pdf": {}}}},
+)
+def get_report_pdf(session_id: str, request: Request) -> Response:
+    """같은 리포트를 PDF 로. 상담이 끝나면 `ended` 가 이 경로를 `report_url` 로 알린다.
+
+    화면의 "PDF로 저장" 은 그 값이 있으면 새 탭으로 연다(없을 때만 브라우저 인쇄).
+    그래서 이 경로가 비어 있으면 심사위원이 그 버튼을 눌렀을 때 404 를 본다.
+
+    `Content-Disposition` 을 `inline` 으로 둔다 — 새 탭에서 바로 보이는 편이 낫고,
+    저장은 뷰어가 한다.
+    """
+    body = report_pdf.render(_report(session_id, request))
+    return Response(
+        content=body,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="report-{session_id}.pdf"'},
     )
