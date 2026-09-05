@@ -127,9 +127,9 @@ export default function Application() {
         }
         // Current WS mapping omits alert.acknowledged. Resolve that flag from the
         // persisted event, never by assuming that a successful send was a save.
-        if (message.t === 'alert' && active.mode === 'trace') {
-          if (active.acknowledgedAlertIds?.includes(String(message.event_id))) message = { ...message, acknowledged: true };
-        } else if (message.t === 'alert' && pendingAcknowledgements.current.size > 0) {
+        if (message.t === 'alert' && active.mode === 'trace' && active.acknowledgedAlertIds) {
+          if (active.acknowledgedAlertIds.includes(String(message.event_id))) message = { ...message, acknowledged: true };
+        } else if (message.t === 'alert' && (active.mode === 'trace' || pendingAcknowledgements.current.size > 0)) {
           try {
             const event = await findSessionEvent(active.sourceSessionId ?? active.id, String(message.event_id));
             const alert = event?.alert as Record<string, unknown> | undefined;
