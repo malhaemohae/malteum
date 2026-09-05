@@ -136,12 +136,14 @@ if(require.main===module) (async () => {
   await page.getByRole('button',{name:'근거 원문',exact:true}).click();
   await page.getByRole('dialog',{name:'근거 원문',exact:true}).waitFor();
   await allSizes(page,'evidence');
+  await page.setViewportSize({width:390,height:844});
   await page.getByRole('button',{name:'PDF 페이지',exact:true}).click();
   await page.locator('.wb-page-canvas img').waitFor();
   await page.waitForFunction(()=>document.querySelector('.wb-page-canvas img')?.naturalWidth>0);
   await allSizes(page,'evidence-page');
   await page.getByRole('dialog',{name:'근거 원문',exact:true}).getByRole('button',{name:'닫기',exact:true}).click();
-  await page.getByRole('button',{name:'고지 완료 기록',exact:true}).click();
+  assert.equal(await page.locator('dialog[open]').count(),0);
+  await page.locator('[data-check-item]').first().getByRole('button',{name:'고지 기록',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[data-paged-list="필수 안내"] .wb-row-button .wb-badge')?.getAttribute('data-state')==='met');
   assert.ok(messages.some(message=>message.t==='verdict'&&message.decided_by==='human'),'manual mark must wait for a human server verdict');
   await page.locator('[data-paged-list="필수 안내"] .wb-row-button').first().click();
@@ -220,7 +222,7 @@ if(require.main===module) (async () => {
   while (!messages.slice(traceReadyIndex+1).some(message=>message.t==='utterance') && Date.now()<traceDeadline) await page.waitForTimeout(300);
   assert.ok(messages.slice(traceReadyIndex+1).some(message=>message.t==='utterance'),'TRACE must replay saved utterances');
   await inspect(page,'trace',true);
-  if (await page.getByRole('button',{name:'상담 종료',exact:true}).isVisible()) { await page.getByRole('button',{name:'상담 종료',exact:true}).click(); await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor(); }
+  if (await page.getByRole('button',{name:/^(상담|재생) 종료$/}).isVisible()) { await page.getByRole('button',{name:/^(상담|재생) 종료$/}).click(); await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor(); }
   // Failure and empty states are independently sized; no product-side fake data.
   await page.route('**/api/packs',route=>route.fulfill({json:{packs:[]}}));
   await page.getByRole('button',{name:'＋ 새 상담',exact:true}).click();

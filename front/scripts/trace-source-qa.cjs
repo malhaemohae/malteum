@@ -22,7 +22,7 @@ async function history(page,id){
  }
  throw new Error('TRACE row not found');
 }
-async function end(page){await page.getByRole('button',{name:'상담 종료',exact:true}).click();await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor();}
+async function end(page){await page.getByRole('button',{name:'재생 종료',exact:true}).click();await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor();}
 (async()=>{
  const before=await request(`/sessions/${sourceId}/events`); const legacyBefore=await request(`/sessions/${legacyId}/events`);
  browser=await chromium.launch({headless:true}); const context=await browser.newContext({viewport:{width:1440,height:900}}); const page=await context.newPage(); page.setDefaultTimeout(25000);
@@ -59,7 +59,11 @@ async function end(page){await page.getByRole('button',{name:'상담 종료',exa
  const candidate=picker.locator(`[data-trace-candidate="${sourceId}"]`); await candidate.waitFor();
  const text=before.events.find(e=>e.kind==='utterance').utterance.text;
  assert.ok((await candidate.textContent()).includes(text),'preview comes from stored events');
- await candidate.getByRole('button',{name:'이 상담 재생',exact:true}).click();
+ await candidate.locator('.wb-trace-preview').click();
+ await page.getByRole('dialog',{name:'첫 발화',exact:true}).waitFor();
+ assert.equal(await page.locator('dialog[open]').count(),1,'preview replaces the picker content without stacking dialogs');
+ await allSizes(page,'trace-inline-preview');
+ await page.getByRole('dialog',{name:'첫 발화',exact:true}).getByRole('button',{name:'이 상담 재생',exact:true}).click();
  if(checkLoading){
   await page.getByRole('heading',{name:'첫 발화를 불러오고 있습니다',exact:true}).waitFor();
   assert.equal(await page.locator('.wb-dashboard').count(),0,'no empty dashboard under the waiting screen');
@@ -71,7 +75,7 @@ async function end(page){await page.getByRole('button',{name:'상담 종료',exa
   assert.equal(await page.locator('[data-trace-start]').isVisible(),true,'waiting persists throughout delayed delivery');
   releaseFirstUtterance();
  }
- await page.waitForFunction(()=>document.querySelector('[data-workspace="dashboard"]')&&document.querySelector('[data-paged-list="상담 전사"]')?.textContent.includes('중도해지'));
+ await page.waitForFunction(()=>document.querySelector('[data-workspace="playback"]')&&document.querySelector('[data-paged-list="상담 전사"]')?.textContent.includes('중도해지'));
  assert.equal(posts[0].source_session_id,sourceId);
  assert.ok(frames.some(m=>m.t==='utterance'&&m.text===text),'actual backend WS replays the original utterance');
  assert.equal(await page.locator('[data-trace-start]').count(),0,'the first final utterance removes the loading screen');
@@ -86,7 +90,7 @@ async function end(page){await page.getByRole('button',{name:'상담 종료',exa
   await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor();
   assert.equal((await request(`/sessions/${created[1]}`)).status,'ended','stopping before the first utterance is saved by the actual server');
  }else{
-  await page.waitForFunction(()=>document.querySelector('[data-workspace="dashboard"]')&&document.querySelector('[data-paged-list="상담 전사"]')?.textContent.includes('중도해지'));
+  await page.waitForFunction(()=>document.querySelector('[data-workspace="playback"]')&&document.querySelector('[data-paged-list="상담 전사"]')?.textContent.includes('중도해지'));
   await end(page);
  }
  assert.equal(await picker.count(),0,'new TRACE directly replays its exact source after reload');

@@ -24,12 +24,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--db-port", type=int, default=15432)
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--docs-dir", type=Path, default=ROOT / "assets/03_규정문서")
     parser.add_argument("--env-file", type=Path, default=FRONT / ".env.backend.local")
     parser.add_argument("--secret-file", type=Path)
     parser.add_argument("--seed", action="store_true")
     args = parser.parse_args()
     if not (1 <= args.db_port <= 65535 and 1 <= args.port <= 65535):
         parser.error("Ports must be between 1 and 65535")
+    if not args.docs_dir.is_dir():
+        parser.error("The supplied documents directory does not exist")
     if args.secret_file:
         if not args.secret_file.is_file():
             parser.error("The supplied age identity file does not exist")
@@ -64,7 +67,7 @@ def main():
             "POSTGRES_PORT": f"127.0.0.1:{args.db_port}",
             "APP_DATABASE_URL": f"postgresql+psycopg://app:app@127.0.0.1:{args.db_port}/app",
             "APP_PACK_DIR": str(ROOT / "back/contracts/fixtures"),
-            "APP_DOCS_DIR": str(ROOT / "assets/03_규정문서"),
+            "APP_DOCS_DIR": str(args.docs_dir.resolve()),
             "APP_EXTRACTION_DIR": str(ROOT / "assets/extraction"),
             "APP_UPLOAD_DIR": str(FRONT / ".local/uploads"),
         }

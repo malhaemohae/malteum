@@ -66,9 +66,11 @@
 .wb-service .wb-guide-content .wb-empty{font-size:13px;padding:12px;line-height:1.8}
 .wb-service .wb-mobile-tabs{display:none}
 .wb-service .wb-history-list .wb-history-hint{font-size:11px;color:#647980}
+.wb-history-list .wb-list-row>div.wb-row-button{display:flex;flex:1;min-width:0;padding:6px 4px}
 @container (max-width:520px){
   .wb-history-list .wb-list-row{flex-wrap:wrap;align-content:center;gap:2px}
-  .wb-history-list .wb-list-row>.wb-row-button{flex-basis:100%;padding:0;min-height:0}
+  .wb-history-list .wb-list-row>.wb-row-button,
+  .wb-history-list .wb-list-row>div.wb-row-button{flex-basis:100%;padding:0;min-height:0}
   .wb-history-list .wb-list-row>.wb-actions{margin-left:auto}
 }
 .wb-history-list .wb-list{container-type:inline-size}
@@ -95,7 +97,7 @@
   .wb.wb-service{grid-template-columns:214px minmax(0,1fr)}
   .wb-service .wb-main{padding:20px 36px 28px}
   .wb-service .wb-dashboard{gap:18px 22px}
-  .wb-service .wb-shortcut{min-height:130px;padding:20px}
+  .wb-service .wb-shortcut{min-height:64px;padding:12px}
   .wb-shortcut-title strong{font-size:19px}
 }
 @media(max-width:1200px){

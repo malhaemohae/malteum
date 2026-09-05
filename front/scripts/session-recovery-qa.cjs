@@ -157,7 +157,7 @@ async function history(page, mode, id) {
   const traceId = received.slice(traceReadyIndex).find(m=>m.t==='ready'&&m.mode==='trace')?.session_id;
   assert.ok(traceId); created.push({id:traceId,mode:'trace'});
   assert.equal(creations.at(-1).source_session_id,id);
-  await page.getByRole('button', {name:'상담 종료',exact:true}).click();
+  await page.getByRole('button', {name:'재생 종료',exact:true}).click();
   await page.getByRole('button', {name:'PDF 저장',exact:true}).waitFor();
   assert.equal((await request(`/sessions/${traceId}`)).status,'ended');
   checks.push('closed original enables real backend TRACE with original utterance, then saves end');
@@ -165,8 +165,8 @@ async function history(page, mode, id) {
   const replayBefore = await request(`/sessions/${replay}/events`);
   const replaySummary = await request(`/sessions/${replay}`);
   row = await history(page,'replay',replay);
-  await row.getByRole('button',{name:'상담 열기',exact:true}).click();
-  await page.getByRole('button',{name:'상담 종료',exact:true}).click();
+  await row.getByRole('button',{name:'재생 이어보기',exact:true}).click();
+  await page.getByRole('button',{name:'재생 종료',exact:true}).click();
   await page.getByRole('button',{name:'PDF 저장',exact:true}).waitFor();
   const replayAfter = await request(`/sessions/${replay}/events`);
   const replayClosed = await request(`/sessions/${replay}`);
