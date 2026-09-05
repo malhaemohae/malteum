@@ -20,26 +20,11 @@ export function Workbench({ screen, title, subtitle, actions, onNavigate, onNew,
   </div>;
 }
 
-export function usePulse<T extends HTMLElement>(key?: unknown, pulseOnMount = true) {
-  const ref = useRef<T>(null);
-  const previous = useRef(key);
-  useEffect(() => {
-    const unchanged = previous.current === key; previous.current = key;
-    if (!pulseOnMount && unchanged) return;
-    const node = ref.current; if (!node || key == null || key === '') return;
-    node.classList.remove('wb-pulse'); void node.offsetWidth; node.classList.add('wb-pulse');
-    const timer = setTimeout(() => node.classList.remove('wb-pulse'), 1100);
-    return () => { clearTimeout(timer); node.classList.remove('wb-pulse'); };
-  }, [key, pulseOnMount]);
-  return ref;
-}
 export function Feedback({ message, pending = false, action }: { message?: string; pending?: boolean; action?: ReactNode }) {
-  const ref = usePulse<HTMLDivElement>(message);
-  return message ? <div ref={ref} className="wb-feedback" role="status" aria-live="polite" aria-atomic="true" data-pending={pending}><span aria-hidden="true">{pending ? '◌' : '•'}</span><span>{message}</span>{action}</div> : null;
+  return message ? <div className="wb-feedback" role="status" aria-live="polite" aria-atomic="true" data-pending={pending}><span aria-hidden="true">{pending ? '◌' : '•'}</span><span>{message}</span>{action}</div> : null;
 }
-export function Panel({ title, action, className = '', children, pulseKey }: { title?: string; action?: ReactNode; className?: string; children: ReactNode; pulseKey?: unknown }) {
-  const ref = usePulse<HTMLElement>(pulseKey, false);
-  return <section ref={ref} className={`wb-panel ${className}`}>{(title || action) && <header className="wb-panel-head"><h2>{title}</h2>{action}</header>}<div className="wb-panel-body">{children}</div></section>;
+export function Panel({ title, action, className = '', children }: { title?: string; action?: ReactNode; className?: string; children: ReactNode }) {
+  return <section className={`wb-panel ${className}`}>{(title || action) && <header className="wb-panel-head"><h2>{title}</h2>{action}</header>}<div className="wb-panel-body">{children}</div></section>;
 }
 export function Empty({ children }: { children: ReactNode }) { return <div className="wb-empty">{children}</div>; }
 export function Notice({ children, action }: { children?: ReactNode; action?: ReactNode }) { return children ? <div className="wb-notice" role="status"><span>{children}</span>{action}</div> : null; }
@@ -76,7 +61,6 @@ export function TextPages({ text, label = '내용' }: { text: string; label?: st
 
 export function Modal({ title, onClose, children, actions, className = '', trapFocus = false }: { title: string; onClose: () => void; children: ReactNode; actions?: ReactNode; className?: string; trapFocus?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
-  const frame = usePulse<HTMLDivElement>(title);
   useEffect(() => { const node = ref.current; const previous = document.activeElement as HTMLElement | null; node?.showModal(); return () => { node?.close(); if (previous?.isConnected) previous.focus(); }; }, []);
   function keepFocus(event: KeyboardEvent<HTMLDialogElement>) {
     if (!trapFocus || event.key !== 'Tab') return;
@@ -85,7 +69,7 @@ export function Modal({ title, onClose, children, actions, className = '', trapF
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   }
-  return <dialog ref={ref} className={`wb-modal ${className}`} onKeyDown={keepFocus} onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }} aria-label={title}><div ref={frame} className="wb-modal-frame"><header className="wb-panel-head"><h2>{title}</h2><button type="button" autoFocus aria-label="닫기" onClick={onClose}>✕</button></header><div className="wb-modal-body">{children}</div>{actions && <footer className="wb-actions">{actions}</footer>}</div></dialog>;
+  return <dialog ref={ref} className={`wb-modal ${className}`} onKeyDown={keepFocus} onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }} aria-label={title}><div className="wb-modal-frame"><header className="wb-panel-head"><h2>{title}</h2><button type="button" autoFocus aria-label="닫기" onClick={onClose}>✕</button></header><div className="wb-modal-body">{children}</div>{actions && <footer className="wb-actions">{actions}</footer>}</div></dialog>;
 }
 
 export { EvidenceView, sourceUrl } from './evidence';

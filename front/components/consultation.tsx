@@ -48,12 +48,10 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
   const [guidePane, setGuidePane] = useState<'attention' | 'checks'>('attention');
   const [filter, setFilter] = useState<'all' | 'customer' | 'teller'>('all'); const inputRef = useRef<HTMLInputElement>(null);
   const transcript = useMemo(() => filter === 'all' ? session.transcript : session.transcript.filter(row => row.speaker === filter), [filter, session.transcript]);
-  const [panePulse, setPanePulse] = useState(0);
-  const [conversationPulse, setConversationPulse] = useState(0);
   const [reference, setReference] = useState<'documents' | 'briefing' | null>(null);
   const [rephraseOpen, setRephraseOpen] = useState(false);
   const [plainCode, setPlainCode] = useState<string | null>(null);
-  function selectPane(value: typeof pane) { setPane(value); if (value === 'conversation') setConversationPulse(value => value + 1); else { setGuidePane(value); setPanePulse(value => value + 1); } }
+  function selectPane(value: typeof pane) { setPane(value); if (value !== 'conversation') setGuidePane(value); }
   function requestRephrase(code?: string) {
     if (code) { setPlainCode(code); setSelected(null); setRephraseOpen(true); return; }
     if (onCommand({ t: 'assist_request', assist_type: 'rephrase' })) { setPlainCode(null); setSelected(null); setRephraseOpen(true); }
@@ -85,7 +83,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
         <QuickAction title="규정 팩 보기" subtitle="적용 중인 팩의 항목" icon="book" tone="briefing" disabled={!pack} onClick={() => setReference('briefing')} />
       </div>
       <div className="wb-conversation">
-        <Panel title="상담 대화" className="wb-transcript" pulseKey={`${micActive}:${conversationPulse}:${transcript.at(-1)?.id ?? ''}`} action={replaySound ? <button type="button" className="wb-replay-sound" data-replay-sound={replaySound.status} aria-pressed={replaySound.enabled && replaySound.status !== 'blocked'} onClick={onReplaySound} disabled={replaySound.status === 'loading' || session.ending || session.status !== 'connected'}>{replaySound.status === 'loading' ? '음원 준비 중' : replaySound.status === 'unavailable' ? '소리 다시 시도' : replaySound.status === 'blocked' || !replaySound.enabled ? '소리 켜기' : '소리 끄기'}</button> : <small role="status">{session.mode === 'live' && micActive ? health?.checks?.stt === 'ok' ? '● 녹음 중 · 전사 대기' : '● 녹음 중 · 전사 연결 확인 필요' : '고객 · 상담원'}</small>}>
+        <Panel title="상담 대화" className="wb-transcript" action={replaySound ? <button type="button" className="wb-replay-sound" data-replay-sound={replaySound.status} aria-pressed={replaySound.enabled && replaySound.status !== 'blocked'} onClick={onReplaySound} disabled={replaySound.status === 'loading' || session.ending || session.status !== 'connected'}>{replaySound.status === 'loading' ? '음원 준비 중' : replaySound.status === 'unavailable' ? '소리 다시 시도' : replaySound.status === 'blocked' || !replaySound.enabled ? '소리 켜기' : '소리 끄기'}</button> : <small role="status">{session.mode === 'live' && micActive ? health?.checks?.stt === 'ok' ? '● 녹음 중 · 전사 대기' : '● 녹음 중 · 전사 연결 확인 필요' : '고객 · 상담원'}</small>}>
           <div className="wb-conversation-filters" aria-label="대화 화자 필터"><Tabs value={filter} onChange={setFilter} items={[{ value: 'all', label: '전체' }, { value: 'customer', label: '고객' }, { value: 'teller', label: '상담원' }]} /></div>
           <Transcript key={filter} items={transcript} empty={filter === 'all' ? '첫 발화를 기다리고 있습니다.' : '이 화자의 발화가 아직 없습니다.'} onSelect={row => setDetail({ title: `${speakerLabel(row.speaker)} · ${timeLabel(row.t_ms / 1000)}`, text: row.text })} />
           {session.partial && <button className="wb-row-button wb-partial" onClick={() => setDetail({ title: '중간 전사', text: session.partial })}>듣는 중 · {session.partial}</button>}
@@ -93,7 +91,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
         </Panel>
       </div>
       <div className="wb-guidance">
-        <Panel title="상담 가이드" className="wb-guide-panel" pulseKey={`${session.interventions.map(entry => entry.id).join(',')}:${panePulse}:${guidePane === 'checks' ? session.items.map(entry => `${entry.code}:${entry.state}:${entry.missing.join('|')}`).join(',') : ''}`} action={intervention && guidePane === 'checks' && <button className="wb-guide-notification" onClick={() => selectPane('attention')}>안내 {session.interventions.length}건 보기</button>}>
+        <Panel title="상담 가이드" className="wb-guide-panel" action={intervention && guidePane === 'checks' && <button className="wb-guide-notification" onClick={() => selectPane('attention')}>안내 {session.interventions.length}건 보기</button>}>
         <div className="wb-guide-tabs"><Tabs value={guidePane} onChange={value => selectPane(value)} items={[{ value: 'attention', label: intervention ? `현재 안내 · ${session.interventions.length}` : '현재 안내' }, { value: 'checks', label: '필수 안내' }]} /></div>
         <div className="wb-guide-content" data-guide-pane={guidePane}>
         <Panel title={intervention ? kindNames[intervention.kind] ?? '현재 안내' : '현재 확인할 내용'} className={`wb-attention ${intervention?.kind === 'risk_signal' ? 'is-risk' : ''}`} action={intervention && <span className="wb-badge">{session.interventions.length > 1 ? `대기 ${session.interventions.length - 1}건` : '현재 1건'}</span>}>
