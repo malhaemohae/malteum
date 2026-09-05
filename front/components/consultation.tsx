@@ -6,6 +6,9 @@ import { kindNames, LiveSession, Mode, NavItem, ReadyItem, statusNames, timeLabe
 import { Empty, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
 import { speakerLabel, Transcript } from './transcript';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
+import { waitingForTraceUtterance } from '../lib/trace-start';
+import { TraceStart } from './trace-start';
+import type { ReplayAudioState } from '../lib/replay-audio';
 
 function QuickAction({ title, subtitle, icon, tone, onClick, disabled, pressed, label }: { title: string; subtitle: string; icon: WorkspaceIconName; tone: string; onClick: () => void; disabled?: boolean; pressed?: boolean; label?: string }) {
   return <button type="button" className={`wb-shortcut is-${tone}`} aria-label={label ?? title} aria-pressed={pressed} disabled={disabled} onClick={onClick}><span className="wb-shortcut-title"><strong>{title}</strong><span className="wb-shortcut-arrow"><WorkspaceIcon name="arrow" size={14} /></span></span><span className="wb-shortcut-bottom"><small>{subtitle}</small><span className="wb-shortcut-icon"><WorkspaceIcon name={icon} size={32} /></span></span></button>;
@@ -36,9 +39,9 @@ export function Briefing({ onStart, onNavigate, onNew, busy }: { onStart: (pack:
   </Workbench>;
 }
 
-type DashboardProps = { session: LiveSession; pack: ApiPack | null; health: ApiHealth | null; micActive: boolean; micPending: boolean; micError: string; onMic: () => void; onEnd: () => void; onRetry: () => void; onTextMode: () => void; onNavigate: (nav: NavItem) => void; onNew: () => void; onCommand: (value: Record<string, unknown>) => boolean; onDismiss: () => void; onEvidence: (ref: string) => void; onItemEvidence: (item: ApiPackItem) => void; onAsk: (question: string) => void };
+type DashboardProps = { session: LiveSession; pack: ApiPack | null; health: ApiHealth | null; micActive: boolean; micPending: boolean; micError: string; replaySound?: ReplayAudioState | null; onReplaySound?: () => void; onMic: () => void; onEnd: () => void; onRetry: () => void; onTextMode: () => void; onNavigate: (nav: NavItem) => void; onNew: () => void; onCommand: (value: Record<string, unknown>) => boolean; onDismiss: () => void; onEvidence: (ref: string) => void; onItemEvidence: (item: ApiPackItem) => void; onAsk: (question: string) => void };
 
-export function Dashboard({ session, pack, health, micActive, micPending, micError, onMic, onEnd, onRetry, onTextMode, onNavigate, onNew, onCommand, onDismiss, onEvidence, onItemEvidence, onAsk }: DashboardProps) {
+export function Dashboard({ session, pack, health, micActive, micPending, micError, replaySound, onReplaySound, onMic, onEnd, onRetry, onTextMode, onNavigate, onNew, onCommand, onDismiss, onEvidence, onItemEvidence, onAsk }: DashboardProps) {
   const [pane, setPane] = useState<'attention' | 'conversation' | 'checks'>('conversation'); const [detail, setDetail] = useState<{ title: string; text: string; evidenceRef?: string } | null>(null);
   const [guidePane, setGuidePane] = useState<'attention' | 'checks'>('attention');
   const [filter, setFilter] = useState<'all' | 'customer' | 'teller'>('all'); const inputRef = useRef<HTMLInputElement>(null);
@@ -49,22 +52,24 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
   const [reason, setReason] = useState(''); const [query, setQuery] = useState(''); const [text, setText] = useState(''); const [speaker, setSpeaker] = useState('teller');
   const item: ReadyItem | undefined = session.items.find(item => item.code === selected); const packItem = pack?.items.find(entry => entry.code === selected);
   const intervention = session.interventions[0]; const canWrite = session.status === 'connected' && session.mode !== 'trace' && !session.ending;
-  const notice = micError || session.error || (session.mode === 'live' && !session.textFallback && health?.checks?.stt === 'unconfigured' ? '음성 전사 서버가 설정되지 않았습니다. 녹음은 가능하지만 전사·판정에는 STT 설정이 필요합니다.' : '');
+  const notice = micError || session.error || replaySound?.error || (session.mode === 'live' && !session.textFallback && health?.checks?.stt === 'unconfigured' ? '음성 전사 서버가 설정되지 않았습니다. 녹음은 가능하지만 전사·판정에는 STT 설정이 필요합니다.' : '');
   function resolve() { if (intervention?.alert) { onCommand({ t: 'acknowledge', alert_ref: intervention.id }); return; } onDismiss(); }
   const [manualPending, setManualPending] = useState(false);
   useEffect(() => { setManualPending(false); }, [selected, item?.state, session.error]);
+  if (waitingForTraceUtterance(session)) return <Workbench screen="dashboard" title="상담" subtitle={pack?.product?.name ?? session.packVersion} onNavigate={onNavigate} onNew={onNew} actions={<span className="wb-badge">TRACE</span>}><TraceStart session={session} onEnd={onEnd} onRetry={onRetry} onHistory={() => onNavigate('이력')} /></Workbench>;
   return <Workbench screen="dashboard" title="상담" subtitle={pack?.product?.name ?? session.packVersion} onNavigate={onNavigate} onNew={onNew} actions={<><span className="wb-badge">{session.status === 'connected' ? session.mode.toUpperCase() : session.status === 'connecting' ? '연결 중' : session.status === 'ended' ? '종료' : '연결 끊김'}</span><small>{timeLabel(session.seconds)}</small><button disabled={session.status !== 'connected' || session.ending} onClick={onEnd}>{session.ending ? '종료 확인 중…' : '상담 종료'}</button></>}>
+    {session.mode === 'trace' && session.traceHasUtterances === false && <Notice>이 기록에는 발화 없이 판정·안내만 저장되어 있습니다.</Notice>}
     <Notice action={<><button onClick={() => setDetail({ title: '연결 상태', text: notice })}>상세</button>{session.status === 'disconnected' ? <button onClick={onRetry}>다시 연결</button> : session.mode === 'live' && !session.textFallback ? <button onClick={onTextMode}>텍스트 입력</button> : null}</>}>{notice}</Notice>
     <div className="wb-mobile-tabs"><Tabs value={pane} onChange={selectPane} items={[{ value: 'conversation', label: '상담 대화' }, { value: 'attention', label: intervention ? `현재 안내 · ${session.interventions.length}` : '현재 안내' }, { value: 'checks', label: '필수 안내' }]} /></div>
     <div className="wb-dashboard" data-pane={pane}>
       <div className="wb-shortcuts" aria-label="상담 주요 기능">
-        {session.mode === 'live' ? <QuickAction title={micPending ? '마이크 연결 중' : micActive ? '녹음 중지' : '녹음 시작'} label={micPending ? '마이크 연결 중' : micActive ? '■ 녹음 중지' : '● 녹음 시작'} subtitle={micActive ? '실시간 전사 중' : '마이크로 상담 입력'} icon={micActive ? 'stop' : 'mic'} tone={micActive ? 'recording' : 'record'} pressed={micActive} disabled={!canWrite || micPending} onClick={onMic} /> : <QuickAction title={session.mode === 'text' ? '텍스트 입력' : '상담 대화'} subtitle={session.mode === 'text' ? '화자를 선택해 입력' : '저장된 상담 확인'} icon="conversation" tone="record" onClick={() => { selectPane('conversation'); requestAnimationFrame(() => inputRef.current?.focus()); }} />}
+        {session.mode === 'live' ? <QuickAction title={micPending ? '마이크 연결 중' : micActive ? '녹음 중지' : '녹음 시작'} label={micPending ? '마이크 연결 중' : micActive ? '■ 녹음 중지' : '● 녹음 시작'} subtitle={micActive ? '중지 후에도 상담은 유지' : '완료 시 상단 상담 종료'} icon={micActive ? 'stop' : 'mic'} tone={micActive ? 'recording' : 'record'} pressed={micActive} disabled={!canWrite || micPending} onClick={onMic} /> : <QuickAction title={session.mode === 'text' ? '텍스트 입력' : '상담 대화'} subtitle={session.mode === 'text' ? '화자를 선택해 입력' : '저장된 상담 확인'} icon="conversation" tone="record" onClick={() => { selectPane('conversation'); requestAnimationFrame(() => inputRef.current?.focus()); }} />}
         <QuickAction title="필수 안내" subtitle={session.progress ? `${session.progress.met} / ${session.progress.total} 고지 완료` : '항목별 이행 확인'} icon="check" tone="checks" onClick={() => selectPane('checks')} />
         <QuickAction title="필요 서류" subtitle="서버 기준으로 확인" icon="folder" tone="documents" disabled={!canWrite} onClick={() => requestAssist('documents')} />
         <QuickAction title="기준 확인" subtitle="이번 상담의 안내 기준" icon="book" tone="briefing" disabled={!canWrite} onClick={() => requestAssist('briefing')} />
       </div>
       <div className="wb-conversation">
-        <Panel title="상담 대화" className="wb-transcript" action={<small>{session.mode === 'live' && micActive ? '실시간 전사 중' : '고객 · 상담원'}</small>}>
+        <Panel title="상담 대화" className="wb-transcript" action={replaySound ? <button type="button" className="wb-replay-sound" data-replay-sound={replaySound.status} aria-pressed={replaySound.enabled && replaySound.status !== 'blocked'} onClick={onReplaySound} disabled={replaySound.status === 'loading' || session.ending || session.status !== 'connected'}>{replaySound.status === 'loading' ? '음원 준비 중' : replaySound.status === 'unavailable' ? '소리 다시 시도' : replaySound.status === 'blocked' || !replaySound.enabled ? '소리 켜기' : '소리 끄기'}</button> : <small>{session.mode === 'live' && micActive ? '실시간 전사 중' : '고객 · 상담원'}</small>}>
           <div className="wb-conversation-filters" aria-label="대화 화자 필터"><Tabs value={filter} onChange={setFilter} items={[{ value: 'all', label: '전체' }, { value: 'customer', label: '고객' }, { value: 'teller', label: '상담원' }]} /></div>
           <Transcript key={filter} items={transcript} empty={filter === 'all' ? '첫 발화를 기다리고 있습니다.' : '이 화자의 발화가 아직 없습니다.'} onSelect={row => setDetail({ title: `${speakerLabel(row.speaker)} · ${timeLabel(row.t_ms / 1000)}`, text: row.text })} />
           {session.partial && <button className="wb-row-button wb-partial" onClick={() => setDetail({ title: '중간 전사', text: session.partial })}>듣는 중 · {session.partial}</button>}
