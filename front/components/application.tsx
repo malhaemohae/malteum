@@ -14,6 +14,7 @@ import { hasStoredUtterance } from '../lib/trace-start';
 import { errorText, evidenceForItem, LiveSession, Mode, NavItem, newLiveSession, reduceServer, Screen, sessionScreen } from '../lib/workspace-model';
 import MarketingLanding from './marketing-showcase';
 import { Briefing, Dashboard, Preparation } from './consultation';
+import { SpeakerIntroModal } from './speaker-intro';
 import { DocumentsScreen, HistoryScreen, PackScreen, ReportScreen } from './operations';
 import { Empty, EvidenceView, Modal, Notice, TextPages } from './workspace';
 
@@ -26,6 +27,7 @@ export default function Application() {
   const managementScreen = useRef<'packs' | 'documents'>('packs');
   const [evidence, setEvidence] = useState<{ loading: boolean; value?: ApiEvidence; error?: string } | null>(null); const evidenceRequest = useRef(0);
   const [micActive, setMicActive] = useState(false); const [micPending, setMicPending] = useState(false); const [micError, setMicError] = useState('');
+  const [micIntro, setMicIntro] = useState(false); const micIntroSeen = useRef<string | null>(null);
   const socket = useRef<WebSocket | null>(null); const capture = useRef<Pcm16Capture | null>(null); const connectingMic = useRef(false); const connectTimer = useRef<ReturnType<typeof setTimeout>>(); const endTimer = useRef<ReturnType<typeof setTimeout>>();
   const creating = useRef(false); const choice = useRef<{ customer: 'general' | 'professional' }>({ customer: 'general' });
   const audioSequence = useRef(0);
@@ -39,7 +41,7 @@ export default function Application() {
   useEffect(() => { replayAudio.current?.setVisible(screen === 'playback'); }, [screen]);
   const pendingAcknowledgements = useRef(new Set<string>());
   function update(value: LiveSession | null | ((previous: LiveSession | null) => LiveSession | null)) { const next = typeof value === 'function' ? value(current.current) : value; current.current = next; setSession(next); }
-  function stopMic() { capture.current?.stop(); capture.current = null; connectingMic.current = false; setMicActive(false); setMicPending(false); }
+  function stopMic() { capture.current?.stop(); capture.current = null; connectingMic.current = false; setMicActive(false); setMicPending(false); setMicIntro(false); }
   function closeSocket() { replayAudio.current?.stop(); const old = socket.current; socket.current = null; old?.close(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }
   useEffect(() => { let active = true; malteumApi.health().then(value => { if (active) setHealth(value); }).catch(() => { if (active) setHealth(null); }); return () => { active = false; socket.current?.close(); capture.current?.stop(); const old = replayAudio.current; replayAudio.current = null; old?.dispose(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }; }, []);
   useEffect(() => { if (!micActive) return; const timer = setInterval(() => update(value => value && value.status === 'connected' ? { ...value, seconds: value.seconds + 1 } : value), 1000); return () => clearInterval(timer); }, [micActive]);
@@ -172,7 +174,14 @@ export default function Application() {
       await start(selectedPack, 'replay', preset.customer_profile?.type === 'professional' ? 'professional' : 'general', preset);
     } catch (reason) { setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
   }
+  function requestMic() {
+    const active = current.current;
+    if (connectingMic.current || !active || active.status !== 'connected' || active.mode !== 'live' || active.ending) return;
+    if (micActive || micIntroSeen.current === active.id) { void toggleMic(); return; }
+    setMicIntro(true);
+  }
   async function toggleMic() {
+    setMicIntro(false);
     update(value => value ? { ...value, textFallback: false } : value);
     if (micActive) { stopMic(); return; }
     if (connectingMic.current || current.current?.status !== 'connected' || current.current.mode !== 'live' || current.current.ending) return;
@@ -180,6 +189,7 @@ export default function Application() {
     try {
       await activeCapture.start((frame, sequence) => { if (socket.current?.readyState === WebSocket.OPEN) { socket.current.send(frame); audioSequence.current = sequence + 1; if (current.current) rememberAudioSequence(current.current.id, sequence + 1); } });
       if (capture.current !== activeCapture || current.current?.status !== 'connected') { activeCapture.stop(); return; }
+      micIntroSeen.current = current.current.id;
       setMicActive(true);
     } catch (reason) { activeCapture.stop(); capture.current = null; const name = reason instanceof Error ? reason.name : ''; setMicError(name === 'NotAllowedError' ? '마이크 사용이 차단되었습니다. 브라우저와 Windows의 마이크 권한을 확인해 주세요.' : name === 'NotFoundError' ? '입력 장치를 찾지 못했습니다. 마이크 연결을 확인해 주세요.' : `마이크를 시작하지 못했습니다. ${errorText(reason)}`); } finally { connectingMic.current = false; setMicPending(false); }
   }
@@ -256,12 +266,13 @@ export default function Application() {
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
   else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} defaults={preparation.current} />;
-  else if ((screen === 'dashboard' || screen === 'playback') && session) page = <Dashboard {...navigation} session={session} pack={pack} health={health} micActive={micActive} micPending={micPending} micError={micError} replaySound={replaySound} onReplaySound={() => { void replayAudio.current?.toggle(); }} onMic={toggleMic} onEnd={endSession} onRetry={() => connect(session, true)} onTextMode={() => { stopMic(); setMicError(''); update(value => value ? { ...value, textFallback: true, error: undefined } : value); }} onCommand={command} onDismiss={() => update(value => value ? { ...value, interventions: value.interventions.slice(1) } : value)} onEvidence={openEvidence} onItemEvidence={itemEvidence} onAsk={ask} />;
+  else if ((screen === 'dashboard' || screen === 'playback') && session) page = <Dashboard {...navigation} session={session} pack={pack} health={health} micActive={micActive} micPending={micPending} micError={micError} replaySound={replaySound} onReplaySound={() => { void replayAudio.current?.toggle(); }} onMic={requestMic} onEnd={endSession} onRetry={() => connect(session, true)} onTextMode={() => { stopMic(); setMicError(''); update(value => value ? { ...value, textFallback: true, error: undefined } : value); }} onCommand={command} onDismiss={() => update(value => value ? { ...value, interventions: value.interventions.slice(1) } : value)} onEvidence={openEvidence} onItemEvidence={itemEvidence} onAsk={ask} />;
   else if (screen === 'report') page = <ReportScreen {...navigation} sessionId={reportTarget?.id ?? session?.id ?? null} onEvidence={openEvidence} onResume={record => openHistory(record, 'resume')} onTrace={record => openHistory(record, 'trace')} busy={busy} error={error} />;
   else if (screen === 'packs') page = <PackScreen {...navigation} />;
   else if (screen === 'documents') page = <DocumentsScreen {...navigation} />;
   else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} busy={busy} error={error} />;
   return <>{page}{error && screen === 'briefing' && <Modal title="상담 연결 확인" onClose={() => setError('')}><TextPages text={error} /></Modal>}
+    {micIntro && screen === 'dashboard' && session?.mode === 'live' && session.status === 'connected' && !session.ending && <SpeakerIntroModal onClose={() => setMicIntro(false)} onContinue={() => { void toggleMic(); }} />}
     {traceSelection && <TraceSourcePicker trace={traceSelection} busy={busy} error={error} onClose={() => { setTraceSelection(null); setError(''); }} onPlay={record => openHistory(record, 'trace')} />}
     {evidence && <Modal title="근거 원문" onClose={() => { evidenceRequest.current++; setEvidence(null); }}>{evidence.loading ? <Empty>근거를 불러오고 있습니다.</Empty> : evidence.value ? <EvidenceView value={evidence.value} /> : <Notice>{evidence.error}</Notice>}</Modal>}
     {newConfirm && <Modal title="새 상담 시작" onClose={() => setNewConfirm(false)} actions={<><button onClick={() => setNewConfirm(false)}>현재 상담 유지</button><button className="wb-primary" disabled={session?.status !== 'connected' || session?.ending} onClick={() => { newAfterEnd.current = true; setNewConfirm(false); endSession(); }}>현재 상담 종료 후 새 상담</button></>}><TextPages text="현재 상담을 종료하고 서버에 기록한 뒤 새 상담을 준비합니다. 녹음 중이라면 녹음도 중지됩니다." /></Modal>}
