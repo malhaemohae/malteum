@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ApiCandidate, ApiDocument, ApiPack, ApiPackItem, ApiSessionSummary, hasAdminToken, malteumApi, setAdminToken } from '../lib/api';
 import { errorText, evidenceForItem, fieldNames, NavItem, statusNames, textValue, timeLabel } from '../lib/workspace-model';
 import { rememberedSessionIds } from '../lib/session-index';
+import { HistoryAction, traceBlockedReason } from '../lib/session-recovery';
 import { openReportPrint } from '../lib/report-print';
 import { Empty, EvidenceView, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
 
@@ -11,27 +12,31 @@ type Navigation = { onNavigate: (nav: NavItem) => void; onNew: () => void };
 function Failure({ error, retry }: { error: string; retry: () => void }) { return <Notice action={<button onClick={retry}>다시 불러오기</button>}>{error}</Notice>; }
 const labelFor = (key: string) => fieldNames[key] ?? key;
 const detailText = (row: Record<string, unknown>) => Object.entries(row).map(([key, value]) => `${labelFor(key)}\n${typeof value === 'string' ? statusNames[value] ?? value : textValue(value)}`).join('\n\n');
+type ReportTab = 'omission' | 'commission' | 'comprehension' | 'risk_signals' | 'timeline';
+const reportTabs: { value: ReportTab; label: string }[] = [{ value: 'omission', label: '설명 이행' }, { value: 'commission', label: '금지·숫자' }, { value: 'comprehension', label: '이해 지원' }, { value: 'risk_signals', label: '위험 신호' }, { value: 'timeline', label: '타임라인' }];
 
-export function ReportScreen({ sessionId, ended, onEvidence, ...navigation }: Navigation & { sessionId: string | null; ended: boolean; onEvidence: (ref: string) => void }) {
-  const report = useResource(() => sessionId && ended ? malteumApi.report(sessionId) : Promise.resolve(null), [sessionId, ended]);
-  const [tab, setTab] = useState<'omission' | 'commission' | 'comprehension' | 'risk_signals' | 'timeline'>('omission'); const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
+export function ReportScreen({ sessionId, onEvidence, onResume, busy, error, ...navigation }: Navigation & { sessionId: string | null; onEvidence: (ref: string) => void; onResume: (record: ApiSessionSummary) => void; busy: boolean; error: string }) {
+  const result = useResource(async () => sessionId ? { report: await malteumApi.report(sessionId), session: await malteumApi.session(sessionId) } : null, [sessionId]);
+  const report = { ...result, data: result.data?.report };
+  const running = result.data?.session.status === 'running';
+  const [tab, setTab] = useState<ReportTab>('omission'); const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
   const sections = report.data?.sections; const rows = (sections?.[tab] ?? []) as Record<string, unknown>[];
   const summary = sections?.summary;
   const [printError, setPrintError] = useState('');
   const shownSummary = ['met', 'partial', 'unmet', 'violations'].filter(key => typeof summary?.[key] === 'number');
-  return <Workbench screen="report" title="종료 리포트" {...navigation} actions={report.data && <><span className="wb-report-version" aria-label="규정 팩 버전">{report.data.pack_version}</span><button className="wb-primary" onClick={() => setPrintError(openReportPrint(report.data!) ? '' : '인쇄 창을 열지 못했습니다. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.')}>PDF 저장</button></>}>
-    <Failure error={report.error} retry={report.refresh} />
+  return <Workbench screen="report" title={running ? '중간 리포트' : '종료 리포트'} subtitle={running ? '종료 전 저장 기록 · 최종 결과가 아닙니다' : undefined} {...navigation} actions={report.data && <><span className="wb-report-version" aria-label="규정 팩 버전">{report.data.pack_version}</span>{running ? <><button onClick={report.refresh} disabled={report.loading}>새로고침</button><button className="wb-primary" disabled={busy} onClick={() => result.data && onResume(result.data.session)}>상담 열기</button></> : <button className="wb-primary" onClick={() => setPrintError(openReportPrint(report.data!) ? '' : '인쇄 창을 열지 못했습니다. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.')}>PDF 저장</button>}</>}>
+    <Failure error={report.error || error} retry={report.refresh} />
     <Notice>{printError}</Notice>
-    {!sessionId || !ended ? <Panel><Empty><h2>상담 종료 후 리포트를 확인할 수 있습니다.</h2><button onClick={() => navigation.onNavigate('상담')}>상담으로 돌아가기</button></Empty></Panel> : report.loading ? <Panel><Empty>리포트를 불러오고 있습니다.</Empty></Panel> : !report.data ? <Panel><Empty>리포트를 불러오지 못했습니다.</Empty></Panel> : <>
+    {!sessionId ? <Panel><Empty><h2>이력에서 상담을 선택해 주세요.</h2><button onClick={() => navigation.onNavigate('이력')}>세션 이력 보기</button></Empty></Panel> : report.loading ? <Panel><Empty>리포트를 불러오고 있습니다.</Empty></Panel> : !report.data ? <Panel><Empty>리포트를 불러오지 못했습니다.</Empty></Panel> : <>
       {shownSummary.length > 0 && <div className="wb-summary">{shownSummary.map(key => <div key={key}><strong>{String(summary?.[key])}</strong><span>{labelFor(key)}</span></div>)}</div>}
-      <div className="wb-toolbar"><Tabs value={tab} onChange={setTab} items={[{ value: 'omission', label: '설명 이행' }, { value: 'commission', label: '금지·숫자' }, { value: 'comprehension', label: '이해 지원' }, { value: 'risk_signals', label: '위험 신호' }, { value: 'timeline', label: '타임라인' }]} /><button onClick={() => setDetail({ ...(summary ?? {}), ...(report.data?.sources ? { '출처': report.data.sources } : {}), ...(report.data?.disclaimer ? { '유의사항': report.data.disclaimer } : {}) })}>요약·출처</button></div>
+      <div className="wb-toolbar"><Tabs value={tab} onChange={setTab} items={reportTabs} /><label className="wb-report-tab-select">항목<select aria-label="리포트 항목" value={tab} onChange={event => setTab(event.target.value as ReportTab)}>{reportTabs.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><button onClick={() => setDetail({ ...(summary ?? {}), ...(report.data?.sources ? { '출처': report.data.sources } : {}), ...(report.data?.disclaimer ? { '유의사항': report.data.disclaimer } : {}) })}>요약·출처</button></div>
       <Panel title="항목별 증빙"><PagedList key={tab} label="리포트" items={rows} empty="이 항목에 대한 서버 기록이 없습니다." render={row => <><button className="wb-row-button" onClick={() => setDetail(row)}><span className="wb-row-copy"><strong>{textValue(row.name ?? row.label ?? row.message ?? row.item_code ?? row.assist_type ?? row.alert_type ?? '기록 상세')}</strong><small>{typeof row.t_ms === 'number' ? timeLabel(row.t_ms / 1000) : textValue(row.item_code ?? row.event_id ?? '')}</small></span><span className="wb-badge" data-state={String(row.state ?? row.final_state ?? row.outcome ?? '')}>{statusNames[String(row.state ?? row.final_state ?? row.outcome)] ?? textValue(row.state ?? row.final_state ?? row.outcome ?? '')}</span><span>›</span></button>{typeof row.evidence_ref === 'string' && <button onClick={() => onEvidence(String(row.evidence_ref))}>근거</button>}</>} /></Panel>
     </>}
     {detail && <Modal title="리포트 기록 상세" onClose={() => setDetail(null)} actions={typeof detail.evidence_ref === 'string' && <button onClick={() => onEvidence(String(detail.evidence_ref))}>근거 원문</button>}><TextPages text={detailText(detail)} /></Modal>}
   </Workbench>;
 }
 
-export function HistoryScreen({ onOpen, busy, error, ...navigation }: Navigation & { onOpen: (record: ApiSessionSummary, trace: boolean) => void; busy: boolean; error: string }) {
+export function HistoryScreen({ onOpen, busy, error, ...navigation }: Navigation & { onOpen: (record: ApiSessionSummary, action: HistoryAction) => void; busy: boolean; error: string }) {
   const [mode, setMode] = useState('');
   const records = useResource(async () => {
     const all: ApiSessionSummary[] = []; let cursor: string | undefined; const seen = new Set<string>();
@@ -42,11 +47,11 @@ export function HistoryScreen({ onOpen, busy, error, ...navigation }: Navigation
     return all.sort((a,b) => b.started_at.localeCompare(a.started_at));
   }, [mode]);
   const [detail, setDetail] = useState<ApiSessionSummary | null>(null);
-  return <Workbench screen="history" title="세션 이력" subtitle="저장된 상담과 TRACE 재생" {...navigation} actions={busy ? <span className="wb-badge" role="status">TRACE 연결 중…</span> : <button onClick={records.refresh} disabled={records.loading}>새로고침</button>}>
+  return <Workbench screen="history" title="세션 이력" subtitle="저장된 상담과 TRACE 재생" {...navigation} actions={busy ? <span className="wb-badge" role="status">상담 확인 중…</span> : <button onClick={records.refresh} disabled={records.loading}>새로고침</button>}>
     <Failure error={records.error || error} retry={records.refresh} />
     <div className="wb-toolbar"><label>입력 방식<select aria-label="이력 입력 방식" value={mode} onChange={event => setMode(event.target.value)}><option value="">전체</option>{['live', 'text', 'replay', 'trace'].map(value => <option key={value} value={value}>{value.toUpperCase()}</option>)}</select></label><small>{records.data?.length ?? 0}개 세션</small></div>
-    <Panel><PagedList label="세션 이력" items={records.data ?? []} rowHeight={80} empty={records.loading ? '이력을 불러오고 있습니다.' : records.error ? '이력을 확인하지 못했습니다.' : '아직 저장된 세션이 없습니다.'} render={record => <><button className="wb-row-button" onClick={() => setDetail(record)}><span className="wb-row-copy"><strong>{record.product_name ?? record.pack_version}</strong><small>{new Date(record.started_at).toLocaleString('ko-KR')} · {record.mode.toUpperCase()} · {statusNames[record.status] ?? record.status}</small></span></button><div className="wb-actions"><button disabled={busy || record.status === 'running'} onClick={() => onOpen(record, false)}>리포트</button><button disabled={busy || record.status === 'running'} onClick={() => onOpen(record, true)}>TRACE 재생</button></div></>} /></Panel>
-    {detail && <Modal title="세션 정보" onClose={() => setDetail(null)}><TextPages text={detailText(detail)} /></Modal>}
+    <Panel className="wb-history-list"><PagedList label="세션 이력" items={records.data ?? []} rowHeight={100} empty={records.loading ? '이력을 불러오고 있습니다.' : records.error ? '이력을 확인하지 못했습니다.' : '아직 저장된 세션이 없습니다.'} render={record => <><button className="wb-row-button" data-session-id={record.session_id} onClick={() => setDetail(record)}><span className="wb-row-copy"><strong>{record.product_name ?? record.pack_version}</strong><small>{new Date(record.started_at).toLocaleString('ko-KR')} · {record.mode.toUpperCase()} · {statusNames[record.status] ?? record.status}</small>{traceBlockedReason(record) && <small className="wb-history-hint">{traceBlockedReason(record)}</small>}</span></button><div className="wb-actions"><button disabled={busy} onClick={() => onOpen(record, 'report')}>{record.status === 'running' ? '중간 리포트' : '리포트'}</button>{record.status === 'running' ? <button className="wb-primary" disabled={busy} onClick={() => onOpen(record, 'resume')}>상담 열기</button> : <button disabled={busy || Boolean(traceBlockedReason(record))} title={traceBlockedReason(record) || undefined} onClick={() => onOpen(record, 'trace')}>TRACE 재생</button>}</div></>} /></Panel>
+    {detail && <Modal title="세션 정보" onClose={() => setDetail(null)} actions={<><button disabled={busy} onClick={() => { onOpen(detail, 'report'); setDetail(null); }}>{detail.status === 'running' ? '중간 리포트' : '리포트'}</button>{detail.status === 'running' && <button className="wb-primary" disabled={busy} onClick={() => { onOpen(detail, 'resume'); setDetail(null); }}>상담 열기</button>}</>}><TextPages text={detailText(detail)} /></Modal>}
   </Workbench>;
 }
 

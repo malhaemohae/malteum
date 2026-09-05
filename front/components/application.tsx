@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiEvidence, ApiHealth, ApiPack, ApiPackItem, ApiSessionSummary, findSessionEvent, malteumApi, ServerMessage, wsUrl } from '../lib/api';
 import { Pcm16Capture } from '../lib/audio';
-import { rememberSession } from '../lib/session-index';
+import { nextAudioSequence, rememberAudioSequence, rememberSession } from '../lib/session-index';
+import { HistoryAction, isPlayableEvent, recoveredSession, sessionEvents, sessionHandshake, traceBlockedReason } from '../lib/session-recovery';
 import { errorText, evidenceForItem, LiveSession, Mode, NavItem, newLiveSession, reduceServer, Screen } from '../lib/workspace-model';
 import MarketingLanding from './marketing-showcase';
 import { Briefing, Dashboard } from './consultation';
@@ -30,7 +31,7 @@ export default function Application() {
     if (creating.current) return;
     setError('');
     if (value === '상담') setScreen(current.current && current.current.status !== 'ended' ? 'dashboard' : 'briefing');
-    if (value === '리포트') { if (current.current?.status === 'ended') setReportTarget({ id: current.current.id, ended: true }); setScreen('report'); }
+    if (value === '리포트') { if (current.current) setReportTarget({ id: current.current.id, ended: current.current.status === 'ended' }); setScreen('report'); }
     if (value === '이력') setScreen('history');
     if (value === '기준 관리' || value === '규정 팩') setScreen('packs');
     if (value === '문서') setScreen('documents');
@@ -43,13 +44,20 @@ export default function Application() {
     if (value.t === 'acknowledge') pendingAcknowledgements.current.add(String(value.alert_ref));
     socket.current.send(JSON.stringify(value)); return true;
   }
-  function connect(active: LiveSession) {
+  function finishSession(id: string) {
+    if (current.current?.id !== id) return;
+    stopMic(); closeSocket(); update(value => value ? { ...value, status: 'ended', ending: false, error: undefined } : value);
+    setReportTarget({ id, ended: true });
+    if (newAfterEnd.current) { newAfterEnd.current = false; resetForNew(); } else setScreen('report');
+  }
+  function connect(active: LiveSession, recover = false) {
     closeSocket(); update({ ...active, status: 'connecting', error: undefined });
     const connection = new WebSocket(wsUrl(active.wsUrl)); socket.current = connection;
+    const handshake = sessionHandshake(active, recover, choice.current.customer);
     let inbox = Promise.resolve();
     const isCurrent = () => socket.current === connection && current.current?.id === active.id;
     connectTimer.current = setTimeout(() => { if (isCurrent() && current.current?.status === 'connecting') { connection.close(); update(value => value ? { ...value, status: 'disconnected', error: '상담 서버 응답이 없습니다. 다시 연결해 주세요.' } : value); } }, 10000);
-    connection.onopen = () => { if (!isCurrent()) return; connection.send(JSON.stringify(active.seq >= 0 ? { t: 'resume', session_id: active.id, from_seq: active.seq } : { t: 'hello', session_id: active.id, mode: active.mode, customer_profile: { type: choice.current.customer, tags: [] } })); };
+    connection.onopen = () => { if (isCurrent()) connection.send(JSON.stringify(handshake.hello)); };
     connection.onmessage = event => {
       if (!isCurrent() || typeof event.data !== 'string') return;
       try {
@@ -58,6 +66,14 @@ export default function Application() {
         inbox = inbox.then(async () => {
         if (!isCurrent()) return;
         let message = received;
+        const handshakeResult = handshake.ready(message);
+        message = handshakeResult.message;
+        if (handshakeResult.resume) connection.send(JSON.stringify(handshakeResult.resume));
+        if (message.t === 'error' && current.current?.status === 'connecting') {
+          clearTimeout(connectTimer.current); socket.current = null; connection.close();
+          update(value => value ? { ...value, status: 'disconnected', error: `상담 서버에 연결하지 못했습니다. ${String(message.message ?? '이력에서 저장 기록을 확인해 주세요.')}` } : value);
+          return;
+        }
         // Current WS mapping omits alert.acknowledged. Resolve that flag from the
         // persisted event, never by assuming that a successful send was a save.
         if (message.t === 'alert' && (active.mode === 'trace' || pendingAcknowledgements.current.size > 0)) {
@@ -77,13 +93,17 @@ export default function Application() {
         if (message.t === 'ready') clearTimeout(connectTimer.current);
         update(value => value ? reduceServer(value, message) : value);
         if (message.t === 'ended') {
-          stopMic(); clearTimeout(endTimer.current); setReportTarget({ id: active.id, ended: true });
-          if (newAfterEnd.current) { newAfterEnd.current = false; resetForNew(); } else setScreen('report');
+          finishSession(active.id);
         }
         }).catch(() => { if (isCurrent()) update(value => value ? { ...value, error: '서버 이벤트를 처리하지 못했습니다. 다시 연결해 주세요.' } : value); });
       } catch { update(value => value ? { ...value, error: '서버 메시지를 읽지 못했습니다. 연결을 다시 확인해 주세요.' } : value); }
     };
-    const disconnected = () => { if (!isCurrent() || current.current?.status === 'ended') return; stopMic(); update(value => value ? { ...value, status: 'disconnected', ending: false, error: '서버 연결이 끊겼습니다. 다시 연결하면 저장된 이벤트부터 이어집니다.' } : value); };
+    const disconnected = () => {
+      if (!isCurrent() || current.current?.status === 'ended' || current.current?.status === 'disconnected') return;
+      stopMic(); update(value => value ? { ...value, status: 'disconnected', ending: false, error: '서버 연결이 끊겼습니다. 다시 연결하거나 이력에서 저장 기록을 확인해 주세요.' } : value);
+      // A lost ended frame must not strand a session the server already closed.
+      malteumApi.session(active.id).then(detail => { if (isCurrent() && detail.status !== 'running') finishSession(active.id); }).catch(() => { /* Keep the reconnect action when status cannot be verified. */ });
+    };
     connection.onerror = disconnected; connection.onclose = disconnected;
   }
   async function start(pack: ApiPack, mode: Mode, customer: 'general' | 'professional', preset?: { preset_id: string; audio_ref?: string }) {
@@ -104,7 +124,7 @@ export default function Application() {
     if (connectingMic.current || current.current?.status !== 'connected') return;
     connectingMic.current = true; setMicPending(true); setMicError(''); const activeCapture = new Pcm16Capture(audioSequence.current); capture.current = activeCapture;
     try {
-      await activeCapture.start((frame, sequence) => { if (socket.current?.readyState === WebSocket.OPEN) { socket.current.send(frame); audioSequence.current = sequence + 1; } });
+      await activeCapture.start((frame, sequence) => { if (socket.current?.readyState === WebSocket.OPEN) { socket.current.send(frame); audioSequence.current = sequence + 1; if (current.current) rememberAudioSequence(current.current.id, sequence + 1); } });
       if (capture.current !== activeCapture || current.current?.status !== 'connected') { activeCapture.stop(); return; }
       setMicActive(true);
     } catch (reason) { activeCapture.stop(); capture.current = null; const name = reason instanceof Error ? reason.name : ''; setMicError(name === 'NotAllowedError' ? '마이크 사용이 차단되었습니다. 브라우저와 Windows의 마이크 권한을 확인해 주세요.' : name === 'NotFoundError' ? '입력 장치를 찾지 못했습니다. 마이크 연결을 확인해 주세요.' : `마이크를 시작하지 못했습니다. ${errorText(reason)}`); } finally { connectingMic.current = false; setMicPending(false); }
@@ -112,7 +132,12 @@ export default function Application() {
   function endSession() {
     const active = current.current; if (!active || active.ending || active.status === 'ended') return;
     stopMic(); if (!command({ t: 'end' })) return; update(value => value ? { ...value, ending: true } : value);
-    endTimer.current = setTimeout(() => { if (current.current?.id !== active.id || !current.current.ending) return; newAfterEnd.current = false; update(value => value ? { ...value, ending: false, error: '서버의 종료 확인이 도착하지 않았습니다. 연결 확인 후 다시 종료해 주세요.' } : value); }, 10000);
+    endTimer.current = setTimeout(async () => {
+      if (current.current?.id !== active.id || !current.current.ending) return;
+      try { if ((await malteumApi.session(active.id)).status !== 'running') { finishSession(active.id); return; } } catch { /* Never assume an unconfirmed end succeeded. */ }
+      if (current.current?.id !== active.id || current.current.status === 'ended') return;
+      newAfterEnd.current = false; update(value => value ? { ...value, ending: false, error: '종료가 확인되지 않았습니다. 다시 연결하거나 이력에서 상담을 열어 종료해 주세요.' } : value);
+    }, 10000);
   }
   async function openEvidence(ref: string) {
     const requestId = ++evidenceRequest.current; setEvidence({ loading: true });
@@ -120,18 +145,40 @@ export default function Application() {
   }
   function itemEvidence(item: ApiPackItem) { if (!pack) return; const value = evidenceForItem(pack, item); setEvidence(value ? { loading: false, value } : { loading: false, error: '이 항목에는 서버 근거가 없습니다.' }); }
   function ask(question: string) { if (!command({ t: 'ask', question })) return; update(value => value ? { ...value, query: { question, pending: true } } : value); const id = current.current?.id; setTimeout(() => { const latest = current.current; if (latest && latest.id === id && latest.query?.question === question && latest.query.pending) update(value => value ? { ...value, query: { question, pending: false, answer: '응답이 지연되고 있습니다. 다시 요청할 수 있습니다.' } } : value); }, 15000); }
-  async function openHistory(record: ApiSessionSummary, trace: boolean) {
-    if (!trace) { setReportTarget({ id: record.session_id, ended: record.status !== 'running' }); setScreen('report'); return; }
-    if (current.current && current.current.status !== 'ended') { setError('진행 중인 상담을 종료한 뒤 TRACE를 재생해 주세요.'); return; }
+  async function openHistory(record: ApiSessionSummary, action: HistoryAction) {
+    if (creating.current) return;
+    setError('');
+    if (action === 'report') { setReportTarget({ id: record.session_id, ended: record.status !== 'running' }); setScreen('report'); return; }
+    if (action === 'resume' && current.current?.id === record.session_id && current.current.status !== 'ended') {
+      setScreen('dashboard'); if (current.current.status === 'disconnected') connect(current.current, true); return;
+    }
+    if (current.current && current.current.status !== 'ended') { setError('다른 상담이 열려 있습니다. 왼쪽 상담 탭에서 현재 상담을 종료한 뒤 다시 열어 주세요.'); return; }
     if (creating.current) return; creating.current = true; setBusy(true); setError('');
-    try { const created = await malteumApi.createSession({ mode: 'trace', source_session_id: record.session_id, pack_version: record.pack_version }); rememberSession(created.session_id); const selectedPack = await malteumApi.pack(created.pack_version); setPack(selectedPack); const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: record.session_id }; update(active); setScreen('dashboard'); connect(active); } catch (reason) { setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
+    try {
+      const latest = await malteumApi.session(record.session_id);
+      if (action === 'resume') {
+        if (latest.status !== 'running') { setReportTarget({ id: latest.session_id, ended: true }); setScreen('report'); return; }
+        const [selectedPack, events] = await Promise.all([malteumApi.pack(latest.pack_version), sessionEvents(latest.session_id)]);
+        stopMic(); setMicError(''); setPack(selectedPack); pendingAcknowledgements.current.clear();
+        audioSequence.current = nextAudioSequence(latest.session_id);
+        rememberSession(latest.session_id); setScreen('dashboard'); connect(recoveredSession(latest, selectedPack, events), true);
+        return;
+      }
+      const blocked = traceBlockedReason(latest); if (blocked) throw new Error(blocked);
+      if (!(await sessionEvents(latest.session_id, true)).some(isPlayableEvent)) throw new Error('저장된 발화·판정이 없어 TRACE를 재생할 수 없습니다. 리포트에서 기록을 확인해 주세요.');
+      const selectedPack = await malteumApi.pack(latest.pack_version);
+      const created = await malteumApi.createSession({ mode: 'trace', source_session_id: latest.session_id, pack_version: latest.pack_version });
+      rememberSession(created.session_id); setPack(selectedPack);
+      const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: latest.session_id };
+      update(active); setScreen('dashboard'); connect(active);
+    } catch (reason) { setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
   }
   const navigation = { onNavigate: navigate, onNew: requestNew };
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
   else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} />;
-  else if (screen === 'dashboard' && session) page = <Dashboard {...navigation} session={session} pack={pack} health={health} micActive={micActive} micPending={micPending} micError={micError} onMic={toggleMic} onEnd={endSession} onRetry={() => connect(session)} onTextMode={() => { stopMic(); setMicError(''); update(value => value ? { ...value, textFallback: true, error: undefined } : value); }} onCommand={command} onDismiss={() => update(value => value ? { ...value, interventions: value.interventions.slice(1) } : value)} onEvidence={openEvidence} onItemEvidence={itemEvidence} onAsk={ask} />;
-  else if (screen === 'report') page = <ReportScreen {...navigation} sessionId={reportTarget?.id ?? session?.id ?? null} ended={reportTarget?.ended ?? session?.status === 'ended'} onEvidence={openEvidence} />;
+  else if (screen === 'dashboard' && session) page = <Dashboard {...navigation} session={session} pack={pack} health={health} micActive={micActive} micPending={micPending} micError={micError} onMic={toggleMic} onEnd={endSession} onRetry={() => connect(session, true)} onTextMode={() => { stopMic(); setMicError(''); update(value => value ? { ...value, textFallback: true, error: undefined } : value); }} onCommand={command} onDismiss={() => update(value => value ? { ...value, interventions: value.interventions.slice(1) } : value)} onEvidence={openEvidence} onItemEvidence={itemEvidence} onAsk={ask} />;
+  else if (screen === 'report') page = <ReportScreen {...navigation} sessionId={reportTarget?.id ?? session?.id ?? null} onEvidence={openEvidence} onResume={record => openHistory(record, 'resume')} busy={busy} error={error} />;
   else if (screen === 'packs') page = <PackScreen {...navigation} />;
   else if (screen === 'documents') page = <DocumentsScreen {...navigation} />;
   else page = <HistoryScreen {...navigation} onOpen={openHistory} busy={busy} error={error} />;

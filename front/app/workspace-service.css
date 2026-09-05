@@ -65,6 +65,14 @@
 .wb-guide-empty-icon{display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:20px;background:#eef8fb;color:#55a9c1;margin-bottom:4px}
 .wb-service .wb-guide-content .wb-empty{font-size:13px;padding:12px;line-height:1.8}
 .wb-service .wb-mobile-tabs{display:none}
+.wb-service .wb-history-list .wb-history-hint{font-size:11px;color:#647980}
+@container (max-width:520px){
+  .wb-history-list .wb-list-row{flex-wrap:wrap;align-content:center;gap:2px}
+  .wb-history-list .wb-list-row>.wb-row-button{flex-basis:100%;padding:0;min-height:0}
+  .wb-history-list .wb-list-row>.wb-actions{margin-left:auto}
+}
+.wb-history-list .wb-list{container-type:inline-size}
+.wb-service .wb-toolbar>.wb-report-tab-select{display:none}
 @media(min-width:1600px){
   .wb.wb-service{grid-template-columns:214px minmax(0,1fr)}
   .wb-service .wb-main{padding:20px 36px 28px}
@@ -135,6 +143,9 @@
   .wb-service .wb-conversation-filters button{min-height:28px;padding:4px 12px;font-size:12px}
 }
 @media(max-width:480px){
+  .wb-service[data-workspace=report] .wb-toolbar>.wb-tabs{display:none}
+  .wb-service .wb-toolbar>.wb-report-tab-select{display:flex;flex:1;min-width:0}
+  .wb-service .wb-report-tab-select select{flex:1;min-width:0}
   .wb-service .wb-sidebar{padding:6px 10px;gap:6px}
   .wb-service .wb-sidebar nav{gap:0}
   .wb-service .wb-sidebar nav button{padding:7px 8px}
@@ -146,6 +157,7 @@
   .wb-service .wb-mobile-tabs button{font-size:12px;padding:6px 10px}
 }
 @media(max-width:480px) and (max-height:650px){
+  .wb-service[data-workspace=report] .wb-body{gap:8px}
   .wb-service .wb-main{gap:6px}.wb-service .wb-dashboard{gap:8px}
   .wb-service .wb-transcript{padding:10px;gap:6px}
   .wb-service .wb-transcript>.wb-panel-body{gap:6px}

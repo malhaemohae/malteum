@@ -26,6 +26,11 @@ export type ApiSessionSummary = {
   violations?: number;
 };
 
+export type ApiSessionDetail = ApiSessionSummary & {
+  duration_ms?: number;
+  items?: Array<{ item_code: string; name: string; axis: string; state: string; decided_by?: string; missing_elements?: string[]; evidence_ref?: string }>;
+};
+
 export type ApiPreset = {
   preset_id: string;
   label: string;
@@ -224,7 +229,7 @@ export const malteumApi = {
     return request<AudioUploadResponse>(`/sessions/${encodeURIComponent(sessionId)}/audio`, { method: 'POST', body: form });
   },
   sessions: (mode?: CreateSessionRequest['mode'], cursor?: string) => request<{ sessions: ApiSessionSummary[]; next_cursor?: string | null }>(`/sessions?limit=100${mode ? `&mode=${mode}` : ''}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`),
-  session: (sessionId: string) => request<ApiSessionSummary & Record<string, unknown>>(`/sessions/${encodeURIComponent(sessionId)}`),
+  session: (sessionId: string) => request<ApiSessionDetail>(`/sessions/${encodeURIComponent(sessionId)}`),
   events: (sessionId: string, fromSeq = 0) => request<{ session_id: string; events: ApiEvent[]; truncated?: boolean }>(`/sessions/${encodeURIComponent(sessionId)}/events?from_seq=${fromSeq}`),
   report: (sessionId: string) => request<ApiReport>(`/sessions/${encodeURIComponent(sessionId)}/report`),
   reportPdfUrl: (sessionId: string) => apiUrl(`/sessions/${encodeURIComponent(sessionId)}/report.pdf`),
