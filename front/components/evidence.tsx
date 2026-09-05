@@ -178,9 +178,16 @@ export function EvidenceCard({ title, evidenceRef, evidence, onOpen }: { title?:
   const [failed, setFailed] = useState(false);
   const [imageRetry, setImageRetry] = useState(0);
   const ratio = value ? pageRatio(value, natural) : Math.SQRT2;
-  const renderScale = natural?.scale ?? 3;
   const rect = value ? highlightRect(value, natural ? [natural.width / natural.scale, natural.height / natural.scale] : undefined) : null;
   const zoom = focusZoom(rect, size, ratio);
+  // A stale page from the previous evidence must not decide this card's aspect ratio.
+  useEffect(() => { setNatural(null); setFailed(false); }, [value?.doc_id, value?.page]);
+  // Without a measured viewport the zoom stays at its default and the card shows the page top.
+  useLayoutEffect(() => {
+    const host = viewport.current; if (!host) return;
+    const observer = new ResizeObserver(([entry]) => setSize(current => current.width === entry.contentRect.width && current.height === entry.contentRect.height ? current : { width: entry.contentRect.width, height: entry.contentRect.height }));
+    observer.observe(host); return () => observer.disconnect();
+  }, [value]);
   useLayoutEffect(() => {
     const host = viewport.current; if (!host || size.width === 0) return;
     const canvasWidth = size.width * zoom; const canvasHeight = canvasWidth * ratio;
