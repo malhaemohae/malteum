@@ -21,13 +21,26 @@ export function Transcript({ items, onSelect, empty = '첫 발화를 기다리�
   const area = useRef<HTMLDivElement>(null);
   const [following, setFollowing] = useState(true);
   const [unread, setUnread] = useState(0);
+  const suppressScroll = useRef(false);
   const seen = useRef(items.length);
-  const scrollToEnd = (behavior: ScrollBehavior) => { const host = area.current; if (host) host.scrollTo({ top: host.scrollHeight, behavior }); };
+  const contentSignature = items.map(row => `${row.id}:${row.t_ms}:${row.text}`).join("\\u001f");
+  const scrollToEnd = (behavior: ScrollBehavior) => {
+    const host = area.current; if (!host) return;
+    suppressScroll.current = true;
+    host.scrollTo({ top: host.scrollHeight, behavior });
+    const settle = () => {
+      const current = area.current; if (!current) return;
+      const atEnd = current.scrollHeight - current.scrollTop - current.clientHeight <= FOLLOW_THRESHOLD;
+      if (atEnd) { suppressScroll.current = false; return; }
+      requestAnimationFrame(settle);
+    };
+    requestAnimationFrame(settle);
+  };
   useLayoutEffect(() => {
     if (following) { scrollToEnd(items.length - seen.current > 1 ? 'auto' : 'smooth'); setUnread(0); }
     else setUnread(value => value + Math.max(0, items.length - seen.current));
     seen.current = items.length;
-  }, [items.length, following]);
+  }, [contentSignature, following]);
   useEffect(() => {
     const host = area.current; if (!host) return;
     // Keep the newest message in view when the pane itself changes size (responsive layout, fonts).
@@ -37,6 +50,10 @@ export function Transcript({ items, onSelect, empty = '첫 발화를 기다리�
   function onScroll() {
     const host = area.current; if (!host) return;
     const atEnd = host.scrollHeight - host.scrollTop - host.clientHeight <= FOLLOW_THRESHOLD;
+    if (suppressScroll.current) {
+      if (atEnd) { suppressScroll.current = false; setFollowing(true); setUnread(0); }
+      return;
+    }
     if (atEnd !== following) { setFollowing(atEnd); if (atEnd) setUnread(0); }
   }
   return <div className="wb-list wb-chat" data-paged-list="상담 전사" data-following={following}>

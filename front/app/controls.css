@@ -45,3 +45,15 @@
   .wb select option::checkmark,.wb-modal select option::checkmark{order:1;margin-left:auto;color:#087e9f;font-size:12px}
   .wb select option:disabled,.wb-modal select option:disabled{opacity:.45;cursor:not-allowed}
 }
+
+/* Continuous reading surfaces and source-first rule details. */
+.wb-reader-area{overflow:auto;overscroll-behavior:contain;padding-right:6px}
+.wb-rule-details section+section{margin-top:16px}
+.wb-rule-details h3{font-size:14px;color:var(--teal)}
+.wb-rule-details ul{margin:6px 0;padding-left:20px}
+.wb-item-detail .wb-modal-body{overflow:auto;overscroll-behavior:contain}
+.wb-item-detail .wb-ev-card{flex-shrink:0}
+.wb-modal.wb-compact{width:min(560px,calc(100vw - 32px));height:auto;max-height:calc(100dvh - 32px)}
+.wb-compact .wb-modal-frame{height:auto;max-height:calc(100dvh - 32px)}
+.wb-compact .wb-modal-body{overflow:auto;max-height:55dvh}
+.wb-compact .wb-reader-area{max-height:45dvh;flex:auto}

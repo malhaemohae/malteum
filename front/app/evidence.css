@@ -24,6 +24,8 @@
 .wb-ev-canvas img{display:block;width:100%;height:100%;object-fit:fill;-webkit-user-drag:none;user-drag:none}
 .wb-ev-highlight{position:absolute;box-sizing:content-box;padding:2px 3px;margin:-2px -3px;background:#ffd84d66;outline:2px solid #e2b52b;border-radius:3px;pointer-events:none;box-shadow:0 0 0 6px #ffd84d24}
 .wb-ev-hint{font-size:11px;color:var(--muted);flex-shrink:0}
+.wb-ev-image-error{display:flex;align-items:center;justify-content:center;flex:1;min-height:0;text-align:center}
+.wb-ev-image-error .wb-empty,.wb-ev-card .wb-empty{display:flex;flex-direction:column;align-items:center;gap:10px}
 /* Card inside the guide panel */
 .wb .wb-ev-card,.wb-modal .wb-ev-card{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%;padding:12px;text-align:left;white-space:normal;background:#fff;border:1px solid var(--line);border-radius:12px;font-weight:500;line-height:1.5;min-height:0;flex-shrink:0}
 .wb .wb-ev-card:hover:not(:disabled){background:#fff;border-color:#55b4d0;box-shadow:0 4px 14px #17394214;color:var(--ink)}

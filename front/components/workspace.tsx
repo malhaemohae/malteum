@@ -54,6 +54,7 @@ export function useResource<T>(loader: () => Promise<T>, dependencies: Dependenc
 }
 
 function Pager({ page, count, onChange, label }: { page: number; count: number; onChange: (page: number) => void; label: string }) {
+  if (count <= 1) return null;
   return <div className="wb-pager" aria-label={`${label} 페이지`}><button type="button" aria-label={`${label} 이전 페이지`} disabled={page <= 0} onClick={() => onChange(page - 1)}>‹</button><span>{page + 1} / {Math.max(1, count)}</span><button type="button" aria-label={`${label} 다음 페이지`} disabled={page >= count - 1} onClick={() => onChange(page + 1)}>›</button></div>;
 }
 
@@ -66,28 +67,11 @@ export function PagedList<T>({ items, render, label, empty = '표시할 항목�
   return <div className="wb-list" ref={ref} data-paged-list={label}><div className="wb-list-rows">{items.length ? items.slice(visiblePage * capacity, (visiblePage + 1) * capacity).map((item, index) => <div className="wb-list-row" style={{ height, minHeight: height }} key={visiblePage * capacity + index}>{render(item, visiblePage * capacity + index)}</div>) : <Empty>{empty}</Empty>}</div><div className="wb-list-bottom"><small>{items.length}개</small>{followLatest && !following.current && <button type="button" onClick={() => { following.current = true; setPage(count - 1); }}>최신 발화</button>}<Pager label={label} page={visiblePage} count={count} onChange={value => { following.current = value === count - 1; setPage(value); }} /></div></div>;
 }
 
-// Paginate exact text using its rendered dimensions. Nothing is silently truncated.
+// Exact source text stays continuous and selectable; reading never needs a page turn.
 export function TextPages({ text, label = '내용' }: { text: string; label?: string }) {
-  const container = useRef<HTMLDivElement>(null); const probe = useRef<HTMLDivElement>(null);
-  const [pages, setPages] = useState<string[]>([text]); const [page, setPage] = useState(0);
-  useLayoutEffect(() => {
-    if (!container.current || !probe.current) return;
-    const measure = () => {
-      const host = container.current; const node = probe.current; if (!host || !node || host.clientWidth === 0 || host.clientHeight < 20) return;
-      node.style.width = `${host.clientWidth}px`; const available = host.clientHeight;
-      const parts: string[] = []; let rest = text;
-      while (rest.length) {
-        let lo = 1, hi = rest.length, fits = 1;
-        while (lo <= hi) { const mid = Math.floor((lo + hi) / 2); node.textContent = rest.slice(0, mid); if (node.scrollHeight <= available) { fits = mid; lo = mid + 1; } else hi = mid - 1; }
-        if (fits < rest.length) { const boundary = Math.max(rest.lastIndexOf(' ', fits - 1), rest.lastIndexOf('\n', fits - 1)); if (boundary > fits * .6) fits = boundary + 1; }
-        parts.push(rest.slice(0, fits)); rest = rest.slice(fits);
-      }
-      setPages(parts.length ? parts : ['']); setPage(value => Math.min(value, Math.max(0, parts.length - 1)));
-    };
-    const observer = new ResizeObserver(measure); observer.observe(container.current); measure(); document.fonts.ready.then(measure); return () => observer.disconnect();
-  }, [text]);
-  useEffect(() => setPage(0), [text]);
-  return <div className="wb-reader"><div className="wb-reader-area" ref={container}><div className="wb-reader-copy" data-reader-copy>{pages[Math.min(page, pages.length - 1)]}</div><div className="wb-reader-copy wb-probe" ref={probe} aria-hidden="true" /></div><Pager label={label} page={Math.min(page, pages.length - 1)} count={pages.length} onChange={setPage} /></div>;
+  const area = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (area.current) area.current.scrollTop = 0; }, [text]);
+  return <div className="wb-reader"><div className="wb-reader-area" ref={area} role="region" aria-label={label} tabIndex={0}><div className="wb-reader-copy" data-reader-copy>{text}</div></div></div>;
 }
 
 export function Modal({ title, onClose, children, actions, className = '', trapFocus = false }: { title: string; onClose: () => void; children: ReactNode; actions?: ReactNode; className?: string; trapFocus?: boolean }) {

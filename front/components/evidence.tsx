@@ -22,11 +22,11 @@ export function highlightRect(evidence: Pick<ApiEvidence, 'bbox' | 'page_size'>,
   return { x: x1 / pw, y: (ph - y2) / ph, w: Math.max((x2 - x1) / pw, 0.002), h: Math.max((y2 - y1) / ph, 0.002) };
 }
 function pageRatio(evidence: Pick<ApiEvidence, 'page_size'>, natural: { width: number; height: number } | null) {
-  if (evidence.page_size && evidence.page_size[0] > 0) return evidence.page_size[1] / evidence.page_size[0];
   if (natural && natural.width > 0) return natural.height / natural.width;
+  if (evidence.page_size && evidence.page_size[0] > 0) return evidence.page_size[1] / evidence.page_size[0];
   return Math.SQRT2; // A4 until the image tells us otherwise
 }
-function pageImageUrl(docId: string, page: number, scale: number) { return apiUrl(`/documents/${encodeURIComponent(docId)}/pages/${page}.png${scale === 2 ? '' : `?scale=${scale}`}`); }
+function pageImageUrl(docId: string, page: number, scale: number, retry = 0) { const base = apiUrl(`/documents/${encodeURIComponent(docId)}/pages/${page}.png${scale === 2 ? "" : `?scale=${scale}`}`); return retry ? `${base}${base.includes("?") ? "&" : "?"}retry=${retry}` : base; }
 // Zoom so the highlighted span fills about half of the viewport width without cutting its height.
 function focusZoom(rect: Rect | null, viewport: { width: number; height: number }, ratio: number) {
   if (!rect || viewport.width <= 0 || viewport.height <= 0) return 1.6;
@@ -35,21 +35,32 @@ function focusZoom(rect: Rect | null, viewport: { width: number; height: number 
 }
 
 // --- shared caches: evidence by ref, page counts by document --------------------------------
+const EVIDENCE_CACHE_LIMIT = 256;
 const evidenceCache = new Map<string, Promise<ApiEvidence>>();
 export function loadEvidence(ref: string) {
-  let pending = evidenceCache.get(ref);
-  if (!pending) { pending = malteumApi.evidence(ref).catch(error => { evidenceCache.delete(ref); throw error; }); evidenceCache.set(ref, pending); }
+  const existing = evidenceCache.get(ref);
+  if (existing) { evidenceCache.delete(ref); evidenceCache.set(ref, existing); return existing; }
+  let pending: Promise<ApiEvidence>;
+  pending = malteumApi.evidence(ref).catch(error => { if (evidenceCache.get(ref) === pending) evidenceCache.delete(ref); throw error; });
+  evidenceCache.set(ref, pending);
+  while (evidenceCache.size > EVIDENCE_CACHE_LIMIT) {
+    const oldest = evidenceCache.keys().next().value;
+    if (typeof oldest !== 'string') break;
+    evidenceCache.delete(oldest);
+  }
   return pending;
 }
 export function useEvidence(ref?: string) {
   const [state, setState] = useState<{ ref?: string; loading: boolean; value?: ApiEvidence; error?: string }>({ ref, loading: Boolean(ref) });
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!ref) { setState({ ref, loading: false }); return; }
     let active = true; setState({ ref, loading: true });
     loadEvidence(ref).then(value => { if (active) setState({ ref, loading: false, value }); }).catch(error => { if (active) setState({ ref, loading: false, error: error instanceof Error ? error.message : '근거를 불러오지 못했습니다.' }); });
     return () => { active = false; };
-  }, [ref]);
-  return state;
+  }, [ref, attempt]);
+  const current = state.ref === ref ? state : { ref, loading: Boolean(ref) };
+  return { ...current, retry: () => setAttempt(value => value + 1) };
 }
 let pageCounts: Promise<Map<string, number>> | null = null;
 function loadPageCounts() {
@@ -63,7 +74,7 @@ function usePageCount(docId: string) {
 }
 
 // --- the page canvas: one image, one highlight, arbitrary zoom ------------------------------
-function PageCanvas({ docId, page, zoom, rect, ratio, onNatural, onError, interactive = true, viewportRef, children }: { docId: string; page: number; zoom: number; rect: Rect | null; ratio: number; onNatural?: (size: { width: number; height: number }) => void; onError?: () => void; interactive?: boolean; viewportRef: React.RefObject<HTMLDivElement>; children?: ReactNode }) {
+function PageCanvas({ docId, page, zoom, rect, ratio, onNatural, onError, retry = 0, interactive = true, viewportRef, children }: { docId: string; page: number; zoom: number; rect: Rect | null; ratio: number; onNatural?: (size: { width: number; height: number; scale: number }) => void; onError?: () => void; retry?: number; interactive?: boolean; viewportRef: React.RefObject<HTMLDivElement>; children?: ReactNode }) {
   const scale = zoom >= 2.4 ? 4 : zoom >= 1.4 ? 3 : 2;
   const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   function down(event: PointerEvent<HTMLDivElement>) { if (!interactive || event.button !== 0) return; const host = viewportRef.current; if (!host) return; drag.current = { x: event.clientX, y: event.clientY, left: host.scrollLeft, top: host.scrollTop }; host.setPointerCapture(event.pointerId); host.dataset.dragging = 'true'; }
@@ -71,7 +82,7 @@ function PageCanvas({ docId, page, zoom, rect, ratio, onNatural, onError, intera
   function up(event: PointerEvent<HTMLDivElement>) { const host = viewportRef.current; drag.current = null; if (host) { delete host.dataset.dragging; if (host.hasPointerCapture(event.pointerId)) host.releasePointerCapture(event.pointerId); } }
   return <div className="wb-ev-viewport" ref={viewportRef} data-interactive={interactive} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
     <div className="wb-ev-canvas" style={{ width: `${zoom * 100}%`, aspectRatio: `1 / ${ratio}` } as CSSProperties}>
-      <img src={pageImageUrl(docId, page, scale)} alt={`${docId} ${page}페이지`} draggable={false} onLoad={event => onNatural?.({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })} onError={onError} />
+      <img src={pageImageUrl(docId, page, scale, retry)} alt={`${docId} ${page}페이지`} draggable={false} onLoad={event => onNatural?.({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight, scale })} onError={onError} />
       {rect && <span className="wb-ev-highlight" style={{ left: `${rect.x * 100}%`, top: `${rect.y * 100}%`, width: `${rect.w * 100}%`, height: `${rect.h * 100}%` }} />}
       {children}
     </div>
@@ -84,21 +95,26 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
   const [page, setPage] = useState(value.page);
   const [zoom, setZoom] = useState(1.6);
   const [mode, setMode] = useState<'focus' | 'page' | 'free'>('focus');
-  const [natural, setNatural] = useState<{ width: number; height: number } | null>(null);
+  const [natural, setNatural] = useState<{ width: number; height: number; scale: number } | null>(null);
   const [imageError, setImageError] = useState(false);
+  const [imageRetry, setImageRetry] = useState(0);
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const pageCount = usePageCount(value.doc_id);
   const ratio = pageRatio(value, natural);
-  const rect = useMemo(() => highlightRect(value, natural ? [natural.width / 2, natural.height / 2] : undefined), [value, natural]);
+  const renderScale = zoom >= 2.4 ? 4 : zoom >= 1.4 ? 3 : 2;
+  const rect = useMemo(() => highlightRect(value, natural ? [natural.width / natural.scale, natural.height / natural.scale] : undefined), [value, natural, renderScale]);
   const onEvidencePage = page === value.page;
-  useEffect(() => { setPage(value.page); setMode('focus'); setImageError(false); setNatural(null); }, [value]);
+  useEffect(() => { setPage(value.page); setMode('focus'); setImageError(false); }, [value]);
   useEffect(() => { setImageError(false); }, [page]);
   useLayoutEffect(() => {
     const host = viewport.current; if (!host) return;
-    const observer = new ResizeObserver(([entry]) => setViewportSize({ width: entry.contentRect.width, height: entry.contentRect.height }));
-    observer.observe(host); return () => observer.disconnect();
-  }, []);
-  // Focus mode recomputes the zoom from the live viewport size and centres the highlight.
+    const measure = () => {
+      const box = host.getBoundingClientRect();
+      setViewportSize(current => current.width === box.width && current.height === box.height ? current : { width: box.width, height: box.height });
+    };
+    measure(); window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);  // Focus mode recomputes the zoom from the live viewport size and centres the highlight.
   useLayoutEffect(() => {
     const host = viewport.current; if (!host || viewportSize.width === 0) return;
     if (mode === 'focus' && onEvidencePage) {
@@ -145,8 +161,8 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
           <button type="button" aria-label="확대" disabled={zoom >= ZOOM_MAX} onClick={() => stepZoom(1)}>＋</button>
         </div>
       </div>
-      {imageError ? <Empty>p.{page} 이미지를 불러오지 못했습니다. 인용 문장은 왼쪽에서 계속 확인할 수 있습니다.</Empty>
-        : <PageCanvas docId={value.doc_id} page={page} zoom={zoom} rect={onEvidencePage ? rect : null} ratio={ratio} viewportRef={viewport} onNatural={setNatural} onError={() => setImageError(true)} />}
+      {imageError ? <div className="wb-ev-image-error"><Empty>p.{page} 이미지를 불러오지 못했습니다. 인용 문장은 왼쪽에서 계속 확인할 수 있습니다.<button type="button" onClick={() => { setImageError(false); setImageRetry(value => value + 1); }}>이미지 다시 불러오기</button></Empty></div>
+        : <PageCanvas docId={value.doc_id} page={page} zoom={zoom} rect={onEvidencePage ? rect : null} ratio={ratio} viewportRef={viewport} onNatural={setNatural} retry={imageRetry} onError={() => setImageError(true)} />}
       <small className="wb-ev-hint">{onEvidencePage ? '형광펜이 근거 문장입니다. 끌어서 주변 문맥을 보거나 전체 페이지로 넓히세요.' : '근거가 아닌 페이지입니다. 원문 문맥 확인용으로만 보세요.'}</small>
     </section>
   </div>;
@@ -155,15 +171,15 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
 // --- compact card for the guide panel --------------------------------------------------------
 export function EvidenceCard({ title, evidenceRef, evidence, onOpen }: { title?: string; evidenceRef?: string; evidence?: ApiEvidence | null; onOpen: () => void }) {
   const fetched = useEvidence(evidence ? undefined : evidenceRef);
-  const value = evidence ?? fetched.value;
+  const value = evidence ?? (fetched.ref === evidenceRef ? fetched.value : undefined);
   const viewport = useRef<HTMLDivElement>(null);
-  const [natural, setNatural] = useState<{ width: number; height: number } | null>(null);
+  const [natural, setNatural] = useState<{ width: number; height: number; scale: number } | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [failed, setFailed] = useState(false);
-  useEffect(() => { setNatural(null); setFailed(false); }, [value?.doc_id, value?.page]);
-  useLayoutEffect(() => { const host = viewport.current; if (!host) return; const observer = new ResizeObserver(([entry]) => setSize({ width: entry.contentRect.width, height: entry.contentRect.height })); observer.observe(host); return () => observer.disconnect(); }, [value]);
-  const rect = value ? highlightRect(value, natural ? [natural.width / 2, natural.height / 2] : undefined) : null;
+  const [imageRetry, setImageRetry] = useState(0);
   const ratio = value ? pageRatio(value, natural) : Math.SQRT2;
+  const renderScale = natural?.scale ?? 3;
+  const rect = value ? highlightRect(value, natural ? [natural.width / natural.scale, natural.height / natural.scale] : undefined) : null;
   const zoom = focusZoom(rect, size, ratio);
   useLayoutEffect(() => {
     const host = viewport.current; if (!host || size.width === 0) return;
@@ -173,10 +189,11 @@ export function EvidenceCard({ title, evidenceRef, evidence, onOpen }: { title?:
   }, [rect, ratio, size, zoom, value]);
   if (!evidenceRef && !evidence) return null;
   if (fetched.loading && !value) return <div className="wb-ev-card is-loading"><span className="wb-ev-label">{title ?? '근거'}</span><Empty>근거를 불러오고 있습니다.</Empty></div>;
-  if (!value) return <div className="wb-ev-card is-loading"><span className="wb-ev-label">{title ?? '근거'}</span><Empty>{fetched.error ?? '이 안내에는 연결된 근거가 없습니다.'}</Empty></div>;
+  if (!value) return <div className="wb-ev-card is-loading"><span className="wb-ev-label">{title ?? '근거'}</span><Empty>{fetched.error ? <>{fetched.error}<button type="button" onClick={fetched.retry}>근거 다시 불러오기</button></> : '이 안내에는 연결된 근거가 없습니다.'}</Empty></div>;
+  if (failed) return <div className="wb-ev-card is-error" role="button" tabIndex={0} onClick={onOpen} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') onOpen(); }}><span className="wb-ev-card-head"><span className="wb-ev-label">{title ?? '근거'}</span><small>{value.doc_title ?? value.doc_id} · p.{value.page}</small></span><Empty>페이지 이미지를 불러오지 못했습니다.<button type="button" onClick={event => { event.stopPropagation(); setFailed(false); setImageRetry(value => value + 1); }}>이미지 다시 불러오기</button></Empty><span className="wb-ev-card-quote">{value.span}</span></div>;
   return <button type="button" className="wb-ev-card" onClick={onOpen} aria-label={`근거 원문 열기 · ${value.doc_title ?? value.doc_id} ${value.page}페이지`}>
     <span className="wb-ev-card-head"><span className="wb-ev-label">{title ?? '근거'}</span><small>{value.doc_title ?? value.doc_id} · p.{value.page}</small></span>
-    <span className="wb-ev-card-preview">{failed ? <Empty>페이지 이미지를 불러오지 못했습니다.</Empty> : <PageCanvas docId={value.doc_id} page={value.page} zoom={zoom} rect={rect} ratio={ratio} viewportRef={viewport} interactive={false} onNatural={setNatural} onError={() => setFailed(true)} />}</span>
+    <span className="wb-ev-card-preview">{failed ? <Empty>페이지 이미지를 불러오지 못했습니다.</Empty> : <PageCanvas docId={value.doc_id} page={value.page} zoom={zoom} rect={rect} ratio={ratio} viewportRef={viewport} interactive={false} retry={imageRetry} onNatural={setNatural} onError={() => setFailed(true)} />}</span>
     <span className="wb-ev-card-quote">{value.span}</span>
     <span className="wb-ev-card-cta">원문에서 주변 문맥 보기 →</span>
   </button>;
