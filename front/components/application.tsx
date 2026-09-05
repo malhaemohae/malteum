@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { ApiEvidence, ApiHealth, ApiPack, ApiPackItem, ApiPreset, ApiSessionSummary, findSessionEvent, malteumApi, ServerMessage, wsUrl } from '../lib/api';
 import { MicrophoneCaptureError, Pcm16Capture } from '../lib/audio';
@@ -50,6 +50,7 @@ export default function Application() {
     malteumApi.session(saved).then(detail => { if (!active) return; if (detail.status === 'running' && detail.mode !== 'trace') { setScreen('history'); void openHistory(detail, 'resume'); } else forgetActiveSession(); }).catch(() => { /* Server unreachable: the history screen still offers manual recovery. */ });
     return () => { active = false; };
   }, []);
+  const checkHealth = useCallback(() => { malteumApi.health().then(setHealth).catch(() => { /* 화면은 마지막으로 확인한 상태를 유지한다 */ }); }, []);
   useEffect(() => { let active = true; malteumApi.health().then(value => { if (active) setHealth(value); }).catch(() => { if (active) setHealth(null); }); return () => { active = false; socket.current?.close(); capture.current?.stop(); const old = replayAudio.current; replayAudio.current = null; old?.dispose(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }; }, []);
   useEffect(() => { if (!micActive) return; const timer = setInterval(() => update(value => value && value.status === 'connected' ? { ...value, seconds: value.seconds + 1 } : value), 1000); return () => clearInterval(timer); }, [micActive]);
   useEffect(() => { if (!session || session.status === 'ended') return; const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload); }, [session?.id, session?.status]);
@@ -283,7 +284,7 @@ export default function Application() {
   const navigation = { onNavigate: navigate, onNew: requestNew };
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
-  else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} defaults={preparation.current} />;
+  else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} defaults={preparation.current} health={health} onCheckHealth={checkHealth} />;
   else if ((screen === 'dashboard' || screen === 'playback') && session) page = <Dashboard {...navigation} session={session} pack={pack} health={health} micActive={micActive} micPending={micPending} micError={micError} replaySound={replaySound} onReplaySound={() => { void replayAudio.current?.toggle(); }} onMic={requestMic} onEnd={endSession} onRetry={() => connect(session, true)} onTextMode={() => { stopMic(); setMicError(''); update(value => value ? { ...value, textFallback: true, error: undefined } : value); }} onCommand={command} onDismiss={() => update(value => value ? { ...value, interventions: value.interventions.slice(1) } : value)} onEvidence={openEvidence} onItemEvidence={itemEvidence} onAsk={ask} />;
   else if (screen === 'report') page = <ReportScreen {...navigation} sessionId={reportTarget?.id ?? session?.id ?? null} onEvidence={openEvidence} onResume={record => openHistory(record, 'resume')} onTrace={record => openHistory(record, 'trace')} busy={busy} error={error} />;
   else if (screen === 'packs') page = <PackScreen {...navigation} />;
