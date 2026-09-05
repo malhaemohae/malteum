@@ -9,6 +9,7 @@
 .wb-ev-doc small{color:var(--muted)}
 .wb-ev-label{display:block;font-size:11px;font-weight:700;letter-spacing:.02em;color:#087e9f;white-space:nowrap}
 .wb-ev-quote{display:flex;flex-direction:column;gap:6px}
+.wb-ev-plain{margin:0;font-size:13px;color:var(--muted);line-height:1.7}
 .wb-ev-quote blockquote{margin:0 0 10px;padding:10px 12px;border-left:3px solid #55b4d0;background:#e9f6f9;border-radius:0 10px 10px 0;font-size:15px;line-height:1.7;font-weight:550;overflow-wrap:anywhere;-webkit-user-select:text;user-select:text}
 .wb-ev-quote p{margin:0 0 10px;font-size:13px;line-height:1.65;color:var(--ink);-webkit-user-select:text;user-select:text}
 .wb-ev-source{font-size:13px;font-weight:650;color:var(--teal);text-decoration:underline;text-underline-offset:3px;margin-top:auto}

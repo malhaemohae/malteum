@@ -82,7 +82,7 @@ function usePageCount(docId: string) {
 }
 
 // --- the page canvas: one image, one highlight, arbitrary zoom ------------------------------
-function PageCanvas({ docId, page, zoom, rect, ratio, onNatural, onError, retry = 0, interactive = true, viewportRef, children }: { docId: string; page: number; zoom: number; rect: Rect | null; ratio: number; onNatural?: (size: { width: number; height: number; scale: number }) => void; onError?: () => void; retry?: number; interactive?: boolean; viewportRef: React.RefObject<HTMLDivElement>; children?: ReactNode }) {
+function PageCanvas({ docId, docTitle, page, zoom, rect, ratio, onNatural, onError, retry = 0, interactive = true, viewportRef, children }: { docId: string; docTitle?: string; page: number; zoom: number; rect: Rect | null; ratio: number; onNatural?: (size: { width: number; height: number; scale: number }) => void; onError?: () => void; retry?: number; interactive?: boolean; viewportRef: React.RefObject<HTMLDivElement>; children?: ReactNode }) {
   const scale = zoom >= 2.4 ? 4 : zoom >= 1.4 ? 3 : 2;
   const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   function down(event: PointerEvent<HTMLDivElement>) { if (!interactive || event.button !== 0) return; const host = viewportRef.current; if (!host) return; drag.current = { x: event.clientX, y: event.clientY, left: host.scrollLeft, top: host.scrollTop }; host.setPointerCapture(event.pointerId); host.dataset.dragging = 'true'; }
@@ -90,7 +90,7 @@ function PageCanvas({ docId, page, zoom, rect, ratio, onNatural, onError, retry 
   function up(event: PointerEvent<HTMLDivElement>) { const host = viewportRef.current; drag.current = null; if (host) { delete host.dataset.dragging; if (host.hasPointerCapture(event.pointerId)) host.releasePointerCapture(event.pointerId); } }
   return <div className="wb-ev-viewport" ref={viewportRef} data-interactive={interactive} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
     <div className="wb-ev-canvas" style={{ width: `${zoom * 100}%`, aspectRatio: `1 / ${ratio}` } as CSSProperties}>
-      <img src={pageImageUrl(docId, page, scale, retry)} alt={`${docId} ${page}페이지`} draggable={false} onLoad={event => onNatural?.({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight, scale })} onError={onError} />
+      <img src={pageImageUrl(docId, page, scale, retry)} alt={`${docTitle ?? docId} ${page}페이지`} draggable={false} onLoad={event => onNatural?.({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight, scale })} onError={onError} />
       {rect && <span className="wb-ev-highlight" style={{ left: `${rect.x * 100}%`, top: `${rect.y * 100}%`, width: `${rect.w * 100}%`, height: `${rect.h * 100}%` }} />}
       {children}
     </div>
@@ -160,10 +160,10 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
   return <div className="wb-ev" onKeyDown={event => { if (event.key === 'ArrowLeft') go(page - 1); if (event.key === 'ArrowRight') go(page + 1); }}>
     <aside className="wb-ev-side">
       <div className="wb-ev-doc"><strong>{value.doc_title ?? value.doc_id}</strong><small>{[value.publisher, value.snapshot_date ? `${value.snapshot_date} 기준` : null].filter(Boolean).join(' · ')}</small></div>
-      <div className="wb-ev-quote"><span className="wb-ev-label">근거 문장 · p.{value.page}</span><blockquote>{value.span}</blockquote>
+      {value.span ? <div className="wb-ev-quote"><span className="wb-ev-label">근거 문장 · p.{value.page}</span><blockquote>{value.span}</blockquote>
         {value.legal_basis && <><span className="wb-ev-label">법적 근거</span><p>{value.legal_basis}</p></>}
         {value.context && <><span className="wb-ev-label">문맥</span><p>{value.context}</p></>}
-      </div>
+      </div> : <p className="wb-ev-plain">문서 전체를 넘겨 보는 중입니다. 상담에서 잡힌 근거 문장은 없습니다.</p>}
       {url && <a className="wb-ev-source" href={url} target="_blank" rel="noopener noreferrer">출처 원문 열기 ↗</a>}
     </aside>
     <section className="wb-ev-main" aria-label="원문 페이지">
@@ -176,7 +176,7 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
         </div>
         <div className="wb-ev-zoom" role="group" aria-label="확대">
           <button type="button" aria-pressed={mode === 'width'} onClick={() => setMode('width')}>폭 맞춤</button>
-          <button type="button" aria-pressed={mode === 'focus'} disabled={!onEvidencePage} onClick={() => setMode('focus')}>근거 확대</button>
+          <button type="button" aria-pressed={mode === 'focus'} disabled={!onEvidencePage || !rect} onClick={() => setMode('focus')}>근거 확대</button>
           <button type="button" aria-pressed={mode === 'page'} onClick={() => setMode('page')}>전체 페이지</button>
           <button type="button" aria-label="축소" disabled={zoom <= fitZoom(viewportSize, ratio) + 0.001} onClick={() => stepZoom(-1)}>－</button>
           <span>{Math.round(zoom * 100)}%</span>
@@ -185,9 +185,9 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
       </div>
       <div className="wb-ev-stage" onDoubleClick={() => setMode(mode === 'focus' ? 'width' : 'focus')}>
       {imageError ? <div className="wb-ev-image-error"><Empty>p.{page} 이미지를 불러오지 못했습니다. 인용 문장은 왼쪽에서 계속 확인할 수 있습니다.<button type="button" onClick={() => { setImageError(false); setImageRetry(value => value + 1); }}>이미지 다시 불러오기</button></Empty></div>
-        : <PageCanvas docId={value.doc_id} page={page} zoom={zoom} rect={onEvidencePage ? rect : null} ratio={ratio} viewportRef={viewport} onNatural={setNatural} retry={imageRetry} onError={() => setImageError(true)} />}
+        : <PageCanvas docId={value.doc_id} docTitle={value.doc_title} page={page} zoom={zoom} rect={onEvidencePage ? rect : null} ratio={ratio} viewportRef={viewport} onNatural={setNatural} retry={imageRetry} onError={() => setImageError(true)} />}
       </div>
-      <small className="wb-ev-hint">{onEvidencePage ? '형광펜이 근거 문장입니다. 두 번 누르면 그 자리를 확대하고, 끌어서 주변을 봅니다.' : '근거가 아닌 페이지입니다. 원문 문맥 확인용으로만 보세요.'}</small>
+      <small className="wb-ev-hint">{!rect ? '끌어서 옮기고, 위 버튼으로 확대·축소합니다.' : onEvidencePage ? '형광펜이 근거 문장입니다. 두 번 누르면 그 자리를 확대하고, 끌어서 주변을 봅니다.' : '근거가 아닌 페이지입니다. 원문 문맥 확인용으로만 보세요.'}</small>
     </section>
   </div>;
 }
@@ -224,7 +224,7 @@ export function EvidenceCard({ title, evidenceRef, evidence, onOpen }: { title?:
   if (failed) return <div className="wb-ev-card is-error" role="button" tabIndex={0} onClick={onOpen} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') onOpen(); }}><span className="wb-ev-card-head"><span className="wb-ev-label">{title ?? '근거'}</span><small>{value.doc_title ?? value.doc_id} · p.{value.page}</small></span><Empty>페이지 이미지를 불러오지 못했습니다.<button type="button" onClick={event => { event.stopPropagation(); setFailed(false); setImageRetry(value => value + 1); }}>이미지 다시 불러오기</button></Empty><span className="wb-ev-card-quote">{value.span}</span></div>;
   return <button type="button" className="wb-ev-card" onClick={onOpen} aria-label={`근거 원문 열기 · ${value.doc_title ?? value.doc_id} ${value.page}페이지`}>
     <span className="wb-ev-card-head"><span className="wb-ev-label">{title ?? '근거'}</span><small>{value.doc_title ?? value.doc_id} · p.{value.page}</small></span>
-    <span className="wb-ev-card-preview">{failed ? <Empty>페이지 이미지를 불러오지 못했습니다.</Empty> : <PageCanvas docId={value.doc_id} page={value.page} zoom={zoom} rect={rect} ratio={ratio} viewportRef={viewport} interactive={false} retry={imageRetry} onNatural={setNatural} onError={() => setFailed(true)} />}</span>
+    <span className="wb-ev-card-preview">{failed ? <Empty>페이지 이미지를 불러오지 못했습니다.</Empty> : <PageCanvas docId={value.doc_id} docTitle={value.doc_title} page={value.page} zoom={zoom} rect={rect} ratio={ratio} viewportRef={viewport} interactive={false} retry={imageRetry} onNatural={setNatural} onError={() => setFailed(true)} />}</span>
     <span className="wb-ev-card-quote">{value.span}</span>
     <span className="wb-ev-card-cta">원문에서 주변 문맥 보기 →</span>
   </button>;
