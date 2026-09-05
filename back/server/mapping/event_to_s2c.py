@@ -99,6 +99,10 @@ def progress(pack: RulePack, state: SessionState) -> dict[str, Any]:
         "met": sum(1 for it in required if by_code.get(it.code) == "met"),
         "partial": sum(1 for it in required if by_code.get(it.code) == "partial"),
         "items_total": len(required),
-        "remaining": [it.name for it in required if by_code.get(it.code) in ("unmet", "partial")],
+        # 판정이 한 번도 없는 필수 항목은 상태에 없다. 요약(summary.py)이 그것을 unmet 으로
+        # 세듯 여기서도 남은 항목이다 — 빼면 화면의 남은 목록과 종료 요약의 unmet 수가 어긋난다
+        "remaining": [
+            it.name for it in required if by_code.get(it.code, "unmet") in ("unmet", "partial")
+        ],
         "term_density": state.term_density,
     }

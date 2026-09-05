@@ -1,0 +1,4 @@
+.venv*/
+out/
+hf_cache/
+*.wav

@@ -1,0 +1,18 @@
+# 이미지에 들어갈 이유가 없는 것들. node_modules 는 deps 단계가 락파일로 다시 만든다
+node_modules
+.next
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.next-verify
+.next-qa
+.next-stale-*
+*.tsbuildinfo
+qa-output
+.local
+.admin-token
+.secret
+secret
+*.log
+scripts

@@ -1,0 +1,24 @@
+# Usage (from qwen_vllm/docker):  docker compose build && docker compose run --rm asr <args>
+# HF_CACHE defaults to the host cache where Qwen3-ASR-0.6B/1.7B are already downloaded (6.2 GB).
+# The scratch folder lives on a quota-limited tmpfs (/tmp, ~3 GB free), so a fresh hf_cache/ there
+# would fail the same way the earlier venv install did; override with HF_CACHE=../hf_cache if space allows.
+services:
+  asr:
+    build: .
+    image: qwen3-asr-vllm:0.14.0
+    ipc: host                      # vLLM shared-memory requirement
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ..:/work/qwen_vllm                                   # scripts + out/
+      - ../../diar:/work/diar:ro                             # Sortformer segments (streaming_out.json)
+      - /home/me/projects/share/scenarios:/data/scenarios:ro # audio + script.json
+      - ${HF_CACHE:-/home/me/.cache/huggingface}:/hf_cache   # model weights
+    environment:
+      - HF_HOME=/hf_cache
+      - HF_HUB_OFFLINE=${HF_HUB_OFFLINE:-0}

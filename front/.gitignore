@@ -1,0 +1,7 @@
+.next-verify/
+.next-qa/
+.next-stale-*/
+qa-output/
+.env.backend.local
+.admin-token
+.local/

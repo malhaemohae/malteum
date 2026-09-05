@@ -28,7 +28,14 @@ WS = "ws://localhost:8000/ws"
 SID = "FIXT-SESS-0A"
 # 후보가 붙어 있는 원천. M3 config/candidate_rules.json 의 doc_id 와 같다
 DOC = "05_상품설명서_정기예금"
-AUDIO = Path(__file__).resolve().parent / "stt_audio"
+# 커밋된 시연 음원. 예전엔 지워진 생성기(`stt_check.py --make-audio`)의 산출물을 봤는데
+# 그것은 gitignore 라 새로 받은 사람에게는 없어 live 검증이 조용히 건너뛰어졌다
+AUDIO = Path(__file__).resolve().parents[2] / "assets" / "scenarios"
+# 실시간 속도로 보내므로 음원 전체(2분 28초)를 다 넣으면 스모크가 그만큼 길어진다.
+# 앞부분만으로도 고객 인사와 은행원의 첫 고지가 들어와 전 구간이 확인된다
+LIVE_SECONDS = 24
+# 시연 A 의 원본. `seed_session.py` 가 DB 에 넣는 것과 같은 파일이라 기대값의 출처가 된다
+TRACE = Path(__file__).resolve().parent.parent / "contracts" / "fixtures" / "events_scenario_a.json"
 ok = fail = 0
 
 
@@ -135,7 +142,10 @@ def rest():
 
     s, ev = get(f"/sessions/{SID}/events", template="/sessions/{session_id}/events")
     events = ev["events"]
-    check("이벤트 원본", len(events) == 31, f"{len(events)}건")
+    # 기대값을 픽스처에서 뽑는다(아래 supersedes 와 같은 이유). 숫자를 박아 두었더니
+    # 대본이 재생성되어 31 → 48 이 된 순간 스모크가 배포 문제인 양 빨갛게 떴다 (2026-09-03)
+    want = len(json.loads(TRACE.read_text(encoding="utf-8")))
+    check("이벤트 원본", len(events) == want, f"{len(events)}건 (픽스처 {want})")
     ref = next(
         e["event_id"] for e in events if e["kind"] == "verdict" and e["verdict"].get("evidence")
     )
@@ -306,13 +316,14 @@ async def ws_live():
     if h["checks"]["stt"] != "ok":
         print("[ 건너뜀 ] 서버에 STT 가 설정되지 않음 (APP_STT_API_KEY)")
         return
-    wav = AUDIO / "deposit_3.wav"
+    wav = AUDIO / "preset-dep-a" / "audio.wav"
     if not wav.exists():
-        print("[ 건너뜀 ] 음원 없음 — scripts/stt_check.py --make-audio 로 만드세요")
+        print(f"[ 건너뜀 ] 시연 음원 없음: {wav}")
         return
 
     with wave.open(str(wav), "rb") as w:
-        pcm, rate = w.readframes(w.getnframes()), w.getframerate()
+        rate = w.getframerate()
+        pcm = w.readframes(min(w.getnframes(), rate * LIVE_SECONDS))
     chunk = rate * 2 * 100 // 1000  # 계약 audioFrame 100ms
 
     async with websockets.connect(WS, ping_timeout=120) as sock:
@@ -328,7 +339,11 @@ async def ws_live():
                 await asyncio.sleep(0.1)  # 실시간 속도
 
         async def recv():
-            end = asyncio.get_running_loop().time() + len(pcm) / (rate * 2) + 8
+            # 소리가 끝난 뒤에도 파이프라인이 남아 있다. 발화 단위 어댑터는 구간이
+            # 닫히기를 600ms 기다리고(SEGMENT_GAP_MS), 전사 HTTP 를 왕복하고, 화자
+            # 역할이 정해질 때까지 최대 3초 붙잡는다(DEC-7). 8초로는 모자라 발화가
+            # 소켓이 닫힌 뒤에 나왔다 — 서버 로그에 "close 뒤 send" 로 남는다
+            end = asyncio.get_running_loop().time() + len(pcm) / (rate * 2) + 20
             while asyncio.get_running_loop().time() < end:
                 try:
                     m = json.loads(await asyncio.wait_for(sock.recv(), timeout=5))
@@ -341,7 +356,10 @@ async def ws_live():
 
     partials = [m for m in got if m["t"] == "partial"]
     utterances = [m for m in got if m["t"] == "utterance"]
-    check("partial (중간 전사)", len(partials) > 0, f"{len(partials)}건")
+    # **중간 전사는 공급자 선택 사항이다.** 발화 단위 어댑터(openai_file)는 발화가 끝난
+    # 뒤에야 보내므로 낼 것이 없고, 화면의 "듣고 있음" 은 화자 분리 쪽이 맡는다(DEC-5).
+    # 없다고 실패로 세면 그 공급자에서 스모크가 늘 빨갛다
+    print(f"[  --  ] partial (중간 전사)   {len(partials)}건 (공급자에 따라 0 이 정상)")
     check(
         "utterance (확정 발화)",
         len(utterances) > 0,

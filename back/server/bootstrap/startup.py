@@ -32,6 +32,7 @@ from server.services.session.projection import (
 )
 from server.services.session.registry import SessionRegistry
 from server.services.stt.base import SttAdapter
+from server.services.stt.speaker import RoleJudge, RuleRoleJudge
 
 log = logging.getLogger(__name__)
 
@@ -49,6 +50,8 @@ class Runtime:
     approvals: ApprovalStore
     # STT. 키가 없으면 None 이고 ws 가 stt_unavailable 을 낸다 (3층 폴백)
     stt: SttAdapter | None = None
+    # 화자 분리 번호 → 역할. LLM 설정이 없으면 규칙 폴백이라 None 이 되지 않는다
+    role_judge: RoleJudge = RuleRoleJudge()
 
 
 def build_runtime(settings: Settings) -> Runtime:
@@ -75,6 +78,7 @@ def build_runtime(settings: Settings) -> Runtime:
         source,
         approvals,
         _stt(settings),
+        _role_judge(settings),
     )
 
 
@@ -96,11 +100,66 @@ def _warn_open_write_paths(settings: Settings) -> None:
 
 
 def _stt(settings: Settings) -> SttAdapter | None:
-    """키가 없으면 STT 층을 만들지 않는다. LLM·임베딩과 같은 규칙이다.
+    """공급자별 어댑터. 설정이 없으면 STT 층을 만들지 않는다. LLM·임베딩과 같은 규칙이다.
 
     keyterm 은 팩의 `jargon_terms` 를 그대로 넣는다 — 끄면 `만기후이자율` 이
     `만기 후 이자율` 로 갈라져 L1 정확 일치가 깨진다(scripts/stt_check.py 실측).
     """
+    if settings.stt_provider == "openai_realtime":
+        from server.services.stt.openai_realtime import ENDPOINT, MODEL, OpenAiRealtimeAdapter
+
+        base_url = settings.stt_base_url or ENDPOINT
+        # 공개 주소는 키가 있어야 인증을 지난다. 키 없이 열면 어차피 막히고, 무엇보다
+        # 키를 지운 서버 테스트가 네트워크를 탄다(tests/server/test_no_live_adapters.py).
+        # 규격을 말하는 로컬 서버를 가리켰을 때만 키 없이 연다 — 그쪽은 더미 키다
+        if not settings.stt_api_key and base_url == ENDPOINT:
+            log.warning(
+                "APP_STT_PROVIDER=openai_realtime 인데 APP_STT_API_KEY 가 없습니다. "
+                "오디오 층을 만들지 않습니다 — ws 가 stt_unavailable 을 냅니다."
+            )
+            return None
+        if not settings.diarization_url:
+            # 이 규격은 화자를 안 준다. 사이드카가 없으면 어댑터는 열리고 전사도 오지만
+            # 발화가 전부 teller 로 기록되어 위험 신호·되물음이 통째로 사라진다.
+            # 화면에는 아무 오류도 안 뜨므로 부팅 때 말해야 한다 (파일 어댑터와 달리
+            # 전사 자체는 도니 여기서 접지는 않는다)
+            log.warning(
+                "APP_STT_PROVIDER=openai_realtime 인데 APP_DIARIZATION_URL 이 없습니다. "
+                "이 규격은 화자 라벨을 주지 않아 확정 발화가 전부 teller 로 기록됩니다 — "
+                "위험 신호·되물음 판정이 나오지 않습니다."
+            )
+        return OpenAiRealtimeAdapter(
+            settings.stt_api_key,
+            # 공급자별 기본값이 다르다. `stt_model` 의 기본은 Deepgram 것이라 그대로 쓰면 안 된다
+            model=settings.stt_model if settings.stt_model != "nova-3" else MODEL,
+            language=settings.stt_language,
+            base_url=base_url,
+        )
+    if settings.stt_provider == "openai_file":
+        if not settings.stt_base_url:
+            log.warning(
+                "APP_STT_PROVIDER=openai_file 인데 APP_STT_BASE_URL 이 없습니다. "
+                "오디오 층을 만들지 않습니다 — ws 가 stt_unavailable 을 냅니다."
+            )
+            return None
+        if not settings.diarization_url:
+            # 발화 단위 어댑터는 끊을 자리를 화자 분리 구간에서 얻는다. 공급원이 없으면
+            # 어댑터는 열리지만 구간이 오지 않아 **전사가 조용히 멈춘다** — ws 는 정상으로
+            # 보이고 화면에는 아무 오류도 안 뜬다. 여기서 접어야 3층 폴백이 돈다
+            log.warning(
+                "APP_STT_PROVIDER=openai_file 인데 APP_DIARIZATION_URL 이 없습니다. "
+                "끊을 자리를 얻을 화자 분리 공급원이 없어 오디오 층을 만들지 않습니다 — "
+                "ws 가 stt_unavailable 을 냅니다."
+            )
+            return None
+        from server.services.stt.openai_file import SegmentedFileSttAdapter
+
+        return SegmentedFileSttAdapter(
+            settings.stt_base_url,
+            model=settings.stt_model,
+            api_key=settings.stt_api_key,
+            language=settings.stt_language,
+        )
     if not settings.stt_api_key:
         return None
     from server.services.stt.deepgram import DeepgramAdapter
@@ -110,6 +169,24 @@ def _stt(settings: Settings) -> SttAdapter | None:
         model=settings.stt_model,
         language=settings.stt_language,
         mip_opt_out=settings.stt_mip_opt_out,
+    )
+
+
+def _role_judge(settings: Settings) -> RoleJudge:
+    """화자 분리 번호를 역할로 옮길 때 물을 상대. LLM 설정을 그대로 재사용한다.
+
+    LLM 이 없거나 꺼 두었으면 규칙 폴백이다 — 확정 번호가 하나면 그 반대, 아니면
+    teller, 신뢰도는 낮게. 문장을 읽지 않는 판단이라 게이트가 은행원 판정을 접는다.
+    """
+    if not (settings.speaker_role_judge and settings.llm_model):
+        return RuleRoleJudge()
+    from server.services.stt.role_judge import LiteLlmRoleJudge
+
+    return LiteLlmRoleJudge(
+        settings.llm_model,
+        provider=settings.llm_provider,
+        api_key=settings.llm_api_key,
+        extra_body={"reasoning": {"enabled": False}} if settings.llm_no_reasoning else None,
     )
 
 

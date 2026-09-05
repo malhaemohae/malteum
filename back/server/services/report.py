@@ -56,7 +56,7 @@ def build(
     }
 
     def axis_rows(axis: str) -> list[dict[str, Any]]:
-        return [
+        rows = [
             {
                 "item_code": s.item_code,
                 "name": names.get(s.item_code, s.item_code),
@@ -69,6 +69,24 @@ def build(
             for s in state.items
             if s.axis == axis
         ]
+        if axis == "omission":
+            # 끝까지 한 번도 언급되지 않은 필수 항목은 판정 이벤트가 없어 상태에 없다.
+            # 요약은 그것을 unmet 으로 세므로(summary.py) 리포트 표에도 같은 행이 있어야 한다
+            judged = {r["item_code"] for r in rows}
+            rows += [
+                {
+                    "item_code": it.code,
+                    "name": it.name,
+                    "state": "unmet",
+                    "decided_by": None,
+                    "missing_elements": [],
+                    "waive_reason": None,
+                    "evidence_ref": None,
+                }
+                for it in pack.required_items()
+                if it.code not in judged
+            ]
+        return rows
 
     return {
         "session_id": session_id,

@@ -5,18 +5,23 @@
   "product_code": "HNB-HOUSEHOLD-CREDIT",
   "mode": "replay",
   "customer_profile": { "type": "general", "tags": [] },
-  "duration_ms": 180000,
+  "duration_ms": 127790,
   "audio": {
     "output": "audio.wav",
     "sample_rate": 16000,
     "channels": 1,
     "sample_width_bytes": 2,
     "min_gap_ms": 1000,
-    "placement": "각 줄의 클립을 start_ms 에 놓는다. 앞 클립이 아직 안 끝났으면 앞 클립 끝 + min_gap_ms 에 놓고 이후 줄을 같은 만큼 민다. 화자가 바뀌는 자리에는 무음이 반드시 있어야 화자 분리가 발화를 가른다"
+    "gap_ms": 1200,
+    "alert_gap_ms": 4000,
+    "tts_model": "eleven_multilingual_v2",
+    "placement": "클립을 앞 클립 끝 + gap_ms 에 이어 놓는다. 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 gap_ms 대신 alert_gap_ms 를 둔다. 화자가 바뀌는 자리의 무음(min_gap_ms 이상)이 화자 분리가 발화를 가르는 조건. start_ms 는 그렇게 조립한 실제 시각이고 make_scenario_audio.py --write-start 가 채운다"
   },
   "speakers": {
-    "teller": { "name": "박민수", "voice": "30대 남성, 차분한 톤", "desc": "가상 인물. 은행 창구 직원" },
-    "customer": { "name": "이수진", "voice": "30대 여성, 보통 톤", "desc": "가상 인물. 신용대출 고객" }
+    "teller": { "name": "박민수", "voice": "30대 남성, 차분한 톤", "desc": "가상 인물. 은행 창구 직원",
+      "tts": { "provider": "elevenlabs", "voice_id": "CxErO97xpQgQXYmapDKX", "speed": 1.0 } },
+    "customer": { "name": "이수진", "voice": "30대 여성, 보통 톤", "desc": "가상 인물. 신용대출 고객",
+      "tts": { "provider": "elevenlabs", "voice_id": "8jHHF8rMqMlg8if2mOUe", "speed": 1.0 } }
   },
   "diarization_hint": {
     "first_speaker": "customer",
@@ -32,16 +37,16 @@
       "note": "금리·한도 문의. 판정 없음"
     },
     {
-      "id": "B02", "start_ms": 12000, "speaker": "teller",
+      "id": "B02", "start_ms": 11258, "speaker": "teller",
       "text": "네, 먼저 소득과 기존 대출을 확인해서 DSR, 총부채원리금상환비율을 산출하고 심사에 활용합니다.",
       "tts_text": "네, 먼저 소득과 기존 대출을 확인해서 디에스알, 총부채원리금상환비율을 산출하고 심사에 활용합니다.",
       "expect": ["verdict LOAN-DSR-001 omission met L1"],
       "note": "DSR 고지. STT 가 '디에스알' 을 'DSR' 로 내야 L1 이 잡힘. 아니면 '총부채원리금상환비율' 패턴이 대신 잡음"
     },
     {
-      "id": "B03", "start_ms": 25000, "speaker": "customer",
+      "id": "B03", "start_ms": 19749, "speaker": "customer",
       "text": "네에, DSR이 뭐예요?",
-      "tts_text": "네에, 디에스알이 뭐예요?",
+      "tts_text": "네에... 디에스알이 뭐예요?",
       "expect": [
         "verdict LOAN-DSR-001 comprehension explained L2",
         "assist rephrase customer_reask LOAN-DSR-001 text=소득에 비해 모든 대출의 원리금을 얼마나 갚아야 하는지 계산해 심사합니다."
@@ -49,19 +54,19 @@
       "note": "되물음. '뭐예요' 패턴이라 물음표 없이도 잡힘. 대상 항목은 이미 설명된(met·partial) 항목 중에서 고른다"
     },
     {
-      "id": "B04", "start_ms": 33000, "speaker": "teller",
+      "id": "B04", "start_ms": 25327, "speaker": "teller",
       "text": "소득에 비해 모든 대출의 원리금을 얼마나 갚아야 하는지 계산해서 심사하는 비율입니다.",
       "expect": [],
       "note": "재진술 카드를 따라 말함"
     },
     {
-      "id": "B05", "start_ms": 45000, "speaker": "teller",
+      "id": "B05", "start_ms": 32471, "speaker": "teller",
       "text": "금리 방식은 변동금리라서, 기준금리가 바뀌면 금리가 오를 변동 가능성이 있습니다.",
       "expect": ["verdict LOAN-INT-001 omission met L1"],
       "note": "변동금리 위험 고지"
     },
     {
-      "id": "B06", "start_ms": 57000, "speaker": "teller",
+      "id": "B06", "start_ms": 41751, "speaker": "teller",
       "text": "지금 조회한 조건이면 연 4.5% 정도 나오는데, 심사는 무조건 승인됩니다.",
       "tts_text": "지금 조회한 조건이면 연 사 점 오 퍼센트 정도 나오는데, 심사는 무조건 승인됩니다.",
       "expect": [
@@ -72,19 +77,19 @@
       "note": "심사 통과 단정. 4.5% 는 팩에 숫자 사실이 없어 대조되지 않음"
     },
     {
-      "id": "B07", "start_ms": 70000, "speaker": "customer",
+      "id": "B07", "start_ms": 52020, "speaker": "customer",
       "text": "아, 그러면 확정인 거네요.",
       "expect": [],
       "note": "고객이 단정을 그대로 받아들이는 장면"
     },
     {
-      "id": "B08", "start_ms": 76000, "speaker": "teller",
+      "id": "B08", "start_ms": 55216, "speaker": "teller",
       "text": "아, 정확히는 내부 결재 전이라 확정은 아니고, 심사 결과에 따라 금리와 한도가 달라질 수 있습니다.",
       "expect": [],
       "note": "정정. '확정 아님' 고지 항목은 팩에 없어 판정 없음. 금지 패턴에 안 걸리는지 테스트가 지킴"
     },
     {
-      "id": "B09", "start_ms": 90000, "speaker": "teller",
+      "id": "B09", "start_ms": 64032, "speaker": "teller",
       "text": "그리고 상환은 원리금균등으로만 가능합니다. 다른 상환방식은 안 됩니다.",
       "expect": [
         "verdict LOAN-RSK-001 commission suspected L1",
@@ -94,26 +99,26 @@
       "note": "상환방식 강요(불공정영업행위). L1 정규식이 잡는다"
     },
     {
-      "id": "B10", "start_ms": 102000, "speaker": "customer",
+      "id": "B10", "start_ms": 74487, "speaker": "customer",
       "text": "갚는 방식을 제가 고를 수는 없나 보네요.",
       "expect": [],
       "note": "물음표 없이"
     },
     {
-      "id": "B11", "start_ms": 108000, "speaker": "teller",
+      "id": "B11", "start_ms": 78891, "speaker": "teller",
       "text": "죄송합니다, 제가 잘못 말씀드렸습니다. 갚는 방법은 고객님이 원하시는 쪽으로 고르실 수 있습니다.",
       "expect": [],
       "note": "정정. '상환방식' 이라는 단어를 다시 쓰면 금지 예시와 다시 겹치므로(실측 0.66) '갚는 방법' 으로 말한다"
     },
     {
-      "id": "B12", "start_ms": 120000, "speaker": "teller",
+      "id": "B12", "start_ms": 85663, "speaker": "teller",
       "text": "대출을 3년 안에 일찍 갚으시면 중도상환해약금 부과 가능성이 있고, 적용 기간은 대출일부터 3년입니다.",
       "tts_text": "대출을 삼 년 안에 일찍 갚으시면 중도상환해약금 부과 가능성이 있고, 적용 기간은 대출일부터 삼 년입니다.",
       "expect": ["verdict LOAN-PRE-001 omission met L1"],
       "note": "중도상환수수료"
     },
     {
-      "id": "B13", "start_ms": 133000, "speaker": "teller",
+      "id": "B13", "start_ms": 96708, "speaker": "teller",
       "text": "연체하시면 대출이자율에 연체가산이자율 연 3%가 더해진 연체이자율이 적용됩니다.",
       "tts_text": "연체하시면 대출이자율에 연체가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
       "expect": [
@@ -123,20 +128,20 @@
       "note": "연체이자율 산식 + 가산이자율 수치. 숫자가 맞으면 경보가 없어야 한다. '연 5%' 로 바꾸면 number_mismatch 경보가 뜨는 ⑤ 장면이 됨(선택)"
     },
     {
-      "id": "B14", "start_ms": 145000, "speaker": "teller",
+      "id": "B14", "start_ms": 105384, "speaker": "teller",
       "text": "대출 실행 후 14일 안에 철회 의사표시를 하시고 대출금 반환을 하시면 청약철회가 됩니다.",
       "tts_text": "대출 실행 후 십사 일 안에 철회 의사표시를 하시고 대출금 반환을 하시면 청약철회가 됩니다.",
       "expect": ["verdict LOAN-WDR-001 omission met L1", "alert 없음 (14일 == 설명서 p.3 14일)"],
       "note": "청약철회권"
     },
     {
-      "id": "B15", "start_ms": 160000, "speaker": "customer",
+      "id": "B15", "start_ms": 113642, "speaker": "customer",
       "text": "신용 조회하면 제 등급이 떨어지는 건 아닌지 걱정되네요.",
       "expect": [],
       "note": "신용정보 조회·동의(LOAN-CIC-001) 를 묻는 장면. 은행원이 답하지 않아 미고지로 남긴다"
     },
     {
-      "id": "B16", "start_ms": 168000, "speaker": "teller",
+      "id": "B16", "start_ms": 119578, "speaker": "teller",
       "text": "그 부분은 서류 준비되시면 다시 안내드릴게요. 신분증과 소득 증빙 서류를 준비해 주세요.",
       "expect": [],
       "note": "마무리. 금리인하요구권(LOAN-RDR-001)과 신용정보(LOAN-CIC-001)는 끝까지 말하지 않아 미고지로 남는다. 서류 안내 항목(LOAN-DOC-001)은 검토 대기라 팩에 없어 판정 없음"

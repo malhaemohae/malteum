@@ -21,7 +21,9 @@ from server.services.session.refiner import Refiner
 from server.services.session.registry import Session
 from server.services.session.replay import replay
 from server.services.stt import audio
+from server.services.stt.diarization import SortformerDiarization, TranscriptDiarization
 from server.services.stt.session import SttSession
+from server.services.stt.speaker import RoleMapper, SpeakerResolver
 from server.ws.connection import Connection
 from server.ws.handlers import assist, human
 from server.ws.protocol import InvalidMessage, parse_audio_frame, parse_c2s
@@ -109,9 +111,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 conn.start_heartbeat()
                 refiner = Refiner(session, pipeline, conn.send, refine_failed)
                 if session.mode in ("live", "replay") and runtime.stt is not None:
-                    stt = await _start_stt(
-                        session, pipeline, conn, runtime.stt, refiner, runtime.pack_source
-                    )
+                    stt = await _start_stt(session, pipeline, conn, refiner, runtime, settings)
                 if session.mode in ("trace", "replay"):
                     # 계약: replay·trace 는 ready 직후 서버가 스스로 시작한다. 시작 메시지는 없다
                     trace = asyncio.create_task(
@@ -213,15 +213,19 @@ async def _start_stt(
     session: Session,
     pipeline: Pipeline,
     conn: Connection,
-    adapter,
     refiner: Refiner,
-    pack_source,
+    runtime,
+    settings,
 ) -> SttSession | None:
     """live 모드에서 상담 하나에 STT 스트림 하나를 연다.
 
     팩의 `jargon_terms` 를 keyterm 으로 넣는다. 없으면 `만기후이자율` 이
     `만기 후 이자율` 로 갈라져 L1 의 정확 일치가 깨진다(scripts/stt_check.py 실측).
     `RulePack` dataclass 에는 그 필드가 없어 팩 원문에서 꺼낸다.
+
+    화자 단계도 여기서 조립한다. 역할 판별기는 부팅이 한 번 만든 것을 상담마다 공유하고
+    (`Runtime.role_judge`), 역할표와 화자 분리 공급원은 상담마다 새로 만든다 — 화자
+    번호는 상담이 바뀌면 다른 사람을 가리키므로 물려주면 안 된다.
 
     여는 데 실패해도 상담은 이어져야 한다 — 계약의 `stt_unavailable` 이 프런트에
     text 모드 전환을 제안하게 한다(3층 폴백).
@@ -232,13 +236,28 @@ async def _start_stt(
 
     keyterms: list[str] = []
     with suppress(Exception):  # 용어가 없어도 전사는 돈다. 적중률만 떨어진다
-        keyterms = list(pack_source.read(session.pack.pack_version).get("jargon_terms") or [])
+        keyterms = list(
+            runtime.pack_source.read(session.pack.pack_version).get("jargon_terms") or []
+        )
 
-    stt = SttSession(session, conn.send, submit)
+    diarization = (
+        SortformerDiarization(settings.diarization_url)
+        if settings.diarization_url
+        else TranscriptDiarization()
+    )
+    stt = SttSession(
+        session,
+        conn.send,
+        submit,
+        SpeakerResolver(diarization, RoleMapper(runtime.role_judge)),
+        diarization=diarization,
+        hold_ms=settings.speaker_hold_ms,
+    )
     try:
-        await stt.start(adapter, keyterms)
+        await stt.start(runtime.stt, keyterms)
     except Exception as e:  # noqa: BLE001  공급자 장애가 상담을 끊지 않게 한다
         await conn.send(_error("stt_unavailable", f"STT 를 열지 못했습니다: {e}", retryable=True))
+        await stt.aclose()
         return None
     return stt
 

@@ -22,6 +22,8 @@ dependencies = [
     "litellm>=1.98.0",
     "sentence-transformers==5.1.2",   # M3 L2 임베딩. 팩에 모델명이 기록되므로 정확히 고정
     "torch==2.9.1",                   # CPU 전용 휠. 자체 서버에 GPU 를 가정하지 않는다
+    "httpx>=0.27",                    # 발화 단위 전사 어댑터의 운영 경로 (services/stt/openai_file.py)
+    "reportlab>=5.0.1",
 ]
 
 [dependency-groups]
@@ -42,7 +44,7 @@ package = false                    # 배포 패키지가 아니라 실행 루트
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-extend-exclude = ["server/generated", "contracts"]   # 생성 파일·계약 원본은 손대지 않는다
+extend-exclude = ["server/generated", "contracts", "scripts/experiments"]   # 생성 파일·계약 원본·실험 기록(원본 그대로 보존)은 손대지 않는다
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
