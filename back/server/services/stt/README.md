@@ -35,18 +35,20 @@ on_transcript(Transcript)       발화 한 조각마다 await 로 부른다
 |---|---|---|---|
 | `deepgram.py` | WebSocket 스트리밍 | 준다 | `APP_STT_PROVIDER=deepgram`(기본), 키만 있으면 됨 |
 | `openai_file.py` | 화자 구간마다 WAV 하나를 `POST {base}/v1/audio/transcriptions` | 안 줌 → 사이드카 필요 | Qwen vLLM(`qwen-asr-serve`)과 OpenAI(`https://api.openai.com`, `gpt-4o-transcribe`) 둘 다 확인됨 |
-| (없음) `openai_realtime` | OpenAI Realtime WebSocket | 안 줌 → 사이드카 필요 | 설정값 자리만 있다. 붙이면 `bootstrap/startup.py` `_stt` 의 분기에 끼운다 |
+| `openai_realtime.py` | Realtime WebSocket 스트리밍. 서버 VAD 가 끊는다 | 안 줌 → 사이드카 필요 | `APP_STT_PROVIDER=openai_realtime`. 공개 주소면 키가 있어야 하고, `APP_STT_BASE_URL` 로 같은 규격의 로컬 서버에도 붙는다 |
 
-## Realtime 어댑터를 쓸 사람에게
+## Realtime 어댑터가 시각을 채우는 방식
 
-- 서버 VAD 가 주는 `speech_started`/`speech_stopped` 의 오디오 오프셋을 `start_ms`·`duration_ms` 로 옮기면
-  화자 접착이 그대로 된다. 전사 완료 이벤트는 `final=True`, 델타는 `final=False` 로.
-- `open()` 은 소켓 연결·세션 설정까지 끝내고 돌아온다. 실패하면 예외를 올린다 — ws 가
-  `stt_unavailable` 로 바꿔 화면이 text 모드를 제안한다(3층 폴백).
+이 규격에는 화자도, 낱말 시각도 없다. 그래서 **화자 접착의 전제인 발화 시각을 서버 VAD 에서 얻는다.**
+
+- `speech_started` 의 `audio_start_ms` 와 `speech_stopped` 의 `audio_end_ms` 는 세션 오디오 시작을 0 으로 한
+  밀리초라 사이드카 구간과 같은 시계다. 둘 다 `item_id` 를 실어 오므로 그 값으로 전사와 맞붙인다.
+- **VAD 를 못 받았으면 시각을 비운다.** 지어내면 발화가 옆 화자의 구간에 붙어 위험 신호가 은행원 것으로
+  기록된다. 비우면 `session.py` 가 세션 시계로 메우고, 덜 정확해도 덜 위험하다.
+- `turn_detection` 을 끄면 전사는 와도 저 두 이벤트가 안 온다 — 시각의 유일한 출처라 켜 둔다.
 - 화자 분리는 Sortformer 사이드카(`back/sidecar/diarization`, compose 의 `diarization` 서비스)가 준다.
-  서버는 `APP_DIARIZATION_URL` 로 붙는다. 어댑터가 할 일은 없다.
-- 등록: `settings.py` 의 `stt_provider` Literal 에 이름이 이미 있다(`openai_realtime`). `startup._stt` 에서
-  그 이름일 때 어댑터를 만들어 돌려주면 끝. 지금은 경고를 남기고 `None`(오디오 층 없음)이다.
+  `APP_DIARIZATION_URL` 이 없으면 어댑터는 열리고 전사도 오지만 발화가 전부 teller 로 기록되므로
+  부팅 때 경고한다(파일 어댑터와 달리 전사 자체는 도니 접지는 않는다).
 
 ## 확인하는 법
 
