@@ -54,7 +54,9 @@ class Runtime:
     # 화자 분리 번호 → 역할. LLM 설정이 없으면 규칙 폴백이라 None 이 되지 않는다
     role_judge: RoleJudge = RuleRoleJudge()
     # 부팅 직후 배경에서 도는 판정 엔진 예열의 진행 상태 (bootstrap/warmup.py)
-    warmup: Warmup = field(default_factory=Warmup)
+    # Warmup 은 배경 스레드가 고쳐 쓰는 가변 값이다. frozen Runtime 의 해시·비교에
+    # 넣으면 hash(runtime) 이 TypeError 로 깨지고 비교 결과가 시간에 따라 바뀐다
+    warmup: Warmup = field(default_factory=Warmup, compare=False)
 
 
 def build_runtime(settings: Settings) -> Runtime:

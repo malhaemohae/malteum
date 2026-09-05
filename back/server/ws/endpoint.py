@@ -88,8 +88,14 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 session = registry.get(msg.session_id) if msg.session_id else None
                 if session is None:
                     try:
-                        session = registry.open(
-                            settings.default_pack_version, msg.mode, customer_type, msg.session_id
+                        # 예열이 아직 안 끝났으면 여기서 팩·임베딩 모델을 처음 올린다.
+                        # 루프에서 그대로 부르면 그동안 하트비트도 다른 세션도 멈춘다
+                        session = await asyncio.to_thread(
+                            registry.open,
+                            settings.default_pack_version,
+                            msg.mode,
+                            customer_type,
+                            msg.session_id,
                         )
                     except PackNotFound:
                         await conn.send(_error("pack_not_found", "규정 팩이 없습니다."))
