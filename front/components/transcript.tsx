@@ -36,7 +36,12 @@ export function Transcript({ items, onSelect, empty = '첫 발화를 기다리�
     const settle = () => {
       const current = area.current;
       const atEnd = !!current && current.scrollHeight - current.scrollTop - current.clientHeight <= FOLLOW_THRESHOLD;
-      if (!current || atEnd || framesLeft-- <= 0) { suppressScroll.current = false; settleFrame.current = undefined; return; }
+      if (!current || atEnd) { suppressScroll.current = false; settleFrame.current = undefined; return; }
+      if (framesLeft-- <= 0) {
+        // 끝까지 못 갔다는 것은 읽는 사람이 도중에 스크롤을 잡았다는 뜻이다. 스크롤
+        // 이벤트는 손을 뗀 뒤로 더 오지 않으므로 여기서 따라가기를 놓아 준다.
+        suppressScroll.current = false; settleFrame.current = undefined; setFollowing(false); return;
+      }
       settleFrame.current = requestAnimationFrame(settle);
     };
     settleFrame.current = requestAnimationFrame(settle);
