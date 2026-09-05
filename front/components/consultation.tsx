@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ApiHealth, ApiPack, ApiPackItem, malteumApi } from '../lib/api';
-import { friendlyError, kindNames, latestPacks, LiveSession, modeNames, NavItem, ReadyItem, sessionScreen, statusNames, timeLabel } from '../lib/workspace-model';
-import { Empty, Feedback, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
+import { ApiBriefing, ApiHealth, ApiPack, ApiPackItem, malteumApi } from '../lib/api';
+import { evidenceForItem, friendlyError, itemTypeNames, kindNames, latestPacks, LiveSession, modeNames, NavItem, ReadyItem, sessionScreen, statusNames, timeLabel } from '../lib/workspace-model';
+import { DetailSections, detailSections, Empty, Feedback, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
 import { speakerLabel, Transcript } from './transcript';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
 import { waitingForTraceUtterance } from '../lib/trace-start';
@@ -15,12 +15,15 @@ function QuickAction({ title, subtitle, icon, tone, onClick, disabled, pressed, 
   return <button type="button" className={`wb-shortcut is-${tone}`} aria-label={label ?? title} aria-pressed={pressed} disabled={disabled} onClick={onClick}><span className="wb-shortcut-title"><strong>{title}</strong><span className="wb-shortcut-arrow"><WorkspaceIcon name="arrow" size={14} /></span></span><span className="wb-shortcut-bottom"><small>{subtitle}</small><span className="wb-shortcut-icon"><WorkspaceIcon name={icon} size={32} /></span></span></button>;
 }
 
+// 브리핑 항목이 상세로 펼칠 값을 가졌는지. 펼칠 것이 없으면 행을 눌러도 빈 모달만 뜬다.
+const briefingSections = (item: ApiBriefing['must_say'][number]) => detailSections([['확인해야 할 요소', item.elements], ['승인된 쉬운 말', item.plain_language]]);
+
 export type Preparation = { packVersion?: string; mode: 'live' | 'text'; customer: 'general' | 'professional' };
 export function Briefing({ onStart, onNavigate, onNew, busy, defaults, health, onCheckHealth }: { onStart: (pack: ApiPack, mode: 'live' | 'text', customer: 'general' | 'professional') => void; onNavigate: (nav: NavItem) => void; onNew: () => void; busy: boolean; defaults?: Preparation; health: ApiHealth | null; onCheckHealth: () => void }) {
   const packs = useResource(() => malteumApi.packs());
   const choices = useMemo(() => latestPacks(packs.data?.packs ?? []), [packs.data]);
   const [version, setVersion] = useState(defaults?.packVersion ?? ''); const [mode, setMode] = useState<'live' | 'text'>(defaults?.mode ?? 'live'); const [customer, setCustomer] = useState<'general' | 'professional'>(defaults?.customer ?? 'general');
-  const [detail, setDetail] = useState<{ title: string; text: string } | null>(null);
+  const [detail, setDetail] = useState<ApiBriefing['must_say'][number] | null>(null);
   useEffect(() => { if (packs.data && !choices.some(pack => pack.pack_version === version)) setVersion((choices.find(pack => pack.product?.category === 'deposit') ?? choices[0])?.pack_version ?? ''); }, [packs.data, choices, version]);
   const pack = useResource(() => version ? malteumApi.pack(version) : Promise.resolve(null), [version]);
   const briefing = useResource(() => version ? malteumApi.briefing(version, customer) : Promise.resolve(null), [version, customer]);
@@ -42,18 +45,22 @@ export function Briefing({ onStart, onNavigate, onNew, busy, defaults, health, o
         <label>고객 유형<select aria-label="고객 유형" value={customer} disabled={busy} onChange={event => setCustomer(event.target.value as typeof customer)}><option value="general">일반금융소비자</option><option value="professional">전문금융소비자</option></select></label></div>
       <div className="wb-briefing-intro"><span className="wb-briefing-count">{briefing.data ? briefing.data.must_say.length : '…'}</span><div><h3>필수 안내 항목</h3><small>{briefing.data?.pack_version ?? '서버 기준을 확인하고 있습니다.'}</small></div></div>
       <Tabs value={pane} onChange={setPane} items={[{ value: 'items', label: '필수 안내' }, { value: 'documents', label: '필요 서류' }]} />
-      {pane === 'items' ? <PagedList label="브리핑 항목" items={briefing.data?.must_say ?? []} empty={briefing.loading ? '브리핑을 불러오는 중입니다.' : briefing.error ? '브리핑을 확인하지 못했습니다.' : '필수 안내 항목이 없습니다.'} render={item => <button className="wb-row-button" onClick={() => setDetail({ title: item.name, text: `${item.name}\n\n${item.elements?.join('\n') ?? ''}\n\n${item.plain_language?.join('\n') ?? ''}` })}><span className="wb-row-copy"><strong>{item.name}</strong><small>{item.item_code}</small></span><span aria-hidden="true">›</span></button>} /> : <PagedList label="필요 서류" items={briefing.data?.documents_required ?? []} render={item => <button className="wb-row-button" onClick={() => setDetail({ title: '필요 서류', text: item })}><span className="wb-row-copy"><strong>{item}</strong></span><span>›</span></button>} />}
+      {pane === 'items' ? <PagedList label="브리핑 항목" items={briefing.data?.must_say ?? []} empty={briefing.loading ? '브리핑을 불러오는 중입니다.' : briefing.error ? '브리핑을 확인하지 못했습니다.' : '필수 안내 항목이 없습니다.'} render={item => {
+        const sections = briefingSections(item);
+        const copy = <span className="wb-row-copy"><strong>{item.name}</strong><small>{sections.length ? sections[0][1].join(' · ') : item.item_code}</small></span>;
+        return sections.length ? <button className="wb-row-button" onClick={() => setDetail(item)}>{copy}<span aria-hidden="true">›</span></button> : <div className="wb-row-static">{copy}</div>;
+      }} /> : <PagedList label="필요 서류" items={briefing.data?.documents_required ?? []} empty={briefing.loading ? '필요 서류를 불러오는 중입니다.' : '이 상품에 등록된 필요 서류가 없습니다.'} render={item => <div className="wb-row-static"><span className="wb-row-copy"><strong>{item}</strong></span></div>} />}
       <div className="wb-briefing-footer"><label className="wb-composer"><small>입력</small><select aria-label="입력 방식" value={mode} disabled={busy} onChange={event => setMode(event.target.value as 'live' | 'text')}><option value="live">마이크 녹음</option><option value="text">텍스트 입력</option></select></label><button className="wb-primary" disabled={busy || packs.loading || Boolean(packs.error) || !choices.some(choice => choice.pack_version === version) || !pack.data || pack.data.pack_version !== version || !briefing.data || briefing.data.pack_version !== version || briefing.loading || pack.loading} onClick={() => pack.data && onStart(pack.data, mode, customer)}>{busy ? '세션 연결 중…' : '상담 시작'} →</button></div>
       <small className="wb-processing-notice">시연 입력은 외부 STT·AI 서비스에서 처리됩니다. 실제 개인정보를 입력하지 마세요.</small>
     </Panel>
-    {detail && <Modal title={detail.title} onClose={() => setDetail(null)}><TextPages text={detail.text} /></Modal>}
+    {detail && <Modal title={detail.name} className="wb-compact" onClose={() => setDetail(null)}><DetailSections sections={briefingSections(detail)} /><small className="wb-muted">항목 코드 {detail.item_code}</small></Modal>}
   </Workbench>;
 }
 
 type DashboardProps = { session: LiveSession; pack: ApiPack | null; health: ApiHealth | null; micActive: boolean; micPending: boolean; micError: string; replaySound?: ReplayAudioState | null; onReplaySound?: () => void; onMic: () => void; onEnd: () => void; onRetry: () => void; onTextMode: () => void; onNavigate: (nav: NavItem) => void; onNew: () => void; onCommand: (value: Record<string, unknown>) => boolean; onDismiss: () => void; onEvidence: (ref: string) => void; onItemEvidence: (item: ApiPackItem) => void; onAsk: (question: string) => void };
 
 export function Dashboard({ session, pack, health, micActive, micPending, micError, replaySound, onReplaySound, onMic, onEnd, onRetry, onTextMode, onNavigate, onNew, onCommand, onDismiss, onEvidence, onItemEvidence, onAsk }: DashboardProps) {
-  const [pane, setPane] = useState<'attention' | 'conversation' | 'checks'>('conversation'); const [detail, setDetail] = useState<{ title: string; text: string; evidenceRef?: string } | null>(null);
+  const [pane, setPane] = useState<'attention' | 'conversation' | 'checks'>('conversation'); const [detail, setDetail] = useState<{ title: string; text?: string; sections?: [string, (string | undefined)[] | undefined][]; evidenceRef?: string } | null>(null);
   const [guidePane, setGuidePane] = useState<'attention' | 'checks'>('attention');
   const [filter, setFilter] = useState<'all' | 'customer' | 'teller'>('all'); const inputRef = useRef<HTMLInputElement>(null);
   const transcript = useMemo(() => filter === 'all' ? session.transcript : session.transcript.filter(row => row.speaker === filter), [filter, session.transcript]);
@@ -73,6 +80,8 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
   const [selected, setSelected] = useState<string | null>(null); const [manualTab, setManualTab] = useState<'detail' | 'waive'>('detail');
   const [reason, setReason] = useState(''); const [query, setQuery] = useState(''); const [text, setText] = useState(''); const [speaker, setSpeaker] = useState('teller');
   const item: ReadyItem | undefined = session.items.find(item => item.code === selected); const packItem = pack?.items.find(entry => entry.code === selected);
+  // 근거는 판정이 실어 준 event_id 가 우선. 없으면 팩 항목에 걸린 원문 위치를 쓴다.
+  const itemEvidence = pack && packItem ? evidenceForItem(pack, packItem) : null;
   const intervention = session.interventions[0]; const canWrite = session.status === 'connected' && session.mode !== 'trace' && !session.ending;
   const notice = micError || friendlyError(session.error) || replaySound?.error || (session.mode === 'live' && !session.textFallback && health?.checks?.stt === 'unconfigured' ? '음성 전사 서버가 설정되지 않았습니다. 녹음은 가능하지만 전사·판정에는 STT 설정이 필요합니다.' : '');
   function resolve() { if (intervention?.alert) { onCommand({ t: 'acknowledge', alert_ref: intervention.id }); return; } onDismiss(); }
@@ -125,18 +134,22 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
       </Panel></div>
         <div className="wb-guide-ask" aria-label="규정 질의">
           {session.mode !== 'trace' && <button disabled={!canWrite || manualPending || !session.transcript.some(row => row.speaker === 'teller')} title="직전 상담원 발화를 고객이 알기 쉬운 말로 바꿔 줍니다" onClick={() => requestRephrase()}>직전 발화 쉬운 말로</button>}
-          {session.query?.pending ? <small>답변 요청 중</small> : session.query?.answer ? <button onClick={() => setDetail({ title: '규정 질의 답변', text: `${session.query?.question}\n\n${session.query?.answer}`, evidenceRef: session.query?.evidenceRef })}>답변 보기</button> : null}
+          {session.query?.pending ? <small>답변 요청 중</small> : session.query?.answer ? <button onClick={() => setDetail({ title: '규정 질의 답변', sections: [['질문', [session.query?.question]], ['답변', [session.query?.answer]]], evidenceRef: session.query?.evidenceRef })}>답변 보기</button> : null}
           <form className="wb-composer" onSubmit={event => { event.preventDefault(); if (query.trim()) { onAsk(query.trim()); setQuery(''); } }}><input aria-label="규정 질문" value={query} maxLength={2000} onChange={event => setQuery(event.target.value)} placeholder="규정에 대해 물어보세요" /><button type="submit" disabled={!canWrite || !query.trim() || session.query?.pending}>질문</button></form>
         </div>
         </div>
         </Panel>
       </div>
     </div>
-    {item && <Modal title={item.name} onClose={() => setSelected(null)} actions={<>{item.evidenceRef ? <button onClick={() => showEvidence(item.evidenceRef!)}>근거 원문</button> : packItem?.evidence ? <button onClick={() => showItemEvidence(packItem)}>근거 원문</button> : null}{manualTab === 'detail' && <><button disabled={!canWrite || manualPending || ['met', 'waived'].includes(item.state)} onClick={() => { if (onCommand({ t: 'mark_met', item_code: item.code })) setSelected(null); }}>고지 기록</button><button disabled={!canWrite || manualPending || item.state === 'waived'} onClick={() => setManualTab('waive')}>범위에서 제외</button></>}</>}>
+    {item && <Modal title={item.name} onClose={() => setSelected(null)} actions={<>{manualTab === 'detail' && <><button disabled={!canWrite || manualPending || ['met', 'waived'].includes(item.state)} onClick={() => { if (onCommand({ t: 'mark_met', item_code: item.code })) setSelected(null); }}>고지 기록</button><button disabled={!canWrite || manualPending || item.state === 'waived'} onClick={() => setManualTab('waive')}>범위에서 제외</button></>}</>}>
       {item.state === 'met' && item.decidedBy === 'human' && <button disabled={!canWrite || manualPending} onClick={() => { if (onCommand({ t: 'mark_met', item_code: item.code, undo: true })) setSelected(null); }}>기록 취소</button>}
-      {manualTab === 'detail' ? <><span className="wb-badge" data-state={item.state}>{statusNames[item.state] ?? item.state}</span><TextPages text={`${item.name}\n\n${item.missing.length ? `미충족 요소\n${item.missing.join('\n')}\n\n` : ''}승인된 쉬운 말\n${item.plain.length ? item.plain.join('\n') : '서버에서 제공된 문장이 없습니다.'}`} /><button disabled={!packItem?.plain_language?.length} onClick={() => requestRephrase(item.code)}>쉬운 말 보기</button></> : <form className="wb-form" onSubmit={event => { event.preventDefault(); if (reason.trim() && onCommand({ t: 'mark_waived', item_code: item.code, reason: reason.trim() })) setSelected(null); }}><label className="wb-wide">제외 사유<textarea aria-label="제외 사유" required maxLength={1000} value={reason} onChange={event => setReason(event.target.value)} /></label><button type="button" onClick={() => setManualTab('detail')}>취소</button><button className="wb-primary" disabled={!canWrite || manualPending || !reason.trim()} type="submit">제외 사유 기록</button></form>}
+      {manualTab === 'detail' ? <>
+        <div className="wb-detail-head"><span className="wb-badge" data-state={item.state}>{statusNames[item.state] ?? item.state}</span>{packItem && <span className="wb-badge">{itemTypeNames[packItem.type] ?? packItem.type}</span>}{item.decidedBy === 'human' && <small>상담원이 직접 기록</small>}</div>
+        {(item.evidenceRef || itemEvidence) && <EvidenceCard title="이 항목의 근거" evidenceRef={item.evidenceRef} evidence={item.evidenceRef ? undefined : itemEvidence} onOpen={() => item.evidenceRef ? showEvidence(item.evidenceRef) : packItem && showItemEvidence(packItem)} />}
+        <DetailSections empty="이 항목에 등록된 상세 내용이 없습니다." sections={[['아직 확인되지 않은 요소', item.missing], ['승인된 쉬운 말', item.plain.length ? item.plain : packItem?.plain_language], ['필수 안내 요소', packItem?.requirement_elements], ['필요 서류', packItem?.documents_required], ['금지 표현 예시', packItem?.forbidden_examples]]} />
+      </> : <form className="wb-form" onSubmit={event => { event.preventDefault(); if (reason.trim() && onCommand({ t: 'mark_waived', item_code: item.code, reason: reason.trim() })) setSelected(null); }}><label className="wb-wide">제외 사유<textarea aria-label="제외 사유" required maxLength={1000} value={reason} onChange={event => setReason(event.target.value)} /></label><button type="button" onClick={() => setManualTab('detail')}>취소</button><button className="wb-primary" disabled={!canWrite || manualPending || !reason.trim()} type="submit">제외 사유 기록</button></form>}
     </Modal>}
-    {reference && pack && <Modal title={reference === 'documents' ? '필요 서류' : '적용 중인 규정 팩'} onClose={() => setReference(null)}>
+    {reference && pack && <Modal title={reference === 'documents' ? '필요 서류' : '적용 중인 규정 팩'} className="wb-modal-tall" onClose={() => setReference(null)}>
       <small>{pack.product?.name} · {pack.pack_version}</small>
       {reference === 'documents' ? <PagedList label="상담 필요 서류" items={Array.from(new Set(pack.items.flatMap(entry => entry.documents_required ?? [])))} empty="현재 규정 팩에 등록된 필요 서류가 없습니다." render={document => <strong>{document}</strong>} /> : <PagedList label="상담 기준 항목" items={pack.items.filter(entry => entry.type === 'required')} render={entry => <button className="wb-row-button" onClick={() => { setReference(null); setSelected(entry.code); setManualTab('detail'); }}><span className="wb-row-copy"><strong>{entry.name}</strong><small>기준·승인된 쉬운 말 보기</small></span><span>›</span></button>} />}
     </Modal>}
@@ -145,6 +158,6 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
       {rephraseText ? <TextPages text={rephraseText} label="쉬운 말 안내" /> : <Empty>{session.action?.pending ? '직전 상담원 발화를 쉬운 말로 바꾸고 있습니다.' : '이 항목에는 승인된 쉬운 말이 없습니다.'}</Empty>}
       {rephraseItem && <small className="wb-muted">규정 팩에서 검수·승인된 문장입니다. 그대로 읽어 주셔도 됩니다.</small>}
     </Modal>}
-    {detail && <Modal title={detail.title} onClose={() => setDetail(null)} actions={detail.evidenceRef && <button onClick={() => showEvidence(detail.evidenceRef!)}>근거 원문</button>} className="wb-compact"><TextPages text={detail.text} /></Modal>}
+    {detail && <Modal title={detail.title} onClose={() => setDetail(null)} actions={detail.evidenceRef && <button onClick={() => showEvidence(detail.evidenceRef!)}>근거 원문</button>} className="wb-compact">{detail.sections ? <DetailSections sections={detail.sections} /> : <TextPages text={detail.text ?? ''} />}</Modal>}
   </Workbench>;
 }

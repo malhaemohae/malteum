@@ -28,8 +28,18 @@ export function Panel({ title, action, className = '', children }: { title?: str
 }
 export function Empty({ children }: { children: ReactNode }) { return <div className="wb-empty">{children}</div>; }
 // Structured record view for report rows, session details and summaries: a label column and a value column.
-export function KeyValueList({ rows }: { rows: { label: string; value: ReactNode }[] }) {
+export function KeyValueList({ rows, empty }: { rows: { label: string; value: ReactNode }[]; empty?: string }) {
+  if (!rows.length) return empty ? <Empty>{empty}</Empty> : null;
   return <dl className="wb-kv">{rows.map((row, index) => <div key={`${row.label}-${index}`}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>;
+}
+// A record reads as labelled groups, never as one run of text. Empty groups never render.
+export function detailSections(sections: [string, (string | undefined)[] | undefined][]) {
+  return sections.map(([title, values]) => [title, (values ?? []).filter((value): value is string => Boolean(value && value.trim()))] as [string, string[]]).filter(([, values]) => values.length);
+}
+export function DetailSections({ sections, empty }: { sections: [string, (string | undefined)[] | undefined][]; empty?: string }) {
+  const shown = detailSections(sections);
+  if (!shown.length) return empty ? <Empty>{empty}</Empty> : null;
+  return <div className="wb-rule-details wb-reader-copy">{shown.map(([title, values]) => <section key={title}><h3>{title}</h3>{values.length === 1 ? <p>{values[0]}</p> : <ul>{values.map((value, index) => <li key={index}>{value}</li>)}</ul>}</section>)}</div>;
 }
 export function Notice({ children, action }: { children?: ReactNode; action?: ReactNode }) { return children ? <div className="wb-notice" role="status"><span>{children}</span>{action}</div> : null; }
 export function Tabs<T extends string>({ value, items, onChange }: { value: T; items: { value: T; label: string }[]; onChange: (value: T) => void }) {

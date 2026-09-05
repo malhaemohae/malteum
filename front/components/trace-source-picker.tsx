@@ -10,7 +10,7 @@ export function TraceSourcePicker({ trace, busy, error, onClose, onPlay }: { tra
   const result = useResource(() => traceCandidates(trace), [trace.session_id]);
   const [query, setQuery] = useState(''); const [preview, setPreview] = useState<{ text: string; record: ApiSessionSummary } | null>(null);
   const items = (result.data ?? []).filter(({ record, preview }) => `${record.product_name} ${record.mode} ${record.started_at} ${new Date(record.started_at).toLocaleString('ko-KR')} ${record.session_id} ${preview}`.toLowerCase().includes(query.trim().toLowerCase()));
-  return <Modal title={preview ? '첫 발화' : '재생할 상담 선택'} onClose={() => { if (!busy) onClose(); }} actions={preview && <button className="wb-primary" disabled={busy} onClick={() => onPlay(preview.record)}>{busy ? '연결 중…' : '이 상담 재생'}</button>}>
+  return <Modal title={preview ? '첫 발화' : '재생할 상담 선택'} className="wb-modal-tall" onClose={() => { if (!busy) onClose(); }} actions={preview && <button className="wb-primary" disabled={busy} onClick={() => onPlay(preview.record)}>{busy ? '연결 중…' : '이 상담 재생'}</button>}>
     <Notice>{error || result.error}</Notice>
     <div className="wb-trace-picker" hidden={preview !== null}>
       <p>이 TRACE에는 원본 연결이 저장되지 않았습니다. 같은 상품의 저장된 상담을 선택하면 바로 재생합니다.</p>

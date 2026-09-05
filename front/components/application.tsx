@@ -290,10 +290,10 @@ export default function Application() {
   else if (screen === 'packs') page = <PackScreen {...navigation} />;
   else if (screen === 'documents') page = <DocumentsScreen {...navigation} />;
   else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} busy={busy} error={error} />;
-  return <>{page}{error && screen === 'briefing' && <Modal title="상담 연결 확인" onClose={() => setError('')}><TextPages text={error} /></Modal>}
+  return <>{page}{error && screen === 'briefing' && <Modal title="상담 연결 확인" className="wb-compact" onClose={() => setError('')}><TextPages text={error} /></Modal>}
     {micIntro && screen === 'dashboard' && session?.mode === 'live' && session.status === 'connected' && !session.ending && <SpeakerIntroModal onClose={() => setMicIntro(false)} onContinue={() => { void toggleMic(); }} />}
     {traceSelection && <TraceSourcePicker trace={traceSelection} busy={busy} error={error} onClose={() => { setTraceSelection(null); setError(''); }} onPlay={record => openHistory(record, 'trace')} />}
     {evidence && <Modal title="근거 원문" className={evidence.value ? 'wb-modal-wide' : ''} onClose={() => { evidenceRequest.current++; setEvidence(null); }}>{evidence.loading ? <Empty>근거를 불러오고 있습니다.</Empty> : evidence.value ? <EvidenceView value={evidence.value} /> : <Notice>{evidence.error}</Notice>}</Modal>}
-    {newConfirm && <Modal title="새 상담 시작" onClose={() => setNewConfirm(false)} actions={<><button onClick={() => setNewConfirm(false)}>현재 상담 유지</button><button className="wb-primary" disabled={session?.status !== 'connected' || session?.ending} onClick={() => { newAfterEnd.current = true; setNewConfirm(false); endSession(); }}>현재 상담 종료 후 새 상담</button></>}><TextPages text="현재 상담을 종료하고 서버에 기록한 뒤 새 상담을 준비합니다. 녹음 중이라면 녹음도 중지됩니다." /></Modal>}
+    {newConfirm && <Modal title="새 상담 시작" className="wb-compact" onClose={() => setNewConfirm(false)} actions={<><button onClick={() => setNewConfirm(false)}>현재 상담 유지</button><button className="wb-primary" disabled={session?.status !== 'connected' || session?.ending} onClick={() => { newAfterEnd.current = true; setNewConfirm(false); endSession(); }}>현재 상담 종료 후 새 상담</button></>}><TextPages text="현재 상담을 종료하고 서버에 기록한 뒤 새 상담을 준비합니다. 녹음 중이라면 녹음도 중지됩니다." /></Modal>}
   </>;
 }

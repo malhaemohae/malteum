@@ -51,9 +51,7 @@
 .wb-rule-details section+section{margin-top:16px}
 .wb-rule-details h3{font-size:14px;color:var(--teal)}
 .wb-rule-details ul{margin:6px 0;padding-left:20px}
-.wb-item-detail .wb-modal-body{overflow:auto;overscroll-behavior:contain}
-.wb-item-detail .wb-ev-card{flex-shrink:0}
-.wb-modal.wb-compact{width:min(560px,calc(100vw - 32px));height:auto;max-height:calc(100dvh - 32px)}
-.wb-compact .wb-modal-frame{height:auto;max-height:calc(100dvh - 32px)}
-.wb-compact .wb-modal-body{overflow:auto;max-height:55dvh}
-.wb-compact .wb-reader-area{max-height:45dvh;flex:auto}
+.wb-rule-details li{margin:3px 0}
+.wb-modal .wb-ev-card{flex-shrink:0}
+.wb-modal.wb-compact{width:min(560px,calc(100vw - 32px))}
+.wb-compact .wb-reader-area{max-height:55dvh;flex:auto}

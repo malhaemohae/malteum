@@ -22,6 +22,7 @@ export type LiveSession = {
 };
 
 export const statusNames: Record<string, string> = { met: '고지', partial: '부분 고지', unmet: '미고지', waived: '제외', clean: '이상 없음', suspected: '검토 필요', violated: '위반', adopted: '채택', ignored: '미채택', pending: '대기', approved: '승인', rejected: '반려', running: '진행 중', ended: '종료', aborted: '중단', timeout: '시간 만료' };
+export const itemTypeNames: Record<string, string> = { required: '필수 안내', forbidden: '금지 표현', reference: '참고', risk: '위험 신호' };
 export const kindNames: Record<string, string> = { risk_signal: '위험 신호', forbidden_phrase: '금지 표현', number_mismatch: '숫자 확인', rephrase: '쉬운 말 안내', answer: '규정 답변', nudge: '미고지 안내', briefing: '상담 기준', documents: '필요 서류', term_density: '전문용어 밀도' };
 // Format protocol metadata only; never rewrite quoted speech/evidence or numbers.
 const metadataNames: Record<string, string> = { ...statusNames, ...kindNames, confirmed: '이해 확인 신호', explained: '설명됨', teller: '상담원', customer: '고객', human: '상담원 수동 기록', L1: '규칙 판정', L2: '문맥 판정', L3: '추가 검토 판정', verdict: '판정', utterance: '발화', alert: '경보', assist: '상담 안내', session_started: '상담 시작', session_ended: '상담 종료', omission: '설명 이행', commission: '금지·숫자', comprehension: '이해 지원', low: '낮음', normal: '보통', high: '높음' };
