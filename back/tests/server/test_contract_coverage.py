@@ -30,9 +30,7 @@ CONTRACTS = Path(__file__).resolve().parents[2] / "contracts"
 # 갈랐다(`scripts/dump_extraction.py` → `services/extraction.py`).
 # 후보 조회·승인도 빠졌다 — 필요한 값이 M3 의 `config/candidate_rules.json` 에 커밋돼
 # 있어 M3 를 기다리지 않고 섰다(`services/candidates.py`).
-MISSING = {
-    ("GET", "/sessions/{session_id}/report.pdf"),
-}
+MISSING: set[tuple[str, str]] = set()
 
 PREFIX = "/api"  # 계약 servers[0].url
 
