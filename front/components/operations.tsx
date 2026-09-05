@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ApiCandidate, ApiDocument, ApiPack, ApiPackItem, ApiPreset, ApiSessionSummary, hasAdminToken, malteumApi, setAdminToken } from '../lib/api';
+import { ApiDocument, ApiPackItem, ApiPreset, ApiSessionSummary, malteumApi } from '../lib/api';
 import { displayField, displayValue, recordText, errorText, evidenceForItem, latestPacks, modeNames, NavItem, statusNames, textValue, timeLabel, whenLabel } from '../lib/workspace-model';
+import { EvidenceCard } from './evidence';
 import { rememberedSessionIds } from '../lib/session-index';
 import { HistoryAction, traceBlockedReason } from '../lib/session-recovery';
 import { exportReport } from '../lib/report-print';
@@ -42,7 +43,10 @@ export function HistoryScreen({ onOpen, onStartPreset, busy, error, ...navigatio
   const [mode, setMode] = useState('');
   const [view, setView] = useState<'sessions' | 'presets'>('sessions');
   const presets = useResource(() => malteumApi.presets());
-  const playablePresets = presets.data?.presets.filter(preset => preset.mode === 'replay' && preset.audio_ref) ?? [];
+  const packCatalog = useResource(() => malteumApi.packs());
+  const latestPackVersions = new Set(latestPacks(packCatalog.data?.packs ?? []).map(pack => pack.pack_version));
+  const playablePresets = presets.data?.presets.filter(preset => preset.mode === 'replay' && preset.audio_ref && latestPackVersions.has(preset.pack_version)) ?? [];
+  const refreshPresets = () => { presets.refresh(); packCatalog.refresh(); };
   const records = useResource(async () => {
     const all: ApiSessionSummary[] = []; let cursor: string | undefined; const seen = new Set<string>();
     do { const result = await malteumApi.sessions(mode ? mode as ApiSessionSummary['mode'] : undefined, cursor); all.push(...result.sessions); cursor = result.next_cursor ?? undefined; if (cursor && seen.has(cursor)) throw new Error('이력 페이지 연결이 반복됩니다. 다시 불러와 주세요.'); if (cursor) seen.add(cursor); } while (cursor);
@@ -52,96 +56,55 @@ export function HistoryScreen({ onOpen, onStartPreset, busy, error, ...navigatio
     return all.sort((a,b) => b.started_at.localeCompare(a.started_at));
   }, [mode]);
   const [detail, setDetail] = useState<ApiSessionSummary | null>(null);
-  return <Workbench screen="history" title="세션 이력" subtitle="저장된 상담과 시연 음원" {...navigation} actions={busy ? <span className="wb-badge" role="status">상담 확인 중…</span> : <button onClick={view === 'sessions' ? records.refresh : presets.refresh} disabled={view === 'sessions' ? records.loading : presets.loading}>새로고침</button>}>
-    <Failure error={(view === 'sessions' ? records.error : presets.error) || error} retry={view === 'sessions' ? records.refresh : presets.refresh} />
+  return <Workbench screen="history" title="세션 이력" subtitle="저장된 상담과 시연 음원" {...navigation} actions={busy ? <span className="wb-badge" role="status">상담 확인 중…</span> : <button onClick={view === 'sessions' ? records.refresh : refreshPresets} disabled={view === 'sessions' ? records.loading : presets.loading || packCatalog.loading}>새로고침</button>}>
+    <Failure error={(view === 'sessions' ? records.error : presets.error || packCatalog.error) || error} retry={view === 'sessions' ? records.refresh : refreshPresets} />
     <div className="wb-toolbar"><Tabs value={view} onChange={setView} items={[{ value: 'sessions', label: '저장된 상담' }, { value: 'presets', label: '시연 음원' }]} />{view === 'sessions' && <label>입력 방식<select aria-label="이력 입력 방식" value={mode} onChange={event => setMode(event.target.value)}><option value="">전체 (재생 기록 제외)</option>{(['live', 'text', 'replay', 'trace'] as const).map(value => <option key={value} value={value}>{modeNames[value]}</option>)}</select></label>}</div>
-    {view === 'presets' ? <Panel className="wb-history-list"><PagedList label="시연 음원" items={playablePresets} rowHeight={100} empty={presets.loading ? '시연 음원을 불러오는 중입니다.' : presets.error ? '음원을 확인하지 못했습니다.' : '서버에 등록된 시연 음원이 없습니다.'} render={preset => <><div className="wb-row-button" data-preset-id={preset.preset_id}><span className="wb-row-copy"><strong>{preset.label}</strong><small>{preset.description ?? preset.pack_version}</small></span></div><div className="wb-actions"><button className="wb-primary" disabled={busy} onClick={() => onStartPreset(preset)}>시연 시작</button></div></>} /></Panel> : <>
+    {view === 'presets' ? <Panel className="wb-history-list"><PagedList label="시연 음원" items={playablePresets} rowHeight={100} empty={presets.loading || packCatalog.loading ? '시연 음원을 불러오는 중입니다.' : presets.error || packCatalog.error ? '음원을 확인하지 못했습니다.' : '최신 규정 팩에 연결된 시연 음원이 없습니다.'} render={preset => <><div className="wb-row-button" data-preset-id={preset.preset_id}><span className="wb-row-copy"><strong>{preset.label}</strong><small>{preset.description ?? preset.pack_version}</small></span></div><div className="wb-actions"><button className="wb-primary" disabled={busy} onClick={() => onStartPreset(preset)}>시연 시작</button></div></>} /></Panel> : <>
     <Panel className="wb-history-list"><PagedList label="세션 이력" items={(records.data ?? []).filter(record => mode || record.mode !== 'trace')} rowHeight={100} empty={records.loading ? '이력을 불러오고 있습니다.' : records.error ? '이력을 확인하지 못했습니다.' : '아직 저장된 세션이 없습니다.'} render={record => <><button className="wb-row-button" data-session-id={record.session_id} onClick={() => setDetail(record)}><span className="wb-row-copy"><strong>{record.product_name ?? record.pack_version}</strong><small>{whenLabel(record.started_at)} · {modeNames[record.mode]} · {statusNames[record.status] ?? record.status}</small>{traceBlockedReason(record) && <small className="wb-history-hint">{traceBlockedReason(record)}</small>}</span></button><div className="wb-actions"><button disabled={busy} onClick={() => onOpen(record, 'report')}>{record.status === 'running' ? '중간 리포트' : '리포트'}</button>{record.status === 'running' ? <button className="wb-primary" disabled={busy} onClick={() => onOpen(record, 'resume')}>{record.mode === 'trace' || record.mode === 'replay' ? '재생 이어보기' : '상담 열기'}</button> : <button disabled={busy || Boolean(traceBlockedReason(record))} title={traceBlockedReason(record) || undefined} onClick={() => onOpen(record, 'trace')}>기록 재생</button>}</div></>} /></Panel>
     </>}
     {detail && <Modal title="세션 정보" onClose={() => setDetail(null)} actions={<><button disabled={busy} onClick={() => { onOpen(detail, 'report'); setDetail(null); }}>{detail.status === 'running' ? '중간 리포트' : '리포트'}</button>{detail.status === 'running' && <button className="wb-primary" disabled={busy} onClick={() => { onOpen(detail, 'resume'); setDetail(null); }}>{detail.mode === 'trace' || detail.mode === 'replay' ? '재생 이어보기' : '상담 열기'}</button>}</>}><TextPages text={detailText(detail)} /></Modal>}
   </Workbench>;
 }
 
-function ManagementTabs({ value, onNavigate, onAuthorized }: { value: 'packs' | 'documents'; onNavigate: (nav: NavItem) => void; onAuthorized?: () => void }) {
-  const [open, setOpen] = useState(false); const [token, setToken] = useState(''); const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const [authorized, setAuthorized] = useState(hasAdminToken);
-  async function authenticate() {
-    if (!token.trim() || busy) return;
-    setBusy(true); setError(''); setAdminToken(token);
-    try {
-      const docs = await malteumApi.documents();
-      if (!docs.documents.length) throw new Error('인증을 확인할 문서가 없습니다. 관리자에게 문의하세요.');
-      await malteumApi.extraction(docs.documents[0].doc_id);
-      setAuthorized(true); setToken(''); setOpen(false); onAuthorized?.();
-    } catch { setAdminToken(''); setAuthorized(false); setError('관리자 인증에 실패했습니다. 토큰과 서버 연결을 확인하세요.'); }
-    finally { setBusy(false); }
-  }
-  return <><div className="wb-toolbar"><Tabs value={value} onChange={value => onNavigate(value === 'packs' ? '규정 팩' : '문서')} items={[{ value: 'packs', label: '규정 팩' }, { value: 'documents', label: '문서 검수' }]} /><button onClick={() => { if (authorized) { setAdminToken(''); setAuthorized(false); onAuthorized?.(); } else { setOpen(true); setError(''); } }}>{authorized ? '인증 해제' : '관리자 인증'}</button></div>
-    {open && <Modal title="관리자 인증" onClose={() => { if (!busy) { setOpen(false); setToken(''); } }} actions={<button className="wb-primary" disabled={busy || !token.trim()} onClick={authenticate}>{busy ? '확인 중…' : '인증 확인'}</button>}><Notice>{error}</Notice><label>관리자 토큰<input type="password" autoComplete="off" value={token} onChange={event => setToken(event.target.value)} disabled={busy} /></label><p>문서 추출 조회·업로드·후보 승인·팩 발행에 필요합니다. 토큰은 이 화면을 새로고침하면 해제됩니다.</p></Modal>}
-  </>;
+function ManagementTabs({ value, onNavigate }: { value: 'packs' | 'documents'; onNavigate: (nav: NavItem) => void }) {
+  return <div className="wb-toolbar"><Tabs value={value} onChange={value => onNavigate(value === 'packs' ? '규정 팩' : '문서')} items={[{ value: 'packs', label: '최신 규정 팩' }, { value: 'documents', label: '근거 문서' }]} /></div>;
 }
 
 export function PackScreen(navigation: Navigation) {
-  const packs = useResource(() => malteumApi.packs()); const [selected, setSelected] = useState('');
+  const packs = useResource(() => malteumApi.packs());
+  const choices = latestPacks(packs.data?.packs ?? []);
+  const [selected, setSelected] = useState('');
   const pack = useResource(() => selected ? malteumApi.pack(selected) : Promise.resolve(null), [selected]);
-  const [item, setItem] = useState<ApiPackItem | null>(null); const [tab, setTab] = useState<'detail' | 'evidence'>('detail');
-  const [publish, setPublish] = useState(false); const [upload, setUpload] = useState<Record<string, unknown> | null>(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
-  const [publishStatus, setPublishStatus] = useState('');
-  async function publishPack() { if (!upload || busy) return; setBusy(true); setError(''); try { const published = await malteumApi.publishPack(upload); setPublish(false); setUpload(null); packs.refresh(); setSelected(published.pack_version); pack.refresh(); setPublishStatus(`${published.pack_version} · ${published.item_count}개 항목이 발행됐습니다.`); } catch (reason) { setError(errorText(reason)); } finally { setBusy(false); } }
+  const [item, setItem] = useState<ApiPackItem | null>(null);
+  const [sourceOpen, setSourceOpen] = useState(false);
+  useEffect(() => {
+    if (packs.data && selected && !latestPacks(packs.data.packs).some(value => value.pack_version === selected)) { setSelected(''); setItem(null); }
+  }, [packs.data, selected]);
   const evidence = item && pack.data ? evidenceForItem(pack.data, item) : null;
-  return <Workbench screen="packs" title="규정 관리" subtitle={selected || '서버에 발행된 규정 팩'} {...navigation} actions={<button onClick={() => { setPublish(true); setError(''); }}>규정 팩 발행</button>}>
-    <ManagementTabs value="packs" onNavigate={navigation.onNavigate} /><Failure error={packs.error || pack.error} retry={() => { packs.refresh(); pack.refresh(); }} />
-    <Feedback message={publishStatus} />
-    {!selected ? <Panel title="발행된 규정 팩"><PagedList label="규정 팩" items={latestPacks(packs.data?.packs ?? [])} rowHeight={76} empty={packs.loading ? '팩 목록을 불러오고 있습니다.' : '발행된 팩이 없습니다.'} render={value => <button className="wb-row-button" onClick={() => setSelected(value.pack_version)}><span className="wb-row-copy"><strong>{value.product?.name ?? value.pack_version}</strong><small>{value.pack_version} · {value.published_at ? new Date(value.published_at).toLocaleDateString('ko-KR') : ''}</small></span><span className="wb-badge">{value.item_count == null ? '항목 수 미제공' : `${value.item_count}개 항목`}</span><span>›</span></button>} /></Panel> : <Panel title={pack.data?.product?.name ?? selected} action={<button onClick={() => { setSelected(''); setItem(null); }}>팩 목록</button>}><PagedList key={selected} label="팩 항목" items={pack.data?.items ?? []} empty={pack.loading ? '팩 항목을 불러오고 있습니다.' : '항목이 없습니다.'} render={value => <button className="wb-row-button" onClick={() => { setItem(value); setTab('detail'); }}><span className="wb-row-copy"><strong>{value.name}</strong><small>{value.code}</small></span><span className="wb-badge">{{ required: '필수', forbidden: '금지', reference: '참고', risk: '위험' }[value.type] ?? value.type}</span><span>›</span></button>} /></Panel>}
-    {item && <Modal title={item.name} onClose={() => setItem(null)}><Tabs value={tab} onChange={setTab} items={[{ value: 'detail', label: '기준·쉬운 말' }, { value: 'evidence', label: '근거 원문' }]} />{tab === 'evidence' ? evidence ? <EvidenceView value={evidence} /> : <Empty>이 항목에는 근거가 제공되지 않았습니다.</Empty> : <TextPages text={`${item.name}\n${item.code}\n\n필수 요소\n${item.requirement_elements?.join('\n') ?? '미제공'}\n\n승인된 쉬운 말\n${item.plain_language?.join('\n') ?? '미제공'}${item.documents_required ? `\n\n필요 서류\n${item.documents_required.join('\n')}` : ''}${item.forbidden_examples ? `\n\n금지 표현 예시\n${item.forbidden_examples.join('\n')}` : ''}${item.risk_examples ? `\n\n위험 신호 예시\n${item.risk_examples.join('\n')}` : ''}\n\n승인자: ${item.approved_by ?? '미제공'}\n승인 시각: ${item.approved_at ?? '미제공'}`} />}</Modal>}
-    {publish && <Modal title="규정 팩 발행" onClose={() => !busy && setPublish(false)} actions={<button className="wb-primary" disabled={!upload || busy} onClick={publishPack}>{busy ? '발행 중…' : '확인 후 발행'}</button>}><Notice>{error}</Notice><label>검수·승인된 규정 팩 JSON<input type="file" accept=".json,application/json" aria-label="규정 팩 JSON" disabled={busy} onChange={async event => { setUpload(null); setError(''); const file = event.target.files?.[0]; if (!file) return; try { const parsed: unknown = JSON.parse(await file.text()); if (!parsed || typeof parsed !== 'object' || !('pack_version' in parsed) || !('items' in parsed) || !Array.isArray(parsed.items)) throw new Error('pack_version과 items가 있는 규정 팩 파일을 선택하세요.'); setUpload(parsed as Record<string, unknown>); } catch (reason) { setError(errorText(reason)); } }} /></label>{upload ? <TextPages text={JSON.stringify(upload, null, 2)} label="발행 내용" /> : <Empty>기존 문서 후보 승인은 문서 검수에서 진행합니다. 새 팩의 근거·승인·버전 검증은 서버에서 수행합니다.</Empty>}</Modal>}
+  return <Workbench screen="packs" title="규정 관리" subtitle="상품별 최신 규정과 승인된 설명을 확인하세요." {...navigation} actions={<button onClick={() => { packs.refresh(); pack.refresh(); }}>새로고침</button>}>
+    <ManagementTabs value="packs" onNavigate={navigation.onNavigate} />
+    <Failure error={packs.error || pack.error} retry={() => { packs.refresh(); pack.refresh(); }} />
+    {!selected ? <Panel title="최신 규정 팩"><PagedList label="규정 팩" items={choices} rowHeight={76} empty={packs.loading ? '팩 목록을 불러오고 있습니다.' : '발행된 팩이 없습니다.'} render={value => <button className="wb-row-button" onClick={() => setSelected(value.pack_version)}><span className="wb-row-copy"><strong>{value.product?.name ?? value.pack_version}</strong><small>{value.pack_version} · {value.published_at ? new Date(value.published_at).toLocaleDateString('ko-KR') : ''}</small></span><span className="wb-badge">{value.item_count == null ? '최신 버전' : `${value.item_count}개 항목`}</span><span>›</span></button>} /></Panel>
+      : <Panel title={pack.data?.product?.name ?? selected} action={<button onClick={() => { setSelected(''); setItem(null); }}>팩 목록</button>}><PagedList key={selected} label="팩 항목" items={pack.data?.items ?? []} empty={pack.loading ? '팩 항목을 불러오고 있습니다.' : '항목이 없습니다.'} render={value => <button className="wb-row-button" onClick={() => { setItem(value); setSourceOpen(false); }}><span className="wb-row-copy"><strong>{value.name}</strong><small>{value.evidence ? `근거 문서 ${value.evidence.page}페이지` : '연결된 근거 없음'}</small></span><span className="wb-badge">{{ required: '필수', forbidden: '금지', reference: '참고', risk: '위험' }[value.type] ?? value.type}</span><span>›</span></button>} /></Panel>}
+    {item && <Modal title={item.name} className={sourceOpen ? '' : 'wb-item-detail'} onClose={() => setItem(null)} actions={sourceOpen && <button onClick={() => setSourceOpen(false)}>규정 설명으로</button>}>
+      {sourceOpen && evidence ? <EvidenceView value={evidence} /> : <>
+        {evidence && <EvidenceCard evidence={evidence} title="이 규정의 근거" onOpen={() => setSourceOpen(true)} />}
+        <div className="wb-rule-details wb-reader-copy">
+          {([['필수 안내 요소', item.requirement_elements], ['승인된 쉬운 말', item.plain_language], ['필요 서류', item.documents_required], ['금지 표현 예시', item.forbidden_examples], ['위험 신호 예시', item.risk_examples]] as [string, string[] | undefined][]).filter(([, values]) => values?.length).map(([title, values]) => <section key={title}><h3>{title}</h3><ul>{values!.map((value, index) => <li key={index}>{value}</li>)}</ul></section>)}
+          <small>{item.code} · 승인: {item.approved_by ?? '미제공'}{item.approved_at ? ` · ${whenLabel(item.approved_at)}` : ''}</small>
+        </div>
+      </>}
+    </Modal>}
   </Workbench>;
 }
 
-type Block = { block_id?: string; page?: number; kind?: string; text?: string; table?: { rows?: number; cols?: number; cells?: { r: number; c: number; text: string }[] } };
-function ExtractedTable({ block }: { block: Block }) {
-  const [column, setColumn] = useState(0); const [cell, setCell] = useState<string | null>(null);
-  const cells = block.table?.cells ?? []; const rowIds = Array.from(new Set(cells.map(cell => cell.r))).sort((a,b) => a-b); const columnIds = Array.from(new Set(cells.map(cell => cell.c))).sort((a,b) => a-b);
-  const shown = columnIds.slice(column * 2, column * 2 + 2);
-  return <><div className="wb-table-pane" hidden={cell !== null}><div className="wb-toolbar"><small>원문 표 · 행과 열 구조 유지</small><div className="wb-actions"><button disabled={column === 0} onClick={() => setColumn(value => value - 1)}>이전 열</button><small>{column + 1}/{Math.max(1,Math.ceil(columnIds.length / 2))}</small><button disabled={(column + 1) * 2 >= columnIds.length} onClick={() => setColumn(value => value + 1)}>다음 열</button></div></div><PagedList label="원문 표 행" items={rowIds} rowHeight={80} render={r => <div role="row" className="wb-table-row">{shown.map(c => <button role="cell" key={c} className="wb-row-button" onClick={() => setCell(cells.find(cell => cell.r === r && cell.c === c)?.text ?? '')}><span className="wb-row-copy"><small>행 {r + 1} · 열 {c + 1}</small><strong>{cells.find(cell => cell.r === r && cell.c === c)?.text ?? ''}</strong></span></button>)}</div>} /></div>{cell !== null && <><button onClick={() => setCell(null)}>표로 돌아가기</button><TextPages text={cell} label="표 셀 원문" /></>}</>;
-}
-
-type CandidateEdits = { name?: string; requirement_elements?: string[]; plain_language?: string[] };
-function CandidateEditor({ candidate, initialEdits, disabled, onChange }: { candidate: ApiCandidate; initialEdits?: CandidateEdits; disabled: boolean; onChange: (edits: CandidateEdits | undefined) => void }) {
-  const [field, setField] = useState<'name' | 'requirement_elements' | 'plain_language'>('name');
-  const [values, setValues] = useState({ name: candidate.name, requirement_elements: candidate.requirement_elements?.join('\n') ?? '', plain_language: candidate.plain_language?.join('\n') ?? '' });
-  const [edits, setEdits] = useState<CandidateEdits>(initialEdits ?? {});
-  return <div className="wb-candidate-edit"><label style={{ flex: '0 0 auto' }}>수정할 내용<select aria-label="수정할 내용" value={field} onChange={event => setField(event.target.value as typeof field)}><option value="name">항목 이름</option><option value="requirement_elements">필수 요소</option><option value="plain_language">승인할 쉬운 말</option></select></label><label>{field === 'name' ? '항목 이름' : field === 'plain_language' ? '쉬운 설명을 한 줄에 한 문장씩 입력하세요.' : '필수 요소를 한 줄씩 입력하세요.'}<textarea aria-label="검수 수정 내용" disabled={disabled} value={values[field]} onChange={event => { const text = event.target.value; setValues({ ...values, [field]: text }); const next = { ...edits, [field]: field === 'name' ? text : text.split('\n').map(value => value.trim()).filter(Boolean) }; setEdits(next); onChange(next); }} /></label></div>;
-}
-
 export function DocumentsScreen(navigation: Navigation) {
-  const documents = useResource(() => malteumApi.documents()); const [doc, setDoc] = useState<ApiDocument | null>(null); const [view, setView] = useState<'candidates' | 'extraction'>('candidates');
-  const candidates = useResource(() => doc ? malteumApi.candidates(doc.doc_id) : Promise.resolve(null), [doc?.doc_id]);
-  const extraction = useResource(() => doc && (view === 'extraction' || (doc.status === 'extracting' && hasAdminToken())) ? malteumApi.extraction(doc.doc_id) : Promise.resolve(null), [doc?.doc_id, view, doc?.status]);
-  const [candidate, setCandidate] = useState<ApiCandidate | null>(null); const [block, setBlock] = useState<Block | null>(null); const [reviewer, setReviewer] = useState('');
-  const [upload, setUpload] = useState(false); const [file, setFile] = useState<File | null>(null); const [docId, setDocId] = useState(''); const [publisher, setPublisher] = useState(''); const [date, setDate] = useState(''); const [busy, setBusy] = useState(false); const [error, setError] = useState('');
-  const [feedback, setFeedback] = useState(''); const [editing, setEditing] = useState(false); const [edits, setEdits] = useState<CandidateEdits>();
-  useEffect(() => { setEditing(false); setEdits(undefined); }, [candidate?.candidate_id]);
-  useEffect(() => { if (!doc || doc.status !== 'extracting' || !hasAdminToken()) return; let attempts = 0; const timer = setInterval(() => { if (++attempts > 30) { clearInterval(timer); setFeedback('추출이 지연되고 있습니다. 새로고침으로 상태를 확인해 주세요.'); return; } extraction.refresh(); candidates.refresh(); documents.refresh(); }, 4000); return () => clearInterval(timer); }, [doc?.doc_id, doc?.status]);
-  useEffect(() => { if (!doc || !['ready', 'failed'].includes(String(extraction.data?.status)) || doc.status !== 'extracting') return; const status = extraction.data!.status as 'ready' | 'failed'; setDoc({ ...doc, status }); setFeedback(status === 'ready' ? '추출이 완료됐습니다. 검수 후보를 확인하세요.' : '문서 추출에 실패했습니다. 추출 원문에서 오류를 확인하세요.'); candidates.refresh(); }, [extraction.data?.status, doc?.status]);
-  async function uploadFile() { if (!file || !docId.trim() || !publisher.trim() || !date || busy) return; setBusy(true); setError(''); try { const uploaded = await malteumApi.uploadDocument(file, { docId: docId.trim(), title: file.name, publisher: publisher.trim(), snapshotDate: date }); setDoc({ doc_id: uploaded.doc_id, title: file.name, publisher: publisher.trim(), snapshot_date: date, status: uploaded.status }); setView('extraction'); documents.refresh(); setUpload(false); setFile(null); setFeedback('문서가 업로드됐습니다. 서버에서 추출 중입니다.'); } catch (reason) { setError(errorText(reason)); } finally { setBusy(false); } }
-  async function approve() { if (!doc || !candidate || candidate.span_verified !== true || !reviewer.trim() || busy) return; setBusy(true); setError(''); try { await malteumApi.approveCandidate(doc.doc_id, candidate.candidate_id, reviewer.trim(), edits); setCandidate(null); candidates.refresh(); documents.refresh(); setFeedback('후보 승인이 저장됐습니다. 새 팩은 승인된 JSON을 기준 관리에서 발행해야 합니다.'); } catch (reason) { setError(errorText(reason)); } finally { setBusy(false); } }
-  const blocks = Array.isArray(extraction.data?.blocks) ? extraction.data.blocks as Block[] : [];
-  return <Workbench screen="documents" title="규정 관리" subtitle={doc?.title ?? '문서 업로드·추출·검수'} {...navigation} actions={<button className="wb-primary" onClick={() => { setUpload(true); setError(''); }}>PDF 업로드</button>}>
-    <ManagementTabs value="documents" onNavigate={navigation.onNavigate} onAuthorized={() => { documents.refresh(); extraction.refresh(); }} /><Failure error={documents.error || (view === 'candidates' ? candidates.error : extraction.error)} retry={() => { documents.refresh(); candidates.refresh(); extraction.refresh(); }} />
-    <Feedback message={feedback} pending={doc?.status === 'extracting'} />
-    {!doc ? <Panel title="문서 목록"><PagedList label="문서 목록" items={documents.data?.documents ?? []} rowHeight={78} empty={documents.loading ? '문서를 불러오고 있습니다.' : '등록된 문서가 없습니다.'} render={value => <button className="wb-row-button" onClick={() => { setDoc(value); setView('candidates'); }}><span className="wb-row-copy"><strong>{value.title}</strong><small>{value.publisher} · {value.snapshot_date}</small></span><span className="wb-badge">{{ extracting: '추출 중', ready: '추출 완료', failed: '실패' }[value.status]}</span><span>›</span></button>} /></Panel> : <>
-      <div className="wb-toolbar"><label className="wb-document-picker"><select aria-label="검수 문서 바로 선택" value={doc.doc_id} disabled={documents.loading} onChange={event => { const next = documents.data?.documents.find(value => value.doc_id === event.target.value); if (next) { setDoc(next); setCandidate(null); setBlock(null); setError(''); setFeedback(''); } }}>{(documents.data?.documents ?? [doc]).map(value => <option key={value.doc_id} value={value.doc_id}>{value.title}</option>)}</select></label><button onClick={() => setDoc(null)}>문서 목록</button></div>
-      <div className="wb-toolbar"><Tabs value={view} onChange={setView} items={[{ value: 'candidates', label: '검수 후보' }, { value: 'extraction', label: '추출 원문' }]} /><button disabled={candidates.loading || extraction.loading} onClick={() => { candidates.refresh(); extraction.refresh(); }}>새로고침</button></div>
-      <Panel title={view === 'candidates' ? '후보 항목' : `추출 원문 · ${extraction.data?.status === 'extracting' ? '추출 중' : extraction.data?.status === 'failed' ? '추출 실패' : '페이지별 블록'}`}>
-        {view === 'candidates' ? <PagedList label="검수 후보" items={candidates.data?.candidates ?? []} empty={candidates.loading ? '검수 후보를 불러오고 있습니다.' : '서버에 등록된 검수 후보가 없습니다.'} render={value => <button className="wb-row-button" onClick={() => { setCandidate(value); setError(''); }}><span className="wb-row-copy"><strong>{value.name}</strong><small>{value.suggested_code ?? value.candidate_id} · p.{value.evidence?.page ?? '—'}</small></span><span className="wb-badge" data-state={value.status}>{value.status === 'approved' ? '승인' : value.status === 'rejected' ? '반려' : value.span_verified ? '검수 대기' : '원문 불일치'}</span><span>›</span></button>} /> : <PagedList label="추출 블록" items={blocks} empty={extraction.loading ? '추출 원문을 불러오고 있습니다.' : String(extraction.data?.error ?? '추출 블록이 없습니다.')} render={value => <button className="wb-row-button" onClick={() => setBlock(value)}><span className="wb-row-copy"><strong>{value.text || (value.kind === 'table' ? '표 원문' : value.kind ?? '추출 블록')}</strong><small>p.{value.page ?? '—'} · {value.kind}</small></span><span>›</span></button>} />}
-      </Panel>
-    </>}
-    {candidate && <Modal title="후보 검수" onClose={() => !busy && setCandidate(null)} actions={<><input aria-label="검수자 이름" value={reviewer} onChange={event => setReviewer(event.target.value)} placeholder="검수자 이름" disabled={busy} style={{ width: 160 }} /><button className="wb-primary" disabled={busy || !reviewer.trim() || (edits?.name !== undefined && !edits.name.trim()) || candidate.span_verified !== true || candidate.status === 'approved' || candidate.status === 'rejected'} onClick={approve}>{busy ? '승인 중…' : candidate.status === 'approved' ? '승인됨' : '검수 후 승인'}</button></>}>
-      <Notice>{error || (candidate.span_verified !== true ? '인용 구절이 검증되지 않아 승인할 수 없습니다.' : '')}</Notice>
-      <button disabled={busy || candidate.status === 'approved' || candidate.status === 'rejected' || candidate.span_verified !== true} onClick={() => setEditing(value => !value)}>{editing ? '원문과 수정 내용 확인' : '검수 내용 수정'}</button>
-      {editing ? <CandidateEditor candidate={{ ...candidate, ...edits }} initialEdits={edits} disabled={busy} onChange={setEdits} /> : <TextPages text={`${edits?.name ?? candidate.name}\n${candidate.suggested_code ?? candidate.candidate_id}\n\n필수 요소\n${(edits?.requirement_elements ?? candidate.requirement_elements)?.join('\n') ?? '미제공'}\n\n쉬운 말 검수 내용\n${(edits?.plain_language ?? candidate.plain_language)?.join('\n') ?? '서버 후보에 쉬운 말이 없습니다. 필요한 문장을 검수자가 작성할 수 있습니다.'}\n\n인용 원문 · p.${candidate.evidence?.page ?? '—'}\n${candidate.evidence?.span ?? '원문이 제공되지 않았습니다.'}`} />}
-    </Modal>}
-    {block && <Modal title={`추출 원문 · p.${block.page ?? '—'}`} onClose={() => setBlock(null)}>{block.kind === 'table' && block.table ? <ExtractedTable block={block} /> : <TextPages text={block.text ?? '텍스트가 제공되지 않았습니다.'} />}</Modal>}
-    {upload && <Modal title="PDF 문서 업로드" onClose={() => !busy && setUpload(false)} actions={<button className="wb-primary" disabled={busy || !file || !docId.trim() || !publisher.trim() || !date} onClick={uploadFile}>{busy ? '업로드 중…' : 'PDF 업로드'}</button>}><Notice>{error}</Notice><div className="wb-form"><label className="wb-wide">PDF 파일<input type="file" accept=".pdf,application/pdf" aria-label="PDF 파일" disabled={busy} onChange={event => setFile(event.target.files?.[0] ?? null)} /></label><label>문서 ID<input value={docId} maxLength={160} disabled={busy} onChange={event => setDocId(event.target.value)} required /></label><label>발행 기관<input value={publisher} maxLength={160} disabled={busy} onChange={event => setPublisher(event.target.value)} required /></label><label>기준일<input type="date" value={date} disabled={busy} onChange={event => setDate(event.target.value)} required /></label></div></Modal>}
+  const documents = useResource(() => malteumApi.documents());
+  const [doc, setDoc] = useState<ApiDocument | null>(null);
+  return <Workbench screen="documents" title="근거 문서" subtitle="현재 규정 팩에 연결된 원문을 페이지별로 살펴보세요." {...navigation} actions={<button onClick={documents.refresh} disabled={documents.loading}>새로고침</button>}>
+    <ManagementTabs value="documents" onNavigate={navigation.onNavigate} />
+    <Failure error={documents.error} retry={documents.refresh} />
+    <Panel title="문서 목록"><PagedList label="문서 목록" items={documents.data?.documents ?? []} rowHeight={78} empty={documents.loading ? '문서를 불러오고 있습니다.' : '등록된 문서가 없습니다.'} render={value => <button className="wb-row-button" onClick={() => setDoc(value)}><span className="wb-row-copy"><strong>{value.title}</strong><small>{value.publisher} · {value.snapshot_date}</small></span><span className="wb-badge">{value.page_count ? `${value.page_count}페이지` : '원문 보기'}</span><span>›</span></button>} /></Panel>
+    {doc && <Modal title={doc.title} onClose={() => setDoc(null)}><EvidenceView key={doc.doc_id} value={{ doc_id: doc.doc_id, doc_title: doc.title, publisher: doc.publisher, snapshot_date: doc.snapshot_date, source_url: doc.url, page: 1, span: '' }} /></Modal>}
   </Workbench>;
 }

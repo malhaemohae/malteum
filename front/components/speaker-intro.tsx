@@ -16,6 +16,6 @@ export function SpeakerIntroModal({ onClose, onContinue }: { onClose: () => void
       <p>안녕하세요. 오늘 상담을 도와드릴 상담원입니다.</p>
       <p>지금부터 상담을 시작하겠습니다.</p>
     </blockquote>
-    <p className="wb-speaker-preview-note">첫 문장을 상담원이 말하면 화자 구분이 정확해집니다.<br />녹음 중지는 상단의 같은 버튼으로 합니다.</p>
+    <p className="wb-speaker-preview-note">두 분이 번갈아 말씀해 주세요. 대화 내용을 바탕으로 화자를 구분합니다.<br />녹음 중지는 상단의 같은 버튼으로 합니다.</p>
   </Modal>;
 }
