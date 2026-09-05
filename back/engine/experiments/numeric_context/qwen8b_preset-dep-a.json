@@ -1,0 +1,1179 @@
+{
+  "preset": "preset-dep-a",
+  "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+  "audio_seconds": 147.432625,
+  "elapsed_seconds": 181.06,
+  "expected_summary": {
+    "items_total": 6,
+    "met": 4,
+    "partial": 1,
+    "unmet": 1,
+    "waived": 0,
+    "violations": 1,
+    "alerts": 3,
+    "assists_adopted": 2,
+    "met_codes": [
+      "DEP-INT-001",
+      "DEP-TAX-001",
+      "DEP-INT-002",
+      "DEP-INT-003"
+    ],
+    "partial_codes": [
+      "DEP-PRO-001"
+    ],
+    "unmet_codes": [
+      "DEP-LIM-001"
+    ],
+    "violated_codes": [
+      "DEP-BAN-001"
+    ],
+    "note": "violations 1 과 assists_adopted 2 는 L3 가 붙었을 때의 값. LLM 이 없으면 위반은 suspected 로 남고 넛지·채택 기록이 생기지 않는다"
+  },
+  "events": [
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAXRKZS5CRH4PFMBFVAG7B",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 0,
+      "occurred_at": "2026-09-05T08:28:24.575+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "session_started",
+      "supersedes": null,
+      "session_started": {
+        "mode": "replay",
+        "product": {
+          "code": "ICBC-KRW-TD",
+          "name": "ICBC 원화정기예금",
+          "category": "deposit"
+        },
+        "item_count": 6,
+        "customer_profile": {
+          "type": "general"
+        }
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAY1BJ0E009KW2QQSJT27W",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 1,
+      "occurred_at": "2026-09-05T08:28:33.522+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 5958,
+        "text": "안녕하세요.",
+        "speaker": "teller",
+        "duration_ms": 1120,
+        "speaker_confidence": 0.2
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYB7GYWERGQ8VZB7E7A7F",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 2,
+      "occurred_at": "2026-09-05T08:28:43.632+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 17824,
+        "text": "작년에 넣어둔 정기 예금이 있는데 만기가 아직 안 됐거든요.",
+        "speaker": "customer",
+        "duration_ms": 10720,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYB7XC53YVXQ8VMHX5TQM",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 3,
+      "occurred_at": "2026-09-05T08:28:43.645+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 17824,
+        "text": "지금 해지하면 얼마나 받을 수 있어요?",
+        "speaker": "customer",
+        "duration_ms": 10720,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYN45C8E812N4RQQQ7EGV",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 4,
+      "occurred_at": "2026-09-05T08:28:53.765+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 27547,
+        "text": "네, 중도 해지 기준으로 안내드리겠습니다.",
+        "speaker": "teller",
+        "duration_ms": 8240,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYN4QX73K7KMXZB9RWZMK",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 5,
+      "occurred_at": "2026-09-05T08:28:53.783+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 27547,
+        "text": "우대이자율은 중도 해지하시면 적용이 안 되고 기본이자율 기준으로 계산됩니다.",
+        "speaker": "teller",
+        "duration_ms": 8240,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYNARWA77WK3N8GVE5579",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 6,
+      "occurred_at": "2026-09-05T08:28:53.976+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "met",
+        "evidence": {
+          "bbox": [
+            146.6,
+            136.1,
+            385.2,
+            145.6
+          ],
+          "page": 1,
+          "span": "신규일 당시 영업점에 고시한 조건별 우대이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RAYN4QX73K7KMXZB9RWZMK"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYQ3ADJQK15NN70D6KEF0",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 7,
+      "occurred_at": "2026-09-05T08:28:55.786+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "partial",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "confidence": 0.8,
+        "decided_by": "L3",
+        "utterance_ref": "01M1RAYN45C8E812N4RQQQ7EGV",
+        "missing_elements": [
+          "적용 이율",
+          "차감률 또는 산출식"
+        ]
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYQ3ADJQK15NN70D6KEF1",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 8,
+      "occurred_at": "2026-09-05T08:28:55.786+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "assist",
+      "supersedes": null,
+      "assist": {
+        "text": "중도해지 이자율: 적용 이율, 차감률 또는 산출식 안내가 남아 있습니다",
+        "trigger": "missing_item",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "assist_type": "nudge",
+        "source_utterance_ref": "01M1RAYN45C8E812N4RQQQ7EGV"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYSDWFG8S8BWCS0B8BBFF",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 9,
+      "occurred_at": "2026-09-05T08:28:58.172+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 33608,
+        "text": "받으시는 이자 수익에는 과세가 되는데요, 세율은 14%입니다.",
+        "speaker": "teller",
+        "duration_ms": 4640,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYSEJQX6RPCHHFCA7GQ9X",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 10,
+      "occurred_at": "2026-09-05T08:28:58.194+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "met",
+        "evidence": {
+          "bbox": [
+            215.4,
+            220.7,
+            404.0,
+            230.3
+          ],
+          "page": 2,
+          "span": "세금우대 및 비과세종합저축 적용 불가능",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-TAX-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RAYSDWFG8S8BWCS0B8BBFF"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAYSEJQX6RPCHHFCA7GQ9Y",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 11,
+      "occurred_at": "2026-09-05T08:28:58.194+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "alert",
+      "supersedes": null,
+      "alert": {
+        "message": "설명서 기준 15.4%",
+        "evidence": {
+          "bbox": [
+            146.6,
+            326.1,
+            302.6,
+            335.6
+          ],
+          "page": 1,
+          "span": "정상일반세율은 이자소득의 15.4%",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "severity": "warning",
+        "item_code": "DEP-TAX-001",
+        "alert_type": "number_mismatch",
+        "comparison": {
+          "said": "14%",
+          "condition": null,
+          "reference": "15.4%"
+        },
+        "utterance_ref": "01M1RAYSDWFG8S8BWCS0B8BBFF"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZ1NJEFCHNCWM5DKN98PR",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 12,
+      "occurred_at": "2026-09-05T08:29:06.610+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 42047,
+        "text": "그리고 중도 해지하시면 중도 해지 이율이 적용돼서 이자가 많이 줄어듭니다.",
+        "speaker": "teller",
+        "duration_ms": 4480,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZ1NZB9S7TDR9BXEST7DH",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 13,
+      "occurred_at": "2026-09-05T08:29:06.623+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": "01M1RAYQ3ADJQK15NN70D6KEF0",
+      "verdict": {
+        "axis": "omission",
+        "state": "partial",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RAZ1NJEFCHNCWM5DKN98PR",
+        "missing_elements": [
+          "차감률 또는 산출식"
+        ]
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZ38BQ0CQTR1RHY4BY1VC",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 14,
+      "occurred_at": "2026-09-05T08:29:08.235+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": "01M1RAZ1NZB9S7TDR9BXEST7DH",
+      "verdict": {
+        "axis": "omission",
+        "state": "partial",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "confidence": 1,
+        "decided_by": "L3",
+        "utterance_ref": "01M1RAZ1NJEFCHNCWM5DKN98PR",
+        "missing_elements": [
+          "차감률 또는 산출식"
+        ]
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZ38BQ0CQTR1RHY4BY1VD",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 15,
+      "occurred_at": "2026-09-05T08:29:08.235+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "assist",
+      "supersedes": "01M1RAYQ3ADJQK15NN70D6KEF1",
+      "assist": {
+        "text": "중도해지 이자율: 차감률 또는 산출식 안내가 남아 있습니다",
+        "trigger": "missing_item",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "assist_type": "nudge",
+        "source_utterance_ref": "01M1RAZ1NJEFCHNCWM5DKN98PR"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZ67WRBXJ28FYFXRH5DRP",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 16,
+      "occurred_at": "2026-09-05T08:29:11.292+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 46729,
+        "text": "중도 해지율이 뭐예요?",
+        "speaker": "customer",
+        "duration_ms": 2640,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZ68DE2YRA96Y75ET8FCF",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 17,
+      "occurred_at": "2026-09-05T08:29:11.309+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "comprehension",
+        "state": "explained",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "decided_by": "L2",
+        "utterance_ref": "01M1RAZ67WRBXJ28FYFXRH5DRP"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZ68DE2YRA96Y75ET8FCG",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 18,
+      "occurred_at": "2026-09-05T08:29:11.309+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "assist",
+      "supersedes": null,
+      "assist": {
+        "text": "만기 전에 찾으면 약속한 이자보다 적게 받습니다.",
+        "trigger": "customer_reask",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "assist_type": "rephrase",
+        "source_utterance_ref": "01M1RAZ1NJEFCHNCWM5DKN98PR"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZFS0Z159X06R99N9AT0X",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 19,
+      "occurred_at": "2026-09-05T08:29:21.056+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 56493,
+        "text": "만기 전에 찾으시면 처음 약속한 이자보다 적게 받으신다는 뜻입니다.",
+        "speaker": "teller",
+        "duration_ms": 4960,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZFSEQZ9Y3RNRR8P9XPW6",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 20,
+      "occurred_at": "2026-09-05T08:29:21.070+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "assist",
+      "supersedes": "01M1RAZ68DE2YRA96Y75ET8FCG",
+      "assist": {
+        "text": "만기 전에 찾으면 약속한 이자보다 적게 받습니다.",
+        "outcome": "adopted",
+        "trigger": "customer_reask",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "assist_type": "rephrase",
+        "source_utterance_ref": "01M1RAZ1NJEFCHNCWM5DKN98PR"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZP9QA4TWS52WSPNHB5C5",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 21,
+      "occurred_at": "2026-09-05T08:29:27.735+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 63171,
+        "text": "중간에 깨면 이자를 훨씬 덜 받는다는 거네요.",
+        "speaker": "customer",
+        "duration_ms": 5360,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZRBMCB739EDBZHMTGRDP",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 22,
+      "occurred_at": "2026-09-05T08:29:29.844+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": "01M1RAZ68DE2YRA96Y75ET8FCF",
+      "verdict": {
+        "axis": "comprehension",
+        "state": "confirmed",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "confidence": 1,
+        "decided_by": "L3",
+        "utterance_ref": "01M1RAZP9QA4TWS52WSPNHB5C5"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZVZWX2AC8KV9DM3SWPWP",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 23,
+      "occurred_at": "2026-09-05T08:29:33.564+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 69000,
+        "text": "단기 지나도 금리가 그대로 유지되니까 그냥 두셔도 돼요.",
+        "speaker": "teller",
+        "duration_ms": 4560,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZW0DRKX39H9MPTXCT1BR",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 24,
+      "occurred_at": "2026-09-05T08:29:33.581+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "commission",
+        "state": "suspected",
+        "evidence": {
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ],
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "doc_id": "01_금융소비자보호법"
+        },
+        "item_code": "DEP-BAN-001",
+        "decided_by": "L2",
+        "utterance_ref": "01M1RAZVZWX2AC8KV9DM3SWPWP"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZW0DRKX39H9MPTXCT1BS",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 25,
+      "occurred_at": "2026-09-05T08:29:33.581+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "alert",
+      "supersedes": null,
+      "alert": {
+        "message": "설명서 기준 확인이 필요합니다: 단정적 판단 금지",
+        "evidence": {
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ],
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "doc_id": "01_금융소비자보호법"
+        },
+        "severity": "warning",
+        "item_code": "DEP-BAN-001",
+        "alert_type": "forbidden_phrase",
+        "utterance_ref": "01M1RAZVZWX2AC8KV9DM3SWPWP"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RAZX6534K80W51VTS764MG",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 26,
+      "occurred_at": "2026-09-05T08:29:34.789+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": "01M1RAZW0DRKX39H9MPTXCT1BR",
+      "verdict": {
+        "axis": "commission",
+        "state": "violated",
+        "evidence": {
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ],
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "doc_id": "01_금융소비자보호법"
+        },
+        "item_code": "DEP-BAN-001",
+        "confidence": 1,
+        "decided_by": "L3",
+        "utterance_ref": "01M1RAZVZWX2AC8KV9DM3SWPWP"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB03F6ETQ8P48HB6QKG353",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 27,
+      "occurred_at": "2026-09-05T08:29:41.222+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 76658,
+        "text": "그래요.",
+        "speaker": "customer",
+        "duration_ms": 3840,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB03FPN1XFV5TC38J39DYP",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 28,
+      "occurred_at": "2026-09-05T08:29:41.238+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 76658,
+        "text": "그럼 그냥 두는 게 낫겠네요.",
+        "speaker": "customer",
+        "duration_ms": 3840,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB0G00WJQ1BXRJEADFE3S9",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 29,
+      "occurred_at": "2026-09-05T08:29:54.048+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 89485,
+        "text": "죄송합니다.",
+        "speaker": "teller",
+        "duration_ms": 10480,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB0G0CBZK2Z4774GBRKXGK",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 30,
+      "occurred_at": "2026-09-05T08:29:54.060+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 89485,
+        "text": "정확히 다시 말씀드릴게요.",
+        "speaker": "teller",
+        "duration_ms": 10480,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB0G0NGWRSWGN8JAFDDT30",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 31,
+      "occurred_at": "2026-09-05T08:29:54.069+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 89485,
+        "text": "만기 후에는 약전 기율이 아니라 만기 후이 자유리 적용되고 경과 기간에 따라 더 낮아집니다.",
+        "speaker": "teller",
+        "duration_ms": 10480,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB0HZZXR54C6ZP3FT18YRF",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 32,
+      "occurred_at": "2026-09-05T08:29:56.095+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "met",
+        "evidence": {
+          "bbox": [
+            146.9,
+            104.5,
+            423.8,
+            114.0
+          ],
+          "page": 1,
+          "span": "1개월 이내 : 약정만기일 당일 해당 상품의 기본이자율 * 0.5",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-003",
+        "decided_by": "L3",
+        "utterance_ref": "01M1RB0G0NGWRSWGN8JAFDDT30"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB0Q8AEDT9QS9WZE2FK4KZ",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 33,
+      "occurred_at": "2026-09-05T08:30:01.482+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 96918,
+        "text": "세금도 정정하겠습니다.",
+        "speaker": "teller",
+        "duration_ms": 6560,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB0Q8WMS01JVVWN7D8PVKH",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 34,
+      "occurred_at": "2026-09-05T08:30:01.500+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 96918,
+        "text": "이제 과세되는 세율은 15.4%입니다.",
+        "speaker": "teller",
+        "duration_ms": 6560,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB12WGWSRP39NTYDAJH5CS",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 35,
+      "occurred_at": "2026-09-05T08:30:13.392+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 108829,
+        "text": "중도 해지 이율은 약전 기율의 예치 기간별 차감률을 곱해서 계산되는데 석 달 안에 해지하시면은 약전 기율의 절반 정도만 받으세요.",
+        "speaker": "teller",
+        "duration_ms": 9680,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB12WYB1MG3S45PGGG84B4",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 36,
+      "occurred_at": "2026-09-05T08:30:13.406+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": "01M1RAZ38BQ0CQTR1RHY4BY1VC",
+      "verdict": {
+        "axis": "omission",
+        "state": "met",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RB12WGWSRP39NTYDAJH5CS"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB12X0WR05J70ZJJTMJ8CX",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 37,
+      "occurred_at": "2026-09-05T08:30:13.408+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "assist",
+      "supersedes": "01M1RAZ38BQ0CQTR1RHY4BY1VD",
+      "assist": {
+        "text": "중도해지 이자율: 차감률 또는 산출식 안내가 남아 있습니다",
+        "outcome": "adopted",
+        "trigger": "missing_item",
+        "evidence": {
+          "bbox": [
+            147.0,
+            378.9,
+            420.2,
+            388.4
+          ],
+          "page": 2,
+          "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-INT-002",
+        "assist_type": "nudge",
+        "source_utterance_ref": "01M1RAZ1NJEFCHNCWM5DKN98PR"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB1B55322JV6GNBQYPDYA2",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 38,
+      "occurred_at": "2026-09-05T08:30:21.861+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 117298,
+        "text": "대신 해지하지 않고 예금담보대출을 이용하시면 예금은 그대로 두고 필요한 금액만 빌리실 수 있습니다.",
+        "speaker": "teller",
+        "duration_ms": 7120,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB1KJPS8V485T1GFKWWSKT",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 39,
+      "occurred_at": "2026-09-05T08:30:30.486+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 125923,
+        "text": "참고로 이 예금은 예금자 보호법에 따라 원금과 이자 포함 1인당 1억 원까지 보호됩니다.",
+        "speaker": "teller",
+        "duration_ms": 6960,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB1KK9ACKW34Y13QW5PB83",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 40,
+      "occurred_at": "2026-09-05T08:30:30.505+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "partial",
+        "evidence": {
+          "bbox": [
+            215.3,
+            311.9,
+            564.0,
+            343.0
+          ],
+          "page": 2,
+          "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지” (본 은행의 여타 보호상품과 합산)보호됩니다.",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-PRO-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RB1KJPS8V485T1GFKWWSKT",
+        "missing_elements": [
+          "동일 은행 합산"
+        ]
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB1N4MRMCWFSP1HPGQNTR7",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 41,
+      "occurred_at": "2026-09-05T08:30:32.084+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "verdict",
+      "supersedes": "01M1RB1KK9ACKW34Y13QW5PB83",
+      "verdict": {
+        "axis": "omission",
+        "state": "partial",
+        "evidence": {
+          "bbox": [
+            215.3,
+            311.9,
+            564.0,
+            343.0
+          ],
+          "page": 2,
+          "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지” (본 은행의 여타 보호상품과 합산)보호됩니다.",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-PRO-001",
+        "confidence": 1,
+        "decided_by": "L3",
+        "utterance_ref": "01M1RB1KJPS8V485T1GFKWWSKT",
+        "missing_elements": [
+          "동일 은행 합산"
+        ]
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB1N4MRMCWFSP1HPGQNTR8",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 42,
+      "occurred_at": "2026-09-05T08:30:32.084+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "assist",
+      "supersedes": null,
+      "assist": {
+        "text": "예금자보호 대상과 한도: 동일 은행 합산 안내가 남아 있습니다",
+        "trigger": "missing_item",
+        "evidence": {
+          "bbox": [
+            215.3,
+            311.9,
+            564.0,
+            343.0
+          ],
+          "page": 2,
+          "span": "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지” (본 은행의 여타 보호상품과 합산)보호됩니다.",
+          "doc_id": "05_상품설명서_정기예금"
+        },
+        "item_code": "DEP-PRO-001",
+        "assist_type": "nudge",
+        "source_utterance_ref": "01M1RB1KJPS8V485T1GFKWWSKT"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB1T51QTNKDQ0YFSG4E5JW",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 43,
+      "occurred_at": "2026-09-05T08:30:37.217+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 132654,
+        "text": "아니요, 그냥 해지할게요.",
+        "speaker": "customer",
+        "duration_ms": 2240,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB1YTAFQXY52RZZTV503J3",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 44,
+      "occurred_at": "2026-09-05T08:30:41.994+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 137431,
+        "text": "해지한 돈은 딸이 알려준 계좌로 바로 보내주세요.",
+        "speaker": "customer",
+        "duration_ms": 4400,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB1YTYJWJWR78W1BHB0Y6G",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 45,
+      "occurred_at": "2026-09-05T08:30:42.014+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "alert",
+      "supersedes": null,
+      "alert": {
+        "message": "위험 신호: 제3자 계좌 위험 신호. 본인 의사와 거래 목적 확인이 필요합니다",
+        "evidence": {
+          "bbox": [
+            54.6,
+            686.4,
+            541.1,
+            696.7
+          ],
+          "page": 2,
+          "span": "② 거래처는 현금이나 증권으로 계좌송금(거래처가 개설점 이외에서 자기 계좌에 입금하거나, 제3자가",
+          "doc_id": "03_예금거래기본약관"
+        },
+        "severity": "critical",
+        "item_code": "DEP-RSK-001",
+        "alert_type": "risk_signal",
+        "utterance_ref": "01M1RB1YTAFQXY52RZZTV503J3"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB29AEAPPKVYT2YAHMT7J5",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 46,
+      "occurred_at": "2026-09-05T08:30:52.750+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 148187,
+        "text": "고객님, 혹시 따님과 직접 통화는 해보셨어요?",
+        "speaker": "teller",
+        "duration_ms": 6560,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB29AW187PB6DJVSD79SCM",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 47,
+      "occurred_at": "2026-09-05T08:30:52.764+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 148187,
+        "text": "확인 후에 진행하겠습니다.",
+        "speaker": "teller",
+        "duration_ms": 6560,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB29B6MCDH09V9VAHBZT43",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 48,
+      "occurred_at": "2026-09-05T08:30:52.774+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 148187,
+        "text": "신분증 먼저 주시겠어요?",
+        "speaker": "teller",
+        "duration_ms": 6560,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB36FNEY09GS7YGFBBJSKC",
+      "session_id": "01M1RAXNCYY8JCK23GRXJC26VP",
+      "seq_in_session": 49,
+      "occurred_at": "2026-09-05T08:31:22.613+00:00",
+      "pack_version": "DEP-2026.08-v4",
+      "kind": "session_ended",
+      "supersedes": null,
+      "session_ended": {
+        "reason": "normal",
+        "summary": {
+          "met": 4,
+          "unmet": 1,
+          "alerts": 3,
+          "waived": 0,
+          "partial": 1,
+          "violations": 1,
+          "items_total": 6,
+          "assists_adopted": 2
+        },
+        "duration_ms": 178047
+      }
+    }
+  ],
+  "config": {
+    "stt_model": "Qwen/Qwen3-ASR-1.7B",
+    "stt_endpoint": "http://127.0.0.1:18100/v1/audio/transcriptions",
+    "llm_provider": "openrouter",
+    "llm_model": "qwen/qwen3-8b",
+    "reasoning": false,
+    "l3_budget_ms": 3000,
+    "speaker_hold_ms": 3000
+  },
+  "sha256": {
+    "audio.wav": "ec5e219516a5def0c8b800263ad525c36e796d449d4851d689217242d4634a0f",
+    "script.json": "4becdf2efca202f2f545313a59adef4383cf969f3147416b499551f0aeb796df"
+  }
+}

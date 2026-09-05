@@ -15,17 +15,18 @@ from engine.tiers.l1 import matcher
 from engine.tiers.l1.gate import gate
 from engine.types import RulePack, SessionState
 
-_PERCENT = r"(?:%|퍼센트|프로|퍼(?!센|포))(?!\s*(?:포인트|[pP]))"
+_PERCENT = r"(?:%|퍼\s*센트|프로|퍼(?!\s*(?:센|포)))(?!\s*(?:포인트|[pP]))"
 _NUMBER = re.compile(
     r"(?<![\d.,])(?P<digits>[+-]?\d+(?:\.\d+)?)\s*"
     rf"(?P<unit>{_PERCENT}|회|개월|만원|원|일|년)"
-    r"|(?<![가-힣\d.])(?P<korean>[\d영공일이삼사오육칠팔구십백천만억조점]+"
+    r"|(?<![가-힣\d.])(?:연\s*)?(?P<sign>[+-]?)"
+    r"(?P<korean>[\d영공일이삼사오육칠팔구십백천만억조점]+"
     r"(?:\s+[\d영공일이삼사오육칠팔구십백천만억조점]+)*)"
     rf"\s*(?P<kunit>{_PERCENT})"
 )
 _UNIT = {"퍼센트": "%", "프로": "%", "퍼": "%"}
 _DIGITS = dict(zip("영일이삼사오육칠팔구", "0123456789", strict=True)) | {"공": "0"}
-# ponytail: 한글 수사는 0~9999와 '점' 뒤 낱자리만 지원. 그 밖의 수사는 실측 사례로 확장한다.
+# ponytail: 한글 정수는 0~9999, '점' 뒤는 낱자리만 지원. 그 밖은 실측 사례로 확장한다.
 _INTEGER = re.compile(
     r"(?:[일이삼사오육칠팔구]?천)?(?:[일이삼사오육칠팔구]?백)?"
     r"(?:[일이삼사오육칠팔구]?십)?[일이삼사오육칠팔구]?|[영공]"
@@ -39,21 +40,22 @@ def _number(m: re.Match[str]) -> tuple[float, str, str] | None:
     unit = m["unit"]
     if raw is None:
         integer, point, decimal = re.sub(r"\s+", "", m["korean"]).partition("점")
-        if not integer or not _INTEGER.fullmatch(integer):
+        if not integer or not (integer.isdecimal() or _INTEGER.fullmatch(integer)):
             return None
-        if point and (not decimal or any(c not in _DIGITS for c in decimal)):
+        if point and (not decimal or any(c not in _DIGITS and not c.isdecimal() for c in decimal)):
             return None
         total = digit = 0
-        for c in integer:
+        for c in "" if integer.isdecimal() else integer:
             if c in _DIGITS:
                 digit = int(_DIGITS[c])
             else:
                 total += (digit or 1) * {"십": 10, "백": 100, "천": 1000}[c]
                 digit = 0
-        raw = str(total + digit)
+        raw = m["sign"] + str(int(integer) if integer.isdecimal() else total + digit)
         if decimal:
-            raw += "." + "".join(_DIGITS[c] for c in decimal)
+            raw += "." + "".join(_DIGITS.get(c, c) for c in decimal)
         unit = m["kunit"]
+    unit = re.sub(r"\s+", "", unit)
     unit = _UNIT.get(unit, unit)
     return float(raw), unit, f"{raw}{unit}"
 
@@ -83,11 +85,14 @@ def check(
             targets = _targets(text[m.end() :], unit, pack, compiled)
         if not targets and state.recent_utterances:
             previous = state.recent_utterances[-1]
-            gap = utterance.t_ms - previous.t_ms - (previous.duration_ms or 0)
+            elapsed = utterance.t_ms - previous.t_ms
+            # 같은 STT 구간에서 나눈 문장들은 시각·길이를 공유한다. 겹침은 간격 0이다.
+            gap = max(0, elapsed - (previous.duration_ms or 0))
             if (
                 previous.utterance_id != utterance.utterance_id
                 and "required" in gate(previous).types
-                and 0 <= gap <= CONTEXT_GAP_MS
+                and elapsed >= 0
+                and gap <= CONTEXT_GAP_MS
             ):
                 targets = [
                     (item, ref)
