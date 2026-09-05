@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ApiSessionSummary } from '../lib/api';
 import { traceCandidates } from '../lib/trace-source';
+import { modeNames, whenLabel } from '../lib/workspace-model';
 import { Empty, Modal, Notice, PagedList, TextPages, useResource } from './workspace';
 
 export function TraceSourcePicker({ trace, busy, error, onClose, onPlay }: { trace: ApiSessionSummary; busy: boolean; error: string; onClose: () => void; onPlay: (record: ApiSessionSummary) => void }) {
@@ -14,7 +15,7 @@ export function TraceSourcePicker({ trace, busy, error, onClose, onPlay }: { tra
     <div className="wb-trace-picker" hidden={preview !== null}>
       <p>이 TRACE에는 원본 연결이 저장되지 않았습니다. 같은 상품의 저장된 상담을 선택하면 바로 재생합니다.</p>
       <div className="wb-toolbar"><input type="search" aria-label="재생할 상담 검색" placeholder="날짜·발화·세션 ID 검색" value={query} onChange={event => setQuery(event.target.value)} /><button disabled={busy || result.loading} onClick={result.refresh}>새로고침</button></div>
-      {result.loading ? <Empty>저장된 발화와 판정을 확인하고 있습니다.</Empty> : <PagedList key={query} label="재생할 상담" rowHeight={110} items={items} empty={result.error ? '저장 기록을 불러오지 못했습니다. 새로고침으로 다시 시도해 주세요.' : query ? '검색 결과가 없습니다.' : '같은 상품에 재생할 발화·판정이 없습니다.'} render={candidate => <div className="wb-trace-candidate" data-trace-candidate={candidate.record.session_id}><div><strong>{candidate.record.product_name ?? candidate.record.pack_version}</strong><small>{new Date(candidate.record.started_at).toLocaleString('ko-KR')} · {candidate.record.mode.toUpperCase()} · 발화 {candidate.utterances}개</small><button className="wb-trace-preview" disabled={!candidate.playable} onClick={() => setPreview({ text: candidate.preview, record: candidate.record })} title="첫 발화 전체 보기">{candidate.error ?? candidate.preview}</button></div><button className="wb-primary" disabled={busy || !candidate.playable} onClick={() => onPlay(candidate.record)}>{busy ? '연결 중…' : '이 상담 재생'}</button></div>} />}
+      {result.loading ? <Empty>저장된 발화와 판정을 확인하고 있습니다.</Empty> : <PagedList key={query} label="재생할 상담" rowHeight={110} items={items} empty={result.error ? '저장 기록을 불러오지 못했습니다. 새로고침으로 다시 시도해 주세요.' : query ? '검색 결과가 없습니다.' : '같은 상품에 재생할 발화·판정이 없습니다.'} render={candidate => <div className="wb-trace-candidate" data-trace-candidate={candidate.record.session_id}><div><strong>{candidate.record.product_name ?? candidate.record.pack_version}</strong><small>{whenLabel(candidate.record.started_at)} · {modeNames[candidate.record.mode]} · 발화 {candidate.utterances}개</small><button className="wb-trace-preview" disabled={!candidate.playable} onClick={() => setPreview({ text: candidate.preview, record: candidate.record })} title="첫 발화 전체 보기">{candidate.error ?? candidate.preview}</button></div><button className="wb-primary" disabled={busy || !candidate.playable} onClick={() => onPlay(candidate.record)}>{busy ? '연결 중…' : '이 상담 재생'}</button></div>} />}
     </div>
     {preview !== null && <><button onClick={() => setPreview(null)}>상담 목록으로</button><TextPages text={preview.text} /></>}
   </Modal>;

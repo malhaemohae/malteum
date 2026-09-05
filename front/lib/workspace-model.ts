@@ -34,6 +34,11 @@ export function displayValue(value: unknown, key = ''): string {
 }
 export function displayField(key: string) { return fieldNames[key] ?? ({ label: '변경 내용', kind: '기록 유형', axis: '검토 항목', speaker: '화자', title: '문서명', publisher: '발행 기관', snapshot_date: '기준일', url: '원문 주소', pack_version: '규정 팩 버전', session_id: '상담 번호', mode: '입력 방식', required: '필수 여부', trigger: '안내 계기', source_utterance_ref: '관련 발화', approved_at: '승인 시각', approved_by: '승인자' } as Record<string, string>)[key] ?? key; }
 export function recordText(row: Record<string, unknown>) { return Object.entries(row).filter(([, value]) => value != null).map(([key, value]) => `${displayField(key)}\n${displayValue(value, key)}`).join('\n\n'); }
+// Modes are protocol values; tellers see Korean words, never the wire codes.
+export const modeNames: Record<Mode, string> = { live: '실시간', text: '텍스트', replay: '음원 시연', trace: '기록 재생' };
+export const whenLabel = (iso: string) => { const date = new Date(iso); return Number.isNaN(date.getTime()) ? iso : date.toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };
+// Server error strings are terse and lean on acronyms. Say the same thing the way the screen already does.
+export const friendlyError = (message?: string) => !message ? '' : /STT/.test(message) && /설정/.test(message) ? '음성 전사 서버가 설정되지 않았습니다. 녹음은 되지만 전사·판정에는 STT(음성을 글자로 바꾸는 서비스) 설정이 필요합니다.' : message;
 export const timeLabel = (seconds: number) => `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
 export const errorText = (error: unknown) => error instanceof Error ? error.name === 'TimeoutError' || error.name === 'AbortError' ? '서버 응답이 지연되고 있습니다. 연결을 확인한 뒤 다시 시도해 주세요.' : error.message : '요청을 처리하지 못했습니다.';
 export const textValue = (value: unknown): string => value == null ? '' : typeof value === 'object' ? Array.isArray(value) ? value.map(textValue).join(' · ') : Object.entries(value).map(([key, entry]) => `${fieldNames[key] ?? key}: ${textValue(entry)}`).join('\n') : String(value);

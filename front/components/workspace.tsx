@@ -5,15 +5,15 @@ import { errorText, NavItem, Screen } from '../lib/workspace-model';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
 
 export function Workbench({ screen, title, subtitle, actions, onNavigate, onNew, children }: { screen: Screen; title: string; subtitle?: string; actions?: ReactNode; onNavigate: (nav: NavItem) => void; onNew: () => void; children: ReactNode }) {
-  const links: { label: NavItem; active: boolean; icon: WorkspaceIconName }[] = [
+  const links: { label: NavItem; text?: string; active: boolean; icon: WorkspaceIconName }[] = [
     { label: '상담', active: ['briefing', 'dashboard'].includes(screen), icon: 'conversation' },
     { label: '리포트', active: screen === 'report', icon: 'document' },
     { label: '이력', active: ['history', 'playback'].includes(screen), icon: 'history' },
-    { label: '기준 관리', active: ['packs', 'documents'].includes(screen), icon: 'book' },
+    { label: '기준 관리', text: '규정 관리', active: ['packs', 'documents'].includes(screen), icon: 'book' },
   ];
   return <div className="wb wb-service" data-workspace={screen}>
     <aside className="wb-sidebar"><a href="#" className="wb-brand" aria-label="말틈 홈" onClick={event => { event.preventDefault(); onNew(); }}><img src="/assets/malteum-logo.png" alt="말틈" /></a>
-      <nav aria-label="주 메뉴">{links.map(link => <button key={link.label} type="button" aria-current={link.active ? 'page' : undefined} onClick={() => onNavigate(link.label)}><span aria-hidden="true"><WorkspaceIcon name={link.icon} /></span>{link.label}</button>)}</nav>
+      <nav aria-label="주 메뉴">{links.map(link => <button key={link.label} type="button" aria-current={link.active ? 'page' : undefined} onClick={() => onNavigate(link.label)}><span aria-hidden="true"><WorkspaceIcon name={link.icon} /></span>{link.text ?? link.label}</button>)}</nav>
       <button className="wb-new" type="button" onClick={onNew}>＋ 새 상담</button>
     </aside>
     <main className="wb-main"><header className="wb-heading"><div><h1>{title}</h1>{subtitle && <p title={subtitle}>{subtitle}</p>}</div><div className="wb-actions">{actions}{['report', 'history', 'playback'].includes(screen) && <button className="wb-mobile-new" onClick={onNew}>새 상담</button>}</div></header><div className="wb-body">{children}</div></main>

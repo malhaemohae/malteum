@@ -15,7 +15,7 @@
 .wb-service .wb-heading p{margin-top:6px}
 .wb-service .wb-panel{box-shadow:0 2px 5px #17394204;border-color:var(--line);border-radius:13px}
 .wb-service .wb-dashboard{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,26vw,370px);grid-template-rows:auto minmax(0,1fr);gap:16px 18px;min-height:0}
-.wb-service .wb-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;grid-column:1;grid-row:1}
+.wb-service .wb-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;grid-column:1;grid-row:1}
 .wb-service .wb-shortcut{--shortcut-bg:#087e9f;--shortcut-ink:#fff;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;min-height:116px;padding:16px;border-radius:13px;border:1px solid transparent;background:var(--shortcut-bg);color:var(--shortcut-ink);text-align:left;gap:12px;white-space:normal}
 .wb-service .wb-shortcut:hover:not(:disabled){background:var(--shortcut-bg);color:var(--shortcut-ink);border-color:transparent;box-shadow:inset 0 0 0 2px #ffffff75}
 .wb-service .wb-shortcut.is-checks{--shortcut-bg:#55b4d0;--shortcut-ink:#123c4a}
