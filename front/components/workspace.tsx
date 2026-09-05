@@ -1,6 +1,6 @@
 'use client';
 
-import { DependencyList, ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { DependencyList, KeyboardEvent, ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ApiEvidence, apiUrl } from '../lib/api';
 import { errorText, NavItem, Screen } from '../lib/workspace-model';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
@@ -91,11 +91,18 @@ export function TextPages({ text, label = '내용' }: { text: string; label?: st
   return <div className="wb-reader"><div className="wb-reader-area" ref={container}><div className="wb-reader-copy" data-reader-copy>{pages[Math.min(page, pages.length - 1)]}</div><div className="wb-reader-copy wb-probe" ref={probe} aria-hidden="true" /></div><Pager label={label} page={Math.min(page, pages.length - 1)} count={pages.length} onChange={setPage} /></div>;
 }
 
-export function Modal({ title, onClose, children, actions }: { title: string; onClose: () => void; children: ReactNode; actions?: ReactNode }) {
+export function Modal({ title, onClose, children, actions, className = '', trapFocus = false }: { title: string; onClose: () => void; children: ReactNode; actions?: ReactNode; className?: string; trapFocus?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   const frame = usePulse<HTMLDivElement>(title);
   useEffect(() => { const node = ref.current; const previous = document.activeElement as HTMLElement | null; node?.showModal(); return () => { node?.close(); if (previous?.isConnected) previous.focus(); }; }, []);
-  return <dialog ref={ref} className="wb-modal" onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }} aria-label={title}><div ref={frame} className="wb-modal-frame"><header className="wb-panel-head"><h2>{title}</h2><button type="button" autoFocus aria-label="닫기" onClick={onClose}>✕</button></header><div className="wb-modal-body">{children}</div>{actions && <footer className="wb-actions">{actions}</footer>}</div></dialog>;
+  function keepFocus(event: KeyboardEvent<HTMLDialogElement>) {
+    if (!trapFocus || event.key !== 'Tab') return;
+    const elements = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button,a[href],input,select,textarea,[tabindex]')).filter(node => node.tabIndex >= 0 && !node.matches(':disabled') && node.getClientRects().length > 0);
+    const first = elements[0], last = elements[elements.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  }
+  return <dialog ref={ref} className={`wb-modal ${className}`} onKeyDown={keepFocus} onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }} aria-label={title}><div ref={frame} className="wb-modal-frame"><header className="wb-panel-head"><h2>{title}</h2><button type="button" autoFocus aria-label="닫기" onClick={onClose}>✕</button></header><div className="wb-modal-body">{children}</div>{actions && <footer className="wb-actions">{actions}</footer>}</div></dialog>;
 }
 
 export function sourceUrl(value?: string) { try { const parsed = new URL(value ?? ''); return ['https:', 'http:'].includes(parsed.protocol) ? parsed.href : undefined; } catch { return undefined; } }

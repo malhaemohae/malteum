@@ -10,7 +10,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||path.join(process.env.US
   await page.goto('http://localhost:3000',{waitUntil:'networkidle'});await page.getByRole('button',{name:/상담 시작|시작하기|대시보드/}).first().click();await page.getByRole('button',{name:'상담 시작 →'}).click();
   await page.getByRole('button',{name:'● 녹음 시작'}).waitFor();await page.waitForTimeout(8000);
   const before={packets,utterances:messages.filter(m=>m.t==='utterance').length};assert.equal(packets,0);
-  await page.getByRole('button',{name:'● 녹음 시작'}).click();await page.getByRole('button',{name:'■ 녹음 중지'}).waitFor();await page.waitForTimeout(32000);
+  await page.getByRole('button',{name:'● 녹음 시작'}).click();await page.getByRole('button',{name:'이어서 녹음 시작',exact:true}).click();await page.getByRole('button',{name:'■ 녹음 중지'}).waitFor();await page.waitForTimeout(32000);
   await page.getByRole('button',{name:'■ 녹음 중지'}).click();await page.waitForTimeout(3000);
   const result={id,before,silence:{packets,nonzero,utterances:messages.filter(m=>m.t==='utterance').map(m=>({text:m.text,t_ms:m.t_ms}))},errors:messages.filter(m=>m.t==='error')};
   await page.getByRole('button',{name:'상담 종료',exact:true}).click();await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor();

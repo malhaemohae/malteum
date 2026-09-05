@@ -25,6 +25,7 @@ const base = process.env.QA_BASE_URL || 'http://127.0.0.1:3000';
     await page.getByRole('button',{name:'상담 시작하기',exact:false}).first().click();
     await page.getByRole('button',{name:'상담 시작 →'}).click();
     await page.getByRole('button',{name:'● 녹음 시작'}).click();
+    await page.getByRole('button',{name:'이어서 녹음 시작',exact:true}).click();
     const deadline=Date.now()+90000;
     while (Date.now()<deadline && !messages.some(value=>value.t==='alert'&&value.alert_type==='number_mismatch')) {
       await page.waitForTimeout(500);
