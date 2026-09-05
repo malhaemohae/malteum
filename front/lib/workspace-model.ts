@@ -36,7 +36,6 @@ export function displayValue(value: unknown, key = ''): string {
   return value;
 }
 export function displayField(key: string) { return fieldNames[key] ?? ({ label: '변경 내용', kind: '기록 유형', axis: '검토 항목', speaker: '화자', title: '문서명', publisher: '발행 기관', snapshot_date: '기준일', url: '원문 주소', pack_version: '규정 팩 버전', session_id: '상담 번호', mode: '입력 방식', required: '필수 여부', trigger: '안내 계기', source_utterance_ref: '관련 발화', approved_at: '승인 시각', approved_by: '승인자' } as Record<string, string>)[key] ?? key; }
-export function recordText(row: Record<string, unknown>) { return Object.entries(row).filter(([, value]) => value != null).map(([key, value]) => `${displayField(key)}\n${displayValue(value, key)}`).join('\n\n'); }
 // Modes are protocol values; tellers see Korean words, never the wire codes.
 export const modeNames: Record<Mode, string> = { live: '실시간', text: '텍스트', replay: '음원 시연', trace: '기록 재생' };
 export const whenLabel = (iso: string) => { const date = new Date(iso); return Number.isNaN(date.getTime()) ? iso : date.toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };

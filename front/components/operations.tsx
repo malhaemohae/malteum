@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ApiDocument, ApiPackItem, ApiPreset, ApiSessionSummary, malteumApi } from '../lib/api';
-import { displayField, displayValue, recordText, errorText, evidenceForItem, itemTypeNames, latestPacks, modeNames, NavItem, statusNames, textValue, timeLabel, whenLabel } from '../lib/workspace-model';
+import { displayField, displayValue, errorText, evidenceForItem, itemTypeNames, latestPacks, modeNames, NavItem, statusNames, textValue, timeLabel, whenLabel } from '../lib/workspace-model';
 import { EvidenceCard } from './evidence';
 import { rememberedSessionIds } from '../lib/session-index';
 import { HistoryAction, traceBlockedReason } from '../lib/session-recovery';
@@ -12,7 +12,6 @@ import { DetailSections, Empty, EvidenceView, Feedback, KeyValueList, Modal, Not
 type Navigation = { onNavigate: (nav: NavItem) => void; onNew: () => void };
 function Failure({ error, retry }: { error: string; retry: () => void }) { return <Notice action={<button onClick={retry}>다시 불러오기</button>}>{error}</Notice>; }
 const labelFor = displayField;
-const detailText = recordText;
 // One row per field; nested values keep their readable text form.
 function recordRows(row: Record<string, unknown>) { return Object.entries(row).filter(([, value]) => value != null && value !== '').map(([key, value]) => ({ label: displayField(key), value: <span className="wb-kv-text">{displayValue(value, key)}</span> })); }
 type ReportTab = 'omission' | 'commission' | 'comprehension' | 'risk_signals' | 'timeline';

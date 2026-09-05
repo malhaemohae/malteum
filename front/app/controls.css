@@ -6,7 +6,7 @@
 /* 1. Selection policy */
 .wb,.wb-modal,.mlp{-webkit-user-select:none;user-select:none}
 .wb img,.wb-modal img,.mlp img{-webkit-user-drag:none;user-drag:none}
-.wb-reader-copy,.wb-chat-text,.wb-evidence-meta,.wb-speaker-script,.wb-trace-start-content p,
+.wb-reader-copy,.wb-chat-text,.wb-speaker-script,.wb-trace-start-content p,
 .wb input,.wb textarea,.wb-modal input,.wb-modal textarea{-webkit-user-select:text;user-select:text}
 
 /* 2. Select control (closed state, every browser) */

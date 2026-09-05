@@ -18,11 +18,6 @@
 .wb-check-row .wb-row-copy small{font-size:11px;font-weight:400}
 .wb-check-actions{display:flex;gap:6px}
 .wb .wb-check-actions button{font-size:12px;padding:4px 7px;min-height:28px;flex:1}
-.wb-evidence-content{display:flex;flex:1;min-height:0;gap:18px}
-.wb-evidence-content[data-wide=true]{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}
-.wb-evidence-content>.wb-page-image{overflow:hidden}
-.wb-evidence-content>.wb-page-image[hidden]{display:none}
-.wb-evidence-content .wb-page-canvas{height:auto;width:100%;align-self:center;max-height:100%}
 .wb .wb-document-picker{flex:1;min-width:130px;max-width:600px}
 .wb .wb-document-picker select{max-width:100%}
 .wb .wb-mobile-new{display:none}
@@ -32,7 +27,6 @@
 @media(max-width:480px){.wb-feedback{flex-wrap:wrap}.wb-feedback>button{margin-left:auto}.wb-service[data-workspace=report] .wb-heading{align-items:flex-start}.wb-service[data-workspace=report] .wb-heading>.wb-actions{justify-content:flex-end;flex:1}.wb-service[data-workspace=report] .wb-report-version{flex-basis:100%;text-align:right;border:0;padding:0}}
 @keyframes wb-wait{to{rotate:360deg}}
 .wb-processing-notice{font-size:11px;line-height:1.5;color:#59747d}
-.wb-evidence-meta a{display:inline-block;margin-left:8px;text-decoration:underline;text-underline-offset:3px}
 .wb-candidate-edit{display:flex;flex:1;min-height:0;flex-direction:column;gap:8px}
 .wb-candidate-edit label{display:flex;flex:1;min-height:0;flex-direction:column;gap:8px}
 .wb-candidate-edit textarea{flex:1;min-height:70px;resize:none}
