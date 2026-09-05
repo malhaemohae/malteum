@@ -41,9 +41,11 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
   </Workbench>;
 }
 
-export function HistoryScreen({ onOpen, onStartPreset, busy, error, ...navigation }: Navigation & { onOpen: (record: ApiSessionSummary, action: HistoryAction) => void; onStartPreset: (preset: ApiPreset) => void; busy: boolean; error: string }) {
+export function HistoryScreen({ onOpen, onStartPreset, busy, error, initialView = 'sessions', ...navigation }: Navigation & { onOpen: (record: ApiSessionSummary, action: HistoryAction) => void; onStartPreset: (preset: ApiPreset) => void; busy: boolean; error: string; initialView?: 'sessions' | 'presets' }) {
   const [mode, setMode] = useState('');
-  const [view, setView] = useState<'sessions' | 'presets'>('sessions');
+  const [view, setView] = useState<'sessions' | 'presets'>(initialView);
+  // 상담 준비에서 시연 음원을 바로 부르면 그 탭으로 연다.
+  useEffect(() => { setView(initialView); }, [initialView]);
   const presets = useResource(() => malteumApi.presets());
   const packCatalog = useResource(() => malteumApi.packs());
   const latestPackVersions = new Set(latestPacks(packCatalog.data?.packs ?? []).map(pack => pack.pack_version));

@@ -20,7 +20,7 @@ import { Empty, Modal, Notice, TextPages } from './workspace';
 import { EvidenceView, loadEvidence } from './evidence';
 
 export default function Application() {
-  const [screen, setScreen] = useState<Screen>('landing'); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
+  const [screen, setScreen] = useState<Screen>('landing'); const [historyView, setHistoryView] = useState<'sessions' | 'presets'>('sessions'); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
   const [pack, setPack] = useState<ApiPack | null>(null); const [health, setHealth] = useState<ApiHealth | null>(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ id: string; ended: boolean } | null>(null); const [newConfirm, setNewConfirm] = useState(false); const newAfterEnd = useRef(false);
   const [traceSelection, setTraceSelection] = useState<ApiSessionSummary | null>(null);
@@ -282,14 +282,15 @@ export default function Application() {
     } catch (reason) { clearReplayAudio(); setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
   }
   const navigation = { onNavigate: navigate, onNew: requestNew };
+  function openDemoAudio() { setHistoryView('presets'); navigate('이력'); }
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
-  else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} defaults={preparation.current} health={health} onCheckHealth={checkHealth} />;
+  else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} onDemo={openDemoAudio} defaults={preparation.current} health={health} onCheckHealth={checkHealth} />;
   else if ((screen === 'dashboard' || screen === 'playback') && session) page = <Dashboard {...navigation} session={session} pack={pack} health={health} micActive={micActive} micPending={micPending} micError={micError} replaySound={replaySound} onReplaySound={() => { void replayAudio.current?.toggle(); }} onMic={requestMic} onEnd={endSession} onRetry={() => connect(session, true)} onTextMode={() => { stopMic(); setMicError(''); update(value => value ? { ...value, textFallback: true, error: undefined } : value); }} onCommand={command} onDismiss={() => update(value => value ? { ...value, interventions: value.interventions.slice(1) } : value)} onEvidence={openEvidence} onItemEvidence={itemEvidence} onAsk={ask} />;
   else if (screen === 'report') page = <ReportScreen {...navigation} sessionId={reportTarget?.id ?? session?.id ?? null} onEvidence={openEvidence} onResume={record => openHistory(record, 'resume')} onTrace={record => openHistory(record, 'trace')} busy={busy} error={error} />;
   else if (screen === 'packs') page = <PackScreen {...navigation} />;
   else if (screen === 'documents') page = <DocumentsScreen {...navigation} />;
-  else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} busy={busy} error={error} />;
+  else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} initialView={historyView} busy={busy} error={error} />;
   return <>{page}{error && screen === 'briefing' && <Modal title="상담 연결 확인" className="wb-compact" onClose={() => setError('')}><TextPages text={error} /></Modal>}
     {micIntro && screen === 'dashboard' && session?.mode === 'live' && session.status === 'connected' && !session.ending && <SpeakerIntroModal onClose={() => setMicIntro(false)} onContinue={() => { void toggleMic(); }} />}
     {traceSelection && <TraceSourcePicker trace={traceSelection} busy={busy} error={error} onClose={() => { setTraceSelection(null); setError(''); }} onPlay={record => openHistory(record, 'trace')} />}
