@@ -1,7 +1,7 @@
 """증빙 리포트를 PDF 로 굽는다. 내용은 `report.build` 가 만든 것 그대로다.
 
 계약이 `/sessions/{id}/report` 와 `/report.pdf` 를 나란히 두고 **같은 내용**을 요구한다.
-그래서 여기서 값을 다시 계산하지 않는다 — `report.build` 의 결과를 받아 그리기만 한다.
+그래서 여기서 값을 다시 계산하지 않는다. `report.build` 의 결과를 받아 그리기만 한다.
 두 경로가 다른 수를 말하면 증빙으로서 못 쓴다.
 
 ## 왜 이 엔드포인트가 필요한가
@@ -45,6 +45,22 @@ STATE_LABEL = {
     "explained": "설명함",
     "confirmed": "이해 확인",
 }
+# 이벤트 타임라인과 경보 행의 label 은 프로토콜 값(영문 slug)을 그대로 담는다.
+# 화면은 이것을 번역해 보여 주는데 PDF 는 그대로 찍고 있었다. 같은 사전을 여기 둔다
+WIRE_LABEL = {
+    "teller": "상담원",
+    "customer": "고객",
+    "system": "시스템",
+    "number_mismatch": "숫자 확인",
+    "forbidden_phrase": "금지 표현",
+    "risk_signal": "위험 신호",
+    "term_density": "전문용어 밀도",
+    "rephrase": "쉬운 말",
+    "answer": "규정 답변",
+    "nudge": "미고지 알림",
+    "briefing": "브리핑",
+    "documents": "필요 서류",
+}
 AXIS_TITLE = {
     "omission": "필수 고지 (누락 축)",
     "commission": "금지 발언 (위반 축)",
@@ -65,6 +81,18 @@ def _font() -> None:
 def _wrap(text: str, width: int = WIDTH_CHARS) -> list[str]:
     text = " ".join(str(text).split())
     return [text[i : i + width] for i in range(0, len(text), width)] or [""]
+
+
+def _spoken(label: str) -> str:
+    """`teller: ...` · `number_mismatch: ...` 처럼 앞에 붙은 프로토콜 값과 `→ met` 같은
+    상태 값을 한국어로 바꾼다. 사전에 없으면 원문 그대로 둔다."""
+    head, sep, rest = label.partition(": ")
+    if sep and head in WIRE_LABEL:
+        label = f"{WIRE_LABEL[head]}{sep}{rest}"
+    before, found, state = label.rpartition(" → ")
+    if found and state in STATE_LABEL:
+        label = f"{before}{found}{STATE_LABEL[state]}"
+    return label
 
 
 def _ms(value: Any) -> str:
@@ -128,6 +156,7 @@ def render(report: dict[str, Any]) -> bytes:
         ("미고지", "unmet"),
         ("면제", "waived"),
         ("위반", "violations"),
+        ("경보", "alerts"),
     ):
         if (value := summary.get(key)) is not None:
             sheet.line(f"{label}: {value}", indent=4 * mm)
@@ -143,7 +172,9 @@ def render(report: dict[str, Any]) -> bytes:
                 # 금지 표현·숫자 오류 경보 행. 항목 상태가 아니라 발생 시각과 확인 여부가 뜻이다
                 seen = "확인함" if row.get("acknowledged") else "미확인"
                 sheet.line(
-                    f"{_ms(row.get('t_ms'))} [경보] {row.get('name', '')}: "
+                    f"{_ms(row.get('t_ms'))} "
+                    f"[{WIRE_LABEL.get(row.get('alert_type', ''), '경보')}] "
+                    f"{row.get('name', '')}: "
                     f"{row.get('message', '')} · {seen}",
                     indent=4 * mm,
                 )
@@ -164,7 +195,7 @@ def render(report: dict[str, Any]) -> bytes:
             seen = "확인함" if risk.get("acknowledged") else "미확인"
             sheet.line(
                 f"{_ms(risk.get('t_ms'))} [{risk.get('severity', '')}] "
-                f"{risk.get('message', '')} — {seen}",
+                f"{risk.get('message', '')} · {seen}",
                 indent=4 * mm,
             )
         sheet.rule()
@@ -172,7 +203,11 @@ def render(report: dict[str, Any]) -> bytes:
     if timeline := sections.get("timeline"):
         sheet.line("타임라인", size=12, gap=2 * mm)
         for row in timeline:
-            sheet.line(f"{_ms(row.get('t_ms'))} {row.get('label', '')}", size=8.5, indent=4 * mm)
+            sheet.line(
+                f"{_ms(row.get('t_ms'))} {_spoken(str(row.get('label', '')))}",
+                size=8.5,
+                indent=4 * mm,
+            )
         sheet.rule()
 
     # 출처와 면책은 상시 표기 대상이다(계약). 어느 문서 어느 시점 기준인지 남는다
