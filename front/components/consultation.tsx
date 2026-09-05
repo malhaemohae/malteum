@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApiHealth, ApiPack, ApiPackItem, malteumApi } from '../lib/api';
-import { kindNames, LiveSession, NavItem, ReadyItem, sessionScreen, statusNames, timeLabel } from '../lib/workspace-model';
+import { kindNames, latestPacks, LiveSession, NavItem, ReadyItem, sessionScreen, statusNames, timeLabel } from '../lib/workspace-model';
 import { Empty, Feedback, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
 import { speakerLabel, Transcript } from './transcript';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
@@ -17,9 +17,10 @@ function QuickAction({ title, subtitle, icon, tone, onClick, disabled, pressed, 
 export type Preparation = { packVersion?: string; mode: 'live' | 'text'; customer: 'general' | 'professional' };
 export function Briefing({ onStart, onNavigate, onNew, busy, defaults }: { onStart: (pack: ApiPack, mode: 'live' | 'text', customer: 'general' | 'professional') => void; onNavigate: (nav: NavItem) => void; onNew: () => void; busy: boolean; defaults?: Preparation }) {
   const packs = useResource(() => malteumApi.packs());
+  const choices = useMemo(() => latestPacks(packs.data?.packs ?? []), [packs.data]);
   const [version, setVersion] = useState(defaults?.packVersion ?? ''); const [mode, setMode] = useState<'live' | 'text'>(defaults?.mode ?? 'live'); const [customer, setCustomer] = useState<'general' | 'professional'>(defaults?.customer ?? 'general');
   const [detail, setDetail] = useState<{ title: string; text: string } | null>(null);
-  useEffect(() => { if (packs.data && !packs.data.packs.some(pack => pack.pack_version === version)) setVersion((packs.data.packs.find(pack => pack.product?.category === 'deposit') ?? packs.data.packs[0])?.pack_version ?? ''); }, [packs.data, version]);
+  useEffect(() => { if (packs.data && !choices.some(pack => pack.pack_version === version)) setVersion((choices.find(pack => pack.product?.category === 'deposit') ?? choices[0])?.pack_version ?? ''); }, [packs.data, choices, version]);
   const pack = useResource(() => version ? malteumApi.pack(version) : Promise.resolve(null), [version]);
   const briefing = useResource(() => version ? malteumApi.briefing(version, customer) : Promise.resolve(null), [version, customer]);
   const [pane, setPane] = useState<'items' | 'documents'>('items');
@@ -27,7 +28,7 @@ export function Briefing({ onStart, onNavigate, onNew, busy, defaults }: { onSta
     <Notice action={<button onClick={() => { packs.refresh(); pack.refresh(); briefing.refresh(); }}>다시 불러오기</button>}>{packs.error || pack.error || briefing.error}</Notice>
     {!packs.loading && !packs.error && packs.data?.packs.length === 0 && <Notice action={<button onClick={() => onNavigate('기준 관리')}>기준 관리</button>}>서버에 발행된 규정 팩이 없습니다. 팩이 준비되면 상담을 시작할 수 있습니다.</Notice>}
     <Panel className="wb-briefing" title="상담 기준">
-      <div className="wb-form"><label>상품·규정 팩<select aria-label="상품·규정 팩" value={version} disabled={busy || packs.loading || !packs.data?.packs.length} onChange={event => setVersion(event.target.value)}>{!packs.data?.packs.length && <option value={version}>{packs.loading ? '불러오는 중' : packs.error ? '팩 조회 실패' : '발행된 팩 없음'}</option>}{packs.data?.packs.map(item => <option key={item.pack_version} value={item.pack_version}>{item.product?.name ?? item.pack_version} · {item.pack_version}</option>)}</select></label>
+      <div className="wb-form"><label>상품·규정 팩<select aria-label="상품·규정 팩" value={version} disabled={busy || packs.loading || !packs.data?.packs.length} onChange={event => setVersion(event.target.value)}>{!packs.data?.packs.length && <option value={version}>{packs.loading ? '불러오는 중' : packs.error ? '팩 조회 실패' : '발행된 팩 없음'}</option>}{choices.map(item => <option key={item.pack_version} value={item.pack_version}>{item.product?.name ?? item.pack_version} · {item.pack_version}</option>)}</select></label>
         <label>고객 유형<select aria-label="고객 유형" value={customer} disabled={busy} onChange={event => setCustomer(event.target.value as typeof customer)}><option value="general">일반금융소비자</option><option value="professional">전문금융소비자</option></select></label></div>
       <div className="wb-briefing-intro"><span className="wb-briefing-count">{briefing.data ? briefing.data.must_say.length : '—'}</span><div><h3>필수 안내 항목</h3><small>{briefing.data?.pack_version ?? '서버 기준을 확인하고 있습니다.'}</small></div></div>
       <Tabs value={pane} onChange={setPane} items={[{ value: 'items', label: '필수 안내' }, { value: 'documents', label: '필요 서류' }]} />

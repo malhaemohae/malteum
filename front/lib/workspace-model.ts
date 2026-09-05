@@ -1,4 +1,4 @@
-import { ApiEvidence, ApiPack, ApiPackItem, ServerMessage } from './api';
+import { ApiEvidence, ApiPack, ApiPackItem, ApiPackSummary, ServerMessage } from './api';
 
 export type Screen = 'landing' | 'briefing' | 'dashboard' | 'playback' | 'report' | 'history' | 'packs' | 'documents';
 export type Mode = 'live' | 'text' | 'replay' | 'trace';
@@ -93,6 +93,22 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
   if (message.t === 'error') { next.error = String(message.message ?? '서버 처리 오류'); next.query = current.query?.pending ? { ...current.query, pending: false, answer: '요청을 처리하지 못했습니다. 다시 요청해 주세요.' } : current.query; if (current.action?.pending) next.action = { ...current.action, pending: false, message: next.error }; }
   if (message.t === 'ended') { next.status = 'ended'; next.ending = false; next.reportUrl = typeof message.report_url === 'string' ? message.report_url : undefined; }
   return next;
+}
+
+// A consultation always starts from the newest pack of each product. Older versions
+// stay retrievable in history and pack management, never as a starting choice.
+export function latestPacks<T extends ApiPackSummary>(packs: T[]): T[] {
+  const newest = new Map<string, T>();
+  for (const pack of packs) {
+    const key = pack.product?.code ?? pack.product?.name ?? pack.pack_version;
+    const current = newest.get(key);
+    if (!current || comparePacks(pack, current) > 0) newest.set(key, pack);
+  }
+  return Array.from(newest.values());
+}
+function comparePacks(a: ApiPackSummary, b: ApiPackSummary) {
+  const byDate = (a.published_at ?? '').localeCompare(b.published_at ?? '');
+  return byDate !== 0 ? byDate : a.pack_version.localeCompare(b.pack_version, undefined, { numeric: true });
 }
 
 export function evidenceForItem(pack: ApiPack, item: ApiPackItem): ApiEvidence | null {
