@@ -19,6 +19,10 @@ DISCLAIMER = (
 )
 
 
+# 금지·숫자 표에 행으로 붙이는 경보 종류. 위험 신호는 자기 섹션(risk_signals)이 따로 있다
+COMMISSION_ALERTS = ("number_mismatch", "forbidden_phrase")
+
+
 def _t_ms(event: dict[str, Any], started: datetime) -> int:
     delta = datetime.fromisoformat(event["occurred_at"]) - started
     return max(int(delta.total_seconds() * 1000), 0)
@@ -31,7 +35,8 @@ def _label(event: dict[str, Any], names: dict[str, str]) -> str:
     if kind == "verdict":
         return f"{names.get(body['item_code'], body['item_code'])} → {body['state']}"
     if kind == "alert":
-        return body["message"]
+        # 종류를 앞에 붙인다. 메시지만 남기면 무슨 경보였는지 표에서 안 보인다
+        return f"{body['alert_type']}: {body['message']}"
     if kind == "assist":
         return f"{body['assist_type']}: {body['text']}"
     return kind
@@ -88,6 +93,28 @@ def build(
             ]
         return rows
 
+    # 기획 §10 "리포트에 위반 1건 + 위험 신호 기록". 금지 표현·숫자 오류 경보는 항목 상태
+    # (violated)와 별개로 발생하므로, 상태 행만 두면 숫자 경보가 리포트의 금지·숫자 표에서
+    # 사라진다(2026-09-06 실측: 경보 2건인 상담의 commission 표가 비어 있었다). 경보를
+    # 같은 표에 행으로 붙인다. 계약은 commission 을 object 배열로만 정해 두었다
+    commission_alerts = [
+        {
+            "kind": "alert",
+            "event_id": e["event_id"],
+            "alert_type": e["alert"]["alert_type"],
+            "item_code": e["alert"].get("item_code"),
+            "name": names.get(e["alert"].get("item_code") or "", e["alert"].get("item_code") or ""),
+            "message": e["alert"]["message"],
+            "severity": e["alert"]["severity"],
+            "acknowledged": e["alert"].get("acknowledged", False),
+            "comparison": e["alert"].get("comparison"),
+            "t_ms": _t_ms(e, started),
+            "evidence_ref": e["event_id"] if e["alert"].get("evidence") else None,
+        }
+        for e in live
+        if e["kind"] == "alert" and e["alert"]["alert_type"] in COMMISSION_ALERTS
+    ]
+
     return {
         "session_id": session_id,
         "pack_version": pack.pack_version,
@@ -97,7 +124,7 @@ def build(
         "sections": {
             "summary": summary,
             "omission": axis_rows("omission"),
-            "commission": axis_rows("commission"),
+            "commission": axis_rows("commission") + commission_alerts,
             "comprehension": axis_rows("comprehension"),
             # 기획 10.3 "위험 신호는 경보 + 확인 기록까지" 의 자리.
             # 다른 종류의 경보는 timeline 에 들어간다

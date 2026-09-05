@@ -139,6 +139,15 @@ def render(report: dict[str, Any]) -> bytes:
             continue
         sheet.line(title, size=12, gap=2 * mm)
         for row in rows:
+            if row.get("kind") == "alert":
+                # 금지 표현·숫자 오류 경보 행. 항목 상태가 아니라 발생 시각과 확인 여부가 뜻이다
+                seen = "확인함" if row.get("acknowledged") else "미확인"
+                sheet.line(
+                    f"{_ms(row.get('t_ms'))} [경보] {row.get('name', '')}: "
+                    f"{row.get('message', '')} · {seen}",
+                    indent=4 * mm,
+                )
+                continue
             state = STATE_LABEL.get(row.get("state"), row.get("state", ""))
             sheet.line(f"[{state}] {row.get('item_code', '')} {row.get('name', '')}", indent=4 * mm)
             # 부분 고지의 값어치는 "무엇이 빠졌나" 에 있다. 그것을 빼면 표가 뜻을 잃는다
