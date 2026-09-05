@@ -27,6 +27,10 @@ export function Panel({ title, action, className = '', children }: { title?: str
   return <section className={`wb-panel ${className}`}>{(title || action) && <header className="wb-panel-head"><h2>{title}</h2>{action}</header>}<div className="wb-panel-body">{children}</div></section>;
 }
 export function Empty({ children }: { children: ReactNode }) { return <div className="wb-empty">{children}</div>; }
+// Structured record view for report rows, session details and summaries: a label column and a value column.
+export function KeyValueList({ rows }: { rows: { label: string; value: ReactNode }[] }) {
+  return <dl className="wb-kv">{rows.map((row, index) => <div key={`${row.label}-${index}`}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>;
+}
 export function Notice({ children, action }: { children?: ReactNode; action?: ReactNode }) { return children ? <div className="wb-notice" role="status"><span>{children}</span>{action}</div> : null; }
 export function Tabs<T extends string>({ value, items, onChange }: { value: T; items: { value: T; label: string }[]; onChange: (value: T) => void }) {
   return <div className="wb-tabs" role="group" aria-label="화면 선택">{items.map(item => <button type="button" key={item.value} aria-pressed={value === item.value} onClick={() => onChange(item.value)}>{item.label}</button>)}</div>;

@@ -31,9 +31,10 @@
 @media(max-width:480px){.wb-sidebar{gap:4px;padding:6px}.wb-sidebar nav button{font-size:12px;padding:6px 8px}.wb-sidebar nav{gap:0}.wb-brand img{width:42px}.wb-heading{flex-wrap:wrap}.wb-heading>div:first-child{min-width:130px}.wb-heading p{max-width:88vw}.wb-heading .wb-actions{max-width:100%;font-size:12px}.wb-heading button{min-height:34px;font-size:12px}.wb-panel{padding:12px}.wb-panel-head h2{font-size:15px}.wb-summary{gap:6px}.wb-summary>div{min-width:95px;padding:6px 8px}.wb-summary strong{font-size:19px}.wb-form{gap:10px}.wb-notice{font-size:12px}.wb-notice>span{-webkit-line-clamp:2}.wb-toolbar{flex-wrap:wrap}.wb-evidence-meta strong{-webkit-line-clamp:1}}
 .wb-form{flex-shrink:0}.wb-briefing-footer .wb-composer{flex:1}.wb-briefing-footer select{width:auto;max-width:220px}
 .wb-list-row{padding:6px 0}.wb-notice>button{flex-shrink:0}
-.wb-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.wb-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
 .wb-summary>div{min-width:0}
 @media(max-width:600px){.wb-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.wb-kv{display:grid;grid-template-columns:minmax(96px,150px) minmax(0,1fr);gap:0;margin:0;-webkit-user-select:text;user-select:text}.wb-kv>div{display:contents}.wb-kv dt,.wb-kv dd{padding:9px 10px;border-bottom:1px solid var(--line);margin:0;font-size:13px;line-height:1.55}.wb-kv dt{color:var(--muted);font-weight:600;background:#f7fafb}.wb-kv dd{overflow-wrap:anywhere}.wb-kv-text{white-space:pre-wrap}
 /* A short viewport gets one readable pane, never several clipped mini-scroll areas. */
 @media(max-width:800px),(max-height:600px){
   .wb-mobile-tabs{display:block}.wb-dashboard{display:flex;flex-direction:column}
