@@ -22,7 +22,7 @@ async function get(url){const response=await fetch(api+url);assert.equal(respons
   page.on('response',async response=>{if(response.request().method()==='POST'&&new URL(response.url()).pathname==='/api/sessions'&&response.status()===201)created.push((await response.json()).session_id)});
   const messages=[];page.on('websocket',ws=>ws.on('framereceived',event=>{if(typeof event.payload==='string')messages.push(JSON.parse(event.payload));}));
   await page.goto(base,{waitUntil:'networkidle'});await page.getByRole('button',{name:/상담 시작|시작하기|대시보드/}).first().click();
-  await page.getByLabel('상품·규정 팩').selectOption(version);await page.getByLabel('입력 방식',{exact:true}).selectOption('replay');await page.getByRole('button',{name:'상담 시작 →',exact:true}).click();
+  await page.getByRole('navigation',{name:'주 메뉴'}).getByRole('button',{name:'이력',exact:true}).click();await page.getByRole('button',{name:'시연 음원',exact:true}).click();await page.locator(`[data-preset-id="${preset}"]`).locator('..').getByRole('button',{name:'음원 시연 시작',exact:true}).click();
   await page.waitForFunction(()=>window.__audioStarts.length>0);
   let starts=await page.evaluate(()=>window.__audioStarts);assert.equal(starts[0].context,'running');assert.ok(starts[0].rms>.0001,'decoded original audio contains non-silent samples');assert.equal(starts[0].offset,manifest.cues[0].start);
   assert.ok(messages.some(m=>m.t==='utterance'&&starts[0].text.includes(m.text)),'actual server text is visible when its voice starts, not script substitution');
@@ -31,7 +31,7 @@ async function get(url){const response=await fetch(api+url);assert.equal(respons
   if(preset==='preset-dep-a')await allSizes(page,'replay-audio-controls');
   await page.waitForFunction(()=>window.__audioStarts.length>=2);
   starts=await page.evaluate(()=>window.__audioStarts);assert.equal(starts[1].offset,manifest.cues[1].start,'second speaker uses the second original turn');
-  await page.getByRole('button',{name:'상담 종료',exact:true}).click();await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor();
+  await page.getByRole('button',{name:'재생 종료',exact:true}).click();await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor();
   assert.equal((await get(`/sessions/${created.at(-1)}`)).status,'ended');
   const after=await page.evaluate(()=>window.__audioStarts.length);await page.waitForTimeout(700);assert.equal(await page.evaluate(()=>window.__audioStarts.length),after,'no sound starts after ending');
   checks.push({preset,firstTwoOffsets:starts.slice(0,2).map(value=>value.offset),nonSilent:true,serverCaptionAtStart:true,mute:true,ended:true});

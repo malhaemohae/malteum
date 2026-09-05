@@ -34,6 +34,11 @@ assert.equal(apiUrl('/api/sessions/one/report.pdf'),'/api/sessions/one/report.pd
 assert.equal(apiUrl('/sessions/one/report.pdf'),'/api/sessions/one/report.pdf');
 state=reduceServer(state,{...risk,event_id:'QA-ACK-RISK',seq:34,acknowledged:true});
 assert.ok(!state.interventions.some(i=>i.kind==='risk_signal'),'acknowledged alert must not reappear');
+state.action={kind:'acknowledge',ref:'expected-alert',pending:true,message:'pending'};
+state=reduceServer(state,{...risk,event_id:'QA-OTHER-ACK',seq:35,acknowledged:true,acknowledged_ref:'other-alert'});
+assert.equal(state.action.pending,true,'unrelated alert acknowledgement must not report this action saved');
+state=reduceServer(state,{...risk,event_id:'QA-MATCHING-ACK',seq:36,acknowledged:true,acknowledged_ref:'expected-alert'});
+assert.equal(state.action.pending,false,'persisted matching alert confirms save');
 const {reportHtml}=require('../lib/report-print.ts');
 assert.ok(reportHtml({session_id:'empty',pack_version:'test',generated_at:''}).includes('기록 없음'),'partial reports must still export safely');
 const printed=reportHtml({session_id:'qa',pack_version:'test',generated_at:'',sections:{omission:[{name:'<script>bad</script>',state:'met'}],risk_signals:[{message:'확인 기록'}]}});
