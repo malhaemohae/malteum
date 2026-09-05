@@ -109,8 +109,8 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
   return next;
 }
 
-// A consultation always starts from the newest pack of each product. Older versions
-// stay retrievable in history and pack management, never as a starting choice.
+// Catalogs show only the newest pack per product. Historical sessions retain their
+// pinned version so original evidence and reports remain reproducible.
 export function latestPacks<T extends ApiPackSummary>(packs: T[]): T[] {
   const newest = new Map<string, T>();
   for (const pack of packs) {
@@ -121,7 +121,8 @@ export function latestPacks<T extends ApiPackSummary>(packs: T[]): T[] {
   return Array.from(newest.values());
 }
 function comparePacks(a: ApiPackSummary, b: ApiPackSummary) {
-  const byDate = (a.published_at ?? '').localeCompare(b.published_at ?? '');
+  const timestamp = (value?: string) => { const parsed = Date.parse(value ?? ''); return Number.isFinite(parsed) ? parsed : 0; };
+  const byDate = timestamp(a.published_at) - timestamp(b.published_at);
   return byDate !== 0 ? byDate : a.pack_version.localeCompare(b.pack_version, undefined, { numeric: true });
 }
 
