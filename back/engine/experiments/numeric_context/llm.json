@@ -1,0 +1,860 @@
+{
+  "provider": "openrouter",
+  "reasoning": false,
+  "runs": 3,
+  "l3_budget_ms": 120000,
+  "adapter_timeout_s": 90,
+  "l2": "FakeEmbedder + MemoryVectorIndex",
+  "cache": "fresh per run",
+  "execution": "sequential baseline 8B, baseline 32B, current 8B, current 32B",
+  "before": [
+    {
+      "model": "qwen/qwen3-8b",
+      "pass": 12,
+      "total": 12,
+      "errors": 0,
+      "extra": 0,
+      "p50_ms": 1452.2440000000001,
+      "max_ms": 2722.576,
+      "tok": 1485,
+      "rows": [
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": true,
+          "extra": 0,
+          "ms": 2257.271,
+          "tok": 1451,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "적용 이율",
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 1352.638,
+          "tok": 1459,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 2722.576,
+          "tok": 1548,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 1203.692,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": true,
+          "extra": 0,
+          "ms": 1715.84,
+          "tok": 1451,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "적용 이율",
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 1253.126,
+          "tok": 1459,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 2267.475,
+          "tok": 1548,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 1173.711,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": true,
+          "extra": 0,
+          "ms": 1369.747,
+          "tok": 1451,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "적용 이율",
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 1206.892,
+          "tok": 1459,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 2201.712,
+          "tok": 1548,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 1534.741,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "model": "qwen/qwen3-32b",
+      "pass": 9,
+      "total": 12,
+      "errors": 0,
+      "extra": 3,
+      "p50_ms": 4159.344,
+      "max_ms": 9448.838,
+      "tok": 1495.3333333333333,
+      "rows": [
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": false,
+          "extra": 1,
+          "ms": 2763.7,
+          "tok": 1448,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 2959.36,
+          "tok": 1462,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 6428.897,
+          "tok": 1547,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 3943.688,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": false,
+          "extra": 1,
+          "ms": 3119.838,
+          "tok": 1448,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 4375.0,
+          "tok": 1520,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 9448.838,
+          "tok": 1554,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 4459.096,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": false,
+          "extra": 1,
+          "ms": 3278.438,
+          "tok": 1448,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 4544.165,
+          "tok": 1536,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 7623.059,
+          "tok": 1535,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 3022.817,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "model": "qwen/qwen3-8b",
+      "pass": 12,
+      "total": 12,
+      "errors": 0,
+      "extra": 0,
+      "p50_ms": 1482.8755,
+      "max_ms": 3938.059,
+      "tok": 1485,
+      "rows": [
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": true,
+          "extra": 0,
+          "ms": 1426.064,
+          "tok": 1451,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "적용 이율",
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 1322.11,
+          "tok": 1459,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 3938.059,
+          "tok": 1548,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 1363.694,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": true,
+          "extra": 0,
+          "ms": 2036.696,
+          "tok": 1451,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "적용 이율",
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 1203.963,
+          "tok": 1459,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 3212.095,
+          "tok": 1548,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 1326.254,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": true,
+          "extra": 0,
+          "ms": 1678.263,
+          "tok": 1451,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "적용 이율",
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 1539.687,
+          "tok": 1459,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 3137.815,
+          "tok": 1548,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 1207.665,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "model": "qwen/qwen3-32b",
+      "pass": 9,
+      "total": 12,
+      "errors": 0,
+      "extra": 3,
+      "p50_ms": 3707.996,
+      "max_ms": 16870.29,
+      "tok": 1488.6666666666667,
+      "rows": [
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": false,
+          "extra": 1,
+          "ms": 3770.649,
+          "tok": 1448,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 4001.471,
+          "tok": 1511,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 4435.38,
+          "tok": 1526,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 2787.816,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": false,
+          "extra": 1,
+          "ms": 2985.907,
+          "tok": 1448,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 3645.343,
+          "tok": 1456,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 4436.527,
+          "tok": 1526,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 2846.045,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "요건 요소 일부만 → partial + 누락 목록",
+          "ok": false,
+          "extra": 1,
+          "ms": 3124.845,
+          "tok": 1448,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "omission",
+              "partial",
+              [
+                "차감률 또는 산출식"
+              ]
+            ]
+          ]
+        },
+        {
+          "case": "단정 표현 → L1 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 16870.29,
+          "tok": 1519,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "사실과 다른 안내 → L2 suspected, L3 violated",
+          "ok": true,
+          "extra": 0,
+          "ms": 4826.219,
+          "tok": 1536,
+          "err": false,
+          "got": [
+            [
+              "DEP-BAN-001",
+              "commission",
+              "violated",
+              []
+            ]
+          ]
+        },
+        {
+          "case": "고객 확인 응답 → confirmed",
+          "ok": true,
+          "extra": 0,
+          "ms": 2955.27,
+          "tok": 1482,
+          "err": false,
+          "got": [
+            [
+              "DEP-INT-002",
+              "comprehension",
+              "confirmed",
+              []
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

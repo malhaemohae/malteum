@@ -1,0 +1,928 @@
+{
+  "preset": "preset-loan-b",
+  "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+  "audio_seconds": 127.79875,
+  "elapsed_seconds": 161.02,
+  "expected_summary": {
+    "items_total": 7,
+    "met": 5,
+    "partial": 0,
+    "unmet": 2,
+    "waived": 0,
+    "violations": 2,
+    "alerts": 2,
+    "met_codes": [
+      "LOAN-DSR-001",
+      "LOAN-INT-001",
+      "LOAN-PRE-001",
+      "LOAN-ARR-001",
+      "LOAN-WDR-001"
+    ],
+    "unmet_codes": [
+      "LOAN-CIC-001",
+      "LOAN-RDR-001"
+    ],
+    "violated_codes": [
+      "LOAN-BAN-001",
+      "LOAN-RSK-001"
+    ],
+    "note": "LOAN-2026.08-v5 기준. violations 2 는 L3 확정값이고 LLM 이 없으면 suspected 로 남는다"
+  },
+  "events": [
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB39GPEC4GQ25ZSQATM745",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 0,
+      "occurred_at": "2026-09-05T08:31:25.718+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "session_started",
+      "supersedes": null,
+      "session_started": {
+        "mode": "replay",
+        "product": {
+          "code": "HNB-HOUSEHOLD-CREDIT",
+          "name": "하나은행 가계 신용대출",
+          "category": "deposit"
+        },
+        "item_count": 7,
+        "customer_profile": {
+          "type": "general"
+        }
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB3PNAHJQYRTPEYRFA38Z0",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 1,
+      "occurred_at": "2026-09-05T08:31:39.178+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 11975,
+        "text": "안녕하세요.",
+        "speaker": "customer",
+        "duration_ms": 6880,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB3PNMQ57NAQ2YQ7388C35",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 2,
+      "occurred_at": "2026-09-05T08:31:39.188+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 11975,
+        "text": "신용 대출을 좀 받고 싶은데 제 조건이면 금리랑 한도가 어느 정도 나올까요?",
+        "speaker": "customer",
+        "duration_ms": 6880,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB3YHVFF21Z28XECKXPHH0",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 3,
+      "occurred_at": "2026-09-05T08:31:47.259+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 19721,
+        "text": "먼저 소득과 기존 대출을 확인해서 DSL 총 부채 원리금 상환 비율을 산출하고 심사에 활용합니다.",
+        "speaker": "teller",
+        "duration_ms": 7200,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB3YJDQ699R8Y5M7K79RPA",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 4,
+      "occurred_at": "2026-09-05T08:31:47.277+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "met",
+        "evidence": {
+          "bbox": [
+            43.3,
+            127.5,
+            552.3,
+            137.5
+          ],
+          "page": 8,
+          "span": "◉ 은행은 고객님의 정확한 상환능력을 추론하기 위하여 DSR(총부채원리금상환비율)을 산출하여 심사에 활용할 수 있으며, 연소",
+          "doc_id": "06_상품설명서_가계대출"
+        },
+        "item_code": "LOAN-DSR-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RB3YHVFF21Z28XECKXPHH0"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB3ZCTSJJ0M0FC1AS073BY",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 5,
+      "occurred_at": "2026-09-05T08:31:48.122+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 22405,
+        "text": "네, DSR이 뭐예요?",
+        "speaker": "customer",
+        "duration_ms": 1360,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB3ZD3H520WA76ECPNSTGX",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 6,
+      "occurred_at": "2026-09-05T08:31:48.131+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "comprehension",
+        "state": "explained",
+        "evidence": {
+          "bbox": [
+            43.3,
+            127.5,
+            552.3,
+            137.5
+          ],
+          "page": 8,
+          "span": "◉ 은행은 고객님의 정확한 상환능력을 추론하기 위하여 DSR(총부채원리금상환비율)을 산출하여 심사에 활용할 수 있으며, 연소",
+          "doc_id": "06_상품설명서_가계대출"
+        },
+        "item_code": "LOAN-DSR-001",
+        "decided_by": "L2",
+        "utterance_ref": "01M1RB3ZCTSJJ0M0FC1AS073BY"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB3ZD3H520WA76ECPNSTGY",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 7,
+      "occurred_at": "2026-09-05T08:31:48.131+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "assist",
+      "supersedes": null,
+      "assist": {
+        "text": "소득에 비해 모든 대출의 원리금을 얼마나 갚아야 하는지 계산해 심사합니다.",
+        "trigger": "customer_reask",
+        "evidence": {
+          "bbox": [
+            43.3,
+            127.5,
+            552.3,
+            137.5
+          ],
+          "page": 8,
+          "span": "◉ 은행은 고객님의 정확한 상환능력을 추론하기 위하여 DSR(총부채원리금상환비율)을 산출하여 심사에 활용할 수 있으며, 연소",
+          "doc_id": "06_상품설명서_가계대출"
+        },
+        "item_code": "LOAN-DSR-001",
+        "assist_type": "rephrase",
+        "source_utterance_ref": "01M1RB3YHVFF21Z28XECKXPHH0"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB49YETD1X1WXGD1V5DBA9",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 8,
+      "occurred_at": "2026-09-05T08:31:58.926+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 33209,
+        "text": "소득에 비해 모든 대출의 원리금을 얼마나 갚아야 하는지 계산해서 심사하는 비율입니다.",
+        "speaker": "teller",
+        "duration_ms": 5760,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB49YVZEXSRRJV0GAEVK1B",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 9,
+      "occurred_at": "2026-09-05T08:31:58.939+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "assist",
+      "supersedes": "01M1RB3ZD3H520WA76ECPNSTGY",
+      "assist": {
+        "text": "소득에 비해 모든 대출의 원리금을 얼마나 갚아야 하는지 계산해 심사합니다.",
+        "outcome": "adopted",
+        "trigger": "customer_reask",
+        "evidence": {
+          "bbox": [
+            43.3,
+            127.5,
+            552.3,
+            137.5
+          ],
+          "page": 8,
+          "span": "◉ 은행은 고객님의 정확한 상환능력을 추론하기 위하여 DSR(총부채원리금상환비율)을 산출하여 심사에 활용할 수 있으며, 연소",
+          "doc_id": "06_상품설명서_가계대출"
+        },
+        "item_code": "LOAN-DSR-001",
+        "assist_type": "rephrase",
+        "source_utterance_ref": "01M1RB3YHVFF21Z28XECKXPHH0"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB4JCFPED14CQEMQ8ACN6E",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 10,
+      "occurred_at": "2026-09-05T08:32:07.567+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 41850,
+        "text": "금리 방식은 변동금리라서 기준금리가 바뀌면은 금리가 오를 변동 가능성이 있습니다.",
+        "speaker": "teller",
+        "duration_ms": 7840,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB4JD08N57KB01HSCKNPC4",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 11,
+      "occurred_at": "2026-09-05T08:32:07.584+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "met",
+        "evidence": {
+          "bbox": [
+            43.3,
+            336.8,
+            551.7,
+            346.7
+          ],
+          "page": 4,
+          "span": "◉ 대출금리의 종류는 크게 고정금리 방식, 변동금리 방식, 혼합금리 방식으로 구분되며, 고객님이 가입하신 상품은 ➊-④ 금리선택",
+          "doc_id": "06_상품설명서_가계대출"
+        },
+        "item_code": "LOAN-INT-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RB4JCFPED14CQEMQ8ACN6E"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB4SWQD0X33ZX1B225HP4S",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 12,
+      "occurred_at": "2026-09-05T08:32:15.255+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 49538,
+        "text": "지금 조회한 조건이면 연사점 5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "speaker": "teller",
+        "duration_ms": 5920,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB4SX34FM7K8MTG5R4H0QQ",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 13,
+      "occurred_at": "2026-09-05T08:32:15.267+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "commission",
+        "state": "suspected",
+        "evidence": {
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ],
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "doc_id": "01_금융소비자보호법"
+        },
+        "item_code": "LOAN-BAN-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RB4SWQD0X33ZX1B225HP4S"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB4SX34FM7K8MTG5R4H0QR",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 14,
+      "occurred_at": "2026-09-05T08:32:15.267+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "alert",
+      "supersedes": null,
+      "alert": {
+        "message": "설명서 기준 확인이 필요합니다: 심사 통과 단정 금지",
+        "evidence": {
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ],
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "doc_id": "01_금융소비자보호법"
+        },
+        "severity": "warning",
+        "item_code": "LOAN-BAN-001",
+        "alert_type": "forbidden_phrase",
+        "utterance_ref": "01M1RB4SWQD0X33ZX1B225HP4S"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB4VACKT718K366MGXVTN6",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 15,
+      "occurred_at": "2026-09-05T08:32:16.716+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": "01M1RB4SX34FM7K8MTG5R4H0QQ",
+      "verdict": {
+        "axis": "commission",
+        "state": "violated",
+        "evidence": {
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ],
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "doc_id": "01_금융소비자보호법"
+        },
+        "item_code": "LOAN-BAN-001",
+        "confidence": 1,
+        "decided_by": "L3",
+        "utterance_ref": "01M1RB4SWQD0X33ZX1B225HP4S"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB4ZDGNPADD1B20X6H80KN",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 16,
+      "occurred_at": "2026-09-05T08:32:20.912+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 55195,
+        "text": "아 그러면 확정인 거네요.",
+        "speaker": "customer",
+        "duration_ms": 1680,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB563APXKVV52P2EHAT1Z3",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 17,
+      "occurred_at": "2026-09-05T08:32:27.754+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 62037,
+        "text": "정확히는 내부 결제전이라 확정은 아니고 심사 결과에 따라.",
+        "speaker": "teller",
+        "duration_ms": 4640,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB58W32XVSX420T67EFHB2",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 18,
+      "occurred_at": "2026-09-05T08:32:30.595+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 64878,
+        "text": "금리와 한도가 달라질 수 있습니다.",
+        "speaker": "teller",
+        "duration_ms": 2240,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5AE48X67FYJMW6X2A7DF",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 19,
+      "occurred_at": "2026-09-05T08:32:32.196+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "unmet",
+        "evidence": {
+          "bbox": [
+            54.6,
+            574.9,
+            555.2,
+            600.4
+          ],
+          "page": 3,
+          "span": "금리인하요구권이란 금융소비자가 본인의 신용상태가 개선 되었다고 판단되는 경우(취업 · 승진 · 재산증가 · 개인신용평점 상승 등) 은행에 자신이 적용받는 금리인하를 요구 할 수 있는 권리(은행법 제30조의2)를 말합니다.",
+          "doc_id": "06_상품설명서_가계대출"
+        },
+        "item_code": "LOAN-RDR-001",
+        "confidence": 1,
+        "decided_by": "L3",
+        "utterance_ref": "01M1RB58W32XVSX420T67EFHB2",
+        "missing_elements": [
+          "대상 제외 가능성",
+          "신용상태 개선 시 인하 요구"
+        ]
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5AP9KPWYP4DW0G4KXW98",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 20,
+      "occurred_at": "2026-09-05T08:32:32.457+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 66740,
+        "text": "그리고 상화는.",
+        "speaker": "teller",
+        "duration_ms": 1040,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5FGJRT5AGAWQ0C2MCKKF",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 21,
+      "occurred_at": "2026-09-05T08:32:37.394+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 71677,
+        "text": "원리금균 등으로만 가능합니다.",
+        "speaker": "teller",
+        "duration_ms": 4480,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5FH3QBB36BGFQ1TP6PK4",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 22,
+      "occurred_at": "2026-09-05T08:32:37.411+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 71677,
+        "text": "다른 상환 방식은 안 됩니다.",
+        "speaker": "teller",
+        "duration_ms": 4480,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5FHCA3GXVV9BWBB1FAXN",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 23,
+      "occurred_at": "2026-09-05T08:32:37.420+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "commission",
+        "state": "suspected",
+        "evidence": {
+          "bbox": [
+            71.0,
+            532.0,
+            553.5,
+            543.6
+          ],
+          "page": 11,
+          "span": "가. 자기 또는 제3자의 이익을 위하여 금융소비자에게 특정 대출 상환방식을 강요하는 행",
+          "doc_id": "01_금융소비자보호법"
+        },
+        "item_code": "LOAN-RSK-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RB5FH3QBB36BGFQ1TP6PK4"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5FHCA3GXVV9BWBB1FAXP",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 24,
+      "occurred_at": "2026-09-05T08:32:37.420+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "alert",
+      "supersedes": null,
+      "alert": {
+        "message": "설명서 기준 확인이 필요합니다: 상환방식 강요 금지",
+        "evidence": {
+          "bbox": [
+            71.0,
+            532.0,
+            553.5,
+            543.6
+          ],
+          "page": 11,
+          "span": "가. 자기 또는 제3자의 이익을 위하여 금융소비자에게 특정 대출 상환방식을 강요하는 행",
+          "doc_id": "01_금융소비자보호법"
+        },
+        "severity": "warning",
+        "item_code": "LOAN-RSK-001",
+        "alert_type": "forbidden_phrase",
+        "utterance_ref": "01M1RB5FH3QBB36BGFQ1TP6PK4"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5GX46NE5TTT8G8E8PH55",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 25,
+      "occurred_at": "2026-09-05T08:32:38.820+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": "01M1RB5FHCA3GXVV9BWBB1FAXN",
+      "verdict": {
+        "axis": "commission",
+        "state": "violated",
+        "evidence": {
+          "bbox": [
+            71.0,
+            532.0,
+            553.5,
+            543.6
+          ],
+          "page": 11,
+          "span": "가. 자기 또는 제3자의 이익을 위하여 금융소비자에게 특정 대출 상환방식을 강요하는 행",
+          "doc_id": "01_금융소비자보호법"
+        },
+        "item_code": "LOAN-RSK-001",
+        "confidence": 1,
+        "decided_by": "L3",
+        "utterance_ref": "01M1RB5FH3QBB36BGFQ1TP6PK4"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5Q0KNQ0P9FMNHV6JYS2H",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 26,
+      "occurred_at": "2026-09-05T08:32:45.075+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 79358,
+        "text": "갚는 방식을 제가 고를 수는 없나 보네요.",
+        "speaker": "customer",
+        "duration_ms": 2960,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5XQ2C93DHFNYNBFG1V89",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 27,
+      "occurred_at": "2026-09-05T08:32:51.938+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 86221,
+        "text": "죄송합니다.",
+        "speaker": "teller",
+        "duration_ms": 5360,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5XQE096YWDEM8AKNJATD",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 28,
+      "occurred_at": "2026-09-05T08:32:51.950+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 86221,
+        "text": "제가 잘못 말씀드렸습니다.",
+        "speaker": "teller",
+        "duration_ms": 5360,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB5XQYYPPTA2HG3FNPYDHJ",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 29,
+      "occurred_at": "2026-09-05T08:32:51.966+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 86221,
+        "text": "갚는 방법은 고객님이 원하시는 쪽으로 고르실 수 있습니다.",
+        "speaker": "teller",
+        "duration_ms": 5360,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB61A8N1G11P618X239AS5",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 30,
+      "occurred_at": "2026-09-05T08:32:55.624+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 89907,
+        "text": "대출을 3년 안에 일찍 갚으시면,",
+        "speaker": "teller",
+        "duration_ms": 2320,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB61AJFVSRB4RYTT7DBTG0",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 31,
+      "occurred_at": "2026-09-05T08:32:55.634+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "met",
+        "evidence": {
+          "bbox": [
+            57.7,
+            191.7,
+            552.6,
+            201.3
+          ],
+          "page": 8,
+          "span": "☞ 대출계약의 해지 시 중도상환해약금이 부과될 수 있습니다. 중도상환해약금은 대출계약이 성립한 날부터 3년 이내의 기간에만",
+          "doc_id": "06_상품설명서_가계대출"
+        },
+        "item_code": "LOAN-PRE-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RB61A8N1G11P618X239AS5"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB68YTD63NMJDXZMKW548Y",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 32,
+      "occurred_at": "2026-09-05T08:33:03.450+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 97733,
+        "text": "중도 상환 해약금 부과 가능성이 있고 적용 기간은 대출일부터 3년입니다.",
+        "speaker": "teller",
+        "duration_ms": 6560,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB6HFTWB4STN3GCYQ9XMV8",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 33,
+      "occurred_at": "2026-09-05T08:33:12.186+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 106469,
+        "text": "연체하시면 대출 이자율에 연체 가산 이자율 연 삼 퍼센트가 더해진 연체 이자율이 적용됩니다.",
+        "speaker": "teller",
+        "duration_ms": 7200,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB6HGD6V8AZNEPJFM6RTK6",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 34,
+      "occurred_at": "2026-09-05T08:33:12.205+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "met",
+        "evidence": {
+          "bbox": [
+            43.3,
+            468.8,
+            303.1,
+            479.2
+          ],
+          "page": 7,
+          "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+          "doc_id": "06_상품설명서_가계대출"
+        },
+        "item_code": "LOAN-ARR-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RB6HFTWB4STN3GCYQ9XMV8"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB6S1AAMF95C9VZ55VQQZ8",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 35,
+      "occurred_at": "2026-09-05T08:33:19.914+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 114197,
+        "text": "대출 실행 후 14일 안에 철회 의사 표시를 하시고 대출금 반환을 하시면 청약 철회가 됩니다.",
+        "speaker": "teller",
+        "duration_ms": 6720,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB6S1WZRYN1WFQ459PZ5MM",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 36,
+      "occurred_at": "2026-09-05T08:33:19.932+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "verdict",
+      "supersedes": null,
+      "verdict": {
+        "axis": "omission",
+        "state": "met",
+        "evidence": {
+          "bbox": [
+            43.3,
+            710.4,
+            552.6,
+            720.3
+          ],
+          "page": 3,
+          "span": "◉ 청약철회를 위해서는 영업점, 인터넷뱅킹, 스마트뱅킹 등으로 은행에 청약 철회의 의사표시를 해야 하며, 이미 수령한 대출금과",
+          "doc_id": "06_상품설명서_가계대출"
+        },
+        "item_code": "LOAN-WDR-001",
+        "decided_by": "L1",
+        "utterance_ref": "01M1RB6S1AAMF95C9VZ55VQQZ8"
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB6YJZ7J35GTGS4ZAAEYT0",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 37,
+      "occurred_at": "2026-09-05T08:33:25.599+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 119882,
+        "text": "신용 조회하면 제 등급이 떨어지는 건 아닌지 걱정되네요.",
+        "speaker": "customer",
+        "duration_ms": 4400,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB7742YX2A263RVE1J3MQQ",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 38,
+      "occurred_at": "2026-09-05T08:33:34.338+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 128621,
+        "text": "그 부분은 서류 준비 되시면 다시 안내드릴게요.",
+        "speaker": "teller",
+        "duration_ms": 6640,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB774QWBA6ECAJB4K7VPYT",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 39,
+      "occurred_at": "2026-09-05T08:33:34.359+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "utterance",
+      "supersedes": null,
+      "utterance": {
+        "t_ms": 128621,
+        "text": "신분증과 소득 증빙 서류를 준비해 주세요.",
+        "speaker": "teller",
+        "duration_ms": 6640,
+        "speaker_confidence": 0.95
+      }
+    },
+    {
+      "schema_version": "1",
+      "event_id": "01M1RB83TNW4BA6XMZVBJQ56R1",
+      "session_id": "01M1RB39E7JE5NZECSXGMK3R4J",
+      "seq_in_session": 40,
+      "occurred_at": "2026-09-05T08:34:03.733+00:00",
+      "pack_version": "LOAN-2026.08-v5",
+      "kind": "session_ended",
+      "supersedes": null,
+      "session_ended": {
+        "reason": "normal",
+        "summary": {
+          "met": 5,
+          "unmet": 2,
+          "alerts": 2,
+          "waived": 0,
+          "partial": 0,
+          "violations": 2,
+          "items_total": 7,
+          "assists_adopted": 1
+        },
+        "duration_ms": 158015
+      }
+    }
+  ],
+  "config": {
+    "stt_model": "Qwen/Qwen3-ASR-1.7B",
+    "stt_endpoint": "http://127.0.0.1:18100/v1/audio/transcriptions",
+    "llm_provider": "openrouter",
+    "llm_model": "qwen/qwen3-8b",
+    "reasoning": false,
+    "l3_budget_ms": 3000,
+    "speaker_hold_ms": 3000
+  },
+  "sha256": {
+    "audio.wav": "97d1b1fbf83a2334fc70e752ea97f914719b945183a5c473edef61e5d2fa65c8",
+    "script.json": "028871b0c830a93a48fc4040f1dd3aaf1036a039f53dde7c4fd50996eb4c3d5e"
+  }
+}
