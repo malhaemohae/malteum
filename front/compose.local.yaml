@@ -1,0 +1,6 @@
+# The backend runs on Windows; expose only its local diarization endpoint.
+# Usage: docker compose -f compose.yaml -f front/compose.local.yaml up -d diarization
+services:
+  diarization:
+    ports:
+      - "127.0.0.1:8300:8300"

@@ -5,3 +5,14 @@ node_modules
 .env.*
 !.env.example
 npm-debug.log*
+.next-verify
+.next-qa
+.next-stale-*
+*.tsbuildinfo
+qa-output
+.local
+.admin-token
+.secret
+secret
+*.log
+scripts
