@@ -123,10 +123,10 @@
     },
     "LOAN-DOC-001": {
       "status": "confirmed",
-      "source_doc_id": "06_상품설명서_가계대출",
-      "source_sha256": "02f2d0efb62314f893a75833bbbb923c7f8b7fd2dc837a89e2e90b30710f2cb1",
-      "checked_at": "2026-08-29",
-      "reason": "2025.01 개정 공식 설명서로 원천 교체 완료. 해시와 페이지 수가 공식 후보와 일치"
+      "source_doc_id": "08_상품공시_BEST신용대출",
+      "source_sha256": "9bc0871be129a95e513149bac647f9b2e100398eb0dad20b67c117fc2b0b885d",
+      "checked_at": "2026-09-05",
+      "reason": "구비서류 목록이 있는 유일한 공식 원천인 BEST 신용대출 상품 공시(심의필 제2025-상품공시-1055호, 유효 2025.12.26~2027.11.30) 웹페이지 스냅샷. 은행 배포 PDF 3종에는 구비서류 문구가 없어 검토 대기였음"
     },
     "LOAN-BAN-001": {
       "status": "confirmed",

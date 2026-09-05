@@ -396,7 +396,7 @@
 현재 출력은 다음과 같다.
 
 - 서버 연결 시 `서버 이벤트 · append-only`, 폴백 시 `로컬 이벤트 기록 · 폴백 시연`
-- 선택 제품의 pack version(예적금 `DEP-2026.08-v4`, 가계 신용대출 `LOAN-2026.08-v5`)
+- 선택 제품의 pack version(예적금 `DEP-2026.08-v4`, 가계 신용대출 `LOAN-2026.08-v6`)
 - 다음 데모 이벤트 시각 또는 `시연 이벤트 완료`
 
 서버 세션은 WebSocket 이벤트와 `report` 응답을 사용하고, 로컬 폴백 세션은 `localStorage`에 종료 요약을 보관한다.
@@ -490,7 +490,7 @@
 ```text
 가계 신용대출 선택
   → 가상 고객 B
-  → 상담 브리핑: 7개 필수 안내·최근 규정 변경·LOAN-2026.08-v5 발행 팩
+  → 상담 브리핑: 7개 필수 안내·최근 규정 변경·LOAN-2026.08-v6 발행 팩
   → 서버 세션 생성 후 WebSocket 연결
   → 금리 구성·심사 단정·중도상환해약금 판정
   → 심사 결과 단정 개입·중도상환 기준 숫자 경보
@@ -801,7 +801,7 @@ L0 기본 live 녹음 진입
 
 #### 주의할 현재 범위
 
-- 가계 신용대출은 서버 fixture `LOAN-2026.08-v5`와 product code `HNB-HOUSEHOLD-CREDIT`를 사용한다.
+- 가계 신용대출은 서버 fixture `LOAN-2026.08-v6`와 product code `HNB-HOUSEHOLD-CREDIT`를 사용한다.
 - 실제 상담 화면은 세션 생성 응답과 WebSocket `ready.pack_version`을 최종 기준으로 사용한다.
 
 ## 10. 기획상 화면·기능 전체 지도
@@ -936,7 +936,7 @@ L0 기본 live 녹음 진입
 | --- | --- | --- |
 | 모드 | TEXT/LIVE는 서버 WebSocket으로 연결하고, REPLAY는 preset `audio_ref`, TRACE는 source session 기반 서버 세션을 사용한다 | STT가 없는 환경의 LIVE 최종 전사·판정은 TEXT 폴백 |
 | 데이터 | `ready` 필수 항목·pack version, 서버 이벤트·progress·report를 반영 | 서버 outbound seq 기반 완전한 resume은 후속 검증 대상 |
-| 제품 팩 | `DEP-2026.08-v4`·`LOAN-2026.08-v5` 기준과 브리핑을 사용하고, 운영 팩 목록은 API 우선 조회 | 메모리 데모의 팩 목록·브리핑 404는 프론트 기준으로 폴백 |
+| 제품 팩 | `DEP-2026.08-v4`·`LOAN-2026.08-v6` 기준과 브리핑을 사용하고, 운영 팩 목록은 API 우선 조회 | 메모리 데모의 팩 목록·브리핑 404는 프론트 기준으로 폴백 |
 | 네비게이션 | S1~S5/O1 화면을 로컬 `screen`으로 연결 | URL 라우팅·권한·새로고침 복구는 후속 운영 품질 대상 |
 | 질의 | 연결 시 서버 `ask`와 근거 있는 answer assist, 미검색 시 무응답 안내 | 문서 본문 검색·페이지 범위 확장은 후속 대상 |
 | 근거 | 서버 `evidence_ref` 조회와 bbox/span, 페이지 이미지는 없을 때 로컬 preview | 문서 페이지 PNG를 서버가 안정적으로 제공해야 함 |

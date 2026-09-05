@@ -19,7 +19,7 @@
 | 프리셋 | 팩 | 길이 | 장면 |
 | --- | --- | --- | --- |
 | `preset-dep-a` | `DEP-2026.08-v4` (ICBC 원화정기예금) | 2분 28초 | 정기예금 중도해지 상담. 기본 시연 경로 |
-| `preset-loan-b` | `LOAN-2026.08-v5` (하나은행 가계 신용대출) | 2분 07초 | 신용대출 금리·한도 안내. 심화 경로 |
+| `preset-loan-b` | `LOAN-2026.08-v6` (하나은행 가계 신용대출) | 2분 07초 | 신용대출 금리·한도 안내. 심화 경로 |
 
 모든 인물은 가상이다. 화면에 "시연 시나리오" 표시를 상시 띄운다(기획 16장 리스크 4).
 
@@ -163,7 +163,7 @@ keyterm 은 팩의 `jargon_terms` 를 서버가 자동으로 넣는다(`ws/endpo
 | L3 의존 | 넛지, violated 확정, comprehension confirmed, 카드 채택 기록은 LLM 심판이 붙어야 나온다 | `APP_LLM_MODEL` 이 비면 그 장면이 빠진다. 배포 전 확인 |
 | 산식 판단 | 중도해지이율·만기후이자율의 비율(`약정이율×0.5`)은 숫자 대조가 아니라 L3 몫 | 은행원이 "절반" 을 "70%" 로 잘못 말해도 L1·L2 는 경보를 내지 않음. L3 가 근거 문장과 대조해야 함 |
 | 용어 밀도(⑧) | 최근 8발화 창 안 은행원 발화의 팩 `jargon_terms` 출현 수로 잼(`engine/state/term_density.py`, 2026-09-03 dev 병합). 3개 이상이면 high, 은행원 발화 3턴 동안 0개면 low | 대본 A 는 0:37 부터 high 로 올라가 1:17 근처에서 low·normal 을 스치고 1:37 이후 다시 high. 경보가 아니라 `progress.term_density` 상태 표시 |
-| 대출 팩 | 주담대가 아니라 신용대출 팩. 서류 항목(`LOAN-DOC-001`)은 설명서에 구비서류 목록이 없어 검토 대기 | B 는 기획 9장 B 표의 서류 안내 장면을 담지 못함. LTV·근저당은 주담대 팩 몫 |
+| 대출 팩 | 주담대가 아니라 신용대출 팩. 서류 항목(`LOAN-DOC-001`)은 2026-09-05 에 BEST 신용대출 상품 공시 스냅샷(원천 08)을 근거로 v6 에 실림 | B 의 B16 대사("신분증과 소득 증빙 서류")는 ④ 서류 카드와 대조할 수 있게 됐지만 대사 자체는 아직 안 고침. LTV·근저당은 주담대 팩 몫 |
 | 서버 프리셋 | `GET /presets` 가 `assets/scenarios/*/script.json` 을 읽어 대본 하나를 프리셋 하나로 냄(`server/services/presets.py`, 2026-09-03 dev 병합). `preset_id`·`title`·`mode`·`product_code`·`pack_version`·`customer_profile`·`duration_ms` 를 그대로 쓰고, `lines[].expect` 의 둘째 토큰(`number_mismatch`·`rephrase` 등)을 세어 `expected_highlights` 를 만듦 | **`expect` 문자열의 앞 두 토큰(`alert <type>` / `assist <type>`)은 서버가 읽는 형식이 됨.** 바꾸면 심사위원 화면의 '볼 것' 안내가 바뀐다. `audio.wav` 가 없으면 `audio_ref` 를 내지 않아 재생 버튼이 켜지지 않음 |
 
 ## 6. DB 적재 (첫 배포와 팩 재발행 뒤)

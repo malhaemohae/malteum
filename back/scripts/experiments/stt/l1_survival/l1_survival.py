@@ -10,7 +10,7 @@ from engine.build import build_engine
 ROOT = Path(__file__).resolve().parents[5]; EXP = ROOT / "back/scripts/experiments/stt"
 FILES = sorted(glob.glob(str(EXP / "qwen_asr/eval_*.json")) + glob.glob(str(EXP / "nemotron/*_eval.json")) + glob.glob(str(EXP / "elevenlabs/*_eval.json")))
 engine = build_engine(FilePackSource(Path(sys.argv[1]) / "back/contracts/fixtures"))
-PACKS = {"preset-dep-a": "DEP-2026.08-v4", "preset-loan-b": "LOAN-2026.08-v5"}
+PACKS = {"preset-dep-a": "DEP-2026.08-v4", "preset-loan-b": "LOAN-2026.08-v6"}
 scripts = {p: json.load(open(ROOT / "assets/scenarios" / p / "script.json")) for p in PACKS}
 grand_total = grand_kept = 0
 for f in FILES:

@@ -173,6 +173,14 @@
       "kind": "forbidden"
     },
     {
+      "id": "loan-doc1-documents",
+      "product": "loan",
+      "speaker": "customer",
+      "utterance": "서류는 뭐 준비해야 하나요? 재직증명서도 필요해요?",
+      "expected": ["LOAN-DOC-001"],
+      "kind": "related"
+    },
+    {
       "id": "any-unrelated-parking",
       "product": "any",
       "speaker": "customer",
