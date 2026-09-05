@@ -57,6 +57,7 @@ export default function Application() {
   function navigate(value: NavItem) {
     if (creating.current) return;
     setError('');
+    setHistoryView('sessions');
     if (value === '상담') {
       const active = current.current;
       if (active && active.status !== 'ended' && sessionScreen(active.mode) === 'playback') {
@@ -282,7 +283,8 @@ export default function Application() {
     } catch (reason) { clearReplayAudio(); setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
   }
   const navigation = { onNavigate: navigate, onNew: requestNew };
-  function openDemoAudio() { setHistoryView('presets'); navigate('이력'); }
+  // navigate 가 먼저 'sessions' 로 되돌린 뒤 이번 진입만 시연 음원으로 연다.
+  function openDemoAudio() { navigate('이력'); setHistoryView('presets'); }
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
   else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} onDemo={openDemoAudio} defaults={preparation.current} health={health} onCheckHealth={checkHealth} />;
