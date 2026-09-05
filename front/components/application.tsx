@@ -125,7 +125,9 @@ export default function Application() {
         }
         // Current WS mapping omits alert.acknowledged. Resolve that flag from the
         // persisted event, never by assuming that a successful send was a save.
-        if (message.t === 'alert' && (active.mode === 'trace' || pendingAcknowledgements.current.size > 0)) {
+        if (message.t === 'alert' && active.mode === 'trace') {
+          if (active.acknowledgedAlertIds?.includes(String(message.event_id))) message = { ...message, acknowledged: true };
+        } else if (message.t === 'alert' && pendingAcknowledgements.current.size > 0) {
           try {
             const event = await findSessionEvent(active.sourceSessionId ?? active.id, String(message.event_id));
             const alert = event?.alert as Record<string, unknown> | undefined;
@@ -273,7 +275,8 @@ export default function Application() {
       const created = await malteumApi.createSession({ mode: 'trace', source_session_id: source.session_id, pack_version: source.pack_version });
       rememberTraceSource(created.session_id, source.session_id); setTraceSelection(null);
       rememberSession(created.session_id); setPack(selectedPack);
-      const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: source.session_id, traceHasUtterances: hasStoredUtterance(sourceEvents) };
+      const acknowledgedAlertIds = sourceEvents.filter(event => event.kind === 'alert' && (event.alert as { acknowledged?: boolean } | undefined)?.acknowledged === true).map(event => String(event.event_id));
+      const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: source.session_id, traceHasUtterances: hasStoredUtterance(sourceEvents), acknowledgedAlertIds };
       update(active); setScreen('playback'); connect(active);
     } catch (reason) { clearReplayAudio(); setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
   }

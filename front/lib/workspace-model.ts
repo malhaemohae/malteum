@@ -13,6 +13,8 @@ export type LiveSession = {
   progress?: { met: number; partial: number; total: number; density?: string };
   error?: string; textFallback?: boolean; ending: boolean; reportUrl?: string; seconds: number;
   traceHasUtterances?: boolean;
+  // TRACE only: alert event ids whose stored record is already acknowledged. Saves one REST read per alert.
+  acknowledgedAlertIds?: string[];
   // Newest judgement that carried evidence. The guide panel shows it while no intervention is open.
   recentEvidence?: { ref: string; itemCode: string; name: string };
   query?: { question: string; answer?: string; evidenceRef?: string; pending: boolean };
