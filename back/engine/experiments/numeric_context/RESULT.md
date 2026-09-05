@@ -129,6 +129,14 @@ E2E 실행 중·이후 보완한 숫자 표현 처리까지 포함한 최종 엔
 
 사례별 원본 판정·토큰·소요 시간은 [llm.json](llm.json)에 있다.
 
+### 실험 후 결정
+
+2026-09-05 사용자 결정에 따라 현재 검증 기준은 **Qwen3-8B, reasoning off,
+L3 제한 시간 3000ms**로 유지한다. Qwen3-32B는 실시간 사용 후보에서 제외한다.
+위의 32B 결과는 비교 근거로 보존하며 사용을 권장하는 설정이 아니다.
+대체 모델은 기존의 다른 모델 비교 성적을 확인한 뒤 선정한다. 현재 확인한 저장소와
+이전 실험 폴더에서는 8B·32B 외 LLM의 비교 결과를 찾지 못했으므로, 대체 모델은 미정이다.
+
 ## 재현
 
 기존 전사 자료의 비교는 외부 호출 없이 실행한다. `back/`에서:
@@ -162,10 +170,7 @@ from scripts.compare_llm import run_model
 from server.bootstrap.settings import Settings
 
 settings = Settings(llm_provider="openrouter")
-reports = [
-    run_model(model, settings, 3, True)
-    for model in ("qwen/qwen3-8b", "qwen/qwen3-32b")
-]
+reports = [run_model(model, settings, 3, True) for model in ("qwen/qwen3-8b", "qwen/qwen3-32b")]
 Path("/tmp/llm-results.json").write_text(json.dumps(reports, ensure_ascii=False, indent=2))
 ```
 
