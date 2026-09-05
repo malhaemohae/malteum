@@ -47,6 +47,7 @@ let browser;
   await page.waitForFunction(() => !document.querySelector('.wb-shortcut.is-record')?.disabled);
   assert.equal(frames, 0);
   await cards.getByRole('button', { name: '● 녹음 시작', exact: true }).click();
+  await page.getByRole('button', { name: '이어서 녹음 시작', exact: true }).click();
   await cards.getByRole('button', { name: '■ 녹음 중지', exact: true }).waitFor();
   for (let i = 0; frames < 2 && i < 50; i++) await page.waitForTimeout(100);
   assert.ok(frames > 0); assert.deepEqual([...frameSizes], [3204]);

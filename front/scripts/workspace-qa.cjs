@@ -95,6 +95,7 @@ if(require.main===module) (async () => {
   await consultNav.click(); await consultNav.click();
   assert.equal(messages.filter(message=>message.t==='ready').length,readyCount,'reselecting consultation must not create another session');
   await page.getByRole('button',{name:'● 녹음 시작'}).click();
+  await page.getByRole('button',{name:'이어서 녹음 시작',exact:true}).click();
   await page.getByRole('button',{name:'■ 녹음 중지'}).waitFor();
   const recordingDeadline = Date.now() + 6000;
   while (!frames.length && Date.now() < recordingDeadline) await page.waitForTimeout(100);

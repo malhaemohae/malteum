@@ -3,6 +3,7 @@ import './globals.css';
 import './workspace.css';
 import './workspace-service.css';
 import './workspace-feedback.css';
+import './speaker-intro.css';
 import './landing-showcase.css';
 
 export const metadata: Metadata = {
