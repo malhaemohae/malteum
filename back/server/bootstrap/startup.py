@@ -106,11 +106,35 @@ def _stt(settings: Settings) -> SttAdapter | None:
     `만기 후 이자율` 로 갈라져 L1 정확 일치가 깨진다(scripts/stt_check.py 실측).
     """
     if settings.stt_provider == "openai_realtime":
-        log.warning(
-            "APP_STT_PROVIDER=openai_realtime 어댑터가 아직 없습니다(services/stt/README.md). "
-            "오디오 층을 만들지 않습니다 — ws 가 stt_unavailable 을 냅니다."
+        from server.services.stt.openai_realtime import ENDPOINT, MODEL, OpenAiRealtimeAdapter
+
+        base_url = settings.stt_base_url or ENDPOINT
+        # 공개 주소는 키가 있어야 인증을 지난다. 키 없이 열면 어차피 막히고, 무엇보다
+        # 키를 지운 서버 테스트가 네트워크를 탄다(tests/server/test_no_live_adapters.py).
+        # 규격을 말하는 로컬 서버를 가리켰을 때만 키 없이 연다 — 그쪽은 더미 키다
+        if not settings.stt_api_key and base_url == ENDPOINT:
+            log.warning(
+                "APP_STT_PROVIDER=openai_realtime 인데 APP_STT_API_KEY 가 없습니다. "
+                "오디오 층을 만들지 않습니다 — ws 가 stt_unavailable 을 냅니다."
+            )
+            return None
+        if not settings.diarization_url:
+            # 이 규격은 화자를 안 준다. 사이드카가 없으면 어댑터는 열리고 전사도 오지만
+            # 발화가 전부 teller 로 기록되어 위험 신호·되물음이 통째로 사라진다.
+            # 화면에는 아무 오류도 안 뜨므로 부팅 때 말해야 한다 (파일 어댑터와 달리
+            # 전사 자체는 도니 여기서 접지는 않는다)
+            log.warning(
+                "APP_STT_PROVIDER=openai_realtime 인데 APP_DIARIZATION_URL 이 없습니다. "
+                "이 규격은 화자 라벨을 주지 않아 확정 발화가 전부 teller 로 기록됩니다 — "
+                "위험 신호·되물음 판정이 나오지 않습니다."
+            )
+        return OpenAiRealtimeAdapter(
+            settings.stt_api_key,
+            # 공급자별 기본값이 다르다. `stt_model` 의 기본은 Deepgram 것이라 그대로 쓰면 안 된다
+            model=settings.stt_model if settings.stt_model != "nova-3" else MODEL,
+            language=settings.stt_language,
+            base_url=base_url,
         )
-        return None
     if settings.stt_provider == "openai_file":
         if not settings.stt_base_url:
             log.warning(
