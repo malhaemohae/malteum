@@ -13,16 +13,17 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 from rulepack import paths  # noqa: E402
 
 
-def test_run_manifest_fixes_all_eight_sources_and_parser_identity() -> None:
+def test_run_manifest_fixes_all_ten_sources_and_parser_identity() -> None:
     run = build_run_manifest(REPO_ROOT)
 
     assert run.parser.name == "opendataloader-pdf"
     assert run.parser.version == "2.3.0"
-    assert len(run.sources) == 8
+    assert len(run.sources) == 10
     # 06 가계대출 설명서를 2025.01 개정본(24쪽)으로 교체하며 26 -> 24 로,
     # 05 정기예금 설명서를 현행본(4쪽)으로 교체하며 7 -> 4 로 줄었다.
-    # 08 BEST 신용대출 상품 공시 스냅샷(3쪽)이 2026-09-05 에 더해져 115 -> 118
-    assert sum(source.page_count for source in run.sources) == 118
+    # 2026-09-05 에 08 BEST 신용대출 상품 공시 스냅샷(3쪽) · 09 금소법 시행령(33쪽)
+    # · 10 보이스피싱 피해예방 10계명(8쪽)이 더해져 115 -> 159
+    assert sum(source.page_count for source in run.sources) == 159
 
     for source in run.sources:
         expected = hashlib.sha256(source.path.read_bytes()).hexdigest()
@@ -30,9 +31,14 @@ def test_run_manifest_fixes_all_eight_sources_and_parser_identity() -> None:
         assert source.path.parent == paths.docs_dir(REPO_ROOT)
         assert source.path.name == f"{source.doc_id}.pdf"
 
-    # 웹 스냅샷 원천만 자기 행의 날짜를 쓰고, 나머지는 수집 확인 일자를 쓴다
+    # 2026-09-05 에 받은 세 원천만 자기 행의 날짜를 쓰고, 나머지는 수집 확인 일자를 쓴다
     by_id = {source.doc_id: source.snapshot_date for source in run.sources}
-    assert by_id.pop("08_상품공시_BEST신용대출") == "2026-09-05"
+    for later in (
+        "08_상품공시_BEST신용대출",
+        "09_금융소비자보호법_시행령",
+        "10_보이스피싱_피해예방_10계명",
+    ):
+        assert by_id.pop(later) == "2026-09-05", later
     assert set(by_id.values()) == {"2026-08-23"}
 
 
