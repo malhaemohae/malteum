@@ -19,6 +19,11 @@ export class Pcm16Capture {
   private processor: ScriptProcessorNode | null = null;
   private pending = new Float32Array(0);
   private sequence = 0;
+  private resamplePending = new Float32Array(0);
+  private resamplePosition = 0;
+  private cancelled = false;
+
+  constructor(initialSequence = 0) { this.sequence = initialSequence; }
 
   get hasPcmPipeline() {
     return Boolean(this.processor);
@@ -26,6 +31,7 @@ export class Pcm16Capture {
 
   async start(onFrame: AudioFrameHandler) {
     if (this.processor) return;
+    this.cancelled = false;
     if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
       throw new MicrophoneCaptureError('unsupported', '이 브라우저에서는 마이크 녹음을 사용할 수 없습니다. Chrome 또는 Edge에서 다시 시도해 주세요.');
     }
@@ -41,13 +47,10 @@ export class Pcm16Capture {
       },
       video: false,
     });
-
-    // Capturing the stream is the primary action. PCM processing is best effort so
-    // WebView/browser AudioContext differences do not turn a granted permission
-    // into a failed recording toggle.
+    if (this.cancelled) { this.stop(); return; }
     try {
       const contextConstructor = (window.AudioContext ?? (window as Window & { webkitAudioContext?: AudioContextConstructor }).webkitAudioContext) as AudioContextConstructor | undefined;
-      if (!contextConstructor) return;
+      if (!contextConstructor) throw new MicrophoneCaptureError('unsupported', '오디오 처리를 지원하지 않는 브라우저입니다.');
 
       try {
         this.context = new contextConstructor({ sampleRate: 16000 });
@@ -58,9 +61,25 @@ export class Pcm16Capture {
       }
 
       this.source = this.context.createMediaStreamSource(this.stream);
-      this.processor = this.context.createScriptProcessor(3200, 1, 1);
+      // Web Audio requires a power-of-two buffer. Wire frames are packetized below.
+      this.processor = this.context.createScriptProcessor(4096, 1, 1);
       this.processor.onaudioprocess = (event) => {
-        const input = event.inputBuffer.getChannelData(0);
+        const source = event.inputBuffer.getChannelData(0);
+        const rate = this.context?.sampleRate ?? 16000;
+        let input: Float32Array = source;
+        if (rate !== 16000) {
+          const buffered = new Float32Array(this.resamplePending.length + source.length);
+          buffered.set(this.resamplePending); buffered.set(source, this.resamplePending.length);
+          const samples: number[] = []; const ratio = rate / 16000;
+          while (this.resamplePosition + 1 < buffered.length) {
+            const index = Math.floor(this.resamplePosition); const fraction = this.resamplePosition - index;
+            samples.push(buffered[index] + (buffered[index + 1] - buffered[index]) * fraction);
+            this.resamplePosition += ratio;
+          }
+          const consumed = Math.min(Math.floor(this.resamplePosition), buffered.length);
+          this.resamplePending = buffered.slice(consumed); this.resamplePosition -= consumed;
+          input = Float32Array.from(samples);
+        }
         const merged = new Float32Array(this.pending.length + input.length);
         merged.set(this.pending);
         merged.set(input, this.pending.length);
@@ -85,19 +104,13 @@ export class Pcm16Capture {
       this.processor.connect(this.context.destination);
       await this.context.resume();
     } catch (error) {
-      // Do not discard a successfully granted MediaStream just because the optional
-      // PCM pipeline is unavailable in this browser.
-      console.warn('PCM audio pipeline unavailable; keeping microphone stream active.', error);
-      this.processor?.disconnect();
-      this.source?.disconnect();
-      if (this.context && this.context.state !== 'closed') void this.context.close();
-      this.processor = null;
-      this.source = null;
-      this.context = null;
+      this.stop();
+      throw error instanceof MicrophoneCaptureError ? error : new MicrophoneCaptureError('processing', '마이크 권한은 허용됐지만 오디오 전송을 시작하지 못했습니다. 입력 장치를 확인해 주세요.');
     }
   }
 
   stop() {
+    this.cancelled = true;
     this.processor?.disconnect();
     this.source?.disconnect();
     this.stream?.getTracks().forEach((track) => track.stop());
@@ -107,5 +120,7 @@ export class Pcm16Capture {
     this.stream = null;
     this.context = null;
     this.pending = new Float32Array(0);
+    this.resamplePending = new Float32Array(0);
+    this.resamplePosition = 0;
   }
 }
