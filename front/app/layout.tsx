@@ -5,6 +5,7 @@ import './workspace-service.css';
 import './workspace-feedback.css';
 import './speaker-intro.css';
 import './landing-showcase.css';
+import './controls.css';
 
 export const metadata: Metadata = {
   title: '말틈 — 상담 컴플라이언스',
