@@ -3,7 +3,7 @@ require.extensions['.ts']=(module,file)=>module._compile(ts.transpileModule(fs.r
 const {historyAudioPreset}=require('../lib/history-audio.ts');
 const {rememberReplayPreset}=require('../lib/session-index.ts');
 const memory=new Map();global.localStorage={getItem:key=>memory.get(key),setItem:(key,value)=>memory.set(key,value)};
-const record={session_id:'stored-replay',mode:'replay',pack_version:'DEP-2026.08-v4'};
+const record={session_id:'stored-replay',mode:'replay',pack_version:'DEP-2026.08-v6'};
 const started=id=>({kind:'session_started',session_started:{preset_id:id}});
 assert.equal(historyAudioPreset(record,[started('preset-dep-a')]),'preset-dep-a','persisted event works in a fresh browser without any local mapping');
 assert.equal(historyAudioPreset(record,[{kind:'session_started',session_started:{}},started('preset-dep-a')]),'preset-dep-a');

@@ -46,7 +46,7 @@ def _find_docs() -> str:
 
 DOCS = _find_docs()
 
-PACK_FIXTURE = "rulepack_DEP-2026.08-v4.json"
+PACK_FIXTURE = "rulepack_DEP-2026.08-v6.json"
 # 시나리오 A 이벤트와 교차 검증하는 팩은 위 하나다. 그 외 팩(대출 등)도 스키마와
 # 근거 실재(3층)는 같은 잣대로 본다. 서버의 pack_dir 이 이 폴더라, 여기 있는 팩은
 # 전부 상담 화면에 나갈 수 있다.

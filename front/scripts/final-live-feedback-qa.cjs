@@ -83,7 +83,7 @@ let browser;
   await page.waitForFunction(() => [...document.querySelectorAll('button')].some(button => button.textContent === '상담 시작 →' && !button.disabled));
   assert.equal(await page.getByLabel('입력 방식', { exact: true }).inputValue(), 'text');
   assert.equal(await page.getByLabel('고객 유형', { exact: true }).inputValue(), 'professional');
-  assert.equal(await page.getByLabel('상품·규정 팩', { exact: true }).inputValue(), 'DEP-2026.08-v4');
+  assert.equal(await page.getByLabel('상품·규정 팩', { exact: true }).inputValue(), 'DEP-2026.08-v6');
   result.checks.push('new consultation retains pack/customer/input settings without auto-starting recording');
   assert.deepEqual(result.errors, []);
 })().catch(error => { result.errors.push(error.message); process.exitCode = 1; }).finally(async () => {

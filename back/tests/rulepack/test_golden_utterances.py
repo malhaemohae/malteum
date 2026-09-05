@@ -18,7 +18,7 @@ from rulepack import paths
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 GOLDEN = paths.config_dir(REPO_ROOT) / "golden_utterances.json"
-PACK_FIXTURE = REPO_ROOT / "back" / "contracts" / "fixtures" / "rulepack_DEP-2026.08-v4.json"
+PACK_FIXTURE = REPO_ROOT / "back" / "contracts" / "fixtures" / "rulepack_DEP-2026.08-v6.json"
 
 
 @pytest.fixture(scope="module")

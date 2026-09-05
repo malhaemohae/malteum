@@ -1,7 +1,7 @@
 {
   "preset_id": "preset-dep-a",
   "title": "정기예금 중도해지 상담",
-  "pack_version": "DEP-2026.08-v4",
+  "pack_version": "DEP-2026.08-v6",
   "product_code": "ICBC-KRW-TD",
   "mode": "replay",
   "customer_profile": { "type": "general", "tags": ["elderly"] },
@@ -156,11 +156,11 @@
     }
   ],
   "expected_summary": {
-    "items_total": 6, "met": 4, "partial": 1, "unmet": 1, "waived": 0, "violations": 1, "alerts": 3, "assists_adopted": 2,
+    "items_total": 8, "met": 4, "partial": 1, "unmet": 3, "waived": 0, "violations": 1, "alerts": 3, "assists_adopted": 2,
     "met_codes": ["DEP-INT-001", "DEP-TAX-001", "DEP-INT-002", "DEP-INT-003"],
     "partial_codes": ["DEP-PRO-001"],
-    "unmet_codes": ["DEP-LIM-001"],
+    "unmet_codes": ["DEP-LIM-001", "DEP-TER-001", "DEP-PAY-001"],
     "violated_codes": ["DEP-BAN-001"],
-    "note": "violations 1 과 assists_adopted 2 는 L3 가 붙었을 때의 값. LLM 이 없으면 위반은 suspected 로 남고 넛지·채택 기록이 생기지 않는다"
+    "note": "DEP-2026.08-v6 기준(2026-09-05). 위법계약해지권(DEP-TER-001)·지급제한 사유(DEP-PAY-001)는 대본이 다루지 않아 미고지로 남는다. violations 1 과 assists_adopted 2 는 L3 가 붙었을 때의 값. LLM 이 없으면 위반은 suspected 로 남고 넛지·채택 기록이 생기지 않는다"
   }
 }

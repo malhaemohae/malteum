@@ -15,7 +15,7 @@ from server.bootstrap.settings import Settings
 from server.services.publish import PublishInvalid, validate, verify_evidence
 
 FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
-PACK = json.loads((FIX / "rulepack_DEP-2026.08-v4.json").read_text(encoding="utf-8"))
+PACK = json.loads((FIX / "rulepack_DEP-2026.08-v6.json").read_text(encoding="utf-8"))
 DOCS = Settings().docs_dir
 
 

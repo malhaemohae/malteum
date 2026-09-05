@@ -5,7 +5,7 @@ const backend='ws://127.0.0.1:8000/ws';const output=path.resolve(__dirname,'../q
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function waitFor(messages,predicate){const deadline=Date.now()+15000;while(!messages.some(predicate)&&Date.now()<deadline)await delay(50);assert.ok(messages.some(predicate),'server response timeout: '+messages.map(value=>value.t).join(','));}
 async function numeric(lines){
-  const response=await fetch(base+'/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'text',pack_version:'DEP-2026.08-v4',product_code:'ICBC-KRW-TD',customer_profile:{type:'general',tags:['frontend-qa']}})});
+  const response=await fetch(base+'/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'text',pack_version:'DEP-2026.08-v6',product_code:'ICBC-KRW-TD',customer_profile:{type:'general',tags:['frontend-qa']}})});
   assert.equal(response.status,201);const created=await response.json();const messages=[];
   const ws=new WebSocket(backend);
   ws.addEventListener('message',event=>{const value=JSON.parse(event.data);if(value.t==='ping')ws.send(JSON.stringify({t:'pong'}));else messages.push(value);});

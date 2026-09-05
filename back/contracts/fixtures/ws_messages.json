@@ -8,7 +8,7 @@
     "t": "ready",
     "seq": 0,
     "session_id": "FIXT-SESS-0A",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "mode": "replay",
     "items": [
       {
@@ -74,6 +74,26 @@
         ]
       },
       {
+        "item_code": "DEP-TER-001",
+        "name": "위법계약해지권",
+        "axis": "omission",
+        "state": "unmet",
+        "required": true,
+        "plain_language": [
+          "설명의무 위반으로 가입한 계약은 위법계약 해지를 요구할 수 있습니다."
+        ]
+      },
+      {
+        "item_code": "DEP-PAY-001",
+        "name": "원금·이자 지급제한 사유",
+        "axis": "omission",
+        "state": "unmet",
+        "required": true,
+        "plain_language": [
+          "계좌에 압류·가압류·질권설정이 걸리면 원금과 이자를 찾을 수 없습니다."
+        ]
+      },
+      {
         "item_code": "DEP-BAN-001",
         "name": "단정적 판단 금지",
         "axis": "commission",
@@ -136,13 +156,15 @@
     "seq": 6,
     "met": 1,
     "partial": 0,
-    "items_total": 6,
+    "items_total": 8,
     "remaining": [
       "적용 이자율과 우대 조건",
       "중도해지 이자율",
       "만기 후 이자율",
       "예금자보호 대상과 한도",
-      "일부해지 제한"
+      "일부해지 제한",
+      "위법계약해지권",
+      "원금·이자 지급제한 사유"
     ],
     "term_density": "normal"
   },
@@ -266,10 +288,10 @@
     "seq": 16,
     "session_id": "FIXT-SESS-0A",
     "summary": {
-      "items_total": 6,
+      "items_total": 8,
       "met": 4,
       "partial": 1,
-      "unmet": 1,
+      "unmet": 3,
       "violations": 1
     },
     "report_url": "/api/sessions/FIXT-SESS-0A/report.pdf"

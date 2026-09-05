@@ -4,14 +4,16 @@
 
 | 파일 | 무엇 | 누가 쓰나 |
 | --- | --- | --- |
-| `rulepack_DEP-2026.08-v4.json` | 예금 팩 옛 버전. 항목 9개 (risk 타입 1개 포함). 서버 `default_pack_version` · 시연 A 대본 · 이벤트 fixture · M1/M2 테스트가 이 파일명을 고정하고 있어 v5 발행 뒤에도 남겨 둠(2026-09-05). 그 고정을 옮기면 제거 |
-| `rulepack_DEP-2026.08-v5.json` | 예금 팩 최신. 항목 12개 (required 8 · forbidden 1 · reference 2 · risk 1). 2026-09-05 위법계약해지권 · 지급제한 사유 · 해지 서류 추가. canonical 대조 테스트가 보는 예금 팩 | M3 발행 결과의 정답 · M2 로드 테스트 입력 · 시연 서버가 읽는 예금 팩 |
+| `rulepack_DEP-2026.08-v4.json` · `rulepack_LOAN-2026.08-v5.json` | **옛 버전. 지우지 않는다.** 서버는 저장된 세션의 `pack_version` 으로 팩을 다시 불러 상세 · 리포트 · 근거를 그리므로(`registry._restore`), 이 파일이 없으면 그 버전으로 기록된 이력이 404 가 됨. 2026-09-05 에 지웠다가 이 이유로 되살림. 새 상담의 기본은 아래 최신 팩 | 이력 세션 판독 · `load_pack.py` 전체 적재 |
+| `rulepack_DEP-2026.08-v6.json` | 예금 팩 최신. 항목 12개 (required 8 · forbidden 1 · reference 2 · risk 1). 2026-09-05 위법계약해지권 · 지급제한 사유 · 해지 서류 추가. 서버 기본 팩 · 시연 A · 이벤트 fixture 가 같은 날 v4 에서 여기로 이동 | M3 발행 결과의 정답 · M2 로드 테스트 입력 · 시연 서버가 읽는 예금 팩 |
 | `rulepack_LOAN-2026.08-v7.json` | 가계 신용대출 팩. 항목 15개 (required 11 · forbidden 2 · reference 1 · risk 1, 숫자 사실 5건). 2026-09-05 발행. 기한이익상실 · 상환방식 · 인지세 · 위법계약해지권 · 대출빙자 위험 신호 추가. 시연 B(금리·한도 안내)용. 이벤트·판정 케이스와 교차 검증은 하지 않고 스키마·근거 실재만 본다 | 시연 서버가 읽는 대출 팩(`pack_dir` 이 이 폴더) |
 | `events_scenario_a.json` | 시연 시나리오 A(중도해지 상담)의 이벤트 열 48건. `assets/scenarios/preset-dep-a/script.json` 에서 `scripts/gen_scenario_trace.py` 로 생성 | trace 재생 · 리포트 생성 · 접기 함수 테스트 |
 | `ws_messages.json` | c2s·s2c 메시지 26건 | M4 프런트 개발 시 서버 없이 화면 그리기 |
 | `judge_cases.json` | 판정 입출력 쌍 17건 | M2 엔진의 통과 기준 |
 
 ## 값이 실물이다
+
+**팩은 불변 발행물이라 옛 버전 파일도 남긴다.** 지우면 그 버전으로 저장된 세션의 이력이 열리지 않는다. 팩 fixture 는 `rulepack.cli publish` 가 낸 `artifacts/rulepack_<version>.json` 을 **바이트 그대로** 복사한다(한 줄 canonical JSON). 읽기 좋게 pretty-print 하지 않는다. 그러면 발행 산출물과 바이트가 갈라져 옛 v4 처럼 '손으로 옮긴 사본' 이 된다. 내용 비교는 `python -m json.tool` 로 펴서 본다.
 
 `rulepack` 과 `events` 의 인용 문자열·페이지·bbox 는 `03_규정문서/` 의 실제 PDF 에서 뽑았다.
 `validate.py` 3층이 매번 원문과 대조하므로 **꾸며낸 인용은 커밋을 통과하지 못한다.**

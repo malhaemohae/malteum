@@ -5,7 +5,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 0,
     "occurred_at": "2026-09-07T11:02:00.015Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "session_started",
     "session_started": {
       "mode": "replay",
@@ -20,7 +20,7 @@
           "elderly"
         ]
       },
-      "item_count": 6,
+      "item_count": 8,
       "preset_id": "preset-dep-a"
     }
   },
@@ -30,7 +30,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 1,
     "occurred_at": "2026-09-07T11:02:03.000Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "customer",
@@ -47,7 +47,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 2,
     "occurred_at": "2026-09-07T11:02:03.940Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "customer",
@@ -64,7 +64,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 3,
     "occurred_at": "2026-09-07T11:02:07.400Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "customer",
@@ -81,7 +81,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 4,
     "occurred_at": "2026-09-07T11:02:17.212Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -98,7 +98,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 5,
     "occurred_at": "2026-09-07T11:02:19.592Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -115,7 +115,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 6,
     "occurred_at": "2026-09-07T11:02:19.607Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "verdict": {
       "item_code": "DEP-INT-001",
@@ -142,7 +142,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 7,
     "occurred_at": "2026-09-07T11:02:26.910Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -159,7 +159,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 8,
     "occurred_at": "2026-09-07T11:02:26.925Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "verdict": {
       "item_code": "DEP-TAX-001",
@@ -186,7 +186,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 9,
     "occurred_at": "2026-09-07T11:02:26.940Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "alert",
     "alert": {
       "alert_type": "number_mismatch",
@@ -217,7 +217,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 10,
     "occurred_at": "2026-09-07T11:02:35.786Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -234,7 +234,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 11,
     "occurred_at": "2026-09-07T11:02:35.801Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "verdict": {
       "item_code": "DEP-INT-002",
@@ -264,7 +264,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 12,
     "occurred_at": "2026-09-07T11:02:35.816Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "supersedes": "FIXT-EV-0011",
     "verdict": {
@@ -296,7 +296,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 13,
     "occurred_at": "2026-09-07T11:02:35.831Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "assist",
     "assist": {
       "assist_type": "nudge",
@@ -323,7 +323,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 14,
     "occurred_at": "2026-09-07T11:02:41.815Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "customer",
@@ -340,7 +340,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 15,
     "occurred_at": "2026-09-07T11:02:41.830Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "verdict": {
       "item_code": "DEP-INT-002",
@@ -367,7 +367,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 16,
     "occurred_at": "2026-09-07T11:02:41.845Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "assist",
     "assist": {
       "assist_type": "rephrase",
@@ -394,7 +394,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 17,
     "occurred_at": "2026-09-07T11:02:48.972Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -411,7 +411,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 18,
     "occurred_at": "2026-09-07T11:02:48.987Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "assist",
     "supersedes": "FIXT-EV-0016",
     "assist": {
@@ -440,7 +440,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 19,
     "occurred_at": "2026-09-07T11:02:55.512Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "customer",
@@ -457,7 +457,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 20,
     "occurred_at": "2026-09-07T11:02:55.527Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "supersedes": "FIXT-EV-0015",
     "verdict": {
@@ -486,7 +486,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 21,
     "occurred_at": "2026-09-07T11:03:02.377Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -503,7 +503,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 22,
     "occurred_at": "2026-09-07T11:03:02.392Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "verdict": {
       "item_code": "DEP-BAN-001",
@@ -530,7 +530,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 23,
     "occurred_at": "2026-09-07T11:03:02.407Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "alert",
     "alert": {
       "alert_type": "forbidden_phrase",
@@ -557,7 +557,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 24,
     "occurred_at": "2026-09-07T11:03:02.422Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "supersedes": "FIXT-EV-0022",
     "verdict": {
@@ -586,7 +586,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 25,
     "occurred_at": "2026-09-07T11:03:11.160Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "customer",
@@ -603,7 +603,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 26,
     "occurred_at": "2026-09-07T11:03:11.920Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "customer",
@@ -620,7 +620,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 27,
     "occurred_at": "2026-09-07T11:03:16.632Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -637,7 +637,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 28,
     "occurred_at": "2026-09-07T11:03:17.842Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -654,7 +654,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 29,
     "occurred_at": "2026-09-07T11:03:19.502Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -671,7 +671,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 30,
     "occurred_at": "2026-09-07T11:03:19.517Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "verdict": {
       "item_code": "DEP-INT-003",
@@ -698,7 +698,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 31,
     "occurred_at": "2026-09-07T11:03:28.559Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -715,7 +715,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 32,
     "occurred_at": "2026-09-07T11:03:30.309Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -732,7 +732,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 33,
     "occurred_at": "2026-09-07T11:03:36.585Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -749,7 +749,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 34,
     "occurred_at": "2026-09-07T11:03:36.600Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "supersedes": "FIXT-EV-0012",
     "verdict": {
@@ -777,7 +777,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 35,
     "occurred_at": "2026-09-07T11:03:36.615Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "assist",
     "supersedes": "FIXT-EV-0013",
     "assist": {
@@ -806,7 +806,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 36,
     "occurred_at": "2026-09-07T11:03:47.816Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -823,7 +823,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 37,
     "occurred_at": "2026-09-07T11:03:56.492Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -840,7 +840,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 38,
     "occurred_at": "2026-09-07T11:03:56.507Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "verdict": {
       "item_code": "DEP-PRO-001",
@@ -870,7 +870,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 39,
     "occurred_at": "2026-09-07T11:03:56.522Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "verdict",
     "supersedes": "FIXT-EV-0038",
     "verdict": {
@@ -902,7 +902,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 40,
     "occurred_at": "2026-09-07T11:03:56.537Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "assist",
     "assist": {
       "assist_type": "nudge",
@@ -929,7 +929,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 41,
     "occurred_at": "2026-09-07T11:04:07.690Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "customer",
@@ -946,7 +946,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 42,
     "occurred_at": "2026-09-07T11:04:09.260Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "customer",
@@ -963,7 +963,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 43,
     "occurred_at": "2026-09-07T11:04:09.275Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "alert",
     "alert": {
       "alert_type": "risk_signal",
@@ -990,7 +990,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 44,
     "occurred_at": "2026-09-07T11:04:19.352Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -1007,7 +1007,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 45,
     "occurred_at": "2026-09-07T11:04:22.092Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -1024,7 +1024,7 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 46,
     "occurred_at": "2026-09-07T11:04:23.752Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "utterance",
     "utterance": {
       "speaker": "teller",
@@ -1041,16 +1041,16 @@
     "session_id": "FIXT-SESS-0A",
     "seq_in_session": 47,
     "occurred_at": "2026-09-07T11:04:27.440Z",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "kind": "session_ended",
     "session_ended": {
       "reason": "normal",
       "duration_ms": 147425,
       "summary": {
-        "items_total": 6,
+        "items_total": 8,
         "met": 4,
         "partial": 1,
-        "unmet": 1,
+        "unmet": 3,
         "waived": 0,
         "violations": 1,
         "alerts": 3,

@@ -1,6 +1,6 @@
 {
   "_about": "M2 판정 엔진의 계약 테스트. 입력 발화와 기대 출력의 쌍이다. 구현이 바뀌어도 이 표가 통과해야 한다. tier 는 성능 계약이고 max_ms 는 상한이다. 시나리오는 예적금 중도해지 상담.",
-  "pack": "rulepack_DEP-2026.08-v4.json",
+  "pack": "rulepack_DEP-2026.08-v6.json",
   "cases": [
     {
       "name": "L1 키워드 전부 일치 → met",

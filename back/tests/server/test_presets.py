@@ -31,7 +31,7 @@ SCRIPT = {
     "title": "시험용 상담",
     "mode": "replay",
     "product_code": "TEST-001",
-    "pack_version": "DEP-2026.08-v4",
+    "pack_version": "DEP-2026.08-v6",
     "duration_ms": 90_000,
     "customer_profile": {"type": "general", "tags": ["elderly"]},
     "audio": {"output": "audio.wav"},

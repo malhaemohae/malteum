@@ -10,8 +10,9 @@ from engine.build import build_engine
 ROOT = Path(__file__).resolve().parents[5]; EXP = ROOT / "back/scripts/experiments/stt"
 FILES = sorted(glob.glob(str(EXP / "qwen_asr/eval_*.json")) + glob.glob(str(EXP / "nemotron/*_eval.json")) + glob.glob(str(EXP / "elevenlabs/*_eval.json")))
 engine = build_engine(FilePackSource(Path(sys.argv[1]) / "back/contracts/fixtures"))
-PACKS = {"preset-dep-a": "DEP-2026.08-v4", "preset-loan-b": "LOAN-2026.08-v7"}
-scripts = {p: json.load(open(ROOT / "assets/scenarios" / p / "script.json")) for p in PACKS}
+PRESETS = ("preset-dep-a", "preset-loan-b")  # 음원·전사 실험이 있는 대본만
+scripts = {p: json.load(open(ROOT / "assets/scenarios" / p / "script.json", encoding="utf-8")) for p in PRESETS}
+PACKS = {p: scripts[p]["pack_version"] for p in PRESETS}  # 팩 버전의 진실 원천은 대본
 grand_total = grand_kept = 0
 for f in FILES:
     d = json.load(open(f)); total = kept = 0

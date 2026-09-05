@@ -6,7 +6,7 @@ const base='http://localhost:3000';const api='http://127.0.0.1:8000/api';
 async function get(url){const response=await fetch(api+url);assert.equal(response.status,200,url);return response.json();}
 (async()=>{
  browser=await chromium.launch({headless:true});
- for(const [preset,version] of [['preset-dep-a','DEP-2026.08-v4'],['preset-loan-b','LOAN-2026.08-v5']]){
+ for(const [preset,version] of [['preset-dep-a','DEP-2026.08-v6'],['preset-loan-b','LOAN-2026.08-v7']]){
   const manifest=JSON.parse(fs.readFileSync(path.resolve(__dirname,`../public/replay/${preset}/manifest.json`),'utf8'));
   const asset=await fetch(base+manifest.audioUrl);assert.equal(asset.status,200);assert.equal(crypto.createHash('sha256').update(Buffer.from(await asset.arrayBuffer())).digest('hex'),manifest.sha256);
   const context=await browser.newContext({viewport:{width:1440,height:900}});const page=await context.newPage();page.setDefaultTimeout(60000);page.on('dialog',dialog=>dialog.accept());page.on('pageerror',error=>errors.push(error.message));

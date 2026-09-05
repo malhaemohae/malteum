@@ -396,7 +396,7 @@
 현재 출력은 다음과 같다.
 
 - 서버 연결 시 `서버 이벤트 · append-only`, 폴백 시 `로컬 이벤트 기록 · 폴백 시연`
-- 선택 제품의 pack version(예적금 `DEP-2026.08-v4`, 가계 신용대출 `LOAN-2026.08-v7`)
+- 선택 제품의 pack version(예적금 `DEP-2026.08-v6`, 가계 신용대출 `LOAN-2026.08-v7`)
 - 다음 데모 이벤트 시각 또는 `시연 이벤트 완료`
 
 서버 세션은 WebSocket 이벤트와 `report` 응답을 사용하고, 로컬 폴백 세션은 `localStorage`에 종료 요약을 보관한다.
@@ -471,7 +471,7 @@
 ```text
 예적금 중도해지 선택
   → 가상 고객 A
-  → 상담 브리핑: 6개 필수 안내·최근 규정 변경·DEP-2026.08-v4
+  → 상담 브리핑: 8개 필수 안내·최근 규정 변경·DEP-2026.08-v6
   → 로컬 replay 세션 생성
   → 3분 30초 replay 상태
   → 이벤트 순차 반영
@@ -490,7 +490,7 @@
 ```text
 가계 신용대출 선택
   → 가상 고객 B
-  → 상담 브리핑: 7개 필수 안내·최근 규정 변경·LOAN-2026.08-v7 발행 팩
+  → 상담 브리핑: 11개 필수 안내·최근 규정 변경·LOAN-2026.08-v7 발행 팩
   → 서버 세션 생성 후 WebSocket 연결
   → 금리 구성·심사 단정·중도상환해약금 판정
   → 심사 결과 단정 개입·중도상환 기준 숫자 경보
@@ -927,7 +927,7 @@ L0 기본 live 녹음 진입
 - 세션 전역 outbound seq를 보존하는 완전한 `resume`
 - 현재 운영 환경의 PostgreSQL 팩 발행·resume 검증
 
-현재 실제 판정·이력 연결은 `DEP-2026.08-v4` 예적금 팩 기준이다. 팩이 없는 상품은
+현재 실제 판정·이력 연결은 `DEP-2026.08-v6` 예적금 팩 기준이다. 팩이 없는 상품은
 근거를 만들지 않고 서버에서 찾지 못한 팩으로 응답한다.
 
 ### 12.3 프론트에 남은 서버 연동 갭
@@ -936,7 +936,7 @@ L0 기본 live 녹음 진입
 | --- | --- | --- |
 | 모드 | TEXT/LIVE는 서버 WebSocket으로 연결하고, REPLAY는 preset `audio_ref`, TRACE는 source session 기반 서버 세션을 사용한다 | STT가 없는 환경의 LIVE 최종 전사·판정은 TEXT 폴백 |
 | 데이터 | `ready` 필수 항목·pack version, 서버 이벤트·progress·report를 반영 | 서버 outbound seq 기반 완전한 resume은 후속 검증 대상 |
-| 제품 팩 | `DEP-2026.08-v4`·`LOAN-2026.08-v7` 기준과 브리핑을 사용하고, 운영 팩 목록은 API 우선 조회 | 메모리 데모의 팩 목록·브리핑 404는 프론트 기준으로 폴백 |
+| 제품 팩 | `DEP-2026.08-v6`·`LOAN-2026.08-v7` 기준과 브리핑을 사용하고, 운영 팩 목록은 API 우선 조회 | 메모리 데모의 팩 목록·브리핑 404는 프론트 기준으로 폴백 |
 | 네비게이션 | S1~S5/O1 화면을 로컬 `screen`으로 연결 | URL 라우팅·권한·새로고침 복구는 후속 운영 품질 대상 |
 | 질의 | 연결 시 서버 `ask`와 근거 있는 answer assist, 미검색 시 무응답 안내 | 문서 본문 검색·페이지 범위 확장은 후속 대상 |
 | 근거 | 서버 `evidence_ref` 조회와 bbox/span, 페이지 이미지는 없을 때 로컬 preview | 문서 페이지 PNG를 서버가 안정적으로 제공해야 함 |
@@ -949,18 +949,18 @@ L0 기본 live 녹음 진입
 
 ### 13.1 현재 실물 fixture
 
-`back/contracts/fixtures/rulepack_DEP-2026.08-v4.json`은 예적금 중도해지용 실물 규정 팩이다.
+`back/contracts/fixtures/rulepack_DEP-2026.08-v6.json`은 예적금 중도해지용 실물 규정 팩이다.
 
-- pack version: `DEP-2026.08-v4`
+- pack version: `DEP-2026.08-v6`
 - product code: `ICBC-KRW-TD`
 - 상품군: deposit
-- 항목: 9개
-- 구성: required 5개, forbidden 2개, risk 1개, reference 1개
+- 항목: 12개
+- 구성: required 8개, forbidden 1개, risk 1개, reference 2개
 - 출처·원문·근거 스팬을 포함
 
 관련 fixture:
 
-- `events_scenario_a.json`: 시나리오 A 이벤트 31건
+- `events_scenario_a.json`: 시나리오 A 이벤트 48건
 - `ws_messages.json`: c2s·s2c 메시지 26건
 - `judge_cases.json`: 엔진 판정 케이스 모음
 

@@ -10,10 +10,10 @@
     "span": "만기 전 예금해지 시 약정 이율이 아닌 중도해지이율 적용"
   },
   "summary": {
-    "items_total": 6,
+    "items_total": 8,
     "met": 4,
     "partial": 1,
-    "unmet": 1,
+    "unmet": 3,
     "violations": 1
   }
 }

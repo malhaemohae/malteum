@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     assets_dir: Path = BACK_DIR.parent / "assets"
     # 심사위원이 올린 오디오. assets 는 읽기 전용으로 붙이므로(compose) 쓰는 자리를 따로 둔다
     upload_dir: Path = BACK_DIR.parent / "uploads"
-    default_pack_version: str = "DEP-2026.08-v4"
+    default_pack_version: str = "DEP-2026.08-v6"
     ws_ping_interval_s: float = 30.0
     # 계약 securitySchemes.bearerAuth. 쓰기 경로(팩 발행·문서 업로드·후보 승인)에만 건다.
     # 비어 있으면 그 경로들이 401 이다 — 열어 두면 배포에서 누구나 팩을 발행한다
