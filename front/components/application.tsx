@@ -5,6 +5,8 @@ import { ApiEvidence, ApiHealth, ApiPack, ApiPackItem, ApiSessionSummary, findSe
 import { Pcm16Capture } from '../lib/audio';
 import { nextAudioSequence, rememberAudioSequence, rememberSession } from '../lib/session-index';
 import { HistoryAction, isPlayableEvent, recoveredSession, sessionEvents, sessionHandshake, traceBlockedReason } from '../lib/session-recovery';
+import { rememberTraceSource, resolveTraceSource } from '../lib/trace-source';
+import { TraceSourcePicker } from './trace-source-picker';
 import { errorText, evidenceForItem, LiveSession, Mode, NavItem, newLiveSession, reduceServer, Screen } from '../lib/workspace-model';
 import MarketingLanding from './marketing-showcase';
 import { Briefing, Dashboard } from './consultation';
@@ -15,6 +17,7 @@ export default function Application() {
   const [screen, setScreen] = useState<Screen>('landing'); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
   const [pack, setPack] = useState<ApiPack | null>(null); const [health, setHealth] = useState<ApiHealth | null>(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ id: string; ended: boolean } | null>(null); const [newConfirm, setNewConfirm] = useState(false); const newAfterEnd = useRef(false);
+  const [traceSelection, setTraceSelection] = useState<ApiSessionSummary | null>(null);
   const [evidence, setEvidence] = useState<{ loading: boolean; value?: ApiEvidence; error?: string } | null>(null); const evidenceRequest = useRef(0);
   const [micActive, setMicActive] = useState(false); const [micPending, setMicPending] = useState(false); const [micError, setMicError] = useState('');
   const socket = useRef<WebSocket | null>(null); const capture = useRef<Pcm16Capture | null>(null); const connectingMic = useRef(false); const connectTimer = useRef<ReturnType<typeof setTimeout>>(); const endTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -165,11 +168,15 @@ export default function Application() {
         return;
       }
       const blocked = traceBlockedReason(latest); if (blocked) throw new Error(blocked);
-      if (!(await sessionEvents(latest.session_id, true)).some(isPlayableEvent)) throw new Error('저장된 발화·판정이 없어 TRACE를 재생할 수 없습니다. 리포트에서 기록을 확인해 주세요.');
-      const selectedPack = await malteumApi.pack(latest.pack_version);
-      const created = await malteumApi.createSession({ mode: 'trace', source_session_id: latest.session_id, pack_version: latest.pack_version });
+      const source = await resolveTraceSource(latest);
+      if (!source) { setTraceSelection(latest); return; }
+      const sourceBlocked = traceBlockedReason(source); if (sourceBlocked) throw new Error(sourceBlocked);
+      if (!(await sessionEvents(source.session_id, true)).some(isPlayableEvent)) throw new Error('저장된 발화·판정이 없어 TRACE를 재생할 수 없습니다. 리포트에서 기록을 확인해 주세요.');
+      const selectedPack = await malteumApi.pack(source.pack_version);
+      const created = await malteumApi.createSession({ mode: 'trace', source_session_id: source.session_id, pack_version: source.pack_version });
+      rememberTraceSource(created.session_id, source.session_id); setTraceSelection(null);
       rememberSession(created.session_id); setPack(selectedPack);
-      const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: latest.session_id };
+      const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: source.session_id };
       update(active); setScreen('dashboard'); connect(active);
     } catch (reason) { setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
   }
@@ -183,6 +190,7 @@ export default function Application() {
   else if (screen === 'documents') page = <DocumentsScreen {...navigation} />;
   else page = <HistoryScreen {...navigation} onOpen={openHistory} busy={busy} error={error} />;
   return <>{page}{error && screen === 'briefing' && <Modal title="상담 연결 확인" onClose={() => setError('')}><TextPages text={error} /></Modal>}
+    {traceSelection && <TraceSourcePicker trace={traceSelection} busy={busy} error={error} onClose={() => { setTraceSelection(null); setError(''); }} onPlay={record => openHistory(record, 'trace')} />}
     {evidence && <Modal title="근거 원문" onClose={() => { evidenceRequest.current++; setEvidence(null); }}>{evidence.loading ? <Empty>근거를 불러오고 있습니다.</Empty> : evidence.value ? <EvidenceView value={evidence.value} /> : <Notice>{evidence.error}</Notice>}</Modal>}
     {newConfirm && <Modal title="새 상담 시작" onClose={() => setNewConfirm(false)} actions={<><button onClick={() => setNewConfirm(false)}>현재 상담 유지</button><button className="wb-primary" disabled={session?.status !== 'connected' || session?.ending} onClick={() => { newAfterEnd.current = true; setNewConfirm(false); endSession(); }}>현재 상담 종료 후 새 상담</button></>}><TextPages text="현재 상담을 종료하고 서버에 기록한 뒤 새 상담을 준비합니다. 녹음 중이라면 녹음도 중지됩니다." /></Modal>}
   </>;

@@ -1,0 +1,67 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || path.join(process.env.USERPROFILE,'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'));
+const { allSizes, failures } = require('./workspace-qa.cjs');
+const base='http://localhost:3000'; const api='http://127.0.0.1:8000/api';
+// Already-created local QA records, not user consultations. Only NEW replay IDs
+// may be ended by this test. The original events are snapshotted and compared.
+const legacyId='01M1R7W2V0JHRQXB46E2WM8ZZT';
+const sourceId='01M1R7VANZHAHTXC4B7X8P7495';
+const created=[]; const errors=[]; let browser;
+async function request(url){const response=await fetch(api+url);assert.equal(response.status,200,url);return response.json();}
+async function history(page,id){
+ await page.getByRole('navigation',{name:'주 메뉴'}).getByRole('button',{name:'이력',exact:true}).click();
+ await page.getByLabel('이력 입력 방식').selectOption('trace');
+ const row=page.locator(`[data-session-id="${id}"]`).locator('..');
+ for(let i=0;i<60;i++){
+  if(await row.isVisible())return row;
+  const next=page.getByLabel('세션 이력 다음 페이지');
+  if(await next.isEnabled())await next.click(); else await page.waitForTimeout(100);
+ }
+ throw new Error('TRACE row not found');
+}
+async function end(page){await page.getByRole('button',{name:'상담 종료',exact:true}).click();await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor();}
+(async()=>{
+ const before=await request(`/sessions/${sourceId}/events`); const legacyBefore=await request(`/sessions/${legacyId}/events`);
+ browser=await chromium.launch({headless:true}); const context=await browser.newContext({viewport:{width:1440,height:900}}); const page=await context.newPage(); page.setDefaultTimeout(25000);
+ page.on('dialog',dialog=>dialog.accept()); page.on('pageerror',error=>errors.push(error.message));
+ const posts=[]; const frames=[];
+ page.on('request',req=>{if(req.method()==='POST'&&new URL(req.url()).pathname==='/api/sessions')posts.push(req.postDataJSON());});
+ page.on('response',async response=>{if(response.request().method()==='POST'&&new URL(response.url()).pathname==='/api/sessions'&&response.status()===201)created.push((await response.json()).session_id)});
+ page.on('websocket',ws=>ws.on('framereceived',event=>{if(typeof event.payload==='string')frames.push(JSON.parse(event.payload))}));
+ await page.goto(base,{waitUntil:'networkidle'}); await page.getByRole('button',{name:/상담 시작|시작하기|대시보드/}).first().click();
+ let row=await history(page,legacyId);
+ assert.equal(await page.getByText('TRACE 이력이 아닌 원본 상담에서 재생해 주세요.',{exact:true}).count(),0);
+ assert.equal(await row.getByRole('button',{name:'TRACE 재생',exact:true}).isEnabled(),true);
+ await row.getByRole('button',{name:'TRACE 재생',exact:true}).click();
+ const picker=page.getByRole('dialog',{name:'재생할 상담 선택',exact:true}); await picker.waitFor();
+ await picker.locator('[data-trace-candidate]').first().waitFor();
+ assert.equal(posts.length,0,'unresolved TRACE does not silently create a blank replay');
+ await allSizes(page,'trace-source-picker');
+ await page.getByLabel('재생할 상담 검색').fill(sourceId);
+ const candidate=picker.locator(`[data-trace-candidate="${sourceId}"]`); await candidate.waitFor();
+ const text=before.events.find(e=>e.kind==='utterance').utterance.text;
+ assert.ok((await candidate.textContent()).includes(text),'preview comes from stored events');
+ await candidate.getByRole('button',{name:'이 상담 재생',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('[data-workspace="dashboard"]')&&document.querySelector('[data-paged-list="상담 전사"]')?.textContent.includes('중도해지'));
+ assert.equal(posts[0].source_session_id,sourceId);
+ assert.ok(frames.some(m=>m.t==='utterance'&&m.text===text),'actual backend WS replays the original utterance');
+ await end(page); const firstTrace=created[0];assert.ok(firstTrace);
+ assert.equal((await request(`/sessions/${firstTrace}`)).status,'ended');
+ await page.reload({waitUntil:'networkidle'});await page.getByRole('button',{name:/상담 시작|시작하기|대시보드/}).first().click();
+ row=await history(page,firstTrace); await row.getByRole('button',{name:'TRACE 재생',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('[data-workspace="dashboard"]')&&document.querySelector('[data-paged-list="상담 전사"]')?.textContent.includes('중도해지'));
+ assert.equal(await picker.count(),0,'new TRACE directly replays its exact source after reload');
+ assert.equal(posts[1].source_session_id,sourceId,'TRACE of TRACE follows the original, not the empty replay record');
+ await end(page);
+ assert.deepEqual(await request(`/sessions/${sourceId}/events`),before,'original event log unchanged');
+ assert.deepEqual(await request(`/sessions/${legacyId}/events`),legacyBefore,'legacy TRACE unchanged, no inferred backfill');
+ assert.deepEqual(errors,[]);assert.deepEqual(failures,[]);
+ fs.writeFileSync(path.resolve(__dirname,'../qa-output/trace-source-qa.json'),JSON.stringify({created,checks:['legacy TRACE enabled','no blank TRACE creation','actual stored preview and explicit selection','original backend WS replay','new TRACE repeat after reload','original events unchanged','10 responsive picker sizes'],errors,failures},null,2));
+ console.log('PASS: real backend TRACE selection/replay/repeat after reload; original records unchanged; 10 viewports; new QA IDs:',created.join(', '));
+})().catch(error=>{console.error(error);process.exitCode=1}).finally(async()=>{
+ await browser?.close();
+ // Only close test-created records after a failed browser action.
+ for(const id of created){try{if((await request(`/sessions/${id}`)).status!=='running')continue;await new Promise(resolve=>{const ws=new WebSocket('ws://127.0.0.1:8000/ws');const timer=setTimeout(()=>{ws.close();resolve()},12000);ws.onopen=()=>ws.send(JSON.stringify({t:'hello',session_id:id,mode:'trace'}));ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.t==='ready')ws.send(JSON.stringify({t:'end'}));if(m.t==='ping')ws.send(JSON.stringify({t:'pong'}));if(m.t==='ended'){clearTimeout(timer);ws.close();resolve()}};ws.onerror=()=>{clearTimeout(timer);resolve()};});}catch{}}
+});

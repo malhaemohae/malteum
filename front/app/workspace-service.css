@@ -72,6 +72,14 @@
   .wb-history-list .wb-list-row>.wb-actions{margin-left:auto}
 }
 .wb-history-list .wb-list{container-type:inline-size}
+.wb-trace-picker{display:flex;flex:1;min-height:0;flex-direction:column;gap:12px}
+.wb-trace-picker>p{font-size:13px;color:var(--muted);flex-shrink:0}
+.wb-trace-picker .wb-toolbar input{flex:1}
+.wb-trace-candidate{display:flex;align-items:center;gap:12px;width:100%}
+.wb-trace-candidate>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.wb-trace-candidate strong,.wb-trace-candidate small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wb-modal .wb-trace-preview{display:block;min-height:28px;padding:3px 0;background:transparent;border:0;text-align:left;font-size:13px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--teal)}
+@media(max-width:520px){.wb-trace-candidate{flex-wrap:wrap;gap:3px}.wb-trace-candidate>div{flex-basis:100%}.wb-trace-candidate>.wb-primary{margin-left:auto;min-height:30px;padding:4px 8px;font-size:12px}}
 .wb-service .wb-toolbar>.wb-report-tab-select{display:none}
 @media(min-width:1600px){
   .wb.wb-service{grid-template-columns:214px minmax(0,1fr)}
