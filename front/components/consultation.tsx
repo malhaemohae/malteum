@@ -124,7 +124,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
           return <div className="wb-check-row" data-check-item={entry.code}>
             <button className="wb-row-button" aria-label={`${entry.name} 상세`} onClick={() => { setSelected(entry.code); setManualTab('detail'); setReason(''); }}><span className="wb-row-copy"><strong>{entry.name}</strong>{entry.missing.length > 0 && <small>미충족 · {entry.missing.join(', ')}</small>}</span><span className="wb-badge" data-state={entry.state}>{statusNames[entry.state] ?? entry.state}</span></button>
             <div className="wb-check-actions" role="group" aria-label={`${entry.name} 바로 실행`}>
-              <button disabled={!source?.plain_language?.length} onClick={() => requestRephrase(entry.code)}>쉬운 말</button>
+              <button disabled={!source?.plain_language?.length || !source?.evidence} onClick={() => requestRephrase(entry.code)}>쉬운 말</button>
               <button disabled={!canWrite || manualPending || (['met', 'waived'].includes(entry.state) && !undo)} onClick={() => onCommand({ t: 'mark_met', item_code: entry.code, ...(undo ? { undo: true } : {}) })}>{undo ? '기록 취소' : '고지 기록'}</button>
               <button disabled={!entry.evidenceRef && !source?.evidence} onClick={() => entry.evidenceRef ? showEvidence(entry.evidenceRef) : source && showItemEvidence(source)}>근거</button>
             </div>
