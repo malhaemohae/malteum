@@ -1,0 +1,23 @@
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const ts = require('typescript');
+require.extensions['.ts'] = (module, file) => module._compile(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText, file);
+const { malteumApi: api, setAdminToken } = require('../lib/api.ts');
+const requests = [];
+global.fetch = (url, init) => new Promise(resolve => requests.push({ url, init, resolve }));
+const reply = (index, status = 200) => requests[index].resolve(new Response(JSON.stringify(status === 200 ? { documents: [] } : { message: 'test error' }), { status, headers: { 'Content-Type': 'application/json' } }));
+(async () => {
+  const a = api.documents(), b = api.documents();
+  assert.equal(requests.length, 1); reply(0); await Promise.all([a, b]);
+  const c = api.documents(); assert.equal(requests.length, 2); reply(1); await c;
+  const failed = api.documents().catch(error => error.status); reply(2, 500); assert.equal(await failed, 500);
+  const retry = api.documents(); assert.equal(requests.length, 4); reply(3); await retry;
+  setAdminToken('test-only-a'); const protectedA = api.extraction('doc');
+  setAdminToken('test-only-b'); const protectedB = api.extraction('doc');
+  assert.equal(requests.length, 6); assert.notEqual(requests[4].init.headers.Authorization, requests[5].init.headers.Authorization);
+  reply(4); reply(5); await Promise.all([protectedA, protectedB]);
+  const writeA = api.approveCandidate('doc', 'candidate', 'test reviewer');
+  const writeB = api.approveCandidate('doc', 'candidate', 'test reviewer');
+  assert.equal(requests.length, 8); reply(6); reply(7); await Promise.all([writeA, writeB]);
+  console.log('PASS: in-flight GET deduplication, fresh retries, auth isolation, no write coalescing.');
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -8,6 +8,7 @@ async function events(id){const result=[];let cursor=0;for(;;){const page=await 
 async function history(page,id,mode){
  await page.getByRole('navigation',{name:'주 메뉴'}).getByRole('button',{name:'이력',exact:true}).click();
  await page.getByLabel('이력 입력 방식').selectOption(mode);
+ await page.waitForFunction(()=>document.querySelector('[data-workspace="history"] .wb-heading button')?.disabled===false&&document.querySelector('[data-session-id]'));
  const row=page.locator(`[data-session-id="${id}"]`).locator('..');
  for(let i=0;i<60;i++){if(await row.isVisible())return row;const next=page.getByLabel('세션 이력 다음 페이지');if(await next.isEnabled()){await next.click();await page.waitForTimeout(150);}else await page.waitForTimeout(100);}
  throw new Error('history row not found');
@@ -37,7 +38,7 @@ async function history(page,id,mode){
   await page.getByRole('button',{name:'소리 끄기',exact:true}).click();assert.equal(await page.evaluate(()=>window.__voiceGains.at(-1).gain.value),0);
   await page.getByRole('button',{name:'소리 켜기',exact:true}).click();assert.equal(await page.evaluate(()=>window.__voiceGains.at(-1).gain.value),1);
   if(cycle===0){await allSizes(page,'history-trace-audio');await page.waitForFunction(()=>window.__voiceStarts.length>=2);starts=await page.evaluate(()=>window.__voiceStarts);assert.equal(starts[1].offset,manifest.cues[1].start);assert.ok(starts[1].text.includes(speech[1].utterance.text));}
-  await page.getByRole('button',{name:'상담 종료',exact:true}).click();await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor();assert.equal((await get(`/sessions/${created[cycle]}`)).status,'ended');
+  await page.getByRole('button',{name:'재생 종료',exact:true}).click();await page.getByRole('heading',{name:'종료 리포트',exact:true}).waitFor();assert.equal((await get(`/sessions/${created[cycle]}`)).status,'ended');
   assert.ok(await page.evaluate(()=>window.__voiceStops>0));console.log('PASS existing history audio:',cycle===0?'DB preset, no local mapping':'repeat TRACE after reload');
  }
  assert.deepEqual(await events(sourceId),before,'source DB event history is unchanged');assert.deepEqual(errors,[]);assert.deepEqual(failures,[]);

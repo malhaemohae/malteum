@@ -53,6 +53,7 @@ export type ApiPackSummary = {
 
 export type ApiEvidence = {
   doc_id: string;
+  source_url?: string;
   doc_title?: string;
   publisher?: string;
   snapshot_date?: string;
@@ -99,6 +100,7 @@ export type ApiCandidate = {
   name: string;
   type?: 'required' | 'forbidden' | 'reference' | 'risk';
   requirement_elements?: string[];
+  plain_language?: string[];
   evidence?: { page?: number; span?: string; bbox?: number[] };
   span_verified?: boolean;
   status?: 'pending' | 'approved' | 'rejected';
@@ -174,7 +176,9 @@ export class ApiError extends Error {
 const apiBase = (process.env.NEXT_PUBLIC_MALTEUM_API_BASE_URL || '/api').replace(/\/$/, '');
 // Runtime-only credential: never embed an administrator secret in a public JS bundle.
 let runtimeAdminToken = '';
-export function setAdminToken(value: string) { runtimeAdminToken = value.trim(); }
+let credentialVersion = 0;
+const pendingReads = new Map<string, Promise<unknown>>();
+export function setAdminToken(value: string) { runtimeAdminToken = value.trim(); credentialVersion++; }
 export function hasAdminToken() { return Boolean(runtimeAdminToken); }
 
 export function apiUrl(path: string) {
@@ -195,7 +199,20 @@ export function wsUrl(explicitUrl?: string) {
   return `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 }
 
-async function request<T>(path: string, init?: RequestInit, admin = false): Promise<T> {
+function request<T>(path: string, init?: RequestInit, admin = false): Promise<T> {
+  // Share only simultaneous, identical reads. Never cache results, share credentials,
+  // coalesce mutations, or make one caller's AbortSignal cancel another caller.
+  const share = (!init?.method || init.method === 'GET') && !init?.signal && !init?.headers && !init?.body;
+  if (!share) return performRequest<T>(path, init, admin);
+  const key = `${admin ? credentialVersion : 'public'}:${path}`;
+  const pending = pendingReads.get(key);
+  if (pending) return pending as Promise<T>;
+  const operation = performRequest<T>(path, init, admin).finally(() => { pendingReads.delete(key); });
+  pendingReads.set(key, operation);
+  return operation;
+}
+
+async function performRequest<T>(path: string, init?: RequestInit, admin = false): Promise<T> {
   const response = await fetch(apiUrl(path), {
     ...init,
     signal: init?.signal ?? AbortSignal.timeout(15000),
@@ -246,7 +263,7 @@ export const malteumApi = {
   },
   extraction: (docId: string) => request<Record<string, unknown>>(`/documents/${encodeURIComponent(docId)}/extraction`, undefined, true),
   candidates: (docId: string) => request<{ candidates: ApiCandidate[] }>(`/documents/${encodeURIComponent(docId)}/candidates`),
-  approveCandidate: (docId: string, candidateId: string, approvedBy: string) => request<Record<string, unknown>>(`/documents/${encodeURIComponent(docId)}/candidates/${encodeURIComponent(candidateId)}/approve`, { method: 'POST', body: JSON.stringify({ approved_by: approvedBy }) }, true),
+  approveCandidate: (docId: string, candidateId: string, approvedBy: string, edits?: { name?: string; requirement_elements?: string[]; plain_language?: string[] }) => request<Record<string, unknown>>(`/documents/${encodeURIComponent(docId)}/candidates/${encodeURIComponent(candidateId)}/approve`, { method: 'POST', body: JSON.stringify({ approved_by: approvedBy, ...(edits ? { edits } : {}) }) }, true),
   publishPack: (pack: Record<string, unknown>) => request<PublishPackResponse>('/packs/publish', { method: 'POST', body: JSON.stringify(pack) }, true),
 };
 
