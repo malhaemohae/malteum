@@ -72,6 +72,16 @@
   .wb-history-list .wb-list-row>.wb-actions{margin-left:auto}
 }
 .wb-history-list .wb-list{container-type:inline-size}
+.wb-service .wb-trace-start>.wb-panel-body{justify-content:center;align-items:center}
+.wb-trace-start-content{display:flex;flex-direction:column;align-items:center;gap:24px;max-width:480px;text-align:center;padding:24px 12px}
+.wb-trace-start-content h2{font-size:22px;line-height:1.4}
+.wb-trace-start-content p{margin-top:12px;color:var(--muted);font-size:14px;line-height:1.8;white-space:pre-line}
+.wb-trace-start-content .wb-actions{justify-content:center}
+.wb-trace-spinner{width:40px;height:40px;border:3px solid #e5ebee;border-top-color:#55b4d0;border-radius:50%;animation:wb-trace-spin 1s linear infinite;flex-shrink:0}
+.wb-trace-error-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#fff0d8;color:#8a581b;font-size:24px;font-weight:700}
+@keyframes wb-trace-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.wb-trace-spinner{animation:none}}
+@media(max-width:480px),(max-height:600px){.wb-trace-start-content{padding:12px 4px;gap:16px}.wb-trace-start-content h2{font-size:19px}.wb-trace-start-content p{font-size:13px;margin-top:8px}}
 .wb-trace-picker{display:flex;flex:1;min-height:0;flex-direction:column;gap:12px}
 .wb-trace-picker>p{font-size:13px;color:var(--muted);flex-shrink:0}
 .wb-trace-picker .wb-toolbar input{flex:1}

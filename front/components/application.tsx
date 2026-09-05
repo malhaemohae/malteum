@@ -1,12 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { ApiEvidence, ApiHealth, ApiPack, ApiPackItem, ApiSessionSummary, findSessionEvent, malteumApi, ServerMessage, wsUrl } from '../lib/api';
 import { Pcm16Capture } from '../lib/audio';
-import { nextAudioSequence, rememberAudioSequence, rememberSession } from '../lib/session-index';
+import { ReplayAudio, ReplayAudioState } from '../lib/replay-audio';
+import { nextAudioSequence, rememberAudioSequence, rememberSession, rememberReplayPreset } from '../lib/session-index';
+import { historyAudioPreset } from '../lib/history-audio';
 import { HistoryAction, isPlayableEvent, recoveredSession, sessionEvents, sessionHandshake, traceBlockedReason } from '../lib/session-recovery';
 import { rememberTraceSource, resolveTraceSource } from '../lib/trace-source';
 import { TraceSourcePicker } from './trace-source-picker';
+import { hasStoredUtterance } from '../lib/trace-start';
 import { errorText, evidenceForItem, LiveSession, Mode, NavItem, newLiveSession, reduceServer, Screen } from '../lib/workspace-model';
 import MarketingLanding from './marketing-showcase';
 import { Briefing, Dashboard } from './consultation';
@@ -23,11 +27,19 @@ export default function Application() {
   const socket = useRef<WebSocket | null>(null); const capture = useRef<Pcm16Capture | null>(null); const connectingMic = useRef(false); const connectTimer = useRef<ReturnType<typeof setTimeout>>(); const endTimer = useRef<ReturnType<typeof setTimeout>>();
   const creating = useRef(false); const choice = useRef<{ customer: 'general' | 'professional' }>({ customer: 'general' });
   const audioSequence = useRef(0);
+  const replayAudio = useRef<ReplayAudio | null>(null); const [replaySound, setReplaySound] = useState<ReplayAudioState | null>(null);
+  function clearReplayAudio() { const old = replayAudio.current; replayAudio.current = null; old?.dispose(); setReplaySound(null); }
+  async function prepareReplayAudio(presetId: string, packVersion: string) {
+    clearReplayAudio();
+    const player = new ReplayAudio(value => { if (replayAudio.current === player) setReplaySound(value); }); replayAudio.current = player;
+    await player.prepare(presetId, packVersion);
+  }
+  useEffect(() => { replayAudio.current?.setVisible(screen === 'dashboard'); }, [screen]);
   const pendingAcknowledgements = useRef(new Set<string>());
   function update(value: LiveSession | null | ((previous: LiveSession | null) => LiveSession | null)) { const next = typeof value === 'function' ? value(current.current) : value; current.current = next; setSession(next); }
   function stopMic() { capture.current?.stop(); capture.current = null; connectingMic.current = false; setMicActive(false); setMicPending(false); }
-  function closeSocket() { const old = socket.current; socket.current = null; old?.close(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }
-  useEffect(() => { let active = true; malteumApi.health().then(value => { if (active) setHealth(value); }).catch(() => { if (active) setHealth(null); }); return () => { active = false; socket.current?.close(); capture.current?.stop(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }; }, []);
+  function closeSocket() { replayAudio.current?.stop(); const old = socket.current; socket.current = null; old?.close(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }
+  useEffect(() => { let active = true; malteumApi.health().then(value => { if (active) setHealth(value); }).catch(() => { if (active) setHealth(null); }); return () => { active = false; socket.current?.close(); capture.current?.stop(); const old = replayAudio.current; replayAudio.current = null; old?.dispose(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }; }, []);
   useEffect(() => { if (!micActive) return; const timer = setInterval(() => update(value => value && value.status === 'connected' ? { ...value, seconds: value.seconds + 1 } : value), 1000); return () => clearInterval(timer); }, [micActive]);
   useEffect(() => { if (!session || session.status === 'ended') return; const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload); }, [session?.id, session?.status]);
   function navigate(value: NavItem) {
@@ -39,7 +51,7 @@ export default function Application() {
     if (value === '기준 관리' || value === '규정 팩') setScreen('packs');
     if (value === '문서') setScreen('documents');
   }
-  function resetForNew() { stopMic(); closeSocket(); update(null); setMicError(''); setError(''); setNewConfirm(false); setScreen('briefing'); }
+  function resetForNew() { stopMic(); closeSocket(); clearReplayAudio(); update(null); setMicError(''); setError(''); setNewConfirm(false); setScreen('briefing'); }
   function requestNew() { if (creating.current) return; if (current.current && current.current.status !== 'ended') setNewConfirm(true); else resetForNew(); }
   function command(value: Record<string, unknown>) {
     if (!current.current || current.current.status !== 'connected' || socket.current?.readyState !== WebSocket.OPEN) { update(previous => previous ? { ...previous, error: '서버 연결을 확인한 뒤 다시 시도해 주세요.' } : previous); return false; }
@@ -49,7 +61,7 @@ export default function Application() {
   }
   function finishSession(id: string) {
     if (current.current?.id !== id) return;
-    stopMic(); closeSocket(); update(value => value ? { ...value, status: 'ended', ending: false, error: undefined } : value);
+    stopMic(); closeSocket(); clearReplayAudio(); update(value => value ? { ...value, status: 'ended', ending: false, error: undefined } : value);
     setReportTarget({ id, ended: true });
     if (newAfterEnd.current) { newAfterEnd.current = false; resetForNew(); } else setScreen('report');
   }
@@ -68,6 +80,8 @@ export default function Application() {
         if (received.t === 'ping') { connection.send(JSON.stringify({ t: 'pong' })); return; }
         inbox = inbox.then(async () => {
         if (!isCurrent()) return;
+        if (current.current?.ending && !['ended', 'error', 'ready'].includes(received.t)) return;
+        if (current.current?.status === 'disconnected' && !['ended', 'error', 'ready'].includes(received.t)) return;
         let message = received;
         const handshakeResult = handshake.ready(message);
         message = handshakeResult.message;
@@ -94,7 +108,9 @@ export default function Application() {
         if (!isCurrent()) return;
 
         if (message.t === 'ready') clearTimeout(connectTimer.current);
-        update(value => value ? reduceServer(value, message) : value);
+        const show = () => { if (isCurrent()) update(value => value ? reduceServer(value, message) : value); };
+        if (['replay', 'trace'].includes(active.mode) && message.t === 'utterance' && replayAudio.current && !current.current?.seen.includes(String(message.event_id))) await replayAudio.current.present(message, () => flushSync(show));
+        else show();
         if (message.t === 'ended') {
           finishSession(active.id);
         }
@@ -103,7 +119,7 @@ export default function Application() {
     };
     const disconnected = () => {
       if (!isCurrent() || current.current?.status === 'ended' || current.current?.status === 'disconnected') return;
-      stopMic(); update(value => value ? { ...value, status: 'disconnected', ending: false, error: '서버 연결이 끊겼습니다. 다시 연결하거나 이력에서 저장 기록을 확인해 주세요.' } : value);
+      stopMic(); replayAudio.current?.stop(); update(value => value ? { ...value, status: 'disconnected', ending: false, error: '서버 연결이 끊겼습니다. 다시 연결하거나 이력에서 저장 기록을 확인해 주세요.' } : value);
       // A lost ended frame must not strand a session the server already closed.
       malteumApi.session(active.id).then(detail => { if (isCurrent() && detail.status !== 'running') finishSession(active.id); }).catch(() => { /* Keep the reconnect action when status cannot be verified. */ });
     };
@@ -112,14 +128,17 @@ export default function Application() {
   async function start(pack: ApiPack, mode: Mode, customer: 'general' | 'professional', preset?: { preset_id: string; audio_ref?: string }) {
     if (creating.current) return; creating.current = true; setBusy(true); setError(''); setMicError(''); choice.current = { customer };
     try {
+      clearReplayAudio();
+      if (mode === 'replay' && preset) await prepareReplayAudio(preset.preset_id, pack.pack_version);
       const created = await malteumApi.createSession({ mode, pack_version: pack.pack_version, product_code: pack.product?.code, customer_profile: { type: customer, tags: [] }, ...(preset ? { preset_id: preset.preset_id, audio_ref: preset.audio_ref } : {}) });
       rememberSession(created.session_id);
+      if (mode === 'replay' && preset) rememberReplayPreset(created.session_id, preset.preset_id);
       setPack(created.pack_version === pack.pack_version ? pack : await malteumApi.pack(created.pack_version));
       audioSequence.current = 0;
       pendingAcknowledgements.current.clear();
       const active = newLiveSession(created.session_id, created.ws_url, mode, created.pack_version); update(active); setScreen('dashboard'); connect(active);
       malteumApi.health().then(setHealth).catch(() => setHealth(null));
-    } catch (reason) { setError(`상담을 시작하지 못했습니다. ${errorText(reason)}`); } finally { creating.current = false; setBusy(false); }
+    } catch (reason) { clearReplayAudio(); setError(`상담을 시작하지 못했습니다. ${errorText(reason)}`); } finally { creating.current = false; setBusy(false); }
   }
   async function toggleMic() {
     update(value => value ? { ...value, textFallback: false } : value);
@@ -134,7 +153,7 @@ export default function Application() {
   }
   function endSession() {
     const active = current.current; if (!active || active.ending || active.status === 'ended') return;
-    stopMic(); if (!command({ t: 'end' })) return; update(value => value ? { ...value, ending: true } : value);
+    stopMic(); replayAudio.current?.stop(); if (!command({ t: 'end' })) return; update(value => value ? { ...value, ending: true } : value);
     endTimer.current = setTimeout(async () => {
       if (current.current?.id !== active.id || !current.current.ending) return;
       try { if ((await malteumApi.session(active.id)).status !== 'running') { finishSession(active.id); return; } } catch { /* Never assume an unconfirmed end succeeded. */ }
@@ -162,6 +181,12 @@ export default function Application() {
       if (action === 'resume') {
         if (latest.status !== 'running') { setReportTarget({ id: latest.session_id, ended: true }); setScreen('report'); return; }
         const [selectedPack, events] = await Promise.all([malteumApi.pack(latest.pack_version), sessionEvents(latest.session_id)]);
+        clearReplayAudio();
+        if (latest.mode === 'replay') {
+          const presetId = historyAudioPreset(latest, events);
+          if (presetId) await prepareReplayAudio(presetId, latest.pack_version);
+          replayAudio.current?.restoreTranscript(events.filter(event => event.kind === 'utterance').map(event => String((event.utterance as { text?: string } | undefined)?.text ?? '')));
+        }
         stopMic(); setMicError(''); setPack(selectedPack); pendingAcknowledgements.current.clear();
         audioSequence.current = nextAudioSequence(latest.session_id);
         rememberSession(latest.session_id); setScreen('dashboard'); connect(recoveredSession(latest, selectedPack, events), true);
@@ -171,20 +196,24 @@ export default function Application() {
       const source = await resolveTraceSource(latest);
       if (!source) { setTraceSelection(latest); return; }
       const sourceBlocked = traceBlockedReason(source); if (sourceBlocked) throw new Error(sourceBlocked);
-      if (!(await sessionEvents(source.session_id, true)).some(isPlayableEvent)) throw new Error('저장된 발화·판정이 없어 TRACE를 재생할 수 없습니다. 리포트에서 기록을 확인해 주세요.');
+      const sourceEvents = await sessionEvents(source.session_id);
+      if (!sourceEvents.some(isPlayableEvent)) throw new Error('저장된 발화·판정이 없어 TRACE를 재생할 수 없습니다. 리포트에서 기록을 확인해 주세요.');
       const selectedPack = await malteumApi.pack(source.pack_version);
+      clearReplayAudio();
+      const presetId = historyAudioPreset(source, sourceEvents);
+      if (presetId && hasStoredUtterance(sourceEvents)) await prepareReplayAudio(presetId, source.pack_version);
       const created = await malteumApi.createSession({ mode: 'trace', source_session_id: source.session_id, pack_version: source.pack_version });
       rememberTraceSource(created.session_id, source.session_id); setTraceSelection(null);
       rememberSession(created.session_id); setPack(selectedPack);
-      const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: source.session_id };
+      const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: source.session_id, traceHasUtterances: hasStoredUtterance(sourceEvents) };
       update(active); setScreen('dashboard'); connect(active);
-    } catch (reason) { setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
+    } catch (reason) { clearReplayAudio(); setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
   }
   const navigation = { onNavigate: navigate, onNew: requestNew };
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
   else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} />;
-  else if (screen === 'dashboard' && session) page = <Dashboard {...navigation} session={session} pack={pack} health={health} micActive={micActive} micPending={micPending} micError={micError} onMic={toggleMic} onEnd={endSession} onRetry={() => connect(session, true)} onTextMode={() => { stopMic(); setMicError(''); update(value => value ? { ...value, textFallback: true, error: undefined } : value); }} onCommand={command} onDismiss={() => update(value => value ? { ...value, interventions: value.interventions.slice(1) } : value)} onEvidence={openEvidence} onItemEvidence={itemEvidence} onAsk={ask} />;
+  else if (screen === 'dashboard' && session) page = <Dashboard {...navigation} session={session} pack={pack} health={health} micActive={micActive} micPending={micPending} micError={micError} replaySound={replaySound} onReplaySound={() => { void replayAudio.current?.toggle(); }} onMic={toggleMic} onEnd={endSession} onRetry={() => connect(session, true)} onTextMode={() => { stopMic(); setMicError(''); update(value => value ? { ...value, textFallback: true, error: undefined } : value); }} onCommand={command} onDismiss={() => update(value => value ? { ...value, interventions: value.interventions.slice(1) } : value)} onEvidence={openEvidence} onItemEvidence={itemEvidence} onAsk={ask} />;
   else if (screen === 'report') page = <ReportScreen {...navigation} sessionId={reportTarget?.id ?? session?.id ?? null} onEvidence={openEvidence} onResume={record => openHistory(record, 'resume')} busy={busy} error={error} />;
   else if (screen === 'packs') page = <PackScreen {...navigation} />;
   else if (screen === 'documents') page = <DocumentsScreen {...navigation} />;

@@ -14,3 +14,11 @@ export function nextAudioSequence(id: string) {
 export function rememberAudioSequence(id: string, next: number) {
   try { sessionStorage.setItem(`malteum.audio-seq.${id}`, String(next)); } catch { /* Storage is optional. */ }
 }
+
+// Exact public preset identity only. Never infer an uploaded recording from its pack.
+export function rememberReplayPreset(id: string, preset: string) {
+  try { localStorage.setItem(`malteum.replay-preset.${id}`, preset); } catch { /* Optional browser convenience. */ }
+}
+export function rememberedReplayPreset(id: string) {
+  try { return localStorage.getItem(`malteum.replay-preset.${id}`); } catch { return null; }
+}
