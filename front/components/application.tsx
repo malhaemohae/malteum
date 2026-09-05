@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { ApiEvidence, ApiHealth, ApiPack, ApiPackItem, ApiPreset, ApiSessionSummary, findSessionEvent, malteumApi, ServerMessage, wsUrl } from '../lib/api';
-import { Pcm16Capture } from '../lib/audio';
+import { MicrophoneCaptureError, Pcm16Capture } from '../lib/audio';
 import { ReplayAudio, ReplayAudioState } from '../lib/replay-audio';
 import { activeSession, forgetActiveSession, nextAudioSequence, rememberActiveSession, rememberAudioSequence, rememberSession, rememberReplayPreset } from '../lib/session-index';
 import { historyAudioPreset } from '../lib/history-audio';
@@ -186,7 +186,9 @@ export default function Application() {
   }
   function requestMic() {
     const active = current.current;
-    if (connectingMic.current || !active || active.status !== 'connected' || active.mode !== 'live' || active.ending) return;
+    // A second press while the permission prompt is open cancels the attempt instead of being ignored.
+    if (connectingMic.current) { stopMic(); setMicError(''); return; }
+    if (!active || active.status !== 'connected' || active.mode !== 'live' || active.ending) return;
     if (micActive || micIntroSeen.current === active.id) { void toggleMic(); return; }
     setMicIntro(true);
   }
@@ -197,7 +199,10 @@ export default function Application() {
     if (connectingMic.current || current.current?.status !== 'connected' || current.current.mode !== 'live' || current.current.ending) return;
     connectingMic.current = true; setMicPending(true); setMicError(''); const activeCapture = new Pcm16Capture(audioSequence.current); capture.current = activeCapture;
     try {
-      await activeCapture.start((frame, sequence) => { if (socket.current?.readyState === WebSocket.OPEN) { socket.current.send(frame); audioSequence.current = sequence + 1; if (current.current) rememberAudioSequence(current.current.id, sequence + 1); } });
+      // The browser permission prompt can stay open forever; give the teller a clear way out after 20 s.
+      let giveUp: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<never>((_, reject) => { giveUp = setTimeout(() => reject(new MicrophoneCaptureError('timeout', '마이크 권한 창에 20초 동안 답이 없어 연결을 멈췄습니다. 주소창의 마이크 권한을 허용한 뒤 다시 눌러 주세요.')), 20000); });
+      try { await Promise.race([activeCapture.start((frame, sequence) => { if (socket.current?.readyState === WebSocket.OPEN) { socket.current.send(frame); audioSequence.current = sequence + 1; if (current.current) rememberAudioSequence(current.current.id, sequence + 1); } }), timeout]); } finally { clearTimeout(giveUp); }
       if (capture.current !== activeCapture || current.current?.status !== 'connected') { activeCapture.stop(); return; }
       micIntroSeen.current = current.current.id;
       setMicActive(true);
