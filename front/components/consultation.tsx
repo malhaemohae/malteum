@@ -97,8 +97,6 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
           {intervention ? <><TextPages label="현재 안내" text={`${intervention.text}${intervention.said != null || intervention.reference != null ? `\n말씀: ${intervention.said ?? '미제공'}\n기준: ${intervention.reference ?? '미제공'}` : ''}${intervention.condition ? `\n${intervention.condition}` : ''}`} /><div className="wb-actions">{intervention.evidenceRef && <button onClick={() => onEvidence(intervention.evidenceRef!)}>근거 보기</button>}{session.mode !== 'trace' && <button disabled={!canWrite || manualPending || !session.transcript.some(row => row.speaker === 'teller')} title="직전 상담원 발화를 고객이 알기 쉬운 말로 바꿔 줍니다" onClick={() => requestRephrase()}>직전 발화 쉬운 말로</button>}<button className="wb-primary" disabled={intervention.alert && (!canWrite || manualPending)} onClick={resolve}>{intervention.alert ? session.action?.kind === 'acknowledge' && manualPending ? '확인 저장 중…' : '확인 기록' : '닫기'}</button></div></> : <Empty><span className="wb-guide-empty-icon"><WorkspaceIcon name="conversation" size={32} /></span><p>{micActive ? '대화를 듣고 있습니다.' : session.mode === 'live' && !session.transcript.length ? '녹음 시작 버튼을 눌러 상담을 시작하세요.' : '확인이 필요한 안내가 없습니다.'}</p></Empty>}
           {intervention?.evidenceRef ? <EvidenceCard title="이 안내의 근거" evidenceRef={intervention.evidenceRef} onOpen={() => onEvidence(intervention.evidenceRef!)} />
             : session.recentEvidence ? <EvidenceCard title={`최근 판정 근거 · ${session.recentEvidence.name}`} evidenceRef={session.recentEvidence.ref} onOpen={() => onEvidence(session.recentEvidence!.ref)} /> : null}
-          {session.query?.pending ? <small>답변 요청 중</small> : session.query?.answer ? <button onClick={() => setDetail({ title: '규정 질의 답변', text: `${session.query?.question}\n\n${session.query?.answer}`, evidenceRef: session.query?.evidenceRef })}>답변 보기</button> : null}
-          <form className="wb-composer" onSubmit={event => { event.preventDefault(); if (query.trim()) { onAsk(query.trim()); setQuery(''); } }}><input aria-label="규정 질문" value={query} maxLength={2000} onChange={event => setQuery(event.target.value)} placeholder="규정에 대해 물어보세요" /><button type="submit" disabled={!canWrite || !query.trim() || session.query?.pending}>질문</button></form>
         </Panel>
       <div className="wb-checks"><Panel title="필수 안내" action={<span className="wb-badge">{session.progress ? `${session.progress.met} / ${session.progress.total}` : '판정 대기'}</span>}>
         <PagedList label="필수 안내" items={session.items} rowHeight={84} empty={session.status === 'connecting' ? '기준을 연결하고 있습니다.' : '서버가 제공한 필수 항목이 없습니다.'} render={entry => {
@@ -115,6 +113,10 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
         }} />
         {session.progress?.density && <div className="wb-density"><span>전문용어 밀도</span><strong>{({ low: '낮음', normal: '보통', high: '높음' } as Record<string, string>)[session.progress.density] ?? session.progress.density}</strong></div>}
       </Panel></div>
+        <div className="wb-guide-ask" aria-label="규정 질의">
+          {session.query?.pending ? <small>답변 요청 중</small> : session.query?.answer ? <button onClick={() => setDetail({ title: '규정 질의 답변', text: `${session.query?.question}\n\n${session.query?.answer}`, evidenceRef: session.query?.evidenceRef })}>답변 보기</button> : null}
+          <form className="wb-composer" onSubmit={event => { event.preventDefault(); if (query.trim()) { onAsk(query.trim()); setQuery(''); } }}><input aria-label="규정 질문" value={query} maxLength={2000} onChange={event => setQuery(event.target.value)} placeholder="규정에 대해 물어보세요" /><button type="submit" disabled={!canWrite || !query.trim() || session.query?.pending}>질문</button></form>
+        </div>
         </div>
         </Panel>
       </div>

@@ -43,3 +43,7 @@
 @media(max-height:600px) and (min-width:801px){.wb-briefing .wb-processing-notice{grid-column:1 / -1;grid-row:4}.wb-briefing>.wb-panel-body{grid-template-rows:34px minmax(0,1fr) auto auto}}
 @media(max-width:800px) and (max-height:600px){.wb-service .wb-briefing>.wb-panel-body{display:flex}.wb-processing-notice{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.wb-pulse,.wb-feedback[data-pending=true]>span:first-child{animation:none}.wb-pulse{outline:2px solid #087e9f;outline-offset:-2px}}
+/* The rule question box stays visible under both guide tabs. */
+.wb-service .wb-guide-ask{display:flex;flex-direction:column;gap:8px;flex-shrink:0;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.wb-service .wb-guide-ask .wb-composer{margin-top:0;padding-top:0;border-top:0}
+.wb-service .wb-guide-ask>button{align-self:flex-start;min-height:30px;padding:4px 10px;font-size:12px}

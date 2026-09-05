@@ -93,7 +93,13 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
     if (current.action?.kind === 'acknowledge' && message.acknowledged === true && current.action.pending && current.action.ref === message.acknowledged_ref) next.action = { ...current.action, pending: false, message: '확인 기록이 서버에 저장됐습니다.' };
   }
   if (message.t === 'progress') next.progress = { met: Number(message.met), partial: Number(message.partial ?? 0), total: Number(message.items_total), density: typeof message.term_density === 'string' ? message.term_density : undefined };
-  if (message.t === 'error') { next.error = String(message.message ?? '서버 처리 오류'); next.query = current.query?.pending ? { ...current.query, pending: false, answer: '요청을 처리하지 못했습니다. 다시 요청해 주세요.' } : current.query; if (current.action?.pending) next.action = { ...current.action, pending: false, message: next.error }; }
+  if (message.t === 'error') {
+    const reason = String(message.message ?? '서버 처리 오류');
+    // A refused ask/assist is an answer to that request, not a session fault: show it in place.
+    if (current.query?.pending) next.query = { ...current.query, pending: false, answer: reason };
+    else if (current.action?.pending) next.action = { ...current.action, pending: false, message: reason };
+    else next.error = reason;
+  }
   if (message.t === 'ended') { next.status = 'ended'; next.ending = false; next.reportUrl = typeof message.report_url === 'string' ? message.report_url : undefined; }
   return next;
 }

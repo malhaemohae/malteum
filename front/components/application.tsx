@@ -5,7 +5,7 @@ import { flushSync } from 'react-dom';
 import { ApiEvidence, ApiHealth, ApiPack, ApiPackItem, ApiPreset, ApiSessionSummary, findSessionEvent, malteumApi, ServerMessage, wsUrl } from '../lib/api';
 import { Pcm16Capture } from '../lib/audio';
 import { ReplayAudio, ReplayAudioState } from '../lib/replay-audio';
-import { nextAudioSequence, rememberAudioSequence, rememberSession, rememberReplayPreset } from '../lib/session-index';
+import { activeSession, forgetActiveSession, nextAudioSequence, rememberActiveSession, rememberAudioSequence, rememberSession, rememberReplayPreset } from '../lib/session-index';
 import { historyAudioPreset } from '../lib/history-audio';
 import { HistoryAction, isPlayableEvent, recoveredSession, sessionEvents, sessionHandshake, traceBlockedReason } from '../lib/session-recovery';
 import { rememberTraceSource, resolveTraceSource } from '../lib/trace-source';
@@ -44,6 +44,12 @@ export default function Application() {
   function update(value: LiveSession | null | ((previous: LiveSession | null) => LiveSession | null)) { const next = typeof value === 'function' ? value(current.current) : value; current.current = next; setSession(next); }
   function stopMic() { capture.current?.stop(); capture.current = null; connectingMic.current = false; setMicActive(false); setMicPending(false); setMicIntro(false); }
   function closeSocket() { replayAudio.current?.stop(); const old = socket.current; socket.current = null; old?.close(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }
+  // After a reload, pick the running consultation of this tab back up instead of dropping to the landing page.
+  useEffect(() => {
+    const saved = activeSession(); if (!saved) return; let active = true;
+    malteumApi.session(saved).then(detail => { if (!active) return; if (detail.status === 'running' && detail.mode !== 'trace') { setScreen('history'); void openHistory(detail, 'resume'); } else forgetActiveSession(); }).catch(() => { /* Server unreachable: the history screen still offers manual recovery. */ });
+    return () => { active = false; };
+  }, []);
   useEffect(() => { let active = true; malteumApi.health().then(value => { if (active) setHealth(value); }).catch(() => { if (active) setHealth(null); }); return () => { active = false; socket.current?.close(); capture.current?.stop(); const old = replayAudio.current; replayAudio.current = null; old?.dispose(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }; }, []);
   useEffect(() => { if (!micActive) return; const timer = setInterval(() => update(value => value && value.status === 'connected' ? { ...value, seconds: value.seconds + 1 } : value), 1000); return () => clearInterval(timer); }, [micActive]);
   useEffect(() => { if (!session || session.status === 'ended') return; const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload); }, [session?.id, session?.status]);
@@ -66,7 +72,7 @@ export default function Application() {
     if (value === '규정 팩') { managementScreen.current = 'packs'; setScreen('packs'); }
     if (value === '문서') { managementScreen.current = 'documents'; setScreen('documents'); }
   }
-  function resetForNew() { stopMic(); closeSocket(); clearReplayAudio(); update(null); setMicError(''); setError(''); setNewConfirm(false); setScreen('briefing'); }
+  function resetForNew() { stopMic(); closeSocket(); clearReplayAudio(); forgetActiveSession(); update(null); setMicError(''); setError(''); setNewConfirm(false); setScreen('briefing'); }
   function requestNew() { if (creating.current) return; if (current.current && current.current.status !== 'ended') setNewConfirm(true); else resetForNew(); }
   function command(value: Record<string, unknown>) {
     if (!current.current || current.current.status !== 'connected' || socket.current?.readyState !== WebSocket.OPEN) { update(previous => previous ? { ...previous, error: '서버 연결을 확인한 뒤 다시 시도해 주세요.' } : previous); return false; }
@@ -84,8 +90,11 @@ export default function Application() {
   }
   function finishSession(id: string) {
     if (current.current?.id !== id) return;
+    // A TRACE session is a replay shell; its own report is empty. Show the consultation it replayed.
+    const reportId = current.current?.mode === 'trace' && current.current.sourceSessionId ? current.current.sourceSessionId : id;
     stopMic(); closeSocket(); clearReplayAudio(); update(value => value ? { ...value, status: 'ended', ending: false, error: undefined } : value);
-    setReportTarget({ id, ended: true });
+    forgetActiveSession();
+    setReportTarget({ id: reportId, ended: true });
     if (newAfterEnd.current) { newAfterEnd.current = false; resetForNew(); } else setScreen('report');
   }
   function connect(active: LiveSession, recover = false) {
@@ -155,7 +164,7 @@ export default function Application() {
       clearReplayAudio();
       if (mode === 'replay' && preset) await prepareReplayAudio(preset.preset_id, pack.pack_version);
       const created = await malteumApi.createSession({ mode, pack_version: pack.pack_version, product_code: pack.product?.code, customer_profile: { type: customer, tags: [] }, ...(preset ? { preset_id: preset.preset_id, audio_ref: preset.audio_ref } : {}) });
-      rememberSession(created.session_id);
+      rememberSession(created.session_id); rememberActiveSession(created.session_id);
       if (mode === 'live' || mode === 'text') preparation.current = { packVersion: created.pack_version, mode, customer };
       if (mode === 'replay' && preset) rememberReplayPreset(created.session_id, preset.preset_id);
       setPack(created.pack_version === pack.pack_version ? pack : await malteumApi.pack(created.pack_version));
@@ -243,7 +252,7 @@ export default function Application() {
         }
         stopMic(); setMicError(''); setPack(selectedPack); pendingAcknowledgements.current.clear();
         audioSequence.current = nextAudioSequence(latest.session_id);
-        rememberSession(latest.session_id); setScreen(sessionScreen(latest.mode)); connect(recoveredSession(latest, selectedPack, events), true);
+        rememberSession(latest.session_id); rememberActiveSession(latest.session_id); setScreen(sessionScreen(latest.mode)); connect(recoveredSession(latest, selectedPack, events), true);
         return;
       }
       const blocked = traceBlockedReason(latest); if (blocked) throw new Error(blocked);
