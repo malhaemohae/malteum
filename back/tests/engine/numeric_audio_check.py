@@ -64,7 +64,8 @@ def main():
             hypotheses = {line["id"]: line["hyp"] for line in data.get(preset, {}).get("lines", [])}
             if not hypotheses:
                 continue
-            script = json.loads((ROOT / "assets/scenarios" / preset / "script.json").read_text(encoding="utf-8"))
+            scenario = ROOT / "assets/scenarios" / preset
+            script = json.loads((scenario / "script.json").read_text(encoding="utf-8"))
             replay(
                 str(path.relative_to(experiments)),
                 script["pack_version"],

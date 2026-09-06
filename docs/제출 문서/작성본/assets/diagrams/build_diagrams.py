@@ -87,7 +87,8 @@ class Svg:
         parts = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" fill="{PAPER}"/>',
                  f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" fill="{fill}" stroke="{stroke}" stroke-width="1"{dash}/>']
         if tag and shape == "box":
-            tw = text_width(tag, 7) - 4
+            raw = sum(7 * (1.0 if ord(ch) > 0x2E7F else 0.62) for ch in tag) + 7 * 0.08 * len(tag)
+            tw = r4(raw + 10)
             parts.append(f'<rect x="{x + 8}" y="{y + 6}" width="{tw}" height="12" rx="2" fill="transparent" stroke="{tag_stroke}" stroke-width="0.8"/>'
                          f'<text x="{x + 8 + tw // 2}" y="{y + 15}" fill="{tag_text}" font-size="7" font-family="{MONO}" text-anchor="middle" letter-spacing="0.08em">{tag}</text>')
         for label, size in ((name, 12), (sub, 9)):
@@ -253,12 +254,12 @@ def d02_engine() -> Svg:
     s.line(240, 548, 476, 548); s.hlabel(358, 548, "제약 통과")
     s.line(576, 520, 576, 292, dashed=True); s.vlabel(576, 396, "판단 갱신")
     s.node(48, 40, 192, 56, "확정 발화", "화자 · 신뢰도 · 시각", "input", "", shape="oval")
-    s.node(48, 136, 192, 56, "L0 다듬기", "규정팩 용어로 맞춤", "step", "L0")
-    s.node(48, 232, 192, 56, "L1 규칙", "요건 · 표현 · 수치", "step", "L1")
+    s.node(48, 136, 192, 56, "0단계: 다듬기", "규정팩 용어로 맞춤", "step", "")
+    s.node(48, 232, 192, 56, "1단계: 규칙", "요건 · 표현 · 수치", "step", "")
     s.node(480, 232, 192, 56, "화면 반영", "판정 · 경보 · 안내 카드", "step", "OUT")
-    s.node(48, 328, 192, 56, "L2 검색", "낱자 조각 · 의미 유사도", "step", "L2")
+    s.node(48, 328, 192, 56, "2단계: 검색", "자모 트라이그램 · 임베딩", "step", "")
     s.diamond(144, 452, 96, 32, "재판정 필요?", "부분 충족 · 의심")
-    s.node(48, 520, 192, 56, "L3 재판정", "LLM · 허용 후보만 · 시간 예산", "focal", "L3")
+    s.node(48, 520, 192, 56, "3단계: 재판정", "LLM · 허용 후보만 · 시간 예산", "focal", "")
     s.node(480, 520, 192, 56, "결과 기록·연결", "앞선 판단을 대체", "store", "LOG")
     s.legend([("focal", "LLM 판정"), ("step", "규칙·검색 단계"), ("store", "기록"),
               ("accent", "즉시 반영 경로"), ("default", "흐름"), ("dashed", "뒤늦게 도착하는 갱신")])
@@ -278,7 +279,7 @@ def d03_correction() -> Svg:
     s.line(184, 388, 184, 424); s.vlabel(184, 398, "예")
     s.line(184, 480, 184, 520); s.vlabel(184, 486, "조합 선택")
     s.arrow("M 280,540 H 432 Q 440,540 440,532 V 270 Q 440,262 448,262 H 476")
-    s.vlabel(440, 400, "허용 조합만")
+    s.vlabel(440, 400, "허용 조합만", side=-1)
     s.arrow("M 280,564 H 448 Q 456,564 456,556 V 288 Q 456,280 464,280 H 476", dashed=True)
     s.vlabel(456, 452, "범위 밖 · 실패")
     s.node(88, 40, 192, 56, "확정 은행원 발화", "받아쓴 그대로", "input", "", shape="oval")
