@@ -48,6 +48,20 @@ export function displayValue(value: unknown, key = ''): string {
   return value;
 }
 export function displayField(key: string) { return fieldNames[key] ?? key; }
+// 리포트 타임라인 행은 상태를 따로 싣지 않고 라벨 끝에 붙여 보낸다(`적용 이자율 → met`).
+// 그래서 배지가 비어 색으로 읽을 수 없었다. 서버가 적어 준 그 값을 그대로 꺼낸다
+const LABEL_STATES = ['met', 'partial', 'unmet', 'waived', 'clean', 'suspected', 'violated', 'confirmed', 'explained', 'adopted', 'ignored'];
+export function labelState(label: unknown) {
+  if (typeof label !== 'string' || !label.includes('→')) return '';
+  const tail = label.slice(label.lastIndexOf('→') + 1).trim();
+  return LABEL_STATES.includes(tail) ? tail : '';
+}
+// 그 상태를 배지로 옮기면 제목에 남은 화살표는 같은 말의 되풀이다
+export function withoutStateArrow(label: string) {
+  if (!labelState(label)) return label;
+  const cut = label.lastIndexOf('→');
+  return cut > 0 ? label.slice(0, cut).trimEnd() : label;
+}
 // 카드 제목이 이미 유형을 말하고 있으면 본문 앞의 같은 말을 뗀다. 서버 문구
 // (`위험 신호: 제3자 계좌 위험 신호...`)는 그대로 두고 화면에서만 머리말을 지운다.
 // 뗄 것이 없거나 떼면 빈 문장이 되면 원문을 그대로 쓴다

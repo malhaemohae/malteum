@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ApiDocument, ApiPackItem, ApiPreset, ApiSessionSummary, malteumApi } from '../lib/api';
-import { displayField, displayValue, errorText, evidenceForItem, INTERNAL_FIELDS, itemTypeNames, latestPacks, modeNames, NavItem, statusNames, textValue, timeLabel, whenLabel } from '../lib/workspace-model';
+import { displayField, displayValue, errorText, evidenceForItem, INTERNAL_FIELDS, itemTypeNames, labelState, latestPacks, modeNames, NavItem, statusNames, textValue, timeLabel, whenLabel, withoutStateArrow } from '../lib/workspace-model';
 import { EvidenceCard } from './evidence';
 import { rememberedSessionIds } from '../lib/session-index';
 import { HistoryAction, traceBlockedReason } from '../lib/session-recovery';
@@ -42,7 +42,21 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
     {!sessionId ? <Panel><Empty><h2>이력에서 상담을 선택해 주세요.</h2><button onClick={() => navigation.onNavigate('이력')}>세션 이력 보기</button></Empty></Panel> : report.loading ? <Panel><Empty>리포트를 불러오고 있습니다.</Empty></Panel> : !report.data ? <Panel><Empty>리포트를 불러오지 못했습니다.</Empty></Panel> : <>
       {shownSummary.length > 0 && <div className="wb-summary">{shownSummary.map(key => <div key={key}><strong>{String(summary?.[key])}</strong><span>{labelFor(key)}</span></div>)}</div>}
       <div className="wb-toolbar"><Tabs value={tab} onChange={setTab} items={reportTabs} /><label className="wb-report-tab-select">항목<select aria-label="리포트 항목" value={tab} onChange={event => setTab(event.target.value as ReportTab)}>{reportTabs.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><button onClick={() => setDetail({ ...(summary ?? {}), ...(report.data?.sources ? { '출처': report.data.sources } : {}), ...(report.data?.disclaimer ? { '유의사항': report.data.disclaimer } : {}) })}>요약·출처</button></div>
-      <Panel title={tab === 'comprehension' ? '이해 지원 기록 · 판정 증빙 아님' : '항목별 기록'}><PagedList key={tab} label="리포트" items={rows} empty="이 항목에 대한 서버 기록이 없습니다." render={row => <><button className="wb-row-button" onClick={() => setDetail(row)}><span className="wb-row-copy"><strong>{row.kind === 'alert' ? `${displayValue(row.alert_type, 'alert_type')} · ${displayValue(row.name ?? row.item_code ?? '', 'name')}` : displayValue(row.name ?? row.label ?? row.message ?? row.item_code ?? row.assist_type ?? row.alert_type ?? '기록 상세', row.label ? 'label' : row.assist_type ? 'assist_type' : row.alert_type ? 'alert_type' : 'name')}</strong><small>{row.kind === 'alert' ? `${timeLabel(Number(row.t_ms ?? 0) / 1000)} · ${textValue(row.message)}` : typeof row.t_ms === 'number' ? timeLabel(row.t_ms / 1000) : textValue(row.item_code ?? row.event_id ?? '')}</small></span><span className="wb-badge" data-state={row.kind === 'alert' ? (row.acknowledged ? 'met' : 'violated') : String(row.state ?? row.final_state ?? row.outcome ?? '')}>{row.kind === 'alert' ? (row.acknowledged ? '확인 기록' : '미확인 경보') : displayValue(row.state ?? row.final_state ?? row.outcome ?? '', 'state')}</span><span>›</span></button>{typeof row.evidence_ref === 'string' && <button onClick={() => onEvidence(String(row.evidence_ref))}>근거</button>}</>} /></Panel>
+      <Panel title={tab === 'comprehension' ? '이해 지원 기록 · 판정 증빙 아님' : '항목별 기록'}><PagedList key={tab} label="리포트" items={rows} empty="이 항목에 대한 서버 기록이 없습니다." render={row => {
+        // 경보 전용 표기는 `alert_type` 을 싣고 오는 행(금지·숫자·위험 신호 탭)에만 쓴다.
+        // 타임라인의 경보 행은 그 필드가 없고 유형이 `label` 안에 있어, 그대로 태우면
+        // 제목이 `미제공 · ` 로 시작했다
+        const alert = row.kind === 'alert' && typeof row.alert_type === 'string';
+        // 타임라인 행만 상태를 라벨 끝(`<항목> → met`)에 실어 보낸다. 배지로 옮겨 색으로
+        // 읽히게 하고, 제목에서는 그 화살표를 떼 같은 말이 두 번 나오지 않게 한다
+        const state = alert ? (row.acknowledged ? 'met' : 'violated') : String(row.state ?? row.final_state ?? row.outcome ?? labelState(row.label));
+        const label = typeof row.label === 'string' ? withoutStateArrow(row.label) : undefined;
+        const title = alert ? `${displayValue(row.alert_type, 'alert_type')} · ${displayValue(row.name ?? row.item_code ?? '', 'name')}`
+          : displayValue(row.name ?? label ?? row.message ?? row.item_code ?? row.assist_type ?? row.alert_type ?? '기록 상세', label ? 'label' : row.assist_type ? 'assist_type' : row.alert_type ? 'alert_type' : 'name');
+        const badge = alert ? (row.acknowledged ? '확인 기록' : '미확인 경보') : state ? displayValue(state, 'state') : '';
+        const note = alert ? `${timeLabel(Number(row.t_ms ?? 0) / 1000)} · ${textValue(row.message)}` : typeof row.t_ms === 'number' ? timeLabel(row.t_ms / 1000) : textValue(row.item_code ?? row.event_id ?? '');
+        return <><button className="wb-row-button" onClick={() => setDetail(row)}><span className="wb-row-copy"><strong>{title}</strong><small>{note}</small></span>{badge && <span className="wb-badge" data-state={state}>{badge}</span>}<span>›</span></button>{typeof row.evidence_ref === 'string' && <button onClick={() => onEvidence(String(row.evidence_ref))}>근거</button>}</>;
+      }} /></Panel>
     </>}
     {detail && <Modal title="리포트 기록 상세" className="wb-compact" onClose={() => setDetail(null)} actions={typeof detail.evidence_ref === 'string' && <button onClick={() => { setDetail(null); onEvidence(String(detail.evidence_ref)); }}>근거 원문</button>}><KeyValueList rows={recordRows(detail)} empty="이 기록에 저장된 항목이 없습니다." /></Modal>}
   </Workbench>;
