@@ -125,7 +125,7 @@ export function EvidenceView({ value }: { value: ApiEvidence }) {
       current.width === entry.contentRect.width && current.height === entry.contentRect.height
         ? current : { width: entry.contentRect.width, height: entry.contentRect.height }));
     observer.observe(host); return () => observer.disconnect();
-  }, []);
+  }, [imageError]);
   // Focus centres the highlight; page fits one sheet in the viewport. Both need a measured host.
   useLayoutEffect(() => {
     const host = viewport.current; if (!host || viewportSize.width === 0) return;
@@ -207,12 +207,14 @@ export function EvidenceCard({ title, evidenceRef, evidence, onOpen }: { title?:
   const zoom = focusZoom(rect, size, ratio);
   // A stale page from the previous evidence must not decide this card's aspect ratio.
   useEffect(() => { setNatural(null); setFailed(false); }, [value?.doc_id, value?.page]);
-  // Without a measured viewport the zoom stays at its default and the card shows the page top.
+  // 카드는 근거를 받아오기 전과 이미지가 실패했을 때 미리보기 없는 모양을 그린다.
+  // 마운트 한 번만 관측하면 그때는 노드가 없어 크기가 0으로 남고, 형광펜 대신 페이지 머리가 뜬다.
+  const showsPreview = Boolean(value) && !failed;
   useLayoutEffect(() => {
     const host = viewport.current; if (!host) return;
     const observer = new ResizeObserver(([entry]) => setSize(current => current.width === entry.contentRect.width && current.height === entry.contentRect.height ? current : { width: entry.contentRect.width, height: entry.contentRect.height }));
     observer.observe(host); return () => observer.disconnect();
-  }, []);
+  }, [showsPreview]);
   useLayoutEffect(() => {
     const host = viewport.current; if (!host || size.width === 0) return;
     const canvasWidth = size.width * zoom; const canvasHeight = canvasWidth * ratio;
