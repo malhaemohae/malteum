@@ -168,6 +168,8 @@ export default function Application() {
         if (!isCurrent()) return;
 
         if (message.t === 'ready') clearTimeout(connectTimer.current);
+        // 서버가 이 순간부터 음원을 STT 로 흘린다. 소리도 같이 출발해야 두 시계가 맞는다
+        if (message.t === 'ready' && ['replay', 'trace'].includes(active.mode)) replayAudio.current?.beginPlayback();
         const show = () => { if (isCurrent()) update(value => value ? reduceServer(value, message) : value); };
         if (['replay', 'trace'].includes(active.mode) && message.t === 'utterance' && replayAudio.current && !current.current?.seen.includes(String(message.event_id))) await replayAudio.current.present(message, () => flushSync(show));
         else show();
