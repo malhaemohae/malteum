@@ -27,10 +27,10 @@ export const statusNames: Record<string, string> = { met: '고지', partial: '�
 export const itemTypeNames: Record<string, string> = { required: '필수 안내', forbidden: '금지 표현', reference: '참고', risk: '위험 신호' };
 export const kindNames: Record<string, string> = { risk_signal: '위험 신호', forbidden_phrase: '금지 표현', number_mismatch: '숫자 확인', rephrase: '쉬운 말 안내', answer: '규정 답변', nudge: '미고지 안내', briefing: '상담 기준', documents: '필요 서류', term_density: '전문용어 밀도' };
 // Format protocol metadata only; never rewrite quoted speech/evidence or numbers.
-export const severityNames: Record<string, string> = { critical: '심각', high: '높음', medium: '보통', low: '낮음', info: '참고' };
+export const severityNames: Record<string, string> = { critical: '심각', warning: '경고', info: '참고' };
 // Modes are protocol values; tellers see Korean words, never the wire codes.
 export const modeNames: Record<Mode, string> = { live: '실시간', text: '텍스트', replay: '음원 시연', trace: '기록 재생' };
-const metadataNames: Record<string, string> = { ...statusNames, ...kindNames, ...severityNames, ...modeNames, confirmed: '이해 확인 신호', explained: '설명됨', teller: '상담원', customer: '고객', human: '상담원 수동 기록', L1: '규칙 판정', L2: '문맥 판정', L3: '추가 검토 판정', verdict: '판정', utterance: '발화', alert: '경보', assist: '상담 안내', session_started: '상담 시작', session_ended: '상담 종료', omission: '설명 이행', commission: '금지·숫자', comprehension: '이해 지원', low: '낮음', normal: '보통', high: '높음' };
+const metadataNames: Record<string, string> = { ...statusNames, ...kindNames, ...severityNames, ...modeNames, confirmed: '이해 확인 신호', explained: '설명됨', teller: '상담원', customer: '고객', system: '시스템', human: '상담원 수동 기록', L1: '규칙 판정', L2: '문맥 판정', L3: '추가 검토 판정', verdict: '판정', utterance: '발화', alert: '경보', assist: '상담 안내', session_started: '상담 시작', session_ended: '상담 종료', omission: '설명 이행', commission: '금지·숫자', comprehension: '이해 지원', low: '낮음', normal: '보통', high: '높음' };
 export function displayValue(value: unknown, key = ''): string {
   if (Array.isArray(value)) return value.map(entry => displayValue(entry, key)).join('\n');
   if (value && typeof value === 'object') return Object.entries(value).map(([field, entry]) => `${displayField(field)}: ${displayValue(entry, field)}`).join('\n');
@@ -39,7 +39,7 @@ export function displayValue(value: unknown, key = ''): string {
   if (typeof value === 'number' && MS_FIELDS.includes(key)) return timeLabel(value / 1000);
   if (typeof value !== 'string') return String(value);
   if (TIME_FIELDS.includes(key)) return whenLabel(value);
-  if (key === 'label') return value.replace(/^(teller|customer|rephrase|answer|nudge|briefing|documents|number_mismatch|forbidden_phrase|risk_signal|term_density):\s*/, (_, type) => `${metadataNames[type]}: `).replace(/(→\s*)(met|partial|unmet|waived|clean|suspected|violated|confirmed|explained|adopted|ignored)\b/g, (_, arrow, state) => `${arrow}${state === 'met' ? '고지 완료' : metadataNames[state]}`);
+  if (key === 'label') return value.replace(/^(teller|customer|system|rephrase|answer|nudge|briefing|documents|number_mismatch|forbidden_phrase|risk_signal|term_density):\s*/, (_, type) => `${metadataNames[type]}: `).replace(/(→\s*)(met|partial|unmet|waived|clean|suspected|violated|confirmed|explained|adopted|ignored)\b/g, (_, arrow, state) => `${arrow}${state === 'met' ? '고지 완료' : metadataNames[state]}`);
   if (['state', 'final_state', 'outcome', 'status', 'kind', 'type', 'axis', 'decided_by', 'speaker', 'assist_type', 'alert_type', 'severity', 'mode'].includes(key)) return metadataNames[value] ?? value;
   return value;
 }
