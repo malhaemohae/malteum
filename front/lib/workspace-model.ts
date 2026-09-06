@@ -25,27 +25,44 @@ export const statusNames: Record<string, string> = { met: '고지', partial: '�
 export const itemTypeNames: Record<string, string> = { required: '필수 안내', forbidden: '금지 표현', reference: '참고', risk: '위험 신호' };
 export const kindNames: Record<string, string> = { risk_signal: '위험 신호', forbidden_phrase: '금지 표현', number_mismatch: '숫자 확인', rephrase: '쉬운 말 안내', answer: '규정 답변', nudge: '미고지 안내', briefing: '상담 기준', documents: '필요 서류', term_density: '전문용어 밀도' };
 // Format protocol metadata only; never rewrite quoted speech/evidence or numbers.
-const metadataNames: Record<string, string> = { ...statusNames, ...kindNames, confirmed: '이해 확인 신호', explained: '설명됨', teller: '상담원', customer: '고객', human: '상담원 수동 기록', L1: '규칙 판정', L2: '문맥 판정', L3: '추가 검토 판정', verdict: '판정', utterance: '발화', alert: '경보', assist: '상담 안내', session_started: '상담 시작', session_ended: '상담 종료', omission: '설명 이행', commission: '금지·숫자', comprehension: '이해 지원', low: '낮음', normal: '보통', high: '높음' };
+export const severityNames: Record<string, string> = { critical: '심각', high: '높음', medium: '보통', low: '낮음', info: '참고' };
+// Modes are protocol values; tellers see Korean words, never the wire codes.
+export const modeNames: Record<Mode, string> = { live: '실시간', text: '텍스트', replay: '음원 시연', trace: '기록 재생' };
+const metadataNames: Record<string, string> = { ...statusNames, ...kindNames, ...severityNames, ...modeNames, confirmed: '이해 확인 신호', explained: '설명됨', teller: '상담원', customer: '고객', human: '상담원 수동 기록', L1: '규칙 판정', L2: '문맥 판정', L3: '추가 검토 판정', verdict: '판정', utterance: '발화', alert: '경보', assist: '상담 안내', session_started: '상담 시작', session_ended: '상담 종료', omission: '설명 이행', commission: '금지·숫자', comprehension: '이해 지원', low: '낮음', normal: '보통', high: '높음' };
 export function displayValue(value: unknown, key = ''): string {
   if (Array.isArray(value)) return value.map(entry => displayValue(entry, key)).join('\n');
   if (value && typeof value === 'object') return Object.entries(value).map(([field, entry]) => `${displayField(field)}: ${displayValue(entry, field)}`).join('\n');
   if (value == null) return '미제공';
+  if (typeof value === 'boolean') return key === 'acknowledged' ? (value ? '확인함' : '확인 안 함') : value ? '예' : '아니오';
+  if (typeof value === 'number' && MS_FIELDS.includes(key)) return timeLabel(value / 1000);
   if (typeof value !== 'string') return String(value);
+  if (TIME_FIELDS.includes(key)) return whenLabel(value);
   if (key === 'label') return value.replace(/^(teller|customer|rephrase|answer|nudge|briefing|documents|number_mismatch|forbidden_phrase|risk_signal|term_density):\s*/, (_, type) => `${metadataNames[type]}: `).replace(/(→\s*)(met|partial|unmet|waived|clean|suspected|violated|confirmed|explained|adopted|ignored)\b/g, (_, arrow, state) => `${arrow}${state === 'met' ? '고지 완료' : metadataNames[state]}`);
-  if (['state', 'final_state', 'outcome', 'status', 'kind', 'type', 'axis', 'decided_by', 'speaker', 'assist_type', 'alert_type'].includes(key)) return metadataNames[value] ?? value;
+  if (['state', 'final_state', 'outcome', 'status', 'kind', 'type', 'axis', 'decided_by', 'speaker', 'assist_type', 'alert_type', 'severity', 'mode'].includes(key)) return metadataNames[value] ?? value;
   return value;
 }
-export function displayField(key: string) { return fieldNames[key] ?? ({ label: '변경 내용', kind: '기록 유형', axis: '검토 항목', speaker: '화자', title: '문서명', publisher: '발행 기관', snapshot_date: '기준일', url: '원문 주소', pack_version: '규정 팩 버전', session_id: '상담 번호', mode: '입력 방식', required: '필수 여부', trigger: '안내 계기', source_utterance_ref: '관련 발화', approved_at: '승인 시각', approved_by: '승인자' } as Record<string, string>)[key] ?? key; }
-// Modes are protocol values; tellers see Korean words, never the wire codes.
-export const modeNames: Record<Mode, string> = { live: '실시간', text: '텍스트', replay: '음원 시연', trace: '기록 재생' };
-export const whenLabel = (iso: string) => { const date = new Date(iso); return Number.isNaN(date.getTime()) ? iso : date.toLocaleString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };
+export function displayField(key: string) { return fieldNames[key] ?? key; }
+export const whenLabel = (iso: string) => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  // 날짜만 온 값에 오전 12시를 붙이면 없는 정보를 지어내는 것이다
+  const withTime = /\d{2}:\d{2}/.test(iso);
+  return date.toLocaleString('ko-KR', withTime ? { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' } : { year: 'numeric', month: 'long', day: 'numeric' });
+};
 // Server error strings are terse and lean on acronyms. Say the same thing the way the screen already does.
 export const STT_UNCONFIGURED = '음성 전사 서버가 설정되지 않았습니다. 녹음은 되지만 전사·판정에는 STT(음성을 글자로 바꾸는 서비스) 설정이 필요합니다.';
 export const friendlyError = (message?: string) => !message ? '' : /STT/.test(message) && /설정/.test(message) ? STT_UNCONFIGURED : message;
 export const timeLabel = (seconds: number) => `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
 export const errorText = (error: unknown) => error instanceof Error ? error.name === 'TimeoutError' || error.name === 'AbortError' ? '서버 응답이 지연되고 있습니다. 연결을 확인한 뒤 다시 시도해 주세요.' : error.message : '요청을 처리하지 못했습니다.';
 export const textValue = (value: unknown): string => value == null ? '' : typeof value === 'object' ? Array.isArray(value) ? value.map(textValue).join(' · ') : Object.entries(value).map(([key, entry]) => `${fieldNames[key] ?? key}: ${textValue(entry)}`).join('\n') : String(value);
-export const fieldNames: Record<string, string> = { item_code: '항목 코드', name: '항목', state: '상태', final_state: '최종 상태', ver: '판정 버전', decided_by: '판정 출처', missing_elements: '미충족 요소', evidence_ref: '근거 참조', evidence: '근거', t_ms: '시각(ms)', text: '발화', message: '안내', reason: '사유', outcome: '결과', acknowledged: '확인 기록', alert_type: '경보 유형', assist_type: '안내 유형', utterance_id: '발화 참조', type: '유형', met: '고지', partial: '부분 고지', unmet: '미고지', waived: '제외', violations: '위반', alerts: '경보', items_total: '필수 항목', total_utterances: '발화 수', duration_ms: '상담 시간(ms)', assist_adopted: '안내 채택', started_at: '시작 시각', ended_at: '종료 시각', summary: '요약', status: '상태', page: '페이지', span: '인용 원문', doc_id: '문서', doc_title: '문서명', legal_basis: '법적 근거', severity: '중요도', comparison: '비교', said: '발화 값', reference: '기준 값', condition: '조건', event_id: '이벤트 참조', count: '건수', timestamp: '시각' };
+// 화면에 나가는 필드 이름은 여기 한 곳에서만 정한다. 사전이 갈리면 새 필드가 영문 그대로 샌다
+export const fieldNames: Record<string, string> = { item_code: '항목 코드', name: '항목', state: '상태', final_state: '최종 상태', ver: '판정 버전', decided_by: '판정 출처', missing_elements: '미충족 요소', evidence: '근거', t_ms: '시각', text: '발화', message: '안내', reason: '사유', outcome: '결과', acknowledged: '확인 기록', alert_type: '경보 유형', assist_type: '안내 유형', type: '유형', met: '고지', partial: '부분 고지', unmet: '미고지', waived: '제외', violations: '위반', alerts: '경보', items_total: '필수 항목', total_utterances: '발화 수', duration_ms: '상담 시간', assist_adopted: '안내 채택', assists_adopted: '채택한 안내', started_at: '시작 시각', ended_at: '종료 시각', summary: '요약', status: '상태', page: '페이지', span: '인용 원문', doc_id: '문서', doc_title: '문서명', legal_basis: '법적 근거', severity: '중요도', comparison: '비교', said: '발화 값', reference: '기준 값', condition: '조건', count: '건수', timestamp: '시각', label: '변경 내용', kind: '기록 유형', axis: '검토 항목', speaker: '화자', title: '문서명', publisher: '발행 기관', snapshot_date: '기준일', url: '원문 주소', pack_version: '규정 팩 버전', session_id: '상담 번호', mode: '입력 방식', required: '필수 여부', trigger: '안내 계기', approved_at: '승인 시각', approved_by: '승인자', product_name: '상품', product: '상품', category: '분류', code: '항목 코드', item_count: '항목 수', published_at: '발행 시각', source_count: '원천 문서 수', waive_reason: '제외 사유' };
+// 밀리초로 오는 값. 초 단위 mm:ss 로 바꿔 보여 준다
+const MS_FIELDS = ['t_ms', 'duration_ms'];
+// ISO 시각으로 오는 값. 은행원이 읽는 날짜·시각으로 바꾼다
+const TIME_FIELDS = ['started_at', 'ended_at', 'published_at', 'approved_at', 'snapshot_date', 'timestamp', 'occurred_at'];
+// 서버 내부 식별자. 화면에서 할 수 있는 일이 없으므로 기록 상세에 줄로 남기지 않는다
+export const INTERNAL_FIELDS = ['event_id', 'evidence_ref', 'utterance_id', 'source_utterance_ref', 'supersedes'];
 
 export function newLiveSession(id: string, wsUrl: string, mode: Mode, packVersion: string): LiveSession {
   return { id, wsUrl, mode, packVersion, status: 'connecting', seq: -1, items: [], transcript: [], partial: '', interventions: [], versions: {}, seen: [], ending: false, seconds: 0 };
