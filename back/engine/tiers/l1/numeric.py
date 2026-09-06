@@ -125,7 +125,7 @@ def _targets(
     text: str, unit: str, pack: RulePack, compiled: CompiledPack
 ) -> list[tuple[PackItem, NumericRef]]:
     text, _ = normalize(text, compiled.jargon)
-    joined = re.sub(r"\s+", "", text)
+    joined = _subject(text)
     hits = [h for h in matcher.match(text, pack, compiled, frozenset({"required"})) if h.topical]
     if len(hits) > 1:
         return []
@@ -143,7 +143,12 @@ def _targets(
                 and hit.elements != {ref.fact.label}
             ):
                 continue
-            label = re.sub(r"\s+", "", ref.fact.label)
+            label = ref.fact.label
+            if number := _NUMBER.search(label):
+                # '받은 날로부터 5년'의 기준값은 발화의 잘못된 수치와 같을 수 없다.
+                # 수치 앞에 명시된 주제·기산점으로 귀속하고 값은 check 에서 대조한다.
+                label = label[: number.start()]
+            label = _subject(label)
             if label and label in joined:
                 named.append((item, ref))
             elif hit is not None:
@@ -151,6 +156,10 @@ def _targets(
     targets = named or targets
     conditioned = [(it, r) for it, r in targets if r.fact.condition and r.fact.condition in text]
     return conditioned or targets
+
+
+def _subject(text: str) -> str:
+    return re.sub(r"\s+", "", text).replace("날로부터", "날부터")
 
 
 def _continuation(prefix: str, suffix: str, label: str) -> bool:
@@ -168,7 +177,10 @@ def _continuation(prefix: str, suffix: str, label: str) -> bool:
 
 def _reference(ref: NumericRef) -> str:
     if ref.evidence:
-        m = re.search(r"(?:연\s*)?\d+(?:\.\d+)?\s*" + re.escape(ref.fact.unit), ref.evidence.span)
-        if m:
-            return re.sub(r"\s+", " ", m.group()).strip()
+        for m in re.finditer(
+            r"(?<![\d.,])(?:연\s*)?([+-]?\d+(?:\.\d+)?)\s*" + re.escape(ref.fact.unit),
+            ref.evidence.span,
+        ):
+            if float(m[1]) == float(ref.fact.value):
+                return re.sub(r"\s+", " ", m.group()).strip()
     return f"{ref.fact.value}{ref.fact.unit}"
