@@ -333,10 +333,10 @@ def _same_state(v: VerdictPayload, state: SessionState) -> bool:
 
 
 def _dedupe_alerts(alerts: list[AlertPayload]) -> list[AlertPayload]:
-    seen: set[tuple[str, str | None]] = set()
+    seen = set()
     out = []
     for a in alerts:
-        key = (a.alert_type, a.item_code)
+        key = (a.alert_type, a.item_code, a.comparison)
         if key not in seen:
             seen.add(key)
             out.append(a)
