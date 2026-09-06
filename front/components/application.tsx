@@ -11,7 +11,7 @@ import { HistoryAction, isPlayableEvent, recoveredSession, sessionEvents, sessio
 import { rememberTraceSource, resolveTraceSource } from '../lib/trace-source';
 import { TraceSourcePicker } from './trace-source-picker';
 import { hasStoredUtterance } from '../lib/trace-start';
-import { errorText, evidenceForItem, LiveSession, Mode, NavItem, newLiveSession, reduceServer, Screen, sessionScreen } from '../lib/workspace-model';
+import { errorText, evidenceForItem, lastTellerUtteranceId, LiveSession, Mode, NavItem, newLiveSession, reduceServer, Screen, sessionScreen } from '../lib/workspace-model';
 import MarketingLanding from './marketing-showcase';
 import { Briefing, Dashboard, Preparation } from './consultation';
 import { SpeakerIntroModal } from './speaker-intro';
@@ -20,7 +20,7 @@ import { Empty, Modal, Notice, TextPages } from './workspace';
 import { EvidenceView, loadEvidence } from './evidence';
 
 export default function Application() {
-  const [screen, setScreen] = useState<Screen>('landing'); const [historyView, setHistoryView] = useState<'sessions' | 'presets'>('sessions'); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
+  const [screen, setScreen] = useState<Screen>('landing'); const [historyView, setHistoryView] = useState<'sessions' | 'presets'>('sessions'); const [demoPack, setDemoPack] = useState(''); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
   const [pack, setPack] = useState<ApiPack | null>(null); const [health, setHealth] = useState<ApiHealth | null>(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ id: string; ended: boolean } | null>(null); const [newConfirm, setNewConfirm] = useState(false); const newAfterEnd = useRef(false);
   const [traceSelection, setTraceSelection] = useState<ApiSessionSummary | null>(null);
@@ -52,12 +52,35 @@ export default function Application() {
   }, []);
   const checkHealth = useCallback(() => { malteumApi.health().then(setHealth).catch(() => { /* 화면은 마지막으로 확인한 상태를 유지한다 */ }); }, []);
   useEffect(() => { let active = true; malteumApi.health().then(value => { if (active) setHealth(value); }).catch(() => { if (active) setHealth(null); }); return () => { active = false; socket.current?.close(); capture.current?.stop(); const old = replayAudio.current; replayAudio.current = null; old?.dispose(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }; }, []);
-  useEffect(() => { if (!micActive) return; const timer = setInterval(() => update(value => value && value.status === 'connected' ? { ...value, seconds: value.seconds + 1 } : value), 1000); return () => clearInterval(timer); }, [micActive]);
+  // 상담 시계는 발화가 아니라 시간에 매인다. 마이크를 켜야만 돌던 예전 타이머는 시연
+  // 음원에서 아예 멈춰 있다가 새 발화의 t_ms 로만 뛰었다. 소리가 실제로 흐르는 두 모드
+  // (live·replay)에서 초를 흘리고, 기록 재생(trace)은 저장된 시각을 되짚는 화면이라 뺀다.
+  const runningClock = session?.status === 'connected' && !session.ending && (session.mode === 'live' || session.mode === 'replay');
+  useEffect(() => {
+    if (!runningClock) return;
+    let timer: ReturnType<typeof setTimeout>;
+    // 다음 정수 초 경계에서만 깨어난다. 표시가 mm:ss 라 초당 1회로 충분한데
+    // 고정 간격 폴링은 그보다 자주 깨어나 대부분 아무것도 안 바뀐 채 끝났다
+    const tick = () => {
+      update(value => {
+        if (!value || value.status !== 'connected' || value.clockBase === undefined) return value;
+        const seconds = Math.max(value.seconds, (Date.now() - value.clockBase) / 1000);
+        return Math.floor(seconds) === Math.floor(value.seconds) ? value : { ...value, seconds };
+      });
+      const clockBase = current.current?.clockBase;
+      timer = setTimeout(tick, clockBase === undefined ? 1000 : 1000 - ((Date.now() - clockBase) % 1000));
+    };
+    timer = setTimeout(tick, 0);
+    return () => clearTimeout(timer);
+  }, [runningClock]);
   useEffect(() => { if (!session || session.status === 'ended') return; const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload); }, [session?.id, session?.status]);
   function navigate(value: NavItem) {
     if (creating.current) return;
     setError('');
     setHistoryView('sessions');
+    // 다른 경로(사이드바 '이력' 등)로 들어오면 예전 고른 규정팩 표시를 지운다.
+    // openDemoAudio 가 이 직후에 다시 세팅하므로 그 경로에서는 값이 그대로 이어진다
+    setDemoPack('');
     if (value === '상담') {
       const active = current.current;
       if (active && active.status !== 'ended' && sessionScreen(active.mode) === 'playback') {
@@ -85,7 +108,7 @@ export default function Application() {
       // 서버 응답에는 어느 발화를 바꿨는지가 없다. 계약상 직전 상담원 발화이므로 지금 그것을 붙잡아 둔다
       // event_id 가 비어 있는 발화는 없다고 본다. 빈 문자열을 그대로 두면 '있지만 falsy' 한
       // 값이 되어 아래 모든 truthy 검사가 조용히 이 기능을 건너뛴다.
-      const lastTeller = value.t === 'assist_request' && !value.item_code ? [...current.current.transcript].reverse().find(row => row.speaker === 'teller')?.id || undefined : undefined;
+      const lastTeller = value.t === 'assist_request' && !value.item_code ? lastTellerUtteranceId(current.current.transcript) : undefined;
       const action = { kind: value.t === 'assist_request' ? 'rephrase' : String(value.t), itemCode: typeof value.item_code === 'string' ? value.item_code : undefined, ref: typeof value.alert_ref === 'string' ? value.alert_ref : undefined, sourceUtteranceId: lastTeller, pending: true, message: value.t === 'assist_request' ? (value.item_code ? '쉬운 말을 상담 기록에 남기고 있습니다.' : '직전 발화를 쉬운 말로 바꾸고 있습니다.') : '변경 사항을 서버에 기록하고 있습니다.' };
       update(previous => previous ? { ...previous, error: undefined, action, rephrases: lastTeller ? { ...previous.rephrases, [lastTeller]: { pending: true } } : previous.rephrases } : previous);
       const id = current.current?.id;
@@ -154,8 +177,12 @@ export default function Application() {
         if (!isCurrent()) return;
 
         if (message.t === 'ready') clearTimeout(connectTimer.current);
+        // 음원이 관여하는 두 모드. active.mode 는 이 연결 동안 고정이라 한 번만 판단한다
+        const playsAudio = active.mode === 'replay' || active.mode === 'trace';
+        // 서버가 이 순간부터 음원을 STT 로 흘린다. 소리도 같이 출발해야 두 시계가 맞는다
+        if (message.t === 'ready' && playsAudio) replayAudio.current?.beginPlayback();
         const show = () => { if (isCurrent()) update(value => value ? reduceServer(value, message) : value); };
-        if (['replay', 'trace'].includes(active.mode) && message.t === 'utterance' && replayAudio.current && !current.current?.seen.includes(String(message.event_id))) await replayAudio.current.present(message, () => flushSync(show));
+        if (playsAudio && message.t === 'utterance' && replayAudio.current && !current.current?.seen.includes(String(message.event_id))) await replayAudio.current.present(message, () => flushSync(show));
         else show();
         if (message.t === 'ended') {
           finishSession(active.id);
@@ -294,7 +321,9 @@ export default function Application() {
   }
   const navigation = { onNavigate: navigate, onNew: requestNew };
   // navigate 가 먼저 'sessions' 로 되돌린 뒤 이번 진입만 시연 음원으로 연다.
-  function openDemoAudio() { navigate('이력'); setHistoryView('presets'); }
+  // 준비 화면에서 고른 규정팩을 목록까지 들고 간다. 어느 음원이 그 팩의 것인지 표시하는 근거
+  // navigate() 가 demoPack 을 비우므로, 그 뒤에 설정해야 값이 남는다
+  function openDemoAudio(packVersion: string) { navigate('이력'); setHistoryView('presets'); setDemoPack(packVersion); }
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
   else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} onDemo={openDemoAudio} defaults={preparation.current} health={health} onCheckHealth={checkHealth} />;
@@ -302,7 +331,7 @@ export default function Application() {
   else if (screen === 'report') page = <ReportScreen {...navigation} sessionId={reportTarget?.id ?? session?.id ?? null} onEvidence={openEvidence} onResume={record => openHistory(record, 'resume')} onTrace={record => openHistory(record, 'trace')} busy={busy} error={error} />;
   else if (screen === 'packs') page = <PackScreen {...navigation} />;
   else if (screen === 'documents') page = <DocumentsScreen {...navigation} />;
-  else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} initialView={historyView} busy={busy} error={error} />;
+  else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} initialView={historyView} packVersion={demoPack} busy={busy} error={error} />;
   return <>{page}{error && screen === 'briefing' && <Modal title="상담 연결 확인" className="wb-compact" onClose={() => setError('')}><TextPages text={error} /></Modal>}
     {micIntro && screen === 'dashboard' && session?.mode === 'live' && session.status === 'connected' && !session.ending && <SpeakerIntroModal onClose={() => setMicIntro(false)} onContinue={() => { void toggleMic(); }} />}
     {traceSelection && <TraceSourcePicker trace={traceSelection} busy={busy} error={error} onClose={() => { setTraceSelection(null); setError(''); }} onPlay={record => openHistory(record, 'trace')} />}

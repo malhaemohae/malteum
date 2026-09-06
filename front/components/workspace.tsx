@@ -46,10 +46,33 @@ export function Tabs<T extends string>({ value, items, onChange }: { value: T; i
   return <div className="wb-tabs" role="group" aria-label="화면 선택">{items.map(item => <button type="button" key={item.value} aria-pressed={value === item.value} onClick={() => onChange(item.value)}>{item.label}</button>)}</div>;
 }
 
+// 다시 불러오는 동안 화면이 깜빡이지 않게 하는 두 가지 규칙.
+//
+//   이전 값 유지    새 값이 올 때까지 먼저 받은 값을 그대로 둔다. 예전에는 의존값이
+//                   바뀔 때마다 값을 비워, 고객 유형만 바꿔도 목록이 한 번 사라졌다
+//   로딩 문구 지연   이만큼 넘게 걸릴 때만 `loading` 을 켠다. 30ms 에 끝나는 조회에
+//                   '불러오고 있습니다' 를 내면 글자가 한 프레임 스쳤다 사라진다
+//
+// `settled` 는 한 번이라도 결론(값 또는 오류)이 난 뒤에만 참이다. 부르는 쪽은 이 값이
+// 거짓인 동안 '없습니다' 같은 확정 문구를 내지 않는다. 아직 없는 것이 아니라 모르는 것이다.
+const SLOW_LOAD_MS = 300;
 export function useResource<T>(loader: () => Promise<T>, dependencies: DependencyList = []) {
-  const [data, setData] = useState<T | null>(null); const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [version, refresh] = useState(0);
-  useEffect(() => { let active = true; setLoading(true); setData(null); setError(''); loader().then(value => { if (active) setData(value); }).catch(reason => { if (active) setError(errorText(reason)); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [...dependencies, version]); // Each caller supplies all loader inputs.
-  return { data, error, loading, refresh: () => refresh(value => value + 1) };
+  const [state, setState] = useState<{ data: T | null; error: string; slow: boolean; settled: boolean }>({ data: null, error: '', slow: false, settled: false });
+  const [version, refresh] = useState(0);
+  useEffect(() => { // Each caller supplies all loader inputs.
+    let active = true; let done = false;
+    // `settled` 도 여기서 되접는다. 안 접으면 이전 의존값(흔히 빈 문자열)이 즉시
+    // 끝나 settled 를 한 번 켠 뒤, 진짜 요청이 300ms 안에 끝나는 흔한 경우
+    // '없습니다' 문구가 실제로 값이 있는데도 한 프레임 스친다(매 첫 선택마다 재현)
+    setState(previous => ({ ...previous, error: '', slow: false, settled: false }));
+    const slow = setTimeout(() => { if (active && !done) setState(previous => ({ ...previous, slow: true })); }, SLOW_LOAD_MS);
+    loader()
+      .then(value => { if (active) setState({ data: value, error: '', slow: false, settled: true }); })
+      .catch(reason => { if (active) setState(previous => ({ ...previous, error: errorText(reason), slow: false, settled: true })); })
+      .finally(() => { done = true; clearTimeout(slow); });
+    return () => { active = false; clearTimeout(slow); };
+  }, [...dependencies, version]);
+  return { data: state.data, error: state.error, loading: state.slow, settled: state.settled, refresh: () => refresh(value => value + 1) };
 }
 
 function Pager({ page, count, onChange, label }: { page: number; count: number; onChange: (page: number) => void; label: string }) {
@@ -60,10 +83,36 @@ function Pager({ page, count, onChange, label }: { page: number; count: number; 
 // The capacity follows the available pane, not an arbitrary breakpoint or hidden overflow.
 export function PagedList<T>({ items, render, label, empty = '표시할 항목이 없습니다.', rowHeight = 66, followLatest = false }: { items: T[]; render: (item: T, index: number) => ReactNode; label: string; empty?: string; rowHeight?: number; followLatest?: boolean }) {
   const ref = useRef<HTMLDivElement>(null); const [capacity, setCapacity] = useState(1); const [height, setHeight] = useState(rowHeight); const [page, setPage] = useState(0); const following = useRef(followLatest);
-  useLayoutEffect(() => { if (!ref.current) return; const observer = new ResizeObserver(([entry]) => { const effective = rowHeight + (entry.contentRect.width < 520 ? 16 : 0); setHeight(effective); setCapacity(Math.max(1, Math.floor((entry.contentRect.height - 38) / effective))); }); observer.observe(ref.current); return () => observer.disconnect(); }, [rowHeight]);
+  // 패널이 내용만큼 줄어들 수 있으므로 목록 자기 높이로 용량을 재면 둘이 서로를 물고
+  // 늘어진다(줄면 용량이 줄고, 용량이 줄면 또 준다). 목록 위에 놓인 것들의 높이는 내용에
+  // 매여 있어 흔들리지 않으므로, 본문 높이에서 그만큼을 뺀 값을 쓸 수 있는 높이로 본다.
+  useLayoutEffect(() => {
+    const host = ref.current; if (!host) return;
+    const body = host.closest('.wb-body');
+    const measure = () => {
+      const effective = rowHeight + (host.clientWidth < 520 ? 16 : 0);
+      const above = body ? host.getBoundingClientRect().top - body.getBoundingClientRect().top : 0;
+      const available = body ? body.clientHeight - above : host.clientHeight;
+      setHeight(effective);
+      setCapacity(Math.max(1, Math.floor((available - 38) / effective)));
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(host); if (body) observer.observe(body);
+    return () => observer.disconnect();
+  }, [rowHeight]);
   const count = Math.max(1, Math.ceil(items.length / capacity)); const visiblePage = Math.min(page, count - 1);
   useEffect(() => { if (followLatest && following.current) setPage(count - 1); else setPage(value => Math.min(value, count - 1)); }, [count, items.length, followLatest]);
   return <div className="wb-list" ref={ref} data-paged-list={label}><div className="wb-list-rows">{items.length ? items.slice(visiblePage * capacity, (visiblePage + 1) * capacity).map((item, index) => <div className="wb-list-row" style={{ height, minHeight: height }} key={visiblePage * capacity + index}>{render(item, visiblePage * capacity + index)}</div>) : <Empty>{empty}</Empty>}</div><div className="wb-list-bottom"><small>{items.length}개</small>{followLatest && !following.current && <button type="button" onClick={() => { following.current = true; setPage(count - 1); }}>최신 발화</button>}<Pager label={label} page={visiblePage} count={count} onChange={value => { following.current = value === count - 1; setPage(value); }} /></div></div>;
+}
+
+// 시간 순서로 쭉 읽는 목록(리포트 타임라인)은 페이지를 넘기지 않는다. 상담 대화와 같은
+// 스크롤 방식이다. 앞뒤 맥락을 이어 보려는 목록에서 페이지 경계는 방해가 된다.
+// 행 높이를 고정하지 않으므로 라벨이 길어도 잘리지 않는다.
+export function ScrollList<T>({ items, render, label, empty = '표시할 항목이 없습니다.' }: { items: T[]; render: (item: T, index: number) => ReactNode; label: string; empty?: string }) {
+  return <div className="wb-list wb-scroll-list" data-paged-list={label}>
+    <div className="wb-scroll-rows" role="list">{items.length ? items.map((item, index) => <div className="wb-list-row" role="listitem" key={index}>{render(item, index)}</div>) : <Empty>{empty}</Empty>}</div>
+    <div className="wb-list-bottom"><small>{items.length}개</small></div>
+  </div>;
 }
 
 // Exact source text stays continuous and selectable; reading never needs a page turn.

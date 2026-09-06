@@ -24,8 +24,9 @@ BASE = "http://127.0.0.1:18000"
 
 
 async def run(preset):
-    script = json.loads((ROOT / "assets/scenarios" / preset / "script.json").read_text())
-    with wave.open(str(ROOT / "assets/scenarios" / preset / "audio.wav")) as wav:
+    scenario = ROOT / "assets/scenarios" / preset
+    script = json.loads((scenario / "script.json").read_text(encoding="utf-8"))
+    with wave.open(str(scenario / "audio.wav")) as wav:
         seconds = wav.getnframes() / wav.getframerate()
     async with httpx.AsyncClient(base_url=BASE, timeout=180) as client:
         response = await client.post(

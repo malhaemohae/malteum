@@ -59,12 +59,13 @@ def main():
     for path in sorted(
         [*experiments.glob("qwen_asr/eval_*.json"), *experiments.glob("nemotron/*_eval.json")]
     ):
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         for preset in ("preset-dep-a", "preset-loan-b"):
             hypotheses = {line["id"]: line["hyp"] for line in data.get(preset, {}).get("lines", [])}
             if not hypotheses:
                 continue
-            script = json.loads((ROOT / "assets/scenarios" / preset / "script.json").read_text())
+            scenario = ROOT / "assets/scenarios" / preset
+            script = json.loads((scenario / "script.json").read_text(encoding="utf-8"))
             replay(
                 str(path.relative_to(experiments)),
                 script["pack_version"],
@@ -88,7 +89,7 @@ def main():
                 ],
             )
     for path in args.events:
-        record = json.loads(path.read_text())
+        record = json.loads(path.read_text(encoding="utf-8"))
         started = next(e for e in record["events"] if e["kind"] == "session_started")
         replay(
             str(path),
