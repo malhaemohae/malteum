@@ -13,8 +13,12 @@ type Navigation = { onNavigate: (nav: NavItem) => void; onNew: () => void };
 function Failure({ error, retry }: { error: string; retry: () => void }) { return <Notice action={<button onClick={retry}>다시 불러오기</button>}>{error}</Notice>; }
 const labelFor = displayField;
 // One row per field; nested values keep their readable text form.
+// `message` 는 이미 `설명서 기준 15.4% (조건)` 처럼 reference·condition 을 문장으로 담고
+// 있다. comparison 을 그대로 펼치면 그 두 값이 한 번 더 줄로 뜬다. 새 정보인 said 만 남긴다.
 function recordRows(row: Record<string, unknown>) {
-  return Object.entries(row)
+  const comparison = row.comparison as { said?: unknown } | undefined;
+  const trimmed = comparison?.said != null ? { ...row, comparison: { said: comparison.said } } : row;
+  return Object.entries(trimmed)
     .filter(([key, value]) => value != null && value !== '' && !INTERNAL_FIELDS.includes(key) && !(Array.isArray(value) && value.length === 0))
     .map(([key, value]) => ({ label: displayField(key), value: <span className="wb-kv-text">{displayValue(value, key)}</span> }));
 }
