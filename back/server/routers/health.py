@@ -24,7 +24,7 @@ def health(request: Request) -> dict:
     checks = {
         "db": "ok" if runtime.event_store.healthy() else "fail",
         "stt": "ok" if runtime.stt is not None else "unconfigured",
-        "llm": "ok" if settings.llm_model else "unconfigured",
+        "llm": "ok" if settings.llm_model or settings.answer_llm_model else "unconfigured",
     }
     return {
         "status": "ok" if "fail" not in checks.values() else "degraded",

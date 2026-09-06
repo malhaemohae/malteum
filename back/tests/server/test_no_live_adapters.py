@@ -14,7 +14,7 @@ conftest 가 지운 것을 여기서 되짚는 꼴이라 얼핏 겹쳐 보이지
 """
 
 from server.bootstrap.settings import Settings
-from server.bootstrap.startup import build_runtime
+from server.bootstrap.startup import _adapters, build_runtime
 
 FIX = (
     "settings 에 실물 어댑터를 늘렸으면 "
@@ -31,9 +31,32 @@ def test_runtime_has_no_live_adapter():
     leaked = {
         "APP_STT_API_KEY": bool(settings.stt_api_key),
         "APP_LLM_MODEL": bool(settings.llm_model),
+        "APP_ANSWER_LLM_MODEL": bool(settings.answer_llm_model),
         "APP_EMBEDDING_MODEL": bool(settings.embedding_model),
     }
     assert not any(leaked.values()), f"{[k for k, v in leaked.items() if v]} 가 샜습니다. {FIX}"
 
     runtime = build_runtime(settings)
     assert runtime.stt is None, f"STT 어댑터가 살아 있습니다. {FIX}"
+
+
+def test_answer_model_is_independent_from_realtime_judge():
+    adapters = _adapters(
+        Settings(
+            event_store="memory",
+            llm_model="qwen/qwen3-8b",
+            answer_llm_model="qwen/qwen3-32b",
+        )
+    )
+
+    assert adapters["llm"].model.endswith("qwen/qwen3-8b")
+    assert adapters["generator"].model.endswith("qwen/qwen3-32b")
+
+
+def test_answer_model_can_be_configured_without_judge():
+    adapters = _adapters(
+        Settings(event_store="memory", llm_model=None, answer_llm_model="qwen/qwen3-32b")
+    )
+
+    assert "llm" not in adapters
+    assert adapters["generator"].model.endswith("qwen/qwen3-32b")
