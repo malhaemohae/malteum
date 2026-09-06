@@ -14,9 +14,9 @@
 .wb-shortcuts .wb-density-chip>span{font-size:11px;line-height:14px;color:var(--muted)}
 .wb-shortcuts .wb-density-chip>strong{font-size:13px;line-height:17px}
 .wb-shortcuts .wb-density-chip[data-density=high]{border-color:#e6c58c;background:#fff8ea}
-.wb-shortcuts .wb-density-chip[data-density=high]>strong{color:#8a581b}
+.wb-shortcuts .wb-density-chip[data-density=high]>strong{color:var(--tone-warning)}
 .wb-shortcuts .wb-density-chip[data-density=low]{border-color:#bfe0d2;background:#f2fbf7}
-.wb-shortcuts .wb-density-chip[data-density=low]>strong{color:#20755a}
+.wb-shortcuts .wb-density-chip[data-density=low]>strong{color:var(--tone-positive)}
 .wb-service .wb-guide-panel .wb-guide-notification{background:#fff;color:#173942;font-size:12px;min-height:30px;padding:5px 8px}
 .wb-feedback{display:flex;align-items:center;gap:8px;flex-shrink:0;padding:7px 10px;border-radius:7px;background:#edf7fa;color:#165c70;font-size:12px;line-height:1.45}
 .wb-feedback[data-pending=true]>span:first-child{display:inline-block;animation:wb-wait 1.3s linear infinite}

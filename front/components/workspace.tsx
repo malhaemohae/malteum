@@ -61,7 +61,10 @@ export function useResource<T>(loader: () => Promise<T>, dependencies: Dependenc
   const [version, refresh] = useState(0);
   useEffect(() => { // Each caller supplies all loader inputs.
     let active = true; let done = false;
-    setState(previous => ({ ...previous, error: '', slow: false }));
+    // `settled` 도 여기서 되접는다. 안 접으면 이전 의존값(흔히 빈 문자열)이 즉시
+    // 끝나 settled 를 한 번 켠 뒤, 진짜 요청이 300ms 안에 끝나는 흔한 경우
+    // '없습니다' 문구가 실제로 값이 있는데도 한 프레임 스친다(매 첫 선택마다 재현)
+    setState(previous => ({ ...previous, error: '', slow: false, settled: false }));
     const slow = setTimeout(() => { if (active && !done) setState(previous => ({ ...previous, slow: true })); }, SLOW_LOAD_MS);
     loader()
       .then(value => { if (active) setState({ data: value, error: '', slow: false, settled: true }); })

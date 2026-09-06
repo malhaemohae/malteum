@@ -11,7 +11,7 @@ import { HistoryAction, isPlayableEvent, recoveredSession, sessionEvents, sessio
 import { rememberTraceSource, resolveTraceSource } from '../lib/trace-source';
 import { TraceSourcePicker } from './trace-source-picker';
 import { hasStoredUtterance } from '../lib/trace-start';
-import { errorText, evidenceForItem, LiveSession, Mode, NavItem, newLiveSession, reduceServer, Screen, sessionScreen } from '../lib/workspace-model';
+import { errorText, evidenceForItem, lastTellerUtteranceId, LiveSession, Mode, NavItem, newLiveSession, reduceServer, Screen, sessionScreen } from '../lib/workspace-model';
 import MarketingLanding from './marketing-showcase';
 import { Briefing, Dashboard, Preparation } from './consultation';
 import { SpeakerIntroModal } from './speaker-intro';
@@ -58,20 +58,29 @@ export default function Application() {
   const runningClock = session?.status === 'connected' && !session.ending && (session.mode === 'live' || session.mode === 'replay');
   useEffect(() => {
     if (!runningClock) return;
-    // 1초 간격이면 표시가 최대 1초 늦게 넘어간다. 자주 재되 표시 초가 그대로면 같은
-    // 객체를 돌려주어 화면은 다시 그리지 않는다
-    const timer = setInterval(() => update(value => {
-      if (!value || value.status !== 'connected' || value.clockBase === undefined) return value;
-      const seconds = Math.max(value.seconds, (Date.now() - value.clockBase) / 1000);
-      return Math.floor(seconds) === Math.floor(value.seconds) ? value : { ...value, seconds };
-    }), 250);
-    return () => clearInterval(timer);
+    let timer: ReturnType<typeof setTimeout>;
+    // 다음 정수 초 경계에서만 깨어난다. 표시가 mm:ss 라 초당 1회로 충분한데
+    // 고정 간격 폴링은 그보다 자주 깨어나 대부분 아무것도 안 바뀐 채 끝났다
+    const tick = () => {
+      update(value => {
+        if (!value || value.status !== 'connected' || value.clockBase === undefined) return value;
+        const seconds = Math.max(value.seconds, (Date.now() - value.clockBase) / 1000);
+        return Math.floor(seconds) === Math.floor(value.seconds) ? value : { ...value, seconds };
+      });
+      const clockBase = current.current?.clockBase;
+      timer = setTimeout(tick, clockBase === undefined ? 1000 : 1000 - ((Date.now() - clockBase) % 1000));
+    };
+    timer = setTimeout(tick, 0);
+    return () => clearTimeout(timer);
   }, [runningClock]);
   useEffect(() => { if (!session || session.status === 'ended') return; const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload); }, [session?.id, session?.status]);
   function navigate(value: NavItem) {
     if (creating.current) return;
     setError('');
     setHistoryView('sessions');
+    // 다른 경로(사이드바 '이력' 등)로 들어오면 예전 고른 규정팩 표시를 지운다.
+    // openDemoAudio 가 이 직후에 다시 세팅하므로 그 경로에서는 값이 그대로 이어진다
+    setDemoPack('');
     if (value === '상담') {
       const active = current.current;
       if (active && active.status !== 'ended' && sessionScreen(active.mode) === 'playback') {
@@ -99,7 +108,7 @@ export default function Application() {
       // 서버 응답에는 어느 발화를 바꿨는지가 없다. 계약상 직전 상담원 발화이므로 지금 그것을 붙잡아 둔다
       // event_id 가 비어 있는 발화는 없다고 본다. 빈 문자열을 그대로 두면 '있지만 falsy' 한
       // 값이 되어 아래 모든 truthy 검사가 조용히 이 기능을 건너뛴다.
-      const lastTeller = value.t === 'assist_request' && !value.item_code ? [...current.current.transcript].reverse().find(row => row.speaker === 'teller')?.id || undefined : undefined;
+      const lastTeller = value.t === 'assist_request' && !value.item_code ? lastTellerUtteranceId(current.current.transcript) : undefined;
       const action = { kind: value.t === 'assist_request' ? 'rephrase' : String(value.t), itemCode: typeof value.item_code === 'string' ? value.item_code : undefined, ref: typeof value.alert_ref === 'string' ? value.alert_ref : undefined, sourceUtteranceId: lastTeller, pending: true, message: value.t === 'assist_request' ? (value.item_code ? '쉬운 말을 상담 기록에 남기고 있습니다.' : '직전 발화를 쉬운 말로 바꾸고 있습니다.') : '변경 사항을 서버에 기록하고 있습니다.' };
       update(previous => previous ? { ...previous, error: undefined, action, rephrases: lastTeller ? { ...previous.rephrases, [lastTeller]: { pending: true } } : previous.rephrases } : previous);
       const id = current.current?.id;
@@ -168,10 +177,12 @@ export default function Application() {
         if (!isCurrent()) return;
 
         if (message.t === 'ready') clearTimeout(connectTimer.current);
+        // 음원이 관여하는 두 모드. active.mode 는 이 연결 동안 고정이라 한 번만 판단한다
+        const playsAudio = active.mode === 'replay' || active.mode === 'trace';
         // 서버가 이 순간부터 음원을 STT 로 흘린다. 소리도 같이 출발해야 두 시계가 맞는다
-        if (message.t === 'ready' && ['replay', 'trace'].includes(active.mode)) replayAudio.current?.beginPlayback();
+        if (message.t === 'ready' && playsAudio) replayAudio.current?.beginPlayback();
         const show = () => { if (isCurrent()) update(value => value ? reduceServer(value, message) : value); };
-        if (['replay', 'trace'].includes(active.mode) && message.t === 'utterance' && replayAudio.current && !current.current?.seen.includes(String(message.event_id))) await replayAudio.current.present(message, () => flushSync(show));
+        if (playsAudio && message.t === 'utterance' && replayAudio.current && !current.current?.seen.includes(String(message.event_id))) await replayAudio.current.present(message, () => flushSync(show));
         else show();
         if (message.t === 'ended') {
           finishSession(active.id);
@@ -311,7 +322,8 @@ export default function Application() {
   const navigation = { onNavigate: navigate, onNew: requestNew };
   // navigate 가 먼저 'sessions' 로 되돌린 뒤 이번 진입만 시연 음원으로 연다.
   // 준비 화면에서 고른 규정팩을 목록까지 들고 간다. 어느 음원이 그 팩의 것인지 표시하는 근거
-  function openDemoAudio(packVersion: string) { setDemoPack(packVersion); navigate('이력'); setHistoryView('presets'); }
+  // navigate() 가 demoPack 을 비우므로, 그 뒤에 설정해야 값이 남는다
+  function openDemoAudio(packVersion: string) { navigate('이력'); setHistoryView('presets'); setDemoPack(packVersion); }
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
   else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} onDemo={openDemoAudio} defaults={preparation.current} health={health} onCheckHealth={checkHealth} />;

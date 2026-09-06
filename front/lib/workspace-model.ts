@@ -1,4 +1,4 @@
-import { ApiEvidence, ApiPack, ApiPackItem, ApiPackSummary, ServerMessage } from './api';
+import { ApiEvidence, ApiPack, ApiPackItem, ApiPackSummary, ApiPreset, ServerMessage } from './api';
 
 export type Screen = 'landing' | 'briefing' | 'dashboard' | 'playback' | 'report' | 'history' | 'packs' | 'documents';
 export type Mode = 'live' | 'text' | 'replay' | 'trace';
@@ -35,6 +35,12 @@ export const severityNames: Record<string, string> = { critical: '심각', warni
 // Modes are protocol values; tellers see Korean words, never the wire codes.
 export const modeNames: Record<Mode, string> = { live: '실시간', text: '텍스트', replay: '음원 시연', trace: '기록 재생' };
 const metadataNames: Record<string, string> = { ...statusNames, ...kindNames, ...severityNames, ...modeNames, confirmed: '이해 확인 신호', explained: '설명됨', teller: '상담원', customer: '고객', system: '시스템', human: '상담원 수동 기록', L1: '규칙 판정', L2: '문맥 판정', L3: '추가 검토 판정', verdict: '판정', utterance: '발화', alert: '경보', assist: '상담 안내', session_started: '상담 시작', session_ended: '상담 종료', omission: '설명 이행', commission: '금지·숫자', comprehension: '이해 지원', low: '낮음', normal: '보통', high: '높음' };
+// 상태값 열거. displayValue 의 라벨 정규식과 labelState 양쪽이 같은 목록을 쓴다. 예전에는
+// 정규식 안과 별도 배열에 11개 값을 나란히 두 번 적어 하나를 고치면 다른 쪽이 조용히 어긋날 수 있었다
+const LABEL_STATES = ['met', 'partial', 'unmet', 'waived', 'clean', 'suspected', 'violated', 'confirmed', 'explained', 'adopted', 'ignored'];
+// 타임라인 라벨이 유형을 접두어로 싣고 오는 이름들(`risk_signal: ...`). displayValue 의
+// 정규식과 rawLabelKind 양쪽이 같은 목록을 쓴다
+const LABEL_KIND_PREFIXES = ['teller', 'customer', 'system', 'rephrase', 'answer', 'nudge', 'briefing', 'documents', 'number_mismatch', 'forbidden_phrase', 'risk_signal', 'term_density'];
 export function displayValue(value: unknown, key = ''): string {
   if (Array.isArray(value)) return value.map(entry => displayValue(entry, key)).join('\n');
   if (value && typeof value === 'object') return Object.entries(value).map(([field, entry]) => `${displayField(field)}: ${displayValue(entry, field)}`).join('\n');
@@ -43,14 +49,13 @@ export function displayValue(value: unknown, key = ''): string {
   if (typeof value === 'number' && MS_FIELDS.includes(key)) return timeLabel(value / 1000);
   if (typeof value !== 'string') return String(value);
   if (TIME_FIELDS.includes(key)) return whenLabel(value);
-  if (key === 'label') return value.replace(/^(teller|customer|system|rephrase|answer|nudge|briefing|documents|number_mismatch|forbidden_phrase|risk_signal|term_density):\s*/, (_, type) => `${metadataNames[type]}: `).replace(/(→\s*)(met|partial|unmet|waived|clean|suspected|violated|confirmed|explained|adopted|ignored)\b/g, (_, arrow, state) => `${arrow}${state === 'met' ? '고지 완료' : metadataNames[state]}`);
-  if (['state', 'final_state', 'outcome', 'status', 'kind', 'type', 'axis', 'decided_by', 'speaker', 'assist_type', 'alert_type', 'severity', 'mode'].includes(key)) return metadataNames[value] ?? value;
+  if (key === 'label') return value.replace(new RegExp(`^(${LABEL_KIND_PREFIXES.join('|')}):\\s*`), (_, type) => `${metadataNames[type]}: `).replace(new RegExp(`(→\\s*)(${LABEL_STATES.join('|')})\\b`, 'g'), (_, arrow, state) => `${arrow}${state === 'met' ? '고지 완료' : metadataNames[state]}`);
+  if (['state', 'final_state', 'outcome', 'status', 'kind', 'type', 'axis', 'decided_by', 'speaker', 'assist_type', 'alert_type', 'severity', 'mode', 'density'].includes(key)) return metadataNames[value] ?? value;
   return value;
 }
 export function displayField(key: string) { return fieldNames[key] ?? key; }
 // 리포트 타임라인 행은 상태를 따로 싣지 않고 라벨 끝에 붙여 보낸다(`적용 이자율 → met`).
 // 그래서 배지가 비어 색으로 읽을 수 없었다. 서버가 적어 준 그 값을 그대로 꺼낸다
-const LABEL_STATES = ['met', 'partial', 'unmet', 'waived', 'clean', 'suspected', 'violated', 'confirmed', 'explained', 'adopted', 'ignored'];
 export function labelState(label: unknown) {
   if (typeof label !== 'string' || !label.includes('→')) return '';
   const tail = label.slice(label.lastIndexOf('→') + 1).trim();
@@ -61,6 +66,21 @@ export function withoutStateArrow(label: string) {
   if (!labelState(label)) return label;
   const cut = label.lastIndexOf('→');
   return cut > 0 ? label.slice(0, cut).trimEnd() : label;
+}
+// 서버 원본 메시지가 이미 유형 이름으로 시작하는 경우(위험 신호가 그렇다), displayValue
+// 의 라벨 치환이 그 접두어를 사람 말로 한 번 더 붙여 "위험 신호: 위험 신호: ..." 로
+// 겹친다. 타임라인 행은 kind 를 몰라 withoutKindPrefix 가 못 떼므로, kind 없이도 문구
+// 자체가 반복되면 하나로 줄인다. 다른 유형(숫자 확인·쉬운 말 안내 등)은 원본 메시지가
+// 유형 이름으로 시작하지 않아 반복이 없고, 그런 경우 이 함수는 아무 일도 안 한다
+export function collapseRepeatedPrefix(text: string): string {
+  for (const mark of [': ', ':']) {
+    const cut = text.indexOf(mark);
+    if (cut <= 0) continue;
+    const prefix = text.slice(0, cut);
+    const rest = text.slice(cut + mark.length);
+    if (rest.startsWith(`${prefix}${mark}`) || rest === prefix) return rest;
+  }
+  return text;
 }
 // 카드 제목이 이미 유형을 말하고 있으면 본문 앞의 같은 말을 뗀다. 서버 문구
 // (`위험 신호: 제3자 계좌 위험 신호...`)는 그대로 두고 화면에서만 머리말을 지운다.
@@ -98,6 +118,11 @@ export const INTERNAL_FIELDS = ['event_id', 'evidence_ref', 'utterance_id', 'sou
 
 export function newLiveSession(id: string, wsUrl: string, mode: Mode, packVersion: string): LiveSession {
   return { id, wsUrl, mode, packVersion, status: 'connecting', seq: -1, items: [], transcript: [], partial: '', interventions: [], versions: {}, seen: [], ending: false, seconds: 0 };
+}
+// 쉬운 말은 언제나 상담원 발화를 바꾼 것이다. 수동 요청(application.tsx)과 서버 자동
+// 발송(reduceServer) 양쪽이 "직전 상담원 발화"를 같은 방식으로 찾는다
+export function lastTellerUtteranceId(transcript: LiveSession['transcript']): string | undefined {
+  return [...transcript].reverse().find(row => row.speaker === 'teller')?.id;
 }
 
 // Only server events change judgements. No local keyword scoring or synthetic fallback.
@@ -164,7 +189,10 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
       const itemCode = typeof message.item_code === 'string' ? message.item_code : undefined;
       // 같은 항목의 쉬운 말이 다시 오면(L1 뒤 L3 가 ver 2 로 보냄) 먼저 붙은 카드를 갱신한다
       const known = itemCode ? Object.keys(entries).find(id => entries[id].itemCode === itemCode) : undefined;
-      const anchor = known ?? current.transcript[current.transcript.length - 1]?.id;
+      // 쉬운 말은 언제나 상담원 발화를 바꾼 것이다. 그냥 마지막 발화를 잡으면 그 사이
+      // 고객이 끼어든 경우 고객 말풍선에 잘못 붙는다. 수동 경로(application.tsx)와
+      // 같은 규칙으로 맞춘다
+      const anchor = known ?? lastTellerUtteranceId(current.transcript);
       if (anchor) next.rephrases = { ...entries, [anchor]: { text, evidenceRef: reference, pending: false, itemCode, adopted: message.outcome === 'adopted' } };
     }
     if (current.action?.kind === 'acknowledge' && message.acknowledged === true && current.action.pending && current.action.ref === message.acknowledged_ref) next.action = { ...current.action, pending: false, message: '확인 기록이 서버에 저장됐습니다.' };
@@ -198,6 +226,12 @@ export function latestPacks<T extends ApiPackSummary>(packs: T[]): T[] {
     if (!current || comparePacks(pack, current) > 0) newest.set(key, pack);
   }
   return Array.from(newest.values());
+}
+// 재생 가능한 시연 음원. 상담 준비(고른 규정팩 하나와 정확히 맞는지)와 이력(최신
+// 규정팩 전체와 맞는지)이 "버전이 맞는가"만 다르게 물어 각자 이 필터를 따로 다시
+// 썼다. 그 판단만 콜백으로 받고 나머지 조건(replay 모드·음원 존재)은 여기 하나로 둔다
+export function playableDemoPresets(presets: ApiPreset[], isPlayableVersion: (packVersion: string) => boolean): ApiPreset[] {
+  return presets.filter(preset => preset.mode === 'replay' && preset.audio_ref && isPlayableVersion(preset.pack_version));
 }
 function comparePacks(a: ApiPackSummary, b: ApiPackSummary) {
   const timestamp = (value?: string) => { const parsed = Date.parse(value ?? ''); return Number.isFinite(parsed) ? parsed : 0; };

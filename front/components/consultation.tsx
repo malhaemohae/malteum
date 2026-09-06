@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiBriefing, ApiHealth, ApiPack, ApiPackItem, malteumApi } from '../lib/api';
-import { evidenceForItem, friendlyError, itemTypeNames, STT_UNCONFIGURED, kindNames, latestPacks, LiveSession, modeNames, NavItem, ReadyItem, sessionScreen, statusNames, timeLabel, withoutKindPrefix } from '../lib/workspace-model';
+import { displayValue, evidenceForItem, friendlyError, itemTypeNames, STT_UNCONFIGURED, kindNames, latestPacks, LiveSession, modeNames, NavItem, playableDemoPresets, ReadyItem, sessionScreen, statusNames, timeLabel, withoutKindPrefix } from '../lib/workspace-model';
 import { DetailSections, detailSections, Empty, Feedback, KeyValueList, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
 import { speakerLabel, Transcript } from './transcript';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
@@ -14,9 +14,6 @@ import { EvidenceCard } from './evidence';
 function QuickAction({ title, subtitle, icon, tone, onClick, disabled, pressed, label }: { title: string; subtitle: string; icon: WorkspaceIconName; tone: string; onClick: () => void; disabled?: boolean; pressed?: boolean; label?: string }) {
   return <button type="button" className={`wb-shortcut is-${tone}`} aria-label={label ?? title} aria-pressed={pressed} disabled={disabled} onClick={onClick}><span className="wb-shortcut-title"><strong>{title}</strong><span className="wb-shortcut-arrow"><WorkspaceIcon name="arrow" size={14} /></span></span><span className="wb-shortcut-bottom"><small>{subtitle}</small><span className="wb-shortcut-icon"><WorkspaceIcon name={icon} size={32} /></span></span></button>;
 }
-
-// 전문용어 밀도는 상단 도구 줄의 상태 칩으로 나간다. 서버 enum → 은행원이 읽는 말
-const densityNames: Record<string, string> = { low: '낮음', normal: '보통', high: '높음' };
 
 // 브리핑 항목이 상세로 펼칠 값을 가졌는지. 펼칠 것이 없으면 행을 눌러도 빈 모달만 뜬다.
 const briefingSections = (item: ApiBriefing['must_say'][number]) => detailSections([['확인해야 할 요소', item.elements], ['승인된 쉬운 말', item.plain_language]]);
@@ -30,11 +27,16 @@ export function Briefing({ onStart, onNavigate, onNew, onDemo, busy, defaults, h
   useEffect(() => { if (packs.data && !choices.some(pack => pack.pack_version === version)) setVersion((choices.find(pack => pack.product?.category === 'deposit') ?? choices[0])?.pack_version ?? ''); }, [packs.data, choices, version]);
   const pack = useResource(() => version ? malteumApi.pack(version) : Promise.resolve(null), [version]);
   const briefing = useResource(() => version ? malteumApi.briefing(version, customer) : Promise.resolve(null), [version, customer]);
+  // useResource 는 새 요청이 끝날 때까지 이전 값을 들고 있는다(깜빡임 방지). 그래서
+  // 규정팩을 바꾸는 동안에는 아직 이전 규정팩의 데이터다. 시작 버튼은 이미 이 대조를
+  // 하고 있었는데 정작 화면에 보이는 목록에는 안 걸려 있어, 전환 중 잠깐 다른 상품의
+  // 필수 안내를 그대로 보여줬다(컴플라이언스 화면에서 특히 위험한 자리)
+  const briefingMatches = briefing.data?.pack_version === version;
   const [pane, setPane] = useState<'items' | 'documents'>('items');
   // 시연 음원은 상품 시나리오가 정해져 있어 규정팩과 짝이 맞아야 한다. 어느 음원이 이
   // 규정팩에 붙어 있는지 여기서 보여 주지 않으면 목록에 가서야 알게 된다
   const presets = useResource(() => malteumApi.presets());
-  const demoAudios = useMemo(() => (presets.data?.presets ?? []).filter(item => item.mode === 'replay' && item.audio_ref && item.pack_version === version), [presets.data, version]);
+  const demoAudios = useMemo(() => playableDemoPresets(presets.data?.presets ?? [], packVersion => packVersion === version), [presets.data, version]);
   // 서버가 임베딩 모델을 데우는 동안(첫 로딩 26초) 시작하면 그만큼 첫 판정이 늦다.
   // 준비되면 스스로 멈추고, 끝내 안 되면 1분 뒤 포기해 폴링이 남지 않게 한다.
   const warming = health?.checks?.embedding === 'fail';
@@ -50,13 +52,13 @@ export function Briefing({ onStart, onNavigate, onNew, onDemo, busy, defaults, h
     <Panel className="wb-briefing">
       <div className="wb-form"><label>상품·규정팩<select aria-label="상품·규정팩" value={version} disabled={busy || packs.loading || !packs.data?.packs.length} onChange={event => setVersion(event.target.value)}>{!packs.data?.packs.length && <option value={version}>{packs.loading ? '불러오는 중' : packs.error ? '규정팩 조회 실패' : '발행된 규정팩 없음'}</option>}{choices.map(item => <option key={item.pack_version} value={item.pack_version}>{item.product?.name ?? item.pack_version} · {item.pack_version}</option>)}</select></label>
         <label>고객 유형<select aria-label="고객 유형" value={customer} disabled={busy} onChange={event => setCustomer(event.target.value as typeof customer)}><option value="general">일반금융소비자</option><option value="professional">전문금융소비자</option></select></label></div>
-      <div className="wb-briefing-intro"><span className="wb-briefing-count">{briefing.data ? briefing.data.must_say.length : '…'}</span><div><h3>필수 안내 항목</h3><small>{briefing.data?.pack_version ?? '서버 기준을 확인하고 있습니다.'}</small></div></div>
+      <div className="wb-briefing-intro"><span className="wb-briefing-count">{briefingMatches ? briefing.data!.must_say.length : '…'}</span><div><h3>필수 안내 항목</h3><small>{briefingMatches ? briefing.data!.pack_version : '서버 기준을 확인하고 있습니다.'}</small></div></div>
       <Tabs value={pane} onChange={setPane} items={[{ value: 'items', label: '필수 안내' }, { value: 'documents', label: '필요 서류' }]} />
-      {pane === 'items' ? <PagedList label="브리핑 항목" items={briefing.data?.must_say ?? []} empty={briefing.loading ? '브리핑을 불러오는 중입니다.' : briefing.error ? '브리핑을 확인하지 못했습니다.' : briefing.settled ? '필수 안내 항목이 없습니다.' : ''} render={item => {
+      {pane === 'items' ? <PagedList label="브리핑 항목" items={briefingMatches ? briefing.data!.must_say : []} empty={briefing.loading ? '브리핑을 불러오는 중입니다.' : briefing.error ? '브리핑을 확인하지 못했습니다.' : briefing.settled ? '필수 안내 항목이 없습니다.' : ''} render={item => {
         const sections = briefingSections(item);
         const copy = <span className="wb-row-copy"><strong>{item.name}</strong><small>{sections.length ? sections[0][1].join(' · ') : item.item_code}</small></span>;
         return sections.length ? <button className="wb-row-button" onClick={() => setDetail(item)}>{copy}<span aria-hidden="true">›</span></button> : <div className="wb-row-static">{copy}</div>;
-      }} /> : <PagedList label="필요 서류" items={briefing.data?.documents_required ?? []} empty={briefing.loading ? '필요 서류를 불러오는 중입니다.' : briefing.settled ? '이 상품에 등록된 필요 서류가 없습니다.' : ''} render={item => <div className="wb-row-static"><span className="wb-row-copy"><strong>{item}</strong></span></div>} />}
+      }} /> : <PagedList label="필요 서류" items={briefingMatches ? briefing.data!.documents_required ?? [] : []} empty={briefing.loading ? '필요 서류를 불러오는 중입니다.' : briefing.settled ? '이 상품에 등록된 필요 서류가 없습니다.' : ''} render={item => <div className="wb-row-static"><span className="wb-row-copy"><strong>{item}</strong></span></div>} />}
       <div className="wb-briefing-footer"><label className="wb-composer"><small>입력</small><select aria-label="입력 방식" value={mode} disabled={busy} onChange={event => setMode(event.target.value as 'live' | 'text')}><option value="live">마이크 녹음</option><option value="text">텍스트 입력</option></select></label><div className="wb-actions"><button disabled={busy} onClick={() => onDemo(version)}>시연 음원으로 시작{demoAudios.length ? ` · ${demoAudios.length}편` : ''}</button><button className="wb-primary" disabled={busy || packs.loading || Boolean(packs.error) || !choices.some(choice => choice.pack_version === version) || !pack.data || pack.data.pack_version !== version || !briefing.data || briefing.data.pack_version !== version || briefing.loading || pack.loading} onClick={() => pack.data && onStart(pack.data, mode, customer)}>{busy ? '세션 연결 중…' : '상담 시작'} →</button></div></div>
       {version && <small className="wb-demo-hint" data-demo={demoAudios.length ? 'ready' : 'none'}>{presets.loading ? '이 규정팩의 시연 음원을 확인하고 있습니다.' : demoAudios.length ? `이 규정팩의 시연 음원 ${demoAudios.length}편 · ${demoAudios.map(item => item.label).join(' · ')}` : '이 규정팩에는 연결된 시연 음원이 없습니다. 마이크 녹음이나 텍스트 입력으로 시작해 주세요.'}</small>}
       <small className="wb-processing-notice">마이크가 없거나 STT 가 멈추면 텍스트 입력으로 같은 판정을 받을 수 있습니다. 시연 입력은 외부 STT·AI 서비스에서 처리됩니다. 실제 개인정보를 입력하지 마세요.</small>
@@ -113,7 +115,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
         {session.mode === 'live' ? <QuickAction title={micPending ? '연결 취소' : micActive ? '녹음 중지' : '녹음 시작'} label={micPending ? '마이크 연결 취소' : micActive ? '■ 녹음 중지' : '● 녹음 시작'} subtitle={micPending ? '권한 창을 확인하세요' : micActive ? '중지 후에도 상담은 유지' : '완료 시 상단 상담 종료'} icon={micActive ? 'stop' : 'mic'} tone={micActive ? 'recording' : 'record'} pressed={micActive} disabled={!canWrite} onClick={onMic} /> : <QuickAction title={session.mode === 'text' ? '텍스트 입력' : '상담 대화'} subtitle={session.mode === 'text' ? '화자를 선택해 입력' : '저장된 상담 확인'} icon="conversation" tone="record" onClick={() => { selectPane('conversation'); requestAnimationFrame(() => inputRef.current?.focus()); }} />}
         <QuickAction title="필요 서류" subtitle="서류 목록 열기" icon="folder" tone="documents" disabled={!pack} onClick={() => setReference('documents')} />
         <QuickAction title="규정팩 보기" subtitle="적용 중인 규정팩의 항목" icon="book" tone="briefing" disabled={!pack} onClick={() => setReference('briefing')} />
-        <div className="wb-density-chip" data-density={session.progress?.density ?? 'none'} role="status" aria-label="전문용어 밀도"><strong>{session.progress?.density ? densityNames[session.progress.density] ?? session.progress.density : '측정 전'}</strong><span>전문용어 밀도</span></div>
+        <div className="wb-density-chip" data-density={session.progress?.density ?? 'none'} role="status" aria-label="전문용어 밀도"><strong>{session.progress?.density ? displayValue(session.progress.density, 'density') : '측정 전'}</strong><span>전문용어 밀도</span></div>
       </div>
       <div className="wb-conversation">
         <Panel title="상담 대화" className="wb-transcript" action={replaySound ? <button type="button" className="wb-replay-sound" data-replay-sound={replaySound.status} aria-pressed={replaySound.enabled && replaySound.status !== 'blocked'} onClick={onReplaySound} disabled={replaySound.status === 'loading' || session.ending || session.status !== 'connected'}>{replaySound.status === 'loading' ? '음원 준비 중' : replaySound.status === 'unavailable' ? '소리 다시 시도' : replaySound.status === 'blocked' || !replaySound.enabled ? '소리 켜기' : '소리 끄기'}</button> : <small role="status">{session.mode === 'live' && micActive ? health?.checks?.stt === 'ok' ? '● 녹음 중 · 전사 대기' : '● 녹음 중 · 전사 연결 확인 필요' : '고객 · 상담원'}</small>}>

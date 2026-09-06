@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ApiDocument, ApiPackItem, ApiPreset, ApiSessionSummary, malteumApi } from '../lib/api';
-import { displayField, displayValue, errorText, evidenceForItem, INTERNAL_FIELDS, itemTypeNames, labelState, latestPacks, modeNames, NavItem, statusNames, textValue, timeLabel, whenLabel, withoutKindPrefix, withoutStateArrow } from '../lib/workspace-model';
+import { collapseRepeatedPrefix, displayField, displayValue, errorText, evidenceForItem, INTERNAL_FIELDS, itemTypeNames, labelState, latestPacks, modeNames, NavItem, playableDemoPresets, statusNames, textValue, timeLabel, whenLabel, withoutKindPrefix, withoutStateArrow } from '../lib/workspace-model';
 import { EvidenceCard } from './evidence';
 import { rememberedSessionIds } from '../lib/session-index';
 import { HistoryAction, traceBlockedReason } from '../lib/session-recovery';
@@ -12,12 +12,15 @@ import { DetailSections, Empty, EvidenceView, Feedback, KeyValueList, Modal, Not
 type Navigation = { onNavigate: (nav: NavItem) => void; onNew: () => void };
 function Failure({ error, retry }: { error: string; retry: () => void }) { return <Notice action={<button onClick={retry}>다시 불러오기</button>}>{error}</Notice>; }
 const labelFor = displayField;
+// summaryRows·recordRows 는 필터 조건만 다르고 나머지(칸 이름·표시값 JSX)는 같았다.
+// 매핑 단계를 여기 하나로 모으고 각자 자기 필터만 넘긴다
+function toKvRows(entries: [string, unknown][], keep: (key: string, value: unknown) => boolean) {
+  return entries.filter(([key, value]) => keep(key, value)).map(([key, value]) => ({ label: displayField(key), value: <span className="wb-kv-text">{displayValue(value, key)}</span> }));
+}
 // 요약 수치 중 큰 타일로 나간 것을 뺀 나머지(필수 항목 수·제외·채택한 안내 등)만 표로.
 // 같은 값을 타일과 표에 두 번 싣지 않는다
 function summaryRows(summary: Record<string, unknown> | undefined, shown: string[]) {
-  return Object.entries(summary ?? {})
-    .filter(([key, value]) => !shown.includes(key) && value != null && value !== '')
-    .map(([key, value]) => ({ label: displayField(key), value: <span className="wb-kv-text">{displayValue(value, key)}</span> }));
+  return toKvRows(Object.entries(summary ?? {}), (key, value) => !shown.includes(key) && value != null && value !== '');
 }
 // One row per field; nested values keep their readable text form.
 // `message` 는 이미 `설명서 기준 15.4% (조건)` 처럼 reference·condition 을 문장으로 담고
@@ -25,9 +28,7 @@ function summaryRows(summary: Record<string, unknown> | undefined, shown: string
 function recordRows(row: Record<string, unknown>) {
   const comparison = row.comparison as { said?: unknown } | undefined;
   const trimmed = comparison?.said != null ? { ...row, comparison: { said: comparison.said } } : row;
-  return Object.entries(trimmed)
-    .filter(([key, value]) => value != null && value !== '' && !INTERNAL_FIELDS.includes(key) && !(Array.isArray(value) && value.length === 0))
-    .map(([key, value]) => ({ label: displayField(key), value: <span className="wb-kv-text">{displayValue(value, key)}</span> }));
+  return toKvRows(Object.entries(trimmed), (key, value) => value != null && value !== '' && !INTERNAL_FIELDS.includes(key) && !(Array.isArray(value) && value.length === 0));
 }
 type ReportTab = 'omission' | 'commission' | 'comprehension' | 'risk_signals' | 'timeline';
 // 탭 이름이 이미 유형을 말한다. 위험 신호 행은 `alert_type` 없이 오고 유형이 문구
@@ -37,8 +38,13 @@ const reportTabs: { value: ReportTab; label: string }[] = [{ value: 'omission', 
 
 export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, error, ...navigation }: Navigation & { sessionId: string | null; onEvidence: (ref: string) => void; onResume: (record: ApiSessionSummary) => void; onTrace: (record: ApiSessionSummary) => void; busy: boolean; error: string }) {
   const result = useResource(async () => sessionId ? { report: await malteumApi.report(sessionId), session: await malteumApi.session(sessionId) } : null, [sessionId]);
-  const report = { ...result, data: result.data?.report };
-  const running = result.data?.session.status === 'running';
+  // 다른 세션의 리포트를 열면(사이드바 '리포트' 를 다시 누르는 것만으로도 sessionId 가
+  // 바뀐다) 새 요청이 끝날 때까지 이전 세션 데이터가 남는다. 화면 내용은 물론
+  // 상담 열기·기록 재생·PDF 저장 버튼도 그 잔상을 대상으로 동작하면 안 된다
+  const resultMatches = result.data?.session.session_id === sessionId;
+  const matched = resultMatches ? result.data : undefined;
+  const report = { ...result, data: matched?.report };
+  const running = matched?.session.status === 'running';
   const [tab, setTab] = useState<ReportTab>('omission'); const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
   const sections = report.data?.sections; const rows = (sections?.[tab] ?? []) as Record<string, unknown>[];
   const summary = sections?.summary;
@@ -50,7 +56,7 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
   const [printing, setPrinting] = useState(false);
   async function savePdf() { if (!report.data || printing) return; setPrinting(true); setPrintError('서버 PDF를 요청하고 있습니다.'); try { setPrintError(await exportReport(report.data)); } catch (error) { setPrintError(errorText(error)); } finally { setPrinting(false); } }
   const shownSummary = ['met', 'partial', 'unmet', 'violations', 'alerts'].filter(key => typeof summary?.[key] === 'number');
-  return <Workbench screen="report" title={running ? '중간 리포트' : '종료 리포트'} subtitle={running ? '종료 전 저장 기록 · 최종 결과가 아닙니다' : undefined} {...navigation} actions={report.data && <><span className="wb-report-version" aria-label="규정팩 버전">{report.data.pack_version}</span>{running ? <><button onClick={report.refresh} disabled={report.loading}>새로고침</button><button className="wb-primary" disabled={busy} onClick={() => result.data && onResume(result.data.session)}>상담 열기</button></> : <><button disabled={busy || !result.data || Boolean(result.data && traceBlockedReason(result.data.session))} onClick={() => result.data && onTrace(result.data.session)}>{busy ? '재생 준비 중…' : '기록 재생'}</button><button className="wb-primary" disabled={printing} onClick={savePdf}>{printing ? 'PDF 준비 중…' : 'PDF 저장'}</button></>}</>}>
+  return <Workbench screen="report" title={running ? '중간 리포트' : '종료 리포트'} subtitle={running ? '종료 전 저장 기록 · 최종 결과가 아닙니다' : undefined} {...navigation} actions={report.data && <><span className="wb-report-version" aria-label="규정팩 버전">{report.data.pack_version}</span>{running ? <><button onClick={report.refresh} disabled={report.loading}>새로고침</button><button className="wb-primary" disabled={busy} onClick={() => matched && onResume(matched.session)}>상담 열기</button></> : <><button disabled={busy || !matched || Boolean(matched && traceBlockedReason(matched.session))} onClick={() => matched && onTrace(matched.session)}>{busy ? '재생 준비 중…' : '기록 재생'}</button><button className="wb-primary" disabled={printing} onClick={savePdf}>{printing ? 'PDF 준비 중…' : 'PDF 저장'}</button></>}</>}>
     <Failure error={report.error || error} retry={report.refresh} />
     <Feedback message={printError} pending={printing} />
     {!sessionId ? <Panel><Empty><h2>이력에서 상담을 선택해 주세요.</h2><button onClick={() => navigation.onNavigate('이력')}>세션 이력 보기</button></Empty></Panel> : report.loading || (!report.data && !report.settled) ? <Panel><Empty>{report.loading ? '리포트를 불러오고 있습니다.' : ''}</Empty></Panel> : !report.data ? <Panel><Empty>리포트를 불러오지 못했습니다.</Empty></Panel> : <>
@@ -67,7 +73,7 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
         const label = typeof row.label === 'string' ? withoutStateArrow(row.label) : undefined;
         const kind = typeof row.alert_type === 'string' ? row.alert_type : tabKind[tab];
         const title = alert ? `${displayValue(row.alert_type, 'alert_type')} · ${displayValue(row.name ?? row.item_code ?? '', 'name')}`
-          : withoutKindPrefix(displayValue(row.name ?? label ?? row.message ?? row.item_code ?? row.assist_type ?? row.alert_type ?? '기록 상세', label ? 'label' : row.assist_type ? 'assist_type' : row.alert_type ? 'alert_type' : 'name'), kind);
+          : collapseRepeatedPrefix(withoutKindPrefix(displayValue(row.name ?? label ?? row.message ?? row.item_code ?? row.assist_type ?? row.alert_type ?? '기록 상세', label ? 'label' : row.assist_type ? 'assist_type' : row.alert_type ? 'alert_type' : 'name'), kind));
         const badge = alert ? (row.acknowledged ? '확인 기록' : '미확인 경보') : state ? displayValue(state, 'state') : '';
         const note = alert ? `${timeLabel(Number(row.t_ms ?? 0) / 1000)} · ${withoutKindPrefix(textValue(row.message), kind)}` : typeof row.t_ms === 'number' ? timeLabel(row.t_ms / 1000) : textValue(row.item_code ?? row.event_id ?? '');
         return <><button className="wb-row-button" onClick={() => setDetail(row)}><span className="wb-row-copy"><strong>{title}</strong><small>{note}</small></span>{badge && <span className="wb-badge" data-state={state}>{badge}</span>}<span>›</span></button>{typeof row.evidence_ref === 'string' && <button onClick={() => onEvidence(String(row.evidence_ref))}>근거</button>}</>;
@@ -107,11 +113,14 @@ export function HistoryScreen({ onOpen, onStartPreset, busy, error, initialView 
   useEffect(() => { setView(initialView); }, [initialView]);
   const presets = useResource(() => malteumApi.presets());
   const packCatalog = useResource(() => malteumApi.packs());
-  const latestPackVersions = new Set(latestPacks(packCatalog.data?.packs ?? []).map(pack => pack.pack_version));
   // 상담 준비에서 고른 규정팩의 음원을 앞에 세운다. 시연 음원은 상품 시나리오가 정해져
-  // 있어 규정팩과 짝이 맞아야 하고, 목록이 섞여 있으면 어느 것을 골라야 하는지 알 수 없다
-  const playablePresets = (presets.data?.presets.filter(preset => preset.mode === 'replay' && preset.audio_ref && latestPackVersions.has(preset.pack_version)) ?? [])
-    .sort((a, b) => Number(b.pack_version === packVersion) - Number(a.pack_version === packVersion));
+  // 있어 규정팩과 짝이 맞아야 하고, 목록이 섞여 있으면 어느 것을 골라야 하는지 알 수 없다.
+  // 다른 상태(mode·detail 등)가 바뀔 때도 매 렌더 재계산되던 것을 실제 입력에 매어 둔다
+  const playablePresets = useMemo(() => {
+    const latestPackVersions = new Set(latestPacks(packCatalog.data?.packs ?? []).map(pack => pack.pack_version));
+    return playableDemoPresets(presets.data?.presets ?? [], version => latestPackVersions.has(version))
+      .sort((a, b) => Number(b.pack_version === packVersion) - Number(a.pack_version === packVersion));
+  }, [presets.data, packCatalog.data, packVersion]);
   const refreshPresets = () => { presets.refresh(); packCatalog.refresh(); };
   const records = useResource(async () => {
     const all: ApiSessionSummary[] = []; let cursor: string | undefined; const seen = new Set<string>();
@@ -145,6 +154,9 @@ export function PackScreen(navigation: Navigation) {
   const choices = latestPacks(packs.data?.packs ?? []);
   const [selected, setSelected] = useState('');
   const pack = useResource(() => selected ? malteumApi.pack(selected) : Promise.resolve(null), [selected]);
+  // `pack` 은 새 규정팩 요청이 끝날 때까지 이전 값을 들고 있는다. 전환 중 잠깐 다른
+  // 규정팩의 항목·이름을 그대로 보여주면 안 되므로 여기서 대조해 걸러 낸다
+  const packMatches = pack.data?.pack_version === selected;
   const [item, setItem] = useState<ApiPackItem | null>(null);
   const [sourceOpen, setSourceOpen] = useState(false);
   useEffect(() => {
@@ -155,7 +167,7 @@ export function PackScreen(navigation: Navigation) {
     <ManagementTabs value="packs" onNavigate={navigation.onNavigate} />
     <Failure error={packs.error || pack.error} retry={() => { packs.refresh(); pack.refresh(); }} />
     {!selected ? <Panel title="최신 규정팩"><PagedList label="규정팩" items={choices} rowHeight={76} empty={packs.loading ? '규정팩 목록을 불러오고 있습니다.' : packs.settled ? '발행된 규정팩이 없습니다.' : ''} render={value => <button className="wb-row-button" onClick={() => setSelected(value.pack_version)}><span className="wb-row-copy"><strong>{value.product?.name ?? value.pack_version}</strong><small>{value.pack_version} · {value.published_at ? new Date(value.published_at).toLocaleDateString('ko-KR') : ''}</small></span><span className="wb-badge">{value.item_count == null ? '최신 버전' : `${value.item_count}개 항목`}</span><span>›</span></button>} /></Panel>
-      : <Panel title={pack.data?.product?.name ?? selected} action={<button onClick={() => { setSelected(''); setItem(null); }}>규정팩 목록</button>}><PagedList key={selected} label="규정팩 항목" items={pack.data?.items ?? []} empty={pack.loading ? '규정팩 항목을 불러오고 있습니다.' : !pack.settled ? '' : '항목이 없습니다.'} render={value => <button className="wb-row-button" onClick={() => { setItem(value); setSourceOpen(false); }}><span className="wb-row-copy"><strong>{value.name}</strong><small>{value.evidence ? `근거 문서 ${value.evidence.page}페이지` : '연결된 근거 없음'}</small></span><span className="wb-badge">{itemTypeNames[value.type] ?? value.type}</span><span>›</span></button>} /></Panel>}
+      : <Panel title={packMatches ? pack.data!.product?.name ?? selected : selected} action={<button onClick={() => { setSelected(''); setItem(null); }}>규정팩 목록</button>}><PagedList key={selected} label="규정팩 항목" items={packMatches ? pack.data!.items : []} empty={pack.loading ? '규정팩 항목을 불러오고 있습니다.' : !pack.settled ? '' : '항목이 없습니다.'} render={value => <button className="wb-row-button" onClick={() => { setItem(value); setSourceOpen(false); }}><span className="wb-row-copy"><strong>{value.name}</strong><small>{value.evidence ? `근거 문서 ${value.evidence.page}페이지` : '연결된 근거 없음'}</small></span><span className="wb-badge">{itemTypeNames[value.type] ?? value.type}</span><span>›</span></button>} /></Panel>}
     {item && <Modal title={item.name} className={sourceOpen ? 'wb-modal-wide' : ''} onClose={() => setItem(null)} actions={sourceOpen && <button onClick={() => setSourceOpen(false)}>규정 설명으로</button>}>
       {sourceOpen && evidence ? <EvidenceView value={evidence} /> : <>
         {evidence && <EvidenceCard evidence={evidence} title="이 규정의 근거" onOpen={() => setSourceOpen(true)} />}

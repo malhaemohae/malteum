@@ -77,11 +77,18 @@ export class ReplayAudio {
  beginPlayback(){this.pendingStart=true;if(this.buffer&&!this.running)this.begin();}
  private begin(){
   const context=this.context,buffer=this.buffer;if(!context||!buffer||this.cancelled||this.running)return;
+  // 소리가 막힌 채로는 시작하지 않는다. `context.currentTime` 은 suspended 동안 안 흐르므로
+  // 여기서 그냥 진행하면 `running` 만 참이 되고 `position()` 은 영원히 멈춘다. present() 가
+  // waitForPosition 상한(8초)까지 매 발화를 붙잡아 둔다. pendingStart 는 그대로 두어 toggle()
+  // 이 나중에 resume 에 성공하면 그 안에서 다시 begin() 을 부르게 한다
+  if(context.state!=='running'){this.report({status:'blocked',error:'소리 켜기를 눌러 음성 재생을 허용해 주세요.'});return;}
   try{
    const source=context.createBufferSource();source.buffer=buffer;source.connect(this.gain!);
    // 이어보기면 이미 지나간 대사 뒤부터 잇는다. 처음부터면 0 이다
    const from=Math.min(this.offset,Math.max(0,buffer.duration-0.05));
-   source.onended=()=>{source.disconnect();if(this.source===source){this.source=null;this.running=false;this.report({status:'ready'});}};
+   // 정상 종료다. pendingStart 를 여기서도 지워야 한다. 안 지우면 재생이 다 끝난 뒤
+   // 소리 토글만 눌러도 toggle() 의 재시작 분기가 걸려 끝난 음원이 처음부터 다시 튼다
+   source.onended=()=>{source.disconnect();if(this.source===source){this.source=null;this.running=false;this.pendingStart=false;this.report({status:'ready'});}};
    source.start(0,from);this.source=source;this.startedAt=context.currentTime;this.offset=from;this.running=true;
    this.report({status:'playing',error:undefined});
   }catch{this.report({status:'unavailable',error:'음성을 재생하지 못했습니다. 소리 다시 시도를 눌러 주세요.'});}
@@ -137,9 +144,11 @@ export class ReplayAudio {
   if(left>0)await sleep(left);
  }
  restoreTranscript(texts:string[]){
-  if(!this.manifest)return;
+  if(!this.manifest||this.running)return;
   for(const text of texts){const index=findReplayCue(text,this.manifest.cues,this.cursor);if(index>=0){this.cursor=index;this.played.add(this.manifest.cues[index].id);}}
-  // 이어보기는 이미 들은 대사를 다시 틀지 않는다. 마지막으로 지나간 자리에서 잇는다
+  // 이어보기는 이미 들은 대사를 다시 틀지 않는다. 마지막으로 지나간 자리에서 잇는다.
+  // running 인 동안은 offset 을 손대지 않는다. startedAt 은 그대로인데 offset 만 뛰면
+  // position() 이 그 차이만큼 즉시 튀어 재생 위치와 공개 시계가 어긋난다
   if(this.cursor>=0)this.offset=this.manifest.cues[this.cursor].end;
  }
  setVisible(value:boolean){this.visible=value;if(!value)this.stop();}
