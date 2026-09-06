@@ -1,7 +1,7 @@
 """L3 결정 → payload. 모델이 어겨서는 안 되는 규칙을 여기서 기계적으로 거른다.
 
-거르는 것: met → unmet 되돌림, waived, risk 항목 verdict, 고객 발화에 대한 commission verdict,
-팩에 없는 항목. evidence 는 모델이 아니라 팩에서 붙인다 (P4).
+거르는 것: 항목 타입·화자와 맞지 않는 축·상태, 사람 판정 덮어쓰기, met → unmet 되돌림,
+waived, risk 항목 verdict, 팩에 없는 항목. evidence 는 모델이 아니라 팩에서 붙인다 (P4).
 """
 
 from __future__ import annotations
@@ -19,6 +19,11 @@ from engine.assist.nudge import nudge
 from engine.types import RulePack, SessionState
 
 _ORDER = {"unmet": 0, "partial": 1, "met": 2, "waived": 3}
+_ALLOWED = {
+    ("required", "teller"): {("omission", "partial"), ("omission", "met")},
+    ("required", "customer"): {("comprehension", "confirmed")},
+    ("forbidden", "teller"): {("commission", "clean"), ("commission", "violated")},
+}
 
 
 def parse(
@@ -36,10 +41,15 @@ def parse(
         if v.state == "waived":
             rejected.append(f"{v.item_code}: waived 는 사람만")
             continue
-        if v.axis == "commission" and utterance.speaker != "teller":
-            rejected.append(f"{v.item_code}: 고객 발화는 금지 발언이 아님")
+        if (v.axis, v.state) not in _ALLOWED.get((item.type, utterance.speaker), set()):
+            rejected.append(
+                f"{v.item_code}: {item.type}/{utterance.speaker}에 {v.axis}/{v.state} 판정 불가"
+            )
             continue
         cur = state.state_of(v.item_code, v.axis)
+        if cur is not None and cur.decided_by == "human":
+            rejected.append(f"{v.item_code}: 사람 판정은 L3가 변경할 수 없음")
+            continue
         if (
             v.axis == "omission"
             and cur is not None
