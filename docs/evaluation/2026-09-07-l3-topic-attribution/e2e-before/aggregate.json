@@ -1,0 +1,115 @@
+{
+  "planned_runs": 1,
+  "completed_runs": 1,
+  "failed_runs": [],
+  "exact_summaries": 0,
+  "item_states": {
+    "total": 8,
+    "correct": 8
+  },
+  "roles": {
+    "correct": 27,
+    "scored": 27
+  },
+  "role_unmatched": 0,
+  "coverage": {
+    "total": 16,
+    "covered": 16
+  },
+  "cer": {
+    "errors": 13,
+    "reference_chars": 537
+  },
+  "invariants": {
+    "no_events_after_end": 1,
+    "report_summary_matches": 1,
+    "unique_event_ids": 1,
+    "unique_sequences": 1,
+    "pdf": 1
+  },
+  "latency_ms": {
+    "asr_segment_end_ms": {
+      "n": 16,
+      "p50": 1296.977,
+      "p95": 1864.533,
+      "max": 1864.533
+    },
+    "judge_ms": {
+      "n": 27,
+      "p50": 8.833,
+      "p95": 13.922,
+      "max": 162.689
+    },
+    "refine_ms": {
+      "n": 7,
+      "p50": 2894.118,
+      "p95": 3140.683,
+      "max": 3140.683
+    },
+    "refine_queue_ms": {
+      "n": 7,
+      "p50": 0.062,
+      "p95": 0.17,
+      "max": 0.17
+    },
+    "l3_ms": {
+      "n": 7,
+      "p50": 2881.234,
+      "p95": 3001.082,
+      "max": 3001.082
+    },
+    "speech_end_to_utterance_ms": {
+      "n": 27,
+      "p50": 1437.376,
+      "p95": 3335.868,
+      "max": 3342.606
+    },
+    "speech_end_to_verdict_ms": {
+      "n": 12,
+      "p50": 1337.684,
+      "p95": 6189.708,
+      "max": 6189.708
+    },
+    "speech_end_to_alert_ms": {
+      "n": 3,
+      "p50": 1258.145,
+      "p95": 1422.704,
+      "max": 1422.704
+    },
+    "speech_end_to_assist_ms": {
+      "n": 4,
+      "p50": 4036.625,
+      "p95": 6189.725,
+      "max": 6189.725
+    }
+  },
+  "refinement": {
+    "scheduled": 7,
+    "started": 7,
+    "completed": 7,
+    "over_budget_wall": 3,
+    "cache_hits": 0,
+    "llm_tokens_returned": 12004
+  },
+  "met": {
+    "tp": 4,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "violations": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 1,
+    "precision": null,
+    "recall": 0.0
+  },
+  "alerts": {
+    "tp": 3,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  }
+}

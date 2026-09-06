@@ -1,0 +1,151 @@
+.FFF.....F.FFF.                                                          [100%]
+=================================== FAILURES ===================================
+________________ test_low_confidence_teller_emits_nothing[0.0] _________________
+
+engine = <engine.engine.RuleEngine object at 0x7098d24a34a0>
+pack = RulePack(pack_version='DEP-2026.08-v6', product_code='ICBC-KRW-TD', product_name='ICBC 원화정기예금', embedding_model='intfl...n_examples=(), risk_examples=('아들이 알아보라고 해서요', '돈은 다른 사람 계좌로 보내면 돼요', '제 조카가 대신 와서 넣을 거예요', '지금 미국에 있는 사람한테 보내야 해요'))))
+conf = 0.0
+
+    @pytest.mark.parametrize("conf", [0.0, 0.59, LOW])
+    def test_low_confidence_teller_emits_nothing(engine, pack, conf):
+        state = engine.initial_state("S", pack, "text")
+        result = engine.judge(_teller(FULL, conf), pack, state)
+>       assert result.verdicts == () and result.alerts == () and result.assists == ()
+E       AssertionError: assert ((VerdictPaylo...rsedes=None),) == ()
+E         
+E         Left contains one more item: VerdictPayload(item_code='DEP-PRO-001', axis='omission', state='unmet', decided_by='L1', confidence=None, missing_elem...” (본 은행의 여타 보호상품과 합산)보호됩니다.', bbox=(215.3, 311.9, 564.0, 343.0), legal_basis=None), waive_reason=None, supersedes=None)
+E         Use -v to get more diff)
+
+tests/engine/test_low_confidence_gate.py:62: AssertionError
+------------------------------ Captured log setup ------------------------------
+WARNING  engine:errors.py:21 [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+________________ test_low_confidence_teller_emits_nothing[0.59] ________________
+
+engine = <engine.engine.RuleEngine object at 0x7098d25f6240>
+pack = RulePack(pack_version='DEP-2026.08-v6', product_code='ICBC-KRW-TD', product_name='ICBC 원화정기예금', embedding_model='intfl...n_examples=(), risk_examples=('아들이 알아보라고 해서요', '돈은 다른 사람 계좌로 보내면 돼요', '제 조카가 대신 와서 넣을 거예요', '지금 미국에 있는 사람한테 보내야 해요'))))
+conf = 0.59
+
+    @pytest.mark.parametrize("conf", [0.0, 0.59, LOW])
+    def test_low_confidence_teller_emits_nothing(engine, pack, conf):
+        state = engine.initial_state("S", pack, "text")
+        result = engine.judge(_teller(FULL, conf), pack, state)
+>       assert result.verdicts == () and result.alerts == () and result.assists == ()
+E       AssertionError: assert ((VerdictPaylo...rsedes=None),) == ()
+E         
+E         Left contains one more item: VerdictPayload(item_code='DEP-PRO-001', axis='omission', state='unmet', decided_by='L1', confidence=None, missing_elem...” (본 은행의 여타 보호상품과 합산)보호됩니다.', bbox=(215.3, 311.9, 564.0, 343.0), legal_basis=None), waive_reason=None, supersedes=None)
+E         Use -v to get more diff)
+
+tests/engine/test_low_confidence_gate.py:62: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+/home/me/projects/malteum/back/engine/pack/compiler.py:92: DummyPathWarning: [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+  warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+------------------------------ Captured log setup ------------------------------
+WARNING  engine:errors.py:21 [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+________________ test_low_confidence_teller_emits_nothing[0.2] _________________
+
+engine = <engine.engine.RuleEngine object at 0x7098d24d3e90>
+pack = RulePack(pack_version='DEP-2026.08-v6', product_code='ICBC-KRW-TD', product_name='ICBC 원화정기예금', embedding_model='intfl...n_examples=(), risk_examples=('아들이 알아보라고 해서요', '돈은 다른 사람 계좌로 보내면 돼요', '제 조카가 대신 와서 넣을 거예요', '지금 미국에 있는 사람한테 보내야 해요'))))
+conf = 0.2
+
+    @pytest.mark.parametrize("conf", [0.0, 0.59, LOW])
+    def test_low_confidence_teller_emits_nothing(engine, pack, conf):
+        state = engine.initial_state("S", pack, "text")
+        result = engine.judge(_teller(FULL, conf), pack, state)
+>       assert result.verdicts == () and result.alerts == () and result.assists == ()
+E       AssertionError: assert ((VerdictPaylo...rsedes=None),) == ()
+E         
+E         Left contains one more item: VerdictPayload(item_code='DEP-PRO-001', axis='omission', state='unmet', decided_by='L1', confidence=None, missing_elem...” (본 은행의 여타 보호상품과 합산)보호됩니다.', bbox=(215.3, 311.9, 564.0, 343.0), legal_basis=None), waive_reason=None, supersedes=None)
+E         Use -v to get more diff)
+
+tests/engine/test_low_confidence_gate.py:62: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+/home/me/projects/malteum/back/engine/pack/compiler.py:92: DummyPathWarning: [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+  warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+------------------------------ Captured log setup ------------------------------
+WARNING  engine:errors.py:21 [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+_______________ test_low_confidence_preserves_every_prior_state ________________
+
+engine = <engine.engine.RuleEngine object at 0x7098d24d3200>
+pack = RulePack(pack_version='DEP-2026.08-v6', product_code='ICBC-KRW-TD', product_name='ICBC 원화정기예금', embedding_model='intfl...n_examples=(), risk_examples=('아들이 알아보라고 해서요', '돈은 다른 사람 계좌로 보내면 돼요', '제 조카가 대신 와서 넣을 거예요', '지금 미국에 있는 사람한테 보내야 해요'))))
+
+    def test_low_confidence_preserves_every_prior_state(engine, pack):
+        for label, before in _prior_states(engine, pack):
+            result = engine.judge(_teller(FULL, LOW), pack, before)
+>           assert result.verdicts == (), f"{label}: {result.verdicts}"
+E           AssertionError: unmet/initial: (VerdictPayload(item_code='DEP-PRO-001', axis='omission', state='unmet', decided_by='L1', confidence=None, missing_elements=(), utterance_ref='U1', evidence=Evidence(doc_id='05_상품설명서_정기예금', page=2, span='이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 1인당 “1억 원까지” (본 은행의 여타 보호상품과 합산)보호됩니다.', bbox=(215.3, 311.9, 564.0, 343.0), legal_basis=None), waive_reason=None, supersedes=None),)
+E           assert (VerdictPaylo...rsedes=None),) == ()
+E             
+E             Left contains one more item: VerdictPayload(item_code='DEP-PRO-001', axis='omission', state='unmet', decided_by='L1', confidence=None, missing_elem...” (본 은행의 여타 보호상품과 합산)보호됩니다.', bbox=(215.3, 311.9, 564.0, 343.0), legal_basis=None), waive_reason=None, supersedes=None)
+E             Use -v to get more diff
+
+tests/engine/test_low_confidence_gate.py:102: AssertionError
+------------------------------ Captured log setup ------------------------------
+WARNING  engine:errors.py:21 [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+________________ test_low_confidence_terms_do_not_raise_density ________________
+
+engine = <engine.engine.RuleEngine object at 0x7098d23a3830>
+pack = RulePack(pack_version='DEP-2026.08-v6', product_code='ICBC-KRW-TD', product_name='ICBC 원화정기예금', embedding_model='intfl...n_examples=(), risk_examples=('아들이 알아보라고 해서요', '돈은 다른 사람 계좌로 보내면 돼요', '제 조카가 대신 와서 넣을 거예요', '지금 미국에 있는 사람한테 보내야 해요'))))
+
+    def test_low_confidence_terms_do_not_raise_density(engine, pack):
+        state = engine.initial_state("S", pack, "text")
+        state = engine.observe(state, _teller(TERMS, LOW))
+>       assert state.term_density == "normal"
+E       AssertionError: assert 'high' == 'normal'
+E         
+E         - normal
+E         + high
+
+tests/engine/test_low_confidence_gate.py:124: AssertionError
+------------------------------ Captured log setup ------------------------------
+WARNING  engine:errors.py:21 [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+_________ test_low_confidence_termless_utterances_do_not_lower_density _________
+
+engine = <engine.engine.RuleEngine object at 0x7098d23a3b30>
+pack = RulePack(pack_version='DEP-2026.08-v6', product_code='ICBC-KRW-TD', product_name='ICBC 원화정기예금', embedding_model='intfl...n_examples=(), risk_examples=('아들이 알아보라고 해서요', '돈은 다른 사람 계좌로 보내면 돼요', '제 조카가 대신 와서 넣을 거예요', '지금 미국에 있는 사람한테 보내야 해요'))))
+
+    def test_low_confidence_termless_utterances_do_not_lower_density(engine, pack):
+        state = engine.initial_state("S", pack, "text")
+        for i in range(3):
+            state = engine.observe(state, _teller("네, 잠시만요.", LOW, uid=f"L{i}", t_ms=i))
+>       assert state.term_density == "normal"  # 아직 신뢰할 은행원 발화가 없다
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert 'low' == 'normal'
+E         
+E         - normal
+E         + low
+
+tests/engine/test_low_confidence_gate.py:133: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+/home/me/projects/malteum/back/engine/pack/compiler.py:92: DummyPathWarning: [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+  warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+------------------------------ Captured log setup ------------------------------
+WARNING  engine:errors.py:21 [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+___________________ test_density_threshold_edge_matches_gate ___________________
+
+engine = <engine.engine.RuleEngine object at 0x7098d23a17f0>
+pack = RulePack(pack_version='DEP-2026.08-v6', product_code='ICBC-KRW-TD', product_name='ICBC 원화정기예금', embedding_model='intfl...n_examples=(), risk_examples=('아들이 알아보라고 해서요', '돈은 다른 사람 계좌로 보내면 돼요', '제 조카가 대신 와서 넣을 거예요', '지금 미국에 있는 사람한테 보내야 해요'))))
+
+    def test_density_threshold_edge_matches_gate(engine, pack):
+        state = engine.initial_state("S", pack, "text")
+        state = engine.observe(state, _teller(TERMS, 0.59))
+>       assert state.term_density == "normal"
+E       AssertionError: assert 'high' == 'normal'
+E         
+E         - normal
+E         + high
+
+tests/engine/test_low_confidence_gate.py:142: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+/home/me/projects/malteum/back/engine/pack/compiler.py:92: DummyPathWarning: [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+  warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+------------------------------ Captured log setup ------------------------------
+WARNING  engine:errors.py:21 [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+=========================== short test summary info ============================
+FAILED tests/engine/test_low_confidence_gate.py::test_low_confidence_teller_emits_nothing[0.0]
+FAILED tests/engine/test_low_confidence_gate.py::test_low_confidence_teller_emits_nothing[0.59]
+FAILED tests/engine/test_low_confidence_gate.py::test_low_confidence_teller_emits_nothing[0.2]
+FAILED tests/engine/test_low_confidence_gate.py::test_low_confidence_preserves_every_prior_state
+FAILED tests/engine/test_low_confidence_gate.py::test_low_confidence_terms_do_not_raise_density
+FAILED tests/engine/test_low_confidence_gate.py::test_low_confidence_termless_utterances_do_not_lower_density
+FAILED tests/engine/test_low_confidence_gate.py::test_density_threshold_edge_matches_gate
+7 failed, 8 passed in 0.06s

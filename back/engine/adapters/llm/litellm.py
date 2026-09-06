@@ -68,7 +68,7 @@ class LiteLlmJudge:
 
     def decide(self, prompt: JudgePrompt) -> JudgeDecision:
         tool = tools.judge_tool(prompt)
-        schema = tool["function"]["parameters"]
+        schema = tools.validation_schema(tool)
         messages: list[dict[str, Any]] = tools.messages(prompt)
         last: Exception | None = None
         for attempt in range(1 + self.max_retries):
@@ -92,7 +92,7 @@ class LiteLlmJudge:
             try:
                 args = _tool_args(message)
                 jsonschema.validate(instance=args, schema=schema)
-                return tools.to_decision(args, tokens)
+                return tools.to_decision(args, tokens, prompt)
             except (ValueError, jsonschema.ValidationError) as e:
                 last = e
                 log.warning("L3 응답 형식 오류 (시도 %d): %s", attempt + 1, e)

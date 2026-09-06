@@ -1,7 +1,11 @@
 """L3 결정 → payload. 모델이 어겨서는 안 되는 규칙을 여기서 기계적으로 거른다.
 
 거르는 것: 항목 타입·화자와 맞지 않는 축·상태, 사람 판정 덮어쓰기, met → unmet 되돌림,
-waived, risk 항목 verdict, 팩에 없는 항목. evidence 는 모델이 아니라 팩에서 붙인다 (P4).
+waived, risk 항목 verdict, 팩에 없는 항목, 빠진 요소 없는 partial. evidence 는 모델이 아니라
+팩에서 붙인다 (P4).
+
+누적: 모델은 이번 발화만 보고 요소를 판정한다. 현재 partial 인 항목이면 이전에 채운 요소는
+다시 요구하지 않고 (L1 required_verdict 의 known 과 같은 규칙) 남은 요소가 없으면 met 이 된다.
 """
 
 from __future__ import annotations
@@ -57,7 +61,22 @@ def parse(
         ):
             rejected.append(f"{v.item_code}: {cur.state} → {v.state} 되돌림 금지")
             continue
-        if cur is not None and cur.state == v.state and cur.decided_by == "L3":
+        if v.axis == "omission" and v.state == "partial":
+            if not v.missing_elements:
+                rejected.append(f"{v.item_code}: partial 인데 빠진 요소가 없음")
+                continue
+            if cur is not None and cur.state == "partial" and cur.missing_elements:
+                still = tuple(
+                    e
+                    for e in item.requirement_elements
+                    if e in cur.missing_elements and e in v.missing_elements
+                )
+                v = replace(v, state="met" if not still else "partial", missing_elements=still)
+        if (
+            cur is not None
+            and cur.decided_by == "L3"
+            and (cur.state, tuple(cur.missing_elements)) == (v.state, tuple(v.missing_elements))
+        ):
             continue
         fixed = replace(
             v,

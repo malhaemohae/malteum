@@ -1,0 +1,18 @@
+/home/me/projects/malteum/back/tests/engine/fakes.py:63: DummyPathWarning: [DUMMY] ChunkIndex 비어 있음 → 문서 본문 검색은 항상 근거 없음
+  warn_dummy("ChunkIndex 비어 있음 → 문서 본문 검색은 항상 근거 없음")
+/home/me/projects/malteum/back/engine/pack/compiler.py:92: DummyPathWarning: [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+  warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+
+[openrouter/qwen/qwen3-8b] 요건 요소 일부만 → partial + 누락 목록: l3 2049ms tokens=2025
+  실제: [('DEP-INT-002', 'omission', 'partial', ('적용 이율', '차감률 또는 산출식'))]
+.
+[openrouter/qwen/qwen3-8b] 단정 표현 → L1 suspected, L3 violated: l3 2098ms tokens=1930
+  실제: [('DEP-BAN-001', 'commission', 'violated', ())]
+.
+[openrouter/qwen/qwen3-8b] 사실과 다른 안내 → L2 suspected, L3 violated: l3 2567ms tokens=1947
+  실제: [('DEP-BAN-001', 'commission', 'violated', ())]
+.
+[openrouter/qwen/qwen3-8b] 고객 확인 응답 → confirmed: l3 2139ms tokens=2069
+  실제: [('DEP-INT-002', 'comprehension', 'confirmed', ())]
+.
+4 passed in 10.18s

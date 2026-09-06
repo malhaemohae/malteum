@@ -1,0 +1,22 @@
+{
+  "purpose": "주제 귀속 수정(2026-09-07) 뒤 처음 실행하는 미사용 검증 문장. 다른 항목·팩·표현·문맥·화자를 섞었다. 최초 실행 후 기대값을 변경하지 않는다.",
+  "cases": [
+    {"name":"prepayment-fee-partial","pack":"LOAN-2026.08-v7","text":"대출을 미리 갚으시면 수수료가 붙을 수 있습니다.","target":"LOAN-PRE-001","expected":"partial","missing":["적용 기간"]},
+    {"name":"prepayment-fee-met","pack":"LOAN-2026.08-v7","text":"3년 안에 미리 갚으시면 중도상환수수료가 붙고, 3년이 지나면 없습니다.","target":"LOAN-PRE-001","expected":"met"},
+    {"name":"fee-is-not-stamp-duty","pack":"LOAN-2026.08-v7","text":"중도상환수수료는 갚는 금액의 일정 비율로 계산됩니다.","target":"LOAN-FEE-001","expected":null},
+    {"name":"rate-cut-right-partial","pack":"LOAN-2026.08-v7","text":"승진하시거나 소득이 늘면 금리를 내려 달라고 요청하실 수 있어요.","target":"LOAN-RDR-001","expected":"partial","missing":["대상 제외 가능성"]},
+    {"name":"variable-rate-is-not-rate-cut-right","pack":"LOAN-2026.08-v7","text":"기준금리가 내려가면 변동금리라서 이자 부담도 같이 줄어듭니다.","target":"LOAN-RDR-001","expected":null},
+    {"name":"disbursement-is-not-withdrawal-right","pack":"LOAN-2026.08-v7","text":"대출금은 신청하신 계좌로 오늘 안에 입금됩니다.","target":"LOAN-WDR-001","expected":null},
+    {"name":"withdrawal-right-met","pack":"LOAN-2026.08-v7","text":"받으신 날부터 14일 안에 철회하겠다고 알려 주시고 원금과 이자를 돌려주시면 계약을 무를 수 있습니다.","target":"LOAN-WDR-001","expected":"met"},
+    {"name":"lapse-credit-record","pack":"LOAN-2026.08-v7","text":"기한이익을 상실하면 연체 사실이 신용정보에 등록될 수 있습니다.","target":"LOAN-EXP-001","expected":"partial","missing":["기한이익상실 사유"]},
+    {"name":"documents-are-not-dsr","pack":"LOAN-2026.08-v7","text":"소득 서류는 최근 것으로 준비해 주세요.","target":"LOAN-DSR-001","expected":null},
+    {"name":"customer-question-is-not-confirmation","pack":"LOAN-2026.08-v7","speaker":"customer","text":"미리 갚으면 수수료가 얼마나 되나요?","target":"LOAN-PRE-001","expected":null},
+    {"name":"teller-follow-up-prepayment","pack":"LOAN-2026.08-v7","text":"그 수수료는 대출받은 날부터 3년까지만 적용됩니다.","context_speaker":"teller","context":"일찍 갚으시면 중도상환수수료가 발생할 수 있습니다.","before_missing":["적용 기간"],"target":"LOAN-PRE-001","expected":"met"},
+    {"name":"two-topics-prepayment","pack":"LOAN-2026.08-v7","text":"연체하시면 약정금리에 가산금리가 붙고, 반대로 일찍 갚으시면 3년 안에는 중도상환수수료가 있습니다.","target":"LOAN-PRE-001","additional_target":"LOAN-ARR-001","expected":"met"},
+    {"name":"after-maturity-partial","pack":"DEP-2026.08-v6","text":"만기가 지나면 약정이자율이 아니라 다른 이율이 적용됩니다.","target":"DEP-INT-003","expected":"partial","missing":["경과기간별 차등"]},
+    {"name":"auto-payout-is-not-after-maturity-rate","pack":"DEP-2026.08-v6","text":"만기일에 원금과 이자가 지정 계좌로 자동 입금됩니다.","target":"DEP-INT-003","expected":null},
+    {"name":"partial-withdrawal-met","pack":"DEP-2026.08-v6","text":"이 상품은 일부만 찾는 건 안 되고, 해지하시면 전액이 나옵니다.","target":"DEP-LIM-001","expected":"met"},
+    {"name":"rate-notice-is-not-protection","pack":"DEP-2026.08-v6","text":"예금 금리는 가입하시는 시점에 고시된 이율로 정해집니다.","target":"DEP-PRO-001","expected":null},
+    {"name":"customer-confirms-after-maturity","pack":"DEP-2026.08-v6","speaker":"customer","text":"아, 만기가 지나면 이자율이 달라진다는 말씀이시죠.","target":"DEP-INT-003","expected":"confirmed"}
+  ]
+}

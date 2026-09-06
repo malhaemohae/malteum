@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="30" skipped="0" tests="54" time="84.500" timestamp="2026-09-07T01:57:15.112666+09:00" hostname="hhj-workstation"><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[B13-1]" time="1.539"><failure message="AssertionError: assert ([VerdictPaylo...ersedes=None)] == []&#10;  &#10;  Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)&#10;  Use -v to get more diff)">tests/engine/test_live_scope_regression.py:91: in test_live_item_scope
+    assert verdicts == [] and assists == []
+E   AssertionError: assert ([VerdictPaylo...ersedes=None)] == []
+E     
+E     Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)
+E     Use -v to get more diff)</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b B13 r1: 1535ms tokens=1464 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[B13-2]" time="1.662"><failure message="AssertionError: assert ([VerdictPaylo...ersedes=None)] == []&#10;  &#10;  Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)&#10;  Use -v to get more diff)">tests/engine/test_live_scope_regression.py:91: in test_live_item_scope
+    assert verdicts == [] and assists == []
+E   AssertionError: assert ([VerdictPaylo...ersedes=None)] == []
+E     
+E     Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)
+E     Use -v to get more diff)</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b B13 r2: 1656ms tokens=1464 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[B13-3]" time="2.661"><failure message="AssertionError: assert ([VerdictPaylo...ersedes=None)] == []&#10;  &#10;  Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)&#10;  Use -v to get more diff)">tests/engine/test_live_scope_regression.py:91: in test_live_item_scope
+    assert verdicts == [] and assists == []
+E   AssertionError: assert ([VerdictPaylo...ersedes=None)] == []
+E     
+E     Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)
+E     Use -v to get more diff)</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b B13 r3: 2658ms tokens=1464 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[rate-paraphrase-1]" time="2.558"><failure message="AssertionError: assert ([VerdictPaylo...ersedes=None)] == []&#10;  &#10;  Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)&#10;  Use -v to get more diff)">tests/engine/test_live_scope_regression.py:91: in test_live_item_scope
+    assert verdicts == [] and assists == []
+E   AssertionError: assert ([VerdictPaylo...ersedes=None)] == []
+E     
+E     Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)
+E     Use -v to get more diff)</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b rate-paraphrase r1: 2554ms tokens=1451 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[rate-paraphrase-2]" time="2.557"><failure message="AssertionError: assert ([VerdictPaylo...ersedes=None)] == []&#10;  &#10;  Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)&#10;  Use -v to get more diff)">tests/engine/test_live_scope_regression.py:91: in test_live_item_scope
+    assert verdicts == [] and assists == []
+E   AssertionError: assert ([VerdictPaylo...ersedes=None)] == []
+E     
+E     Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)
+E     Use -v to get more diff)</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b rate-paraphrase r2: 2553ms tokens=1451 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[rate-paraphrase-3]" time="1.614"><failure message="AssertionError: assert ([VerdictPaylo...ersedes=None)] == []&#10;  &#10;  Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)&#10;  Use -v to get more diff)">tests/engine/test_live_scope_regression.py:91: in test_live_item_scope
+    assert verdicts == [] and assists == []
+E   AssertionError: assert ([VerdictPaylo...ersedes=None)] == []
+E     
+E     Left contains one more item: VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_el...의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)
+E     Use -v to get more diff)</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b rate-paraphrase r3: 1610ms tokens=1451 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[unrelated-1]" time="1.568"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b unrelated r1: 1565ms tokens=1446 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='unmet', decided_by='L3', confidence=1, missing_elements=('기한이익상실 사유', '상실 시 불이익'), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[] rejected=['LOAN-EXP-001: required/teller에 omission/unmet 판정 불가']
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[unrelated-2]" time="1.786"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b unrelated r2: 1782ms tokens=1446 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='unmet', decided_by='L3', confidence=1, missing_elements=('기한이익상실 사유', '상실 시 불이익'), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[] rejected=['LOAN-EXP-001: required/teller에 omission/unmet 판정 불가']
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[unrelated-3]" time="1.717"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b unrelated r3: 1713ms tokens=1446 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='unmet', decided_by='L3', confidence=1, missing_elements=('기한이익상실 사유', '상실 시 불이익'), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[] rejected=['LOAN-EXP-001: required/teller에 omission/unmet 판정 불가']
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[lapse-cause-1]" time="1.443"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b lapse-cause r1: 1439ms tokens=1448 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[lapse-cause-2]" time="1.403"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b lapse-cause r2: 1400ms tokens=1448 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[lapse-cause-3]" time="1.574"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b lapse-cause r3: 1571ms tokens=1448 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[lapse-consequence-1]" time="1.594"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b lapse-consequence r1: 1588ms tokens=1455 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[lapse-consequence-2]" time="1.663"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b lapse-consequence r2: 1660ms tokens=1455 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[lapse-consequence-3]" time="1.298"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b lapse-consequence r3: 1294ms tokens=1455 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[lapse-paraphrase-1]" time="1.279"><failure message="AssertionError: assert 'partial' == 'met'&#10;  &#10;  - met&#10;  + partial">tests/engine/test_live_scope_regression.py:95: in test_live_item_scope
+    assert verdict.state == expected
+E   AssertionError: assert 'partial' == 'met'
+E     
+E     - met
+E     + partial</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b lapse-paraphrase r1: 1275ms tokens=1467 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[lapse-paraphrase-2]" time="1.462"><failure message="AssertionError: assert 'partial' == 'met'&#10;  &#10;  - met&#10;  + partial">tests/engine/test_live_scope_regression.py:95: in test_live_item_scope
+    assert verdict.state == expected
+E   AssertionError: assert 'partial' == 'met'
+E     
+E     - met
+E     + partial</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b lapse-paraphrase r2: 1458ms tokens=1467 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_item_scope[lapse-paraphrase-3]" time="2.503"><failure message="AssertionError: assert 'partial' == 'met'&#10;  &#10;  - met&#10;  + partial">tests/engine/test_live_scope_regression.py:95: in test_live_item_scope
+    assert verdict.state == expected
+E   AssertionError: assert 'partial' == 'met'
+E     
+E     - met
+E     + partial</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+qwen/qwen3-8b lapse-paraphrase r3: 2500ms tokens=1467 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=0.9, missing_elements=('상실 시 불이익',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[late-payment-charge-1]" time="1.330"><failure message="AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == []&#10;  &#10;  Left contains one more item: {'state': 'partial', 'missing': ['기한이익상실 사유']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == []
+E     
+E     Left contains one more item: {'state': 'partial', 'missing': ['기한이익상실 사유']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "late-payment-charge", "repeat": 1, "ms": 1327, "tokens": 1454, "expected": [], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[late-payment-charge-2]" time="1.406"><failure message="AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == []&#10;  &#10;  Left contains one more item: {'state': 'partial', 'missing': ['기한이익상실 사유']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == []
+E     
+E     Left contains one more item: {'state': 'partial', 'missing': ['기한이익상실 사유']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "late-payment-charge", "repeat": 2, "ms": 1402, "tokens": 1454, "expected": [], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[late-payment-charge-3]" time="1.635"><failure message="AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == []&#10;  &#10;  Left contains one more item: {'state': 'partial', 'missing': ['기한이익상실 사유']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == []
+E     
+E     Left contains one more item: {'state': 'partial', 'missing': ['기한이익상실 사유']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "late-payment-charge", "repeat": 3, "ms": 1632, "tokens": 1454, "expected": [], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[scheduled-repayment-1]" time="1.329"><failure message="AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == []&#10;  &#10;  Left contains one more item: {'state': 'partial', 'missing': ['상실 시 불이익']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == []
+E     
+E     Left contains one more item: {'state': 'partial', 'missing': ['상실 시 불이익']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "scheduled-repayment", "repeat": 1, "ms": 1326, "tokens": 1449, "expected": [], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[scheduled-repayment-2]" time="1.329"><failure message="AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == []&#10;  &#10;  Left contains one more item: {'state': 'partial', 'missing': ['상실 시 불이익']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == []
+E     
+E     Left contains one more item: {'state': 'partial', 'missing': ['상실 시 불이익']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "scheduled-repayment", "repeat": 2, "ms": 1325, "tokens": 1449, "expected": [], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[scheduled-repayment-3]" time="1.304"><failure message="AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == []&#10;  &#10;  Left contains one more item: {'state': 'partial', 'missing': ['상실 시 불이익']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == []
+E     
+E     Left contains one more item: {'state': 'partial', 'missing': ['상실 시 불이익']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "scheduled-repayment", "repeat": 3, "ms": 1301, "tokens": 1449, "expected": [], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[lapse-condition-1]" time="1.335"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "lapse-condition", "repeat": 1, "ms": 1331, "tokens": 1454, "expected": [{"state": "partial", "missing": ["상실 시 불이익"]}], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[lapse-condition-2]" time="1.454"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "lapse-condition", "repeat": 2, "ms": 1450, "tokens": 1454, "expected": [{"state": "partial", "missing": ["상실 시 불이익"]}], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[lapse-condition-3]" time="1.280"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "lapse-condition", "repeat": 3, "ms": 1277, "tokens": 1454, "expected": [{"state": "partial", "missing": ["상실 시 불이익"]}], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[lapse-effect-1]" time="1.357"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "lapse-effect", "repeat": 1, "ms": 1354, "tokens": 1463, "expected": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[lapse-effect-2]" time="1.459"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "lapse-effect", "repeat": 2, "ms": 1455, "tokens": 1463, "expected": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[lapse-effect-3]" time="1.565"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "lapse-effect", "repeat": 3, "ms": 1562, "tokens": 1463, "expected": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[mixed-topics-1]" time="1.471"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "mixed-topics", "repeat": 1, "ms": 1468, "tokens": 1465, "expected": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[mixed-topics-2]" time="1.466"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "mixed-topics", "repeat": 2, "ms": 1463, "tokens": 1465, "expected": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[mixed-topics-3]" time="1.536"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "mixed-topics", "repeat": 3, "ms": 1533, "tokens": 1465, "expected": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[plain-cause-and-effect-1]" time="1.285"><failure message="AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == [{'state': 'm...missing': []}]&#10;  &#10;  At index 0 diff: {'state': 'partial', 'missing': ['상실 시 불이익']} != {'state': 'met', 'missing': []}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == [{'state': 'm...missing': []}]
+E     
+E     At index 0 diff: {'state': 'partial', 'missing': ['상실 시 불이익']} != {'state': 'met', 'missing': []}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "plain-cause-and-effect", "repeat": 1, "ms": 1282, "tokens": 1465, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[plain-cause-and-effect-2]" time="1.331"><failure message="AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == [{'state': 'm...missing': []}]&#10;  &#10;  At index 0 diff: {'state': 'partial', 'missing': ['상실 시 불이익']} != {'state': 'met', 'missing': []}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == [{'state': 'm...missing': []}]
+E     
+E     At index 0 diff: {'state': 'partial', 'missing': ['상실 시 불이익']} != {'state': 'met', 'missing': []}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "plain-cause-and-effect", "repeat": 2, "ms": 1327, "tokens": 1465, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[plain-cause-and-effect-3]" time="1.383"><failure message="AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == [{'state': 'm...missing': []}]&#10;  &#10;  At index 0 diff: {'state': 'partial', 'missing': ['상실 시 불이익']} != {'state': 'met', 'missing': []}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == [{'state': 'm...missing': []}]
+E     
+E     At index 0 diff: {'state': 'partial', 'missing': ['상실 시 불이익']} != {'state': 'met', 'missing': []}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "plain-cause-and-effect", "repeat": 3, "ms": 1380, "tokens": 1465, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[customer-context-is-not-disclosure-1]" time="1.456"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "customer-context-is-not-disclosure", "repeat": 1, "ms": 1453, "tokens": 1472, "expected": [], "actual": [], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[customer-context-is-not-disclosure-2]" time="1.431"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "customer-context-is-not-disclosure", "repeat": 2, "ms": 1427, "tokens": 1472, "expected": [], "actual": [], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[customer-context-is-not-disclosure-3]" time="1.408"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "customer-context-is-not-disclosure", "repeat": 3, "ms": 1405, "tokens": 1472, "expected": [], "actual": [], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[teller-follow-up-1]" time="1.334"><failure message="AssertionError: assert [] == [{'state': 'm...missing': []}]&#10;  &#10;  Right contains one more item: {'state': 'met', 'missing': []}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [] == [{'state': 'm...missing': []}]
+E     
+E     Right contains one more item: {'state': 'met', 'missing': []}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "teller-follow-up", "repeat": 1, "ms": 1331, "tokens": 1486, "expected": [{"state": "met", "missing": []}], "actual": [], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[teller-follow-up-2]" time="1.290"><failure message="AssertionError: assert [] == [{'state': 'm...missing': []}]&#10;  &#10;  Right contains one more item: {'state': 'met', 'missing': []}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [] == [{'state': 'm...missing': []}]
+E     
+E     Right contains one more item: {'state': 'met', 'missing': []}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "teller-follow-up", "repeat": 2, "ms": 1287, "tokens": 1486, "expected": [{"state": "met", "missing": []}], "actual": [], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[teller-follow-up-3]" time="1.331"><failure message="AssertionError: assert [] == [{'state': 'm...missing': []}]&#10;  &#10;  Right contains one more item: {'state': 'met', 'missing': []}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [] == [{'state': 'm...missing': []}]
+E     
+E     Right contains one more item: {'state': 'met', 'missing': []}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "teller-follow-up", "repeat": 3, "ms": 1327, "tokens": 1486, "expected": [{"state": "met", "missing": []}], "actual": [], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[tax-is-not-early-termination-1]" time="1.414"><failure message="AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == []&#10;  &#10;  Left contains one more item: {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == []
+E     
+E     Left contains one more item: {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "tax-is-not-early-termination", "repeat": 1, "ms": 1411, "tokens": 1456, "expected": [], "actual": [{"state": "partial", "missing": ["적용 이율", "차감률 또는 산출식"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[tax-is-not-early-termination-2]" time="1.476"><failure message="AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == []&#10;  &#10;  Left contains one more item: {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == []
+E     
+E     Left contains one more item: {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "tax-is-not-early-termination", "repeat": 2, "ms": 1473, "tokens": 1456, "expected": [], "actual": [{"state": "partial", "missing": ["적용 이율", "차감률 또는 산출식"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[tax-is-not-early-termination-3]" time="1.587"><failure message="AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == []&#10;  &#10;  Left contains one more item: {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == []
+E     
+E     Left contains one more item: {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "tax-is-not-early-termination", "repeat": 3, "ms": 1583, "tokens": 1456, "expected": [], "actual": [{"state": "partial", "missing": ["적용 이율", "차감률 또는 산출식"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[deposit-early-termination-1]" time="1.341"><failure message="AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == [{'state': 'p...차감률 또는 산출식']}]&#10;  &#10;  At index 0 diff: {'state': 'partial', 'missing': ['차감률 또는 산출식']} != {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == [{'state': 'p...차감률 또는 산출식']}]
+E     
+E     At index 0 diff: {'state': 'partial', 'missing': ['차감률 또는 산출식']} != {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "deposit-early-termination", "repeat": 1, "ms": 1338, "tokens": 1461, "expected": [{"state": "partial", "missing": ["적용 이율", "차감률 또는 산출식"]}], "actual": [{"state": "partial", "missing": ["차감률 또는 산출식"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[deposit-early-termination-2]" time="1.291"><failure message="AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == [{'state': 'p...차감률 또는 산출식']}]&#10;  &#10;  At index 0 diff: {'state': 'partial', 'missing': ['차감률 또는 산출식']} != {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == [{'state': 'p...차감률 또는 산출식']}]
+E     
+E     At index 0 diff: {'state': 'partial', 'missing': ['차감률 또는 산출식']} != {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "deposit-early-termination", "repeat": 2, "ms": 1288, "tokens": 1461, "expected": [{"state": "partial", "missing": ["적용 이율", "차감률 또는 산출식"]}], "actual": [{"state": "partial", "missing": ["차감률 또는 산출식"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[deposit-early-termination-3]" time="1.341"><failure message="AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == [{'state': 'p...차감률 또는 산출식']}]&#10;  &#10;  At index 0 diff: {'state': 'partial', 'missing': ['차감률 또는 산출식']} != {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...차감률 또는 산출식']}] == [{'state': 'p...차감률 또는 산출식']}]
+E     
+E     At index 0 diff: {'state': 'partial', 'missing': ['차감률 또는 산출식']} != {'state': 'partial', 'missing': ['적용 이율', '차감률 또는 산출식']}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "deposit-early-termination", "repeat": 3, "ms": 1338, "tokens": 1461, "expected": [{"state": "partial", "missing": ["적용 이율", "차감률 또는 산출식"]}], "actual": [{"state": "partial", "missing": ["차감률 또는 산출식"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[customer-paraphrase-1]" time="1.443"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "customer-paraphrase", "repeat": 1, "ms": 1440, "tokens": 1443, "expected": [{"state": "confirmed", "missing": []}], "actual": [{"state": "confirmed", "missing": []}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[customer-paraphrase-2]" time="1.178"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "customer-paraphrase", "repeat": 2, "ms": 1175, "tokens": 1443, "expected": [{"state": "confirmed", "missing": []}], "actual": [{"state": "confirmed", "missing": []}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[customer-paraphrase-3]" time="1.192"><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "customer-paraphrase", "repeat": 3, "ms": 1189, "tokens": 1443, "expected": [{"state": "confirmed", "missing": []}], "actual": [{"state": "confirmed", "missing": []}], "passed": true}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[distinct-disclosures-1]" time="1.837"><failure message="AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == [{'state': 'm...missing': []}]&#10;  &#10;  At index 0 diff: {'state': 'partial', 'missing': ['기한이익상실 사유']} != {'state': 'met', 'missing': []}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == [{'state': 'm...missing': []}]
+E     
+E     At index 0 diff: {'state': 'partial', 'missing': ['기한이익상실 사유']} != {'state': 'met', 'missing': []}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "distinct-disclosures", "repeat": 1, "ms": 1833, "tokens": 1681, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[distinct-disclosures-2]" time="1.827"><failure message="AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == [{'state': 'm...missing': []}]&#10;  &#10;  At index 0 diff: {'state': 'partial', 'missing': ['기한이익상실 사유']} != {'state': 'met', 'missing': []}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == [{'state': 'm...missing': []}]
+E     
+E     At index 0 diff: {'state': 'partial', 'missing': ['기한이익상실 사유']} != {'state': 'met', 'missing': []}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "distinct-disclosures", "repeat": 2, "ms": 1824, "tokens": 1681, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase><testcase classname="tests.engine.test_live_scope_regression" name="test_live_holdout[distinct-disclosures-3]" time="1.815"><failure message="AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == [{'state': 'm...missing': []}]&#10;  &#10;  At index 0 diff: {'state': 'partial', 'missing': ['기한이익상실 사유']} != {'state': 'met', 'missing': []}&#10;  Use -v to get more diff">tests/engine/test_live_scope_regression.py:177: in test_live_holdout
+    assert outcome(result) == expected
+E   AssertionError: assert [{'state': 'p...'기한이익상실 사유']}] == [{'state': 'm...missing': []}]
+E     
+E     At index 0 diff: {'state': 'partial', 'missing': ['기한이익상실 사유']} != {'state': 'met', 'missing': []}
+E     Use -v to get more diff</failure><system-out>--------------------------------- Captured Log ---------------------------------
+
+--------------------------------- Captured Out ---------------------------------
+
+HOLDOUT {"name": "distinct-disclosures", "repeat": 3, "ms": 1811, "tokens": 1681, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": false}
+
+</system-out><system-err>--------------------------------- Captured Err ---------------------------------
+
+</system-err></testcase></testsuite></testsuites>

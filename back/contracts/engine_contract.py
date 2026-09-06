@@ -321,6 +321,9 @@ class JudgePrompt:
     customer_type: Literal["general", "professional"]
     cache_key: str
     """(pack_version, 프롬프트 내용, 모델) 해시. 같은 키면 캐시를 쓴다."""
+    other_item_names: tuple[str, ...] = ()
+    """후보가 아닌 팩 항목(required·forbidden)의 이름. L3 가 발화 주제를 후보가 아닌 다른 항목으로
+    귀속시켜 '연관되지만 다른 사안' 을 가려내는 데 쓴다. 판정 대상은 여전히 후보뿐이다. (2026-09-07 추가)"""
 
 
 @dataclass(frozen=True, slots=True)
