@@ -213,3 +213,9 @@
    38px → 34px 로 4px 줄던 것이 아래 패널을 위로 끌어올려 화면이 흔들렸다 */
 .wb-service .wb-history-toolbar{min-height:38px;flex-wrap:nowrap}
 .wb-service .wb-history-toolbar>.wb-history-note{flex:1;min-width:0;text-align:right;font-size:11px;line-height:1.45;color:#647980;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 행마다 버튼 글자 수가 달라 오른쪽 끝이 들쭉날쭉했다(실측 액션 x1292/w145 대 x1242/w195).
+   폭을 고정한 한 칸에 같은 폭 버튼을 세워 열로 맞춘다 */
+.wb-service .wb-history-list .wb-list-row>.wb-actions{flex:0 0 auto;width:220px;justify-content:flex-end;gap:6px;flex-wrap:nowrap}
+.wb-service .wb-history-list .wb-list-row>.wb-actions>button{flex:0 1 107px;min-width:0;padding:6px 8px;justify-content:center;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.wb-service .wb-history-list .wb-list-row>.wb-actions>.wb-badge{flex:0 0 auto}
