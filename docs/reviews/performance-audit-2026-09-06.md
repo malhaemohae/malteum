@@ -60,7 +60,7 @@
 | trace, fold 50ms·publish 200ms, 원본 오프셋 0/1/2/36.9/37.9초 | 마지막 publish 시작 38.75초 | 마지막 publish 시작 37.95초. 현재 이벤트 fold 50ms는 여전히 필요함 | [실측: 가상 시계] `test_replay_timing.py:166` |
 | 오디오, sleep이 매번 5ms 늦게 복귀 | 추가 테스트이므로 기존 결과 별도 기록 없음 | 1초 오디오 종료 1.005초. 이전 sleep 초과가 누적되지 않음 | [실측: 가상 시계] `test_replay_timing.py:244` |
 | 2초 오디오, 실제 `asyncio.sleep(0.025)` 소비자, 각각 3회 교차 실행 | 2.812 / 2.813 / 2.812초 | 2.000 / 2.016 / 2.000초. 매회 전체 64,000바이트 전달 | [실측: 로컬 시계] 아래 재현 코드. sleep 요청 시간과 실제 복귀 시간은 다를 수 있음. 외부 서비스 성능 향상률로 환산하지 않음 |
-| 음원 헤더 조회 | 비교용 기준 없음 | dep-a 147.432625초, loan-b 127.79875초. 둘 다 16kHz·mono·16bit | [실측: 파일 확인] Python `wave.open`의 `getnframes()/getframerate()` 및 형식 필드 조회 |
+| 음원 헤더 조회 | 비교용 기준 없음 | dep-a 147.432625초, loan-b 127.79875초(이 감사 시점의 ElevenLabs 음원. 같은 날 TTS 를 Typecast 로 옮겨 각각 114.6초·105.7초가 됐다). 둘 다 16kHz·mono·16bit | [실측: 파일 확인] Python `wave.open`의 `getnframes()/getframerate()` 및 형식 필드 조회 |
 
 - [실측] 수정 전 신규 테스트: `11 failed, 4 passed`. 시간 단언 실패를 확인한 후 생산 코드 수정함.
 - [실측] oversleep 사례 추가 후 신규 테스트: `16 passed, 5 warnings in 0.07s`. 경고는 fixture 팩의 기존 `DummyPathWarning`, `back/engine/pack/compiler.py:92`에서 발생함.

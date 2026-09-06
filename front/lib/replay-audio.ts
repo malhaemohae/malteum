@@ -23,11 +23,14 @@ export class ReplayAudio {
  async prepare(presetId:string,packVersion:string){
   try{
    this.preset={id:presetId,version:packVersion};this.report({status:'loading',error:undefined});
-   if(!['preset-dep-a','preset-loan-b'].includes(presetId))throw new Error('이 프리셋의 재생 음원이 준비되지 않았습니다.');
+   // No hardcoded preset list: prepare-replay-audio.cjs bundles whatever ships with audio,
+   // and a stale list here reported "not prepared" for presets that were in fact bundled.
    // Called directly from the start/resume click, before the first await.
    if(!this.context){this.context=new AudioContext();this.gain=this.context.createGain();this.gain.connect(this.context.destination);}
    void this.context.resume().then(()=>{if(this.context?.state==='suspended')this.report({status:'blocked',error:'소리 켜기를 눌러 음성 재생을 허용해 주세요.'});}).catch(()=>this.report({status:'blocked',error:'소리 켜기를 눌러 음성 재생을 허용해 주세요.'}));
-   const response=await fetch(`/replay/${presetId}/manifest.json`,{signal:AbortSignal.timeout(15000)});if(!response.ok)throw new Error('재생 음원 정보를 불러오지 못했습니다.');
+   const response=await fetch(`/replay/${presetId}/manifest.json`,{signal:AbortSignal.timeout(15000)});
+   if(response.status===404)throw new Error('이 프리셋의 재생 음원이 준비되지 않았습니다.');
+   if(!response.ok)throw new Error('재생 음원 정보를 불러오지 못했습니다.');
    const manifest=await response.json() as Manifest;
    if(manifest.presetId!==presetId||manifest.packVersion!==packVersion||manifest.audioUrl!==`/replay/${presetId}/audio.wav`)throw new Error('상담과 재생 음원의 버전이 다릅니다.');
    const audio=await fetch(manifest.audioUrl,{signal:AbortSignal.timeout(15000)});if(!audio.ok)throw new Error('재생 음원을 불러오지 못했습니다.');
