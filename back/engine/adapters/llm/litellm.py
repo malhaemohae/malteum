@@ -92,7 +92,7 @@ class LiteLlmJudge:
             try:
                 args = _tool_args(message)
                 jsonschema.validate(instance=args, schema=schema)
-                return tools.to_decision(args, tokens)
+                return tools.to_decision(args, tokens, prompt)
             except (ValueError, jsonschema.ValidationError) as e:
                 last = e
                 log.warning("L3 응답 형식 오류 (시도 %d): %s", attempt + 1, e)
