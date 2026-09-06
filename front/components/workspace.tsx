@@ -80,6 +80,27 @@ function Pager({ page, count, onChange, label }: { page: number; count: number; 
   return <div className="wb-pager" aria-label={`${label} 페이지`}><button type="button" aria-label={`${label} 이전 페이지`} disabled={page <= 0} onClick={() => onChange(page - 1)}>‹</button><span>{page + 1} / {Math.max(1, count)}</span><button type="button" aria-label={`${label} 다음 페이지`} disabled={page >= count - 1} onClick={() => onChange(page + 1)}>›</button></div>;
 }
 
+// 목록 위에 놓인 것만 빼면 아래에 놓인 것들(브리핑 푸터, 안내 문구, 질문 입력줄)의 높이가
+// 그대로 가용 높이에 남아 행이 그만큼 더 그려진다. 넘친 행은 페이지 번호와 개수 표시를 덮어
+// 두 겹으로 보였다. 목록에서 `.wb-body` 까지 올라가며 각 단계마다 목록보다 아래에 놓인 형제와
+// 그 사이 간격, 부모의 아래 여백을 함께 뺀다. 가로로 나란한 칸은 위쪽 좌표가 목록과 같거나
+// 앞서므로 걸러진다.
+function spaceBelow(host: HTMLElement, body: Element) {
+  const top = host.getBoundingClientRect().top;
+  let total = 0;
+  for (let node: HTMLElement | null = host; node && node !== body; node = node.parentElement) {
+    const parent = node.parentElement; if (!parent) break;
+    const style = getComputedStyle(parent);
+    const gap = parseFloat(style.rowGap) || 0;
+    for (let sibling = node.nextElementSibling; sibling; sibling = sibling.nextElementSibling) {
+      const rect = sibling.getBoundingClientRect();
+      if (rect.top > top) total += rect.height + gap;
+    }
+    total += (parseFloat(style.paddingBottom) || 0) + (parseFloat(style.borderBottomWidth) || 0);
+  }
+  return total;
+}
+
 // The capacity follows the available pane, not an arbitrary breakpoint or hidden overflow.
 export function PagedList<T>({ items, render, label, empty = '표시할 항목이 없습니다.', rowHeight = 66, followLatest = false }: { items: T[]; render: (item: T, index: number) => ReactNode; label: string; empty?: string; rowHeight?: number; followLatest?: boolean }) {
   const ref = useRef<HTMLDivElement>(null); const [capacity, setCapacity] = useState(1); const [height, setHeight] = useState(rowHeight); const [page, setPage] = useState(0); const following = useRef(followLatest);
@@ -92,7 +113,7 @@ export function PagedList<T>({ items, render, label, empty = '표시할 항목�
     const measure = () => {
       const effective = rowHeight + (host.clientWidth < 520 ? 16 : 0);
       const above = body ? host.getBoundingClientRect().top - body.getBoundingClientRect().top : 0;
-      const available = body ? body.clientHeight - above : host.clientHeight;
+      const available = body ? body.clientHeight - above - spaceBelow(host, body) : host.clientHeight;
       setHeight(effective);
       setCapacity(Math.max(1, Math.floor((available - 38) / effective)));
     };
