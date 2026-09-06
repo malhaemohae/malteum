@@ -1,6 +1,6 @@
 /* A compact action strip, not four equivalent feature cards. Existing brand tokens stay. */
-/* 세 버튼이 같은 폭·같은 높이로 서고 남는 자리에 전문용어 밀도가 붙는다. 예전에는 첫
-   칸만 1.35fr 이라 폭이 어긋났고 높이 62px 로 도구 줄보다 카드에 가까웠다 */
+/* 네 칸(버튼 셋 + 전문용어 밀도)이 같은 폭·같은 높이로 선다. 예전에는 첫 칸만 1.35fr
+   이라 폭이 어긋났고, 밀도 칩만 고정 폭 106px 이라 셋과 길이가 달랐다 */
 .wb-service .wb-shortcuts{display:flex;align-items:stretch;gap:8px}
 .wb-service .wb-shortcuts .wb-shortcut{flex:1 1 0;min-width:0;min-height:46px;padding:6px 11px;gap:1px;border-radius:9px}
 .wb-service .wb-shortcuts .wb-shortcut:not(:first-child){background:#fff;border:1px solid var(--line);color:var(--ink)}
@@ -10,9 +10,11 @@
 .wb-service .wb-shortcuts .wb-shortcut-bottom{justify-content:flex-start}
 .wb-service .wb-shortcuts .wb-shortcut-bottom small{display:block;font-size:11px;line-height:14px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 전문용어 밀도. 말이 어려워지고 있는지 은행원이 곧바로 알아야 하는 값이라 도구 줄에 둔다 */
-.wb-service .wb-shortcuts .wb-density-chip{display:flex;flex-direction:column;justify-content:center;gap:1px;flex:0 0 auto;min-width:106px;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:#fff}
-.wb-shortcuts .wb-density-chip>span{font-size:11px;line-height:14px;color:var(--muted)}
-.wb-shortcuts .wb-density-chip>strong{font-size:13px;line-height:17px}
+.wb-service .wb-shortcuts .wb-density-chip{display:flex;flex-direction:column;justify-content:center;gap:1px;flex:1 1 0;min-width:0;padding:6px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.wb-shortcuts .wb-density-chip>strong{font-size:13px;line-height:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 판정 기준을 값 밑에 함께 적는다. 버튼의 제목·부제목과 같은 두 줄 구성이라 네 칸이
+   같은 리듬으로 읽힌다 */
+.wb-shortcuts .wb-density-chip>small{font-size:11px;line-height:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wb-shortcuts .wb-density-chip[data-density=high]{border-color:#e6c58c;background:#fff8ea}
 .wb-shortcuts .wb-density-chip[data-density=high]>strong{color:var(--tone-warning)}
 .wb-shortcuts .wb-density-chip[data-density=low]{border-color:#bfe0d2;background:#f2fbf7}
@@ -40,8 +42,8 @@
 .wb-candidate-edit{display:flex;flex:1;min-height:0;flex-direction:column;gap:8px}
 .wb-candidate-edit label{display:flex;flex:1;min-height:0;flex-direction:column;gap:8px}
 .wb-candidate-edit textarea{flex:1;min-height:70px;resize:none}
-@media(max-width:1200px){.wb-service .wb-shortcuts .wb-shortcut{padding:6px 9px}.wb-service .wb-shortcuts .wb-shortcut-bottom small{display:none}.wb-service .wb-shortcuts .wb-density-chip{min-width:94px;padding:6px 9px}}
-@media(max-width:800px){.wb-service .wb-shortcuts{flex-wrap:wrap}.wb-service .wb-shortcuts .wb-shortcut{min-height:40px;padding:7px 8px}.wb-service .wb-shortcuts .wb-density-chip{min-width:0;flex:1 1 100%}.wb-service .wb-shortcuts .wb-shortcut.is-checks{display:none}.wb-service .wb-shortcuts .wb-shortcut-title strong{font-size:12px}.wb-service .wb-shortcuts .wb-shortcut:first-child{flex:1}.wb-service .wb-shortcuts .wb-shortcut-bottom{display:none}.wb-feedback{padding:5px 8px}}
+@media(max-width:1200px){.wb-service .wb-shortcuts .wb-shortcut{padding:6px 9px}.wb-service .wb-shortcuts .wb-shortcut-bottom small{display:none}.wb-service .wb-shortcuts .wb-density-chip{padding:6px 9px}.wb-shortcuts .wb-density-chip>small{display:none}}
+@media(max-width:800px){.wb-service .wb-shortcuts{flex-wrap:wrap}.wb-service .wb-shortcuts .wb-shortcut{min-height:40px;padding:7px 8px}.wb-service .wb-shortcuts .wb-density-chip{flex:1 1 100%}.wb-service .wb-shortcuts .wb-shortcut.is-checks{display:none}.wb-service .wb-shortcuts .wb-shortcut-title strong{font-size:12px}.wb-service .wb-shortcuts .wb-shortcut:first-child{flex:1}.wb-service .wb-shortcuts .wb-shortcut-bottom{display:none}.wb-feedback{padding:5px 8px}}
 @media(max-height:600px) and (min-width:801px){.wb-briefing .wb-processing-notice{grid-column:1 / -1;grid-row:4}.wb-briefing>.wb-panel-body{grid-template-rows:34px minmax(0,1fr) auto auto}}
 @media(max-width:800px) and (max-height:600px){.wb-service .wb-briefing>.wb-panel-body{display:flex}.wb-processing-notice{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.wb-feedback[data-pending=true]>span:first-child{animation:none}}

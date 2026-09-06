@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiBriefing, ApiHealth, ApiPack, ApiPackItem, malteumApi } from '../lib/api';
-import { displayValue, evidenceForItem, friendlyError, itemTypeNames, STT_UNCONFIGURED, kindNames, latestPacks, LiveSession, modeNames, NavItem, playableDemoPresets, ReadyItem, sessionScreen, statusNames, timeLabel, withoutKindPrefix } from '../lib/workspace-model';
+import { evidenceForItem, friendlyError, itemTypeNames, STT_UNCONFIGURED, kindNames, latestPacks, LiveSession, modeNames, NavItem, playableDemoPresets, ReadyItem, sessionScreen, statusNames, timeLabel, withoutKindPrefix } from '../lib/workspace-model';
 import { DetailSections, detailSections, Empty, Feedback, KeyValueList, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
 import { speakerLabel, Transcript } from './transcript';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
@@ -14,6 +14,21 @@ import { EvidenceCard } from './evidence';
 function QuickAction({ title, subtitle, icon, tone, onClick, disabled, pressed, label }: { title: string; subtitle: string; icon: WorkspaceIconName; tone: string; onClick: () => void; disabled?: boolean; pressed?: boolean; label?: string }) {
   return <button type="button" className={`wb-shortcut is-${tone}`} aria-label={label ?? title} aria-pressed={pressed} disabled={disabled} onClick={onClick}><span className="wb-shortcut-title"><strong>{title}</strong><span className="wb-shortcut-arrow"><WorkspaceIcon name="arrow" size={14} /></span></span><span className="wb-shortcut-bottom"><small>{subtitle}</small><span className="wb-shortcut-icon"><WorkspaceIcon name={icon} size={32} /></span></span></button>;
 }
+
+// 전문용어 밀도. 서버는 `low`·`normal`·`high` 세 낱말만 보내므로(ws 계약의
+// `progress.term_density`) 그 낱말만 띄우면 무슨 뜻인지, 무엇을 보고 그렇게 판정했는지
+// 화면에서 알 수 없다. 그래서 값과 함께 판정 기준을 한 줄로 같이 보여 준다.
+//
+// **기준 숫자는 서버 상수를 옮겨 적은 것이다**(`back/engine/state/term_density.py` 의
+// `HIGH_AT`·`LOW_AFTER`, `back/engine/state/fold.py` 의 `RECENT_UTTERANCES`). 서버가
+// 그 값을 바꾸면 이 문구가 조용히 틀려진다. 계약(`back/contracts/`)이 개수를 실어 주면
+// 그때 이 표를 지우고 서버가 준 값을 그대로 쓰는 것이 맞다.
+const densityReading: Record<string, { value: string; basis: string }> = {
+  high: { value: '전문용어 많음', basis: '최근 8턴에 3개 이상' },
+  normal: { value: '전문용어 보통', basis: '최근 8턴에 1~2개' },
+  low: { value: '전문용어 적음', basis: '상담원 3턴 연속 0개' },
+};
+const DENSITY_UNMEASURED = { value: '전문용어 측정 전', basis: '상담원 발화를 기다립니다' };
 
 // 브리핑 항목이 상세로 펼칠 값을 가졌는지. 펼칠 것이 없으면 행을 눌러도 빈 모달만 뜬다.
 const briefingSections = (item: ApiBriefing['must_say'][number]) => detailSections([['확인해야 할 요소', item.elements], ['승인된 쉬운 말', item.plain_language]]);
@@ -99,6 +114,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
   // 직전 발화 쉬운 말은 그 발화 아래에 이미 떠 있다. 위쪽 알림 줄이 같은 말을 되풀이하지 않게 한다
   const inlineRephrase = session.action?.kind === 'rephrase' && Boolean(session.action.sourceUtteranceId);
   const compared = Boolean(intervention?.said && intervention?.reference);
+  const density = (session.progress?.density && densityReading[session.progress.density]) || DENSITY_UNMEASURED;
   const notice = micError || friendlyError(session.error) || replaySound?.error || (session.mode === 'live' && !session.textFallback && health?.checks?.stt === 'unconfigured' ? STT_UNCONFIGURED : '');
   function resolve() { if (intervention?.alert) { onCommand({ t: 'acknowledge', alert_ref: intervention.id }); return; } onDismiss(); }
   const manualPending = Boolean(session.action?.pending);
@@ -115,7 +131,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
         {session.mode === 'live' ? <QuickAction title={micPending ? '연결 취소' : micActive ? '녹음 중지' : '녹음 시작'} label={micPending ? '마이크 연결 취소' : micActive ? '■ 녹음 중지' : '● 녹음 시작'} subtitle={micPending ? '권한 창을 확인하세요' : micActive ? '중지 후에도 상담은 유지' : '완료 시 상단 상담 종료'} icon={micActive ? 'stop' : 'mic'} tone={micActive ? 'recording' : 'record'} pressed={micActive} disabled={!canWrite} onClick={onMic} /> : <QuickAction title={session.mode === 'text' ? '텍스트 입력' : '상담 대화'} subtitle={session.mode === 'text' ? '화자를 선택해 입력' : '저장된 상담 확인'} icon="conversation" tone="record" onClick={() => { selectPane('conversation'); requestAnimationFrame(() => inputRef.current?.focus()); }} />}
         <QuickAction title="필요 서류" subtitle="서류 목록 열기" icon="folder" tone="documents" disabled={!pack} onClick={() => setReference('documents')} />
         <QuickAction title="규정팩 보기" subtitle="적용 중인 규정팩의 항목" icon="book" tone="briefing" disabled={!pack} onClick={() => setReference('briefing')} />
-        <div className="wb-density-chip" data-density={session.progress?.density ?? 'none'} role="status" aria-label="전문용어 밀도"><strong>{session.progress?.density ? displayValue(session.progress.density, 'density') : '측정 전'}</strong><span>전문용어 밀도</span></div>
+        <div className="wb-density-chip" data-density={session.progress?.density ?? 'none'} role="status" aria-label={`전문용어 밀도 ${density.value}, 판정 기준 ${density.basis}`}><strong>{density.value}</strong><small>{density.basis}</small></div>
       </div>
       <div className="wb-conversation">
         <Panel title="상담 대화" className="wb-transcript" action={replaySound ? <button type="button" className="wb-replay-sound" data-replay-sound={replaySound.status} aria-pressed={replaySound.enabled && replaySound.status !== 'blocked'} onClick={onReplaySound} disabled={replaySound.status === 'loading' || session.ending || session.status !== 'connected'}>{replaySound.status === 'loading' ? '음원 준비 중' : replaySound.status === 'unavailable' ? '소리 다시 시도' : replaySound.status === 'blocked' || !replaySound.enabled ? '소리 켜기' : '소리 끄기'}</button> : <small role="status">{session.mode === 'live' && micActive ? health?.checks?.stt === 'ok' ? '● 녹음 중 · 전사 대기' : '● 녹음 중 · 전사 연결 확인 필요' : '고객 · 상담원'}</small>}>

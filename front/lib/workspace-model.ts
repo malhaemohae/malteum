@@ -39,7 +39,7 @@ const metadataNames: Record<string, string> = { ...statusNames, ...kindNames, ..
 // 정규식 안과 별도 배열에 11개 값을 나란히 두 번 적어 하나를 고치면 다른 쪽이 조용히 어긋날 수 있었다
 const LABEL_STATES = ['met', 'partial', 'unmet', 'waived', 'clean', 'suspected', 'violated', 'confirmed', 'explained', 'adopted', 'ignored'];
 // 타임라인 라벨이 유형을 접두어로 싣고 오는 이름들(`risk_signal: ...`). displayValue 의
-// 정규식과 rawLabelKind 양쪽이 같은 목록을 쓴다
+// 라벨 치환이 이 목록으로 접두어를 사람 말로 바꾼다
 const LABEL_KIND_PREFIXES = ['teller', 'customer', 'system', 'rephrase', 'answer', 'nudge', 'briefing', 'documents', 'number_mismatch', 'forbidden_phrase', 'risk_signal', 'term_density'];
 export function displayValue(value: unknown, key = ''): string {
   if (Array.isArray(value)) return value.map(entry => displayValue(entry, key)).join('\n');
@@ -50,7 +50,7 @@ export function displayValue(value: unknown, key = ''): string {
   if (typeof value !== 'string') return String(value);
   if (TIME_FIELDS.includes(key)) return whenLabel(value);
   if (key === 'label') return value.replace(new RegExp(`^(${LABEL_KIND_PREFIXES.join('|')}):\\s*`), (_, type) => `${metadataNames[type]}: `).replace(new RegExp(`(→\\s*)(${LABEL_STATES.join('|')})\\b`, 'g'), (_, arrow, state) => `${arrow}${state === 'met' ? '고지 완료' : metadataNames[state]}`);
-  if (['state', 'final_state', 'outcome', 'status', 'kind', 'type', 'axis', 'decided_by', 'speaker', 'assist_type', 'alert_type', 'severity', 'mode', 'density'].includes(key)) return metadataNames[value] ?? value;
+  if (['state', 'final_state', 'outcome', 'status', 'kind', 'type', 'axis', 'decided_by', 'speaker', 'assist_type', 'alert_type', 'severity', 'mode'].includes(key)) return metadataNames[value] ?? value;
   return value;
 }
 export function displayField(key: string) { return fieldNames[key] ?? key; }
