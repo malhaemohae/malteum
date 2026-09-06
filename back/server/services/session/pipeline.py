@@ -29,6 +29,16 @@ from server.services.session.registry import Session
 
 Publish = Callable[[dict[str, Any]], Awaitable[Any]]
 
+
+class SessionClosed(RuntimeError):
+    """종료가 확정된 상담에 이벤트를 더 붙이려 했다.
+
+    `session_ended` 뒤에 무엇이든 붙으면 종료 직후 조회한 리포트와 나중에 다시 연
+    리포트가 달라진다. 늦게 도착한 전사를 버리는 편이 낫다. 버린 것은 로그에 남지만
+    조용히 바뀐 리포트는 아무도 눈치채지 못한다.
+    """
+
+
 # 조력 카드 채택(contracts/README: 제시할 때 outcome=null, 은행원이 그 표현을 썼는지
 # 확인되면 outcome 을 채워 다시 발행). 카드 종류마다 "썼다" 의 증거가 다르다.
 #   rephrase  카드 문장을 은행원이 되풀이했는가 — 발화와 카드 문장의 자모 3-gram dice.
@@ -52,6 +62,11 @@ class Pipeline:
         self.projection = projection or NullSessionProjection()
 
     def _wrap(self, session: Session, kind: str, body: dict, supersedes: str | None = None):
+        # 저장 지점이 여덟 곳인데 전부 여기를 지난다. 가드를 append 마다 두면 새 저장
+        # 지점이 생길 때 빠뜨리고, 그 빠뜨림은 리포트가 조용히 바뀐 뒤에야 드러난다.
+        # seq 를 집기 전에 막아야 번호도 안 버려진다
+        if session.ended:
+            raise SessionClosed(f"{session.session_id}: 종료된 상담에 {kind} 를 붙일 수 없습니다.")
         return envelope.wrap(
             session_id=session.session_id,
             pack_version=session.pack.pack_version,
@@ -262,6 +277,14 @@ class Pipeline:
         return event
 
     def end(self, session: Session, duration_ms: int, reason: str = "normal") -> dict:
+        if session.ended:
+            # 이미 확정된 상담이다(끝난 세션을 되살려 다시 종료를 누른 자리). 두 번째
+            # session_ended 를 쓰면 종료 이벤트가 둘이 되므로 저장된 것으로 답한다
+            stored = [
+                e for e in self.store.of_session(session.session_id) if e["kind"] == "session_ended"
+            ]
+            if stored:
+                return stored[-1]
         # trace 는 원본 세션의 이벤트로 요약한다. 자기 봉투만으로는 상담 내용이 없다
         events = self.store.of_session(session.source_session_id or session.session_id)
         summary = self.engine.summarize(session.state, session.pack, events)
@@ -270,5 +293,7 @@ class Pipeline:
             "session_ended",
             {"reason": reason, "duration_ms": duration_ms, "summary": summary},
         )
+        # 이 뒤로는 이 상담에 아무것도 안 붙는다. `_wrap` 이 이 값을 본다
+        session.ended = True
         self.projection.ended(event)
         return event

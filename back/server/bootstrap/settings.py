@@ -58,6 +58,11 @@ class Settings(BaseSettings):
     # 계약 BUDGET_L3_MS. OpenRouter 왕복이 1.5초를 자주 넘겨 refine 이 통째로 버려졌다 —
     # 실측에 맞춰 3초로 완화했다 (사용자 결정, 월요일 합의 대상)
     l3_budget_ms: float = 3000
+    # 종료를 누르면 남은 전사와 예약된 L3 보정을 이만큼까지 기다렸다가 session_ended
+    # 를 쓴다. 안 기다리면 마지막 발화가 종료 뒤에 붙고, 오래 기다리면 프런트가 종료
+    # 확인을 포기한다(`front` 의 `END_CONFIRM_MS` × `END_CONFIRM_ROUNDS` = 30초).
+    # 넘기면 남은 마무리를 배경에 두고 종료하며, 그 결과는 닫힌 상담이 막는다
+    session_finish_budget_s: float = 15.0
     # STT. 키가 비면 오디오 층이 빠지고 ws 가 stt_unavailable 을 낸다(3층 폴백).
     # 기획 11.3: Deepgram nova-3 ko · keyterm·numerals·mip_opt_out
     #   deepgram      스트리밍. APP_STT_API_KEY 가 있어야 한다
