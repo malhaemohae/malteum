@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { ApiEvidence, ApiHealth, ApiPack, ApiPackItem, ApiPreset, ApiSessionSummary, findSessionEvent, malteumApi, ServerMessage, wsUrl } from '../lib/api';
-import { Pcm16Capture } from '../lib/audio';
+import { MicrophoneCaptureError, Pcm16Capture } from '../lib/audio';
 import { ReplayAudio, ReplayAudioState } from '../lib/replay-audio';
-import { nextAudioSequence, rememberAudioSequence, rememberSession, rememberReplayPreset } from '../lib/session-index';
+import { activeSession, forgetActiveSession, nextAudioSequence, rememberActiveSession, rememberAudioSequence, rememberSession, rememberReplayPreset } from '../lib/session-index';
 import { historyAudioPreset } from '../lib/history-audio';
 import { HistoryAction, isPlayableEvent, recoveredSession, sessionEvents, sessionHandshake, traceBlockedReason } from '../lib/session-recovery';
 import { rememberTraceSource, resolveTraceSource } from '../lib/trace-source';
@@ -16,10 +16,11 @@ import MarketingLanding from './marketing-showcase';
 import { Briefing, Dashboard, Preparation } from './consultation';
 import { SpeakerIntroModal } from './speaker-intro';
 import { DocumentsScreen, HistoryScreen, PackScreen, ReportScreen } from './operations';
-import { Empty, EvidenceView, Modal, Notice, TextPages } from './workspace';
+import { Empty, Modal, Notice, TextPages } from './workspace';
+import { EvidenceView, loadEvidence } from './evidence';
 
 export default function Application() {
-  const [screen, setScreen] = useState<Screen>('landing'); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
+  const [screen, setScreen] = useState<Screen>('landing'); const [historyView, setHistoryView] = useState<'sessions' | 'presets'>('sessions'); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
   const [pack, setPack] = useState<ApiPack | null>(null); const [health, setHealth] = useState<ApiHealth | null>(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ id: string; ended: boolean } | null>(null); const [newConfirm, setNewConfirm] = useState(false); const newAfterEnd = useRef(false);
   const [traceSelection, setTraceSelection] = useState<ApiSessionSummary | null>(null);
@@ -43,12 +44,20 @@ export default function Application() {
   function update(value: LiveSession | null | ((previous: LiveSession | null) => LiveSession | null)) { const next = typeof value === 'function' ? value(current.current) : value; current.current = next; setSession(next); }
   function stopMic() { capture.current?.stop(); capture.current = null; connectingMic.current = false; setMicActive(false); setMicPending(false); setMicIntro(false); }
   function closeSocket() { replayAudio.current?.stop(); const old = socket.current; socket.current = null; old?.close(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }
+  // After a reload, pick the running consultation of this tab back up instead of dropping to the landing page.
+  useEffect(() => {
+    const saved = activeSession(); if (!saved) return; let active = true;
+    malteumApi.session(saved).then(detail => { if (!active) return; if (detail.status === 'running' && detail.mode !== 'trace') { setScreen('history'); void openHistory(detail, 'resume'); } else forgetActiveSession(); }).catch(() => { /* Server unreachable: the history screen still offers manual recovery. */ });
+    return () => { active = false; };
+  }, []);
+  const checkHealth = useCallback(() => { malteumApi.health().then(setHealth).catch(() => { /* 화면은 마지막으로 확인한 상태를 유지한다 */ }); }, []);
   useEffect(() => { let active = true; malteumApi.health().then(value => { if (active) setHealth(value); }).catch(() => { if (active) setHealth(null); }); return () => { active = false; socket.current?.close(); capture.current?.stop(); const old = replayAudio.current; replayAudio.current = null; old?.dispose(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }; }, []);
   useEffect(() => { if (!micActive) return; const timer = setInterval(() => update(value => value && value.status === 'connected' ? { ...value, seconds: value.seconds + 1 } : value), 1000); return () => clearInterval(timer); }, [micActive]);
   useEffect(() => { if (!session || session.status === 'ended') return; const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload); }, [session?.id, session?.status]);
   function navigate(value: NavItem) {
     if (creating.current) return;
     setError('');
+    setHistoryView('sessions');
     if (value === '상담') {
       const active = current.current;
       if (active && active.status !== 'ended' && sessionScreen(active.mode) === 'playback') {
@@ -62,10 +71,10 @@ export default function Application() {
     if (value === '리포트') { if (current.current) setReportTarget({ id: current.current.id, ended: current.current.status === 'ended' }); setScreen('report'); }
     if (value === '이력') setScreen('history');
     if (value === '기준 관리') setScreen(managementScreen.current);
-    if (value === '규정 팩') { managementScreen.current = 'packs'; setScreen('packs'); }
+    if (value === '규정팩') { managementScreen.current = 'packs'; setScreen('packs'); }
     if (value === '문서') { managementScreen.current = 'documents'; setScreen('documents'); }
   }
-  function resetForNew() { stopMic(); closeSocket(); clearReplayAudio(); update(null); setMicError(''); setError(''); setNewConfirm(false); setScreen('briefing'); }
+  function resetForNew() { stopMic(); closeSocket(); clearReplayAudio(); forgetActiveSession(); update(null); setMicError(''); setError(''); setNewConfirm(false); setScreen('briefing'); }
   function requestNew() { if (creating.current) return; if (current.current && current.current.status !== 'ended') setNewConfirm(true); else resetForNew(); }
   function command(value: Record<string, unknown>) {
     if (!current.current || current.current.status !== 'connected' || socket.current?.readyState !== WebSocket.OPEN) { update(previous => previous ? { ...previous, error: '서버 연결을 확인한 뒤 다시 시도해 주세요.' } : previous); return false; }
@@ -73,18 +82,31 @@ export default function Application() {
     const tracked = ['mark_met', 'mark_waived', 'acknowledge'].includes(String(value.t)) || (value.t === 'assist_request' && value.assist_type === 'rephrase');
     if (tracked && current.current.action?.pending) return false;
     if (tracked) {
-      const action = { kind: value.t === 'assist_request' ? 'rephrase' : String(value.t), itemCode: typeof value.item_code === 'string' ? value.item_code : undefined, ref: typeof value.alert_ref === 'string' ? value.alert_ref : undefined, pending: true, message: value.t === 'assist_request' ? '쉬운 말 안내를 요청하고 있습니다.' : '변경 사항을 서버에 기록하고 있습니다.' };
-      update(previous => previous ? { ...previous, error: undefined, action } : previous);
+      // 서버 응답에는 어느 발화를 바꿨는지가 없다. 계약상 직전 상담원 발화이므로 지금 그것을 붙잡아 둔다
+      // event_id 가 비어 있는 발화는 없다고 본다. 빈 문자열을 그대로 두면 '있지만 falsy' 한
+      // 값이 되어 아래 모든 truthy 검사가 조용히 이 기능을 건너뛴다.
+      const lastTeller = value.t === 'assist_request' && !value.item_code ? [...current.current.transcript].reverse().find(row => row.speaker === 'teller')?.id || undefined : undefined;
+      const action = { kind: value.t === 'assist_request' ? 'rephrase' : String(value.t), itemCode: typeof value.item_code === 'string' ? value.item_code : undefined, ref: typeof value.alert_ref === 'string' ? value.alert_ref : undefined, sourceUtteranceId: lastTeller, pending: true, message: value.t === 'assist_request' ? (value.item_code ? '쉬운 말을 상담 기록에 남기고 있습니다.' : '직전 발화를 쉬운 말로 바꾸고 있습니다.') : '변경 사항을 서버에 기록하고 있습니다.' };
+      update(previous => previous ? { ...previous, error: undefined, action, rephrases: lastTeller ? { ...previous.rephrases, [lastTeller]: { pending: true } } : previous.rephrases } : previous);
       const id = current.current?.id;
-      setTimeout(() => { if (current.current?.id === id && current.current.action === action && action.pending) update(previous => previous ? { ...previous, action: { ...action, pending: false, message: '서버 응답이 지연되고 있습니다. 다시 요청해 주세요.' } } : previous); }, 15000);
+      setTimeout(() => { if (current.current?.id === id && current.current.action === action && action.pending) update(previous => {
+        if (!previous) return previous;
+        const timeoutMessage = '서버 응답이 지연되고 있습니다. 다시 요청해 주세요.';
+        // 발화 아래 붙은 쉬운 말 카드도 함께 풀어 준다. 안 풀면 대화 옆 카드가 영원히 '바꾸고 있습니다' 로 남는다
+        const rephrases = lastTeller && previous.rephrases?.[lastTeller]?.pending ? { ...previous.rephrases, [lastTeller]: { pending: false, error: timeoutMessage } } : previous.rephrases;
+        return { ...previous, action: { ...action, pending: false, message: timeoutMessage }, rephrases };
+      }); }, 15000);
     }
     if (value.t === 'acknowledge') pendingAcknowledgements.current.add(String(value.alert_ref));
     socket.current.send(JSON.stringify(value)); return true;
   }
   function finishSession(id: string) {
     if (current.current?.id !== id) return;
+    // A TRACE session is a replay shell; its own report is empty. Show the consultation it replayed.
+    const reportId = current.current?.mode === 'trace' && current.current.sourceSessionId ? current.current.sourceSessionId : id;
     stopMic(); closeSocket(); clearReplayAudio(); update(value => value ? { ...value, status: 'ended', ending: false, error: undefined } : value);
-    setReportTarget({ id, ended: true });
+    forgetActiveSession();
+    setReportTarget({ id: reportId, ended: true });
     if (newAfterEnd.current) { newAfterEnd.current = false; resetForNew(); } else setScreen('report');
   }
   function connect(active: LiveSession, recover = false) {
@@ -115,7 +137,9 @@ export default function Application() {
         }
         // Current WS mapping omits alert.acknowledged. Resolve that flag from the
         // persisted event, never by assuming that a successful send was a save.
-        if (message.t === 'alert' && (active.mode === 'trace' || pendingAcknowledgements.current.size > 0)) {
+        if (message.t === 'alert' && active.mode === 'trace' && active.acknowledgedAlertIds) {
+          if (active.acknowledgedAlertIds.includes(String(message.event_id))) message = { ...message, acknowledged: true };
+        } else if (message.t === 'alert' && (active.mode === 'trace' || pendingAcknowledgements.current.size > 0)) {
           try {
             const event = await findSessionEvent(active.sourceSessionId ?? active.id, String(message.event_id));
             const alert = event?.alert as Record<string, unknown> | undefined;
@@ -154,7 +178,7 @@ export default function Application() {
       clearReplayAudio();
       if (mode === 'replay' && preset) await prepareReplayAudio(preset.preset_id, pack.pack_version);
       const created = await malteumApi.createSession({ mode, pack_version: pack.pack_version, product_code: pack.product?.code, customer_profile: { type: customer, tags: [] }, ...(preset ? { preset_id: preset.preset_id, audio_ref: preset.audio_ref } : {}) });
-      rememberSession(created.session_id);
+      rememberSession(created.session_id); rememberActiveSession(created.session_id);
       if (mode === 'live' || mode === 'text') preparation.current = { packVersion: created.pack_version, mode, customer };
       if (mode === 'replay' && preset) rememberReplayPreset(created.session_id, preset.preset_id);
       setPack(created.pack_version === pack.pack_version ? pack : await malteumApi.pack(created.pack_version));
@@ -176,7 +200,9 @@ export default function Application() {
   }
   function requestMic() {
     const active = current.current;
-    if (connectingMic.current || !active || active.status !== 'connected' || active.mode !== 'live' || active.ending) return;
+    // A second press while the permission prompt is open cancels the attempt instead of being ignored.
+    if (connectingMic.current) { stopMic(); setMicError(''); return; }
+    if (!active || active.status !== 'connected' || active.mode !== 'live' || active.ending) return;
     if (micActive || micIntroSeen.current === active.id) { void toggleMic(); return; }
     setMicIntro(true);
   }
@@ -187,7 +213,10 @@ export default function Application() {
     if (connectingMic.current || current.current?.status !== 'connected' || current.current.mode !== 'live' || current.current.ending) return;
     connectingMic.current = true; setMicPending(true); setMicError(''); const activeCapture = new Pcm16Capture(audioSequence.current); capture.current = activeCapture;
     try {
-      await activeCapture.start((frame, sequence) => { if (socket.current?.readyState === WebSocket.OPEN) { socket.current.send(frame); audioSequence.current = sequence + 1; if (current.current) rememberAudioSequence(current.current.id, sequence + 1); } });
+      // The browser permission prompt can stay open forever; give the teller a clear way out after 20 s.
+      let giveUp: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<never>((_, reject) => { giveUp = setTimeout(() => reject(new MicrophoneCaptureError('timeout', '마이크 권한 창에 20초 동안 답이 없어 연결을 멈췄습니다. 주소창의 마이크 권한을 허용한 뒤 다시 눌러 주세요.')), 20000); });
+      try { await Promise.race([activeCapture.start((frame, sequence) => { if (socket.current?.readyState === WebSocket.OPEN) { socket.current.send(frame); audioSequence.current = sequence + 1; if (current.current) rememberAudioSequence(current.current.id, sequence + 1); } }), timeout]); } finally { clearTimeout(giveUp); }
       if (capture.current !== activeCapture || current.current?.status !== 'connected') { activeCapture.stop(); return; }
       micIntroSeen.current = current.current.id;
       setMicActive(true);
@@ -206,7 +235,7 @@ export default function Application() {
   async function openEvidence(ref: string) {
     const requestId = ++evidenceRequest.current; setEvidence({ loading: true });
     try {
-      const value = await malteumApi.evidence(ref);
+      const value = await loadEvidence(ref);
       let sourcePack = pack;
       // A report may belong to a different pack from the active consultation.
       // Resolve its immutable version; never attach an unrelated source URL.
@@ -242,7 +271,7 @@ export default function Application() {
         }
         stopMic(); setMicError(''); setPack(selectedPack); pendingAcknowledgements.current.clear();
         audioSequence.current = nextAudioSequence(latest.session_id);
-        rememberSession(latest.session_id); setScreen(sessionScreen(latest.mode)); connect(recoveredSession(latest, selectedPack, events), true);
+        rememberSession(latest.session_id); rememberActiveSession(latest.session_id); setScreen(sessionScreen(latest.mode)); connect(recoveredSession(latest, selectedPack, events), true);
         return;
       }
       const blocked = traceBlockedReason(latest); if (blocked) throw new Error(blocked);
@@ -258,23 +287,26 @@ export default function Application() {
       const created = await malteumApi.createSession({ mode: 'trace', source_session_id: source.session_id, pack_version: source.pack_version });
       rememberTraceSource(created.session_id, source.session_id); setTraceSelection(null);
       rememberSession(created.session_id); setPack(selectedPack);
-      const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: source.session_id, traceHasUtterances: hasStoredUtterance(sourceEvents) };
+      const acknowledgedAlertIds = sourceEvents.filter(event => event.kind === 'alert' && (event.alert as { acknowledged?: boolean } | undefined)?.acknowledged === true).map(event => String(event.event_id));
+      const active = { ...newLiveSession(created.session_id, created.ws_url, 'trace', created.pack_version), sourceSessionId: source.session_id, traceHasUtterances: hasStoredUtterance(sourceEvents), acknowledgedAlertIds };
       update(active); setScreen('playback'); connect(active);
     } catch (reason) { clearReplayAudio(); setError(errorText(reason)); } finally { creating.current = false; setBusy(false); }
   }
   const navigation = { onNavigate: navigate, onNew: requestNew };
+  // navigate 가 먼저 'sessions' 로 되돌린 뒤 이번 진입만 시연 음원으로 연다.
+  function openDemoAudio() { navigate('이력'); setHistoryView('presets'); }
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
-  else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} defaults={preparation.current} />;
+  else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} onDemo={openDemoAudio} defaults={preparation.current} health={health} onCheckHealth={checkHealth} />;
   else if ((screen === 'dashboard' || screen === 'playback') && session) page = <Dashboard {...navigation} session={session} pack={pack} health={health} micActive={micActive} micPending={micPending} micError={micError} replaySound={replaySound} onReplaySound={() => { void replayAudio.current?.toggle(); }} onMic={requestMic} onEnd={endSession} onRetry={() => connect(session, true)} onTextMode={() => { stopMic(); setMicError(''); update(value => value ? { ...value, textFallback: true, error: undefined } : value); }} onCommand={command} onDismiss={() => update(value => value ? { ...value, interventions: value.interventions.slice(1) } : value)} onEvidence={openEvidence} onItemEvidence={itemEvidence} onAsk={ask} />;
   else if (screen === 'report') page = <ReportScreen {...navigation} sessionId={reportTarget?.id ?? session?.id ?? null} onEvidence={openEvidence} onResume={record => openHistory(record, 'resume')} onTrace={record => openHistory(record, 'trace')} busy={busy} error={error} />;
   else if (screen === 'packs') page = <PackScreen {...navigation} />;
   else if (screen === 'documents') page = <DocumentsScreen {...navigation} />;
-  else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} busy={busy} error={error} />;
-  return <>{page}{error && screen === 'briefing' && <Modal title="상담 연결 확인" onClose={() => setError('')}><TextPages text={error} /></Modal>}
+  else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} initialView={historyView} busy={busy} error={error} />;
+  return <>{page}{error && screen === 'briefing' && <Modal title="상담 연결 확인" className="wb-compact" onClose={() => setError('')}><TextPages text={error} /></Modal>}
     {micIntro && screen === 'dashboard' && session?.mode === 'live' && session.status === 'connected' && !session.ending && <SpeakerIntroModal onClose={() => setMicIntro(false)} onContinue={() => { void toggleMic(); }} />}
     {traceSelection && <TraceSourcePicker trace={traceSelection} busy={busy} error={error} onClose={() => { setTraceSelection(null); setError(''); }} onPlay={record => openHistory(record, 'trace')} />}
-    {evidence && <Modal title="근거 원문" onClose={() => { evidenceRequest.current++; setEvidence(null); }}>{evidence.loading ? <Empty>근거를 불러오고 있습니다.</Empty> : evidence.value ? <EvidenceView value={evidence.value} /> : <Notice>{evidence.error}</Notice>}</Modal>}
-    {newConfirm && <Modal title="새 상담 시작" onClose={() => setNewConfirm(false)} actions={<><button onClick={() => setNewConfirm(false)}>현재 상담 유지</button><button className="wb-primary" disabled={session?.status !== 'connected' || session?.ending} onClick={() => { newAfterEnd.current = true; setNewConfirm(false); endSession(); }}>현재 상담 종료 후 새 상담</button></>}><TextPages text="현재 상담을 종료하고 서버에 기록한 뒤 새 상담을 준비합니다. 녹음 중이라면 녹음도 중지됩니다." /></Modal>}
+    {evidence && <Modal title="근거 원문" className={evidence.value ? 'wb-modal-wide' : ''} onClose={() => { evidenceRequest.current++; setEvidence(null); }}>{evidence.loading ? <Empty>근거를 불러오고 있습니다.</Empty> : evidence.value ? <EvidenceView value={evidence.value} /> : <Notice>{evidence.error}</Notice>}</Modal>}
+    {newConfirm && <Modal title="새 상담 시작" className="wb-compact" onClose={() => setNewConfirm(false)} actions={<><button onClick={() => setNewConfirm(false)}>현재 상담 유지</button><button className="wb-primary" disabled={session?.status !== 'connected' || session?.ending} onClick={() => { newAfterEnd.current = true; setNewConfirm(false); endSession(); }}>현재 상담 종료 후 새 상담</button></>}><TextPages text="현재 상담을 종료하고 서버에 기록한 뒤 새 상담을 준비합니다. 녹음 중이라면 녹음도 중지됩니다." /></Modal>}
   </>;
 }

@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 
 from server import errors
 from server.bootstrap.settings import Settings, get_settings
 from server.bootstrap.startup import build_runtime
+from server.bootstrap.warmup import warm
 from server.routers import documents, evidence, health, packs, sessions
 from server.ws import endpoint as ws_endpoint
 
@@ -19,7 +21,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.runtime = build_runtime(settings)
-        yield
+        # 임베딩 모델의 첫 로딩은 26초쯤 걸린다(warmup.py 실측). 미리 배경에서 치러
+        # 두면 첫 상담이 그만큼 빨라진다. 설정이 없으면 데울 것도 없다.
+        # 취소는 대기 중인 코루틴만 푼다. 적재 스레드는 끝까지 돌고, 종료는 그것을
+        # 기다린다. 테스트가 매번 그 비용을 치르지 않도록 조건을 둔다
+        warming = (
+            asyncio.create_task(warm(app.state.runtime, settings))
+            if settings.embedding_model
+            else None
+        )
+        try:
+            yield
+        finally:
+            if warming is not None:
+                warming.cancel()
+                with suppress(asyncio.CancelledError):
+                    await warming
 
     app = FastAPI(
         title=settings.display_name,

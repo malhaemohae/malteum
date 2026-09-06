@@ -22,3 +22,9 @@ export function rememberReplayPreset(id: string, preset: string) {
 export function rememberedReplayPreset(id: string) {
   try { return localStorage.getItem(`malteum.replay-preset.${id}`); } catch { return null; }
 }
+
+// The session this tab is currently working in. Survives a reload, dies with the tab.
+const activeKey = 'malteum.active-session';
+export function rememberActiveSession(id: string) { try { sessionStorage.setItem(activeKey, id); } catch { /* Storage is optional. */ } }
+export function forgetActiveSession() { try { sessionStorage.removeItem(activeKey); } catch { /* Storage is optional. */ } }
+export function activeSession(): string | null { try { return sessionStorage.getItem(activeKey); } catch { return null; } }

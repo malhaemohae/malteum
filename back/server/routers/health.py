@@ -26,6 +26,11 @@ def health(request: Request) -> dict:
         "stt": "ok" if runtime.stt is not None else "unconfigured",
         "llm": "ok" if settings.llm_model or settings.answer_llm_model else "unconfigured",
     }
+    # 계약의 embedding 은 ok·fail 둘뿐이라 "예열 중" 을 담을 자리가 없다. 준비되기
+    # 전에 상담을 열면 그 요청이 모델 로딩을 통째로 기다리므로, 그 구간은 degraded
+    # 로 알리는 편이 사실에 맞다. 임베딩을 아예 안 쓰는 배포는 키를 넣지 않는다
+    if settings.embedding_model:
+        checks["embedding"] = "ok" if runtime.warmup.ready else "fail"
     return {
         "status": "ok" if "fail" not in checks.values() else "degraded",
         "version": request.app.state.settings.version,

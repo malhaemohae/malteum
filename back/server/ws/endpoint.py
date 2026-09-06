@@ -88,11 +88,17 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 session = registry.get(msg.session_id) if msg.session_id else None
                 if session is None:
                     try:
-                        session = registry.open(
-                            settings.default_pack_version, msg.mode, customer_type, msg.session_id
+                        # 예열이 아직 안 끝났으면 여기서 팩·임베딩 모델을 처음 올린다.
+                        # 루프에서 그대로 부르면 그동안 하트비트도 다른 세션도 멈춘다
+                        session = await asyncio.to_thread(
+                            registry.open,
+                            settings.default_pack_version,
+                            msg.mode,
+                            customer_type,
+                            msg.session_id,
                         )
                     except PackNotFound:
-                        await conn.send(_error("pack_not_found", "규정 팩이 없습니다."))
+                        await conn.send(_error("pack_not_found", "규정팩이 없습니다."))
                         continue
                 # 이 뒤의 seq 는 세션에서 이어진다. 재접속이면 앞 연결이 쓰던 번호를
                 # 그대로 잇고, resume 이 그 세션의 로그에서 놓친 구간을 꺼낸다
@@ -178,7 +184,10 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 await _assist(assist.ask(session, pipeline, msg.question, conn.send), conn)
             elif msg.t == "assist_request":
                 await _assist(
-                    assist.assist_request(session, pipeline, msg.assist_type, conn.send), conn
+                    assist.assist_request(
+                        session, pipeline, msg.assist_type, conn.send, msg.item_code
+                    ),
+                    conn,
                 )
     except WebSocketDisconnect:
         pass

@@ -71,7 +71,13 @@ def read_pcm(path: Path) -> bytes:
 
 async def stream(pcm: bytes) -> AsyncIterator[bytes]:
     """실시간 속도로 100ms 씩 내보낸다."""
-    chunk = SAMPLE_RATE * 2 * FRAME_MS // 1000
+    bytes_per_second = SAMPLE_RATE * 2
+    chunk = bytes_per_second * FRAME_MS // 1000
+    loop = asyncio.get_running_loop()
+    started = loop.time()
     for off in range(0, len(pcm), chunk):
-        yield pcm[off : off + chunk]
-        await asyncio.sleep(FRAME_MS / 1000)
+        end = min(off + chunk, len(pcm))
+        yield pcm[off:end]
+        # Consumer work counts toward playback time, including the final short frame.
+        deadline = started + end / bytes_per_second
+        await asyncio.sleep(max(0.0, deadline - loop.time()))

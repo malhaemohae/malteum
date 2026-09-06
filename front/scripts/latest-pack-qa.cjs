@@ -1,0 +1,13 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const ts = require('typescript');
+require.extensions['.ts'] = (m, f) => m._compile(ts.transpileModule(fs.readFileSync(f, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, f);
+const { latestPacks } = require('../lib/workspace-model.ts');
+const pack = (version, date, code = 'deposit') => ({ pack_version: version, published_at: date, product: { code } });
+const input = [pack('v2', '2026-09-01T09:00:00+09:00'), pack('v10', '2026-09-01T00:00:00Z'), pack('v1', '2026-08-01T00:00:00Z', 'loan')];
+assert.deepEqual(latestPacks(input).map(p => p.pack_version), ['v10', 'v1']);
+assert.deepEqual(latestPacks([...input].reverse()).map(p => p.pack_version).sort(), ['v1', 'v10']);
+assert.equal(input.length, 3, 'catalog filtering must not delete historical packs');
+assert.equal(latestPacks([pack('v8', 'invalid'), pack('v9', undefined)])[0].pack_version, 'v9');
+assert.equal(latestPacks([pack('v9', '2026-09-01T01:00:00Z'), pack('v10', '2026-09-01T09:30:00+09:00')])[0].pack_version, 'v9');
+console.log('latest-pack-qa: 5 assertions passed');

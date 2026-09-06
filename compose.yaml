@@ -63,6 +63,9 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+      # 임베딩 모델을 처음 받는 부팅은 몇 분 걸린다. 그동안 /health 는 embedding 이
+      # 아직 준비 안 됐다고 degraded 를 내므로, 그 시간을 실패로 세지 않는다
+      start_period: 240s
 
   # Streaming Sortformer 화자 분리 사이드카 (back/sidecar/diarization). CPU 로 돈다 —
   # 청크 0.96초에 처리 0.11초, RSS 약 1.8GB. 서버와 가상환경이 달라 이미지도 따로다.
