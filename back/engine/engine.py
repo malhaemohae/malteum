@@ -171,22 +171,9 @@ class RuleEngine:
                     alerts.append(matcher.risk_alert(hit, ref))
             if "required" in g.types:
                 alerts.extend(numeric.check(utterance, pack, compiled, state))
-            if g.low_confidence:
-                # 은행원인지 확실하지 않다. 건드린 항목은 현재 상태 그대로 verdict 로 남긴다 (P3)
-                for hit in matcher.match(text, pack, compiled, frozenset({"required"})):
-                    cur = state.state_of(hit.item.code, "omission")
-                    if cur is not None:
-                        verdicts.append(
-                            VerdictPayload(
-                                item_code=cur.item_code,
-                                axis="omission",
-                                state=cur.state,
-                                decided_by="L1",
-                                missing_elements=cur.missing_elements,
-                                utterance_ref=ref,
-                                evidence=hit.item.evidence,
-                            )
-                        )
+            # 저신뢰 은행원 발화(g.low_confidence)는 gate 가 판정 타입을 비워 여기까지 아무
+            # 항목도 올리지 않는다. 현재 상태를 복사한 verdict 를 만들면 ver=0 인 초기 상태가
+            # 전송되고 L3·human 판정을 L1 으로 덮으므로, verdict 없이 상태를 그대로 둔다 (P3)
 
         if judged_types and self.embedder is not None and self.index is not None:
             with sw.lap("l2"):
