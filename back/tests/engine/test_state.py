@@ -43,6 +43,27 @@ def test_apply_is_idempotent_and_bumps_ver_only_on_change(pack_json):
     assert engine.apply(s1, l3).state_of("DEP-INT-001").ver == 2
 
 
+def test_apply_sets_first_seen_from_referenced_utterance_and_keeps_it(pack_json):
+    from contracts.engine_contract import Utterance
+
+    engine = _engine(pack_json)
+    pack = engine.load_pack(PACK_VERSION)
+    state = engine.initial_state("S1", pack, "text")
+    state = engine.observe(state, Utterance("U1", "teller", "중도해지 설명", 12_345))
+    first = JudgeResult(
+        verdicts=(VerdictPayload("DEP-INT-002", "omission", "partial", "L1", utterance_ref="U1"),)
+    )
+    state = engine.apply(state, first)
+    state = engine.observe(state, Utterance("U2", "teller", "추가 설명", 23_456))
+    refined = JudgeResult(
+        verdicts=(VerdictPayload("DEP-INT-002", "omission", "met", "L3", utterance_ref="U2"),)
+    )
+
+    state = engine.apply(state, refined)
+
+    assert state.state_of("DEP-INT-002").first_seen_t_ms == 12_345
+
+
 def test_term_density_follows_teller_jargon_and_matches_fold(pack_json, scenario_a):
     """⑧. 팩 jargon_terms 대조로만 센다. 실시간(observe)과 접기(fold)가 같은 값을 낸다."""
     from contracts.engine_contract import Utterance
