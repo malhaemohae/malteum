@@ -1,0 +1,2417 @@
+[
+  {
+    "run": "r1-preset-dep-a",
+    "preset": "preset-dep-a",
+    "summary": {
+      "items_total": 8,
+      "met": 4,
+      "partial": 1,
+      "unmet": 3,
+      "waived": 0,
+      "violations": 1,
+      "alerts": 3,
+      "assists_adopted": 2
+    },
+    "summary_diff": {},
+    "exact_summary": true,
+    "item_states": {
+      "total": 8,
+      "correct": 8,
+      "errors": {}
+    },
+    "met": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "violations": {
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "alerts": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "alert_details": [
+      {
+        "line": "A03",
+        "alert_type": "number_mismatch",
+        "severity": "warning",
+        "message": "설명서 기준 15.4%",
+        "item_code": "DEP-TAX-001",
+        "comparison": {
+          "said": "14%",
+          "reference": "15.4%",
+          "condition": null
+        },
+        "utterance_ref": "01M1W30E156CM75W18PTJ3R4ZR",
+        "evidence": {
+          "doc_id": "05_상품설명서_정기예금",
+          "page": 1,
+          "span": "정상일반세율은 이자소득의 15.4%",
+          "bbox": [
+            146.6,
+            326.1,
+            302.6,
+            335.6
+          ]
+        }
+      },
+      {
+        "line": "A08",
+        "alert_type": "forbidden_phrase",
+        "severity": "warning",
+        "message": "설명서 기준 확인이 필요합니다: 단정적 판단 금지",
+        "item_code": "DEP-BAN-001",
+        "utterance_ref": "01M1W31934B7HEY14JWWDCRA44",
+        "evidence": {
+          "doc_id": "01_금융소비자보호법",
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ]
+        }
+      },
+      {
+        "line": "A15",
+        "alert_type": "risk_signal",
+        "severity": "critical",
+        "message": "위험 신호: 제3자 계좌 위험 신호. 본인 의사와 거래 목적 확인이 필요합니다",
+        "item_code": "DEP-RSK-001",
+        "utterance_ref": "01M1W32VN5MFKFYSEXS2C670CC",
+        "evidence": {
+          "doc_id": "03_예금거래기본약관",
+          "page": 2,
+          "span": "② 거래처는 현금이나 증권으로 계좌송금(거래처가 개설점 이외에서 자기 계좌에 입금하거나, 제3자가",
+          "bbox": [
+            54.6,
+            686.4,
+            541.1,
+            696.7
+          ]
+        }
+      }
+    ],
+    "roles": {
+      "correct": 27,
+      "scored": 27,
+      "unmatched": [],
+      "errors": []
+    },
+    "coverage": {
+      "total": 16,
+      "covered": 16,
+      "missing": []
+    },
+    "cer": {
+      "errors": 13,
+      "reference_chars": 537,
+      "normalization": "lowercase; strip punctuation/spaces; no numeral conversion"
+    },
+    "latency_ms": {
+      "asr_segment_end_ms": {
+        "n": 16,
+        "p50": 1405.933,
+        "p95": 1973.503,
+        "max": 1973.503
+      },
+      "judge_ms": {
+        "n": 27,
+        "p50": 9.151,
+        "p95": 18.615,
+        "max": 160.216
+      },
+      "refine_ms": {
+        "n": 7,
+        "p50": 2195.65,
+        "p95": 5923.923,
+        "max": 5923.923
+      },
+      "refine_queue_ms": {
+        "n": 7,
+        "p50": 0.051,
+        "p95": 0.208,
+        "max": 0.208
+      },
+      "l3_ms": {
+        "n": 7,
+        "p50": 2181.672,
+        "p95": 5914.46,
+        "max": 5914.46
+      },
+      "speech_end_to_utterance_ms": {
+        "n": 27,
+        "p50": 1648.754,
+        "p95": 3690.397,
+        "max": 3696.945
+      },
+      "speech_end_to_verdict_ms": {
+        "n": 13,
+        "p50": 1788.804,
+        "p95": 7276.332,
+        "max": 7276.332
+      },
+      "speech_end_to_alert_ms": {
+        "n": 3,
+        "p50": 1373.405,
+        "p95": 1424.899,
+        "max": 1424.899
+      },
+      "speech_end_to_assist_ms": {
+        "n": 4,
+        "p50": 3427.667,
+        "p95": 5876.002,
+        "max": 5876.002
+      }
+    },
+    "latency_samples": {
+      "asr_segment_end_ms": [
+        1842.733815003885,
+        1420.9089400043013,
+        1313.9867539983243,
+        1347.4832940084161,
+        1144.3098020012258,
+        1973.5025499988114,
+        1422.7386249986012,
+        1352.9871840047417,
+        1405.9334580064751,
+        1742.4638580041938,
+        1780.8593170059612,
+        1310.3692190017318,
+        1419.643713006517,
+        1338.1082159973448,
+        1358.347536995425,
+        1666.2437670008512
+      ],
+      "judge_ms": [
+        7.1024849894456565,
+        6.545866999658756,
+        5.822670995257795,
+        6.573328995727934,
+        160.2158620080445,
+        7.9648929968243465,
+        11.255147997871973,
+        8.713614006410353,
+        9.57451100111939,
+        13.196226995205507,
+        9.765695009264164,
+        8.152388996677473,
+        10.641301996656694,
+        9.543991007376462,
+        9.029901004396379,
+        6.4163649949477986,
+        18.614685992361046,
+        7.949256003485061,
+        15.385349994176067,
+        12.784228005330078,
+        18.017587004578672,
+        9.151427002507262,
+        11.037239004508592,
+        11.162901995703578,
+        8.373377000680193,
+        9.071658991160803,
+        6.6552420030348
+      ],
+      "refine_ms": [
+        2482.8816920053214,
+        2195.6503080000402,
+        2192.3161119921133,
+        2809.362322994275,
+        5923.9229609956965,
+        2169.841588998679,
+        2061.131761991419
+      ],
+      "refine_queue_ms": [
+        0.20778800535481423,
+        0.05005300045013428,
+        0.06713499897159636,
+        0.02056000812444836,
+        0.05137099651619792,
+        0.07880399061832577,
+        0.043074003770016134
+      ],
+      "l3_ms": [
+        2315.32,
+        2181.672,
+        2178.023,
+        2800.055,
+        5914.46,
+        2156.29,
+        2043.781
+      ],
+      "speech_end_to_utterance_ms": [
+        3683.3283760036575,
+        3690.396713003167,
+        3696.9447060085367,
+        3386.5204419961665,
+        3393.004962006584,
+        1354.3216300057247,
+        1362.2346460068366,
+        1367.8640950017143,
+        1019.785454007797,
+        2058.8277690060204,
+        1351.111081996467,
+        1344.3368090039585,
+        1519.451518998132,
+        1529.0777950034244,
+        1754.7913119964069,
+        1763.78838799824,
+        1770.3707560034236,
+        1737.2650319986278,
+        1745.1183280019322,
+        1343.8000120084034,
+        1482.0558030040702,
+        1357.521938996273,
+        1402.8320130069042,
+        1413.9241900024936,
+        1648.7544439976336,
+        1657.0528600084363,
+        1666.1382819972932
+      ],
+      "speech_end_to_verdict_ms": [
+        3553.143991008168,
+        5875.983140005614,
+        1362.210700000869,
+        1376.4310879993718,
+        3572.062404003809,
+        1029.1199929983122,
+        4170.090547995758,
+        1352.3358699996024,
+        7276.33206900931,
+        1788.8035649997182,
+        1356.4080950025236,
+        1366.4614200019278,
+        3427.652189995046
+      ],
+      "speech_end_to_alert_ms": [
+        1373.4052149992203,
+        1352.3558650005143,
+        1424.8989590028068
+      ],
+      "speech_end_to_assist_ms": [
+        5876.002015003818,
+        3572.078507997212,
+        1029.1384820069652,
+        3427.6674119968666
+      ]
+    },
+    "card_triggers": [
+      {
+        "event_id": "01M1W30DQ0RWS16YE26AQETRZM",
+        "trigger_line": "A02"
+      },
+      {
+        "event_id": "01M1W30PPBVX5VTZ695ZN2BXF0",
+        "trigger_line": "A04"
+      },
+      {
+        "event_id": "01M1W30R0XRGCME8F6MDBSD42A",
+        "trigger_line": "A05"
+      },
+      {
+        "event_id": "01M1W32NGWN5XG4Z686S658512",
+        "trigger_line": "A14"
+      }
+    ],
+    "refinement": {
+      "scheduled": 7,
+      "started": 7,
+      "completed": 7,
+      "over_budget_wall": 1,
+      "cache_hits": 0,
+      "llm_tokens_returned": 15913
+    },
+    "invariants": {
+      "no_events_after_end": true,
+      "report_summary_matches": true,
+      "unique_event_ids": true,
+      "unique_sequences": true,
+      "pdf": true
+    },
+    "ws_errors": [],
+    "warmup": {
+      "ready": true,
+      "error": null,
+      "elapsed_s": 2.537,
+      "versions": [
+        "DEP-2026.08-v6"
+      ]
+    },
+    "session_create_ms": 10.43312500405591,
+    "transcript_mapping": [
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99698.263892424,
+        "session_ms": 13078,
+        "text": "안녕하세요. 작년에 넣어둔 전기예금이 있는데 만기가 아직 안 됐거든요. 지금 해지하면 얼마나 받을 수 있어요?",
+        "final": true,
+        "confidence": null,
+        "start_ms": 3440,
+        "duration_ms": 7760,
+        "speaker_id": "speaker_0",
+        "line_id": "A01",
+        "truth_role": "customer",
+        "touched": [
+          "A01"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99707.042067549,
+        "session_ms": 21857,
+        "text": "중도해지 기준으로 안내드리겠습니다. 우대이자율은 중도해지하시면 적용이 안 되고 기본이자율 기준으로 계산됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 13120,
+        "duration_ms": 7280,
+        "speaker_id": "speaker_1",
+        "line_id": "A02",
+        "truth_role": "teller",
+        "touched": [
+          "A02"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99711.735145363,
+        "session_ms": 26550,
+        "text": "받으시는 이자 수익에는 과세가 되는데요. 세율은 십사 퍼센트입니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 21440,
+        "duration_ms": 3760,
+        "speaker_id": "speaker_1",
+        "line_id": "A03",
+        "truth_role": "teller",
+        "touched": [
+          "A03"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99718.408641903,
+        "session_ms": 33223,
+        "text": "그리고 중도해지하시면 중도해지율이 적용돼서 이자가 많이 줄어듭니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 27600,
+        "duration_ms": 4240,
+        "speaker_id": "speaker_1",
+        "line_id": "A04",
+        "truth_role": "teller",
+        "touched": [
+          "A04"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99721.965468411,
+        "session_ms": 36780,
+        "text": "중도 해지 이유리 뭐예요?",
+        "final": true,
+        "confidence": null,
+        "start_ms": 33520,
+        "duration_ms": 2080,
+        "speaker_id": "speaker_0",
+        "line_id": "A05",
+        "truth_role": "customer",
+        "touched": [
+          "A05"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99729.914661159,
+        "session_ms": 44729,
+        "text": "네 만기 전에 찾으시면 처음 약속한 이자보다 적게 받으신다는 뜻입니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 38400,
+        "duration_ms": 4320,
+        "speaker_id": "speaker_1",
+        "line_id": "A06",
+        "truth_role": "teller",
+        "touched": [
+          "A06"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99734.643897234,
+        "session_ms": 49458,
+        "text": "중간에 깨면 이자를 훨씬 덜 받는다는 거네요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 44160,
+        "duration_ms": 3840,
+        "speaker_id": "speaker_0",
+        "line_id": "A07",
+        "truth_role": "customer",
+        "touched": [
+          "A07"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99739.454145793,
+        "session_ms": 54269,
+        "text": "만기 지나도 금리가 그대로 유지되니까 그냥 두셔도 돼요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 49680,
+        "duration_ms": 3200,
+        "speaker_id": "speaker_1",
+        "line_id": "A08",
+        "truth_role": "teller",
+        "touched": [
+          "A08"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99745.187092067,
+        "session_ms": 60002,
+        "text": "그래요. 그럼 그냥 두는 게 낫겠네요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 55280,
+        "duration_ms": 3280,
+        "speaker_id": "speaker_0",
+        "line_id": "A09",
+        "truth_role": "customer",
+        "touched": [
+          "A09"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99755.923622467,
+        "session_ms": 70738,
+        "text": "아, 죄송합니다. 정확히 다시 말씀드릴게요. 만기 후에는 약정 이율이 아니라 만기 후이자율이 적용되고 경과 기간에 따라 더 낮아집니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 60000,
+        "duration_ms": 8960,
+        "speaker_id": "speaker_1",
+        "line_id": "A10",
+        "truth_role": "teller",
+        "touched": [
+          "A10"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99761.722017926,
+        "session_ms": 76536,
+        "text": "아까 세금도 정정하겠습니다. 이자에 과세되는 세율은 십오점사퍼센트입니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 70080,
+        "duration_ms": 4640,
+        "speaker_id": "speaker_1",
+        "line_id": "A11",
+        "truth_role": "teller",
+        "touched": [
+          "A11"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99770.371527828,
+        "session_ms": 85186,
+        "text": "그리고 중도해지 이율은 약정 이율에 예치 기간별 차감률을 곱해서 계산되는데 석 달 안에 해지하시면 약정 이율의 절반 정도만 받으세요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 75760,
+        "duration_ms": 8080,
+        "speaker_id": "speaker_1",
+        "line_id": "A12",
+        "truth_role": "teller",
+        "touched": [
+          "A12"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99776.880802322,
+        "session_ms": 91695,
+        "text": "대신 해지하지 않고 예금담보대출을 이용하시면 예금은 그대로 두고 필요한 금액만 빌리실 수 있습니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 84720,
+        "duration_ms": 5520,
+        "speaker_id": "speaker_1",
+        "line_id": "A13",
+        "truth_role": "teller",
+        "touched": [
+          "A13"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99782.879266825,
+        "session_ms": 97694,
+        "text": "참고로 이 예금은 예금자 보호법에 따라 원금과 이자 포함 1인당 1억 원까지 보호됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 91200,
+        "duration_ms": 5120,
+        "speaker_id": "speaker_1",
+        "line_id": "A14",
+        "truth_role": "teller",
+        "touched": [
+          "A14"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99791.219506146,
+        "session_ms": 106034,
+        "text": "아니요, 그냥 해지할게요. 해지한 돈은 딸이 알려준 계좌로 바로 보내주세요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 98720,
+        "duration_ms": 5920,
+        "speaker_id": "speaker_0",
+        "line_id": "A15",
+        "truth_role": "customer",
+        "touched": [
+          "A15"
+        ]
+      },
+      {
+        "session_id": "01M1W2ZM3727CHGCTWV8BVEDBB",
+        "at": 99800.167402376,
+        "session_ms": 114982,
+        "text": "고객님 혹시 딸님과 직접 통화는 해보셨어요? 확인 후에 진행하겠습니다. 신분증 먼저 주시겠어요?",
+        "final": true,
+        "confidence": null,
+        "start_ms": 107280,
+        "duration_ms": 6000,
+        "speaker_id": "speaker_1",
+        "line_id": "A16",
+        "truth_role": "teller",
+        "touched": [
+          "A16"
+        ]
+      }
+    ]
+  },
+  {
+    "run": "r1-preset-dep-d",
+    "preset": "preset-dep-d",
+    "summary": {
+      "items_total": 8,
+      "met": 8,
+      "partial": 0,
+      "unmet": 0,
+      "waived": 0,
+      "violations": 1,
+      "alerts": 3,
+      "assists_adopted": 2
+    },
+    "summary_diff": {},
+    "exact_summary": true,
+    "item_states": {
+      "total": 8,
+      "correct": 8,
+      "errors": {}
+    },
+    "met": {
+      "tp": 8,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "violations": {
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "alerts": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "alert_details": [
+      {
+        "line": "D05",
+        "alert_type": "forbidden_phrase",
+        "severity": "warning",
+        "message": "설명서 기준 확인이 필요합니다: 단정적 판단 금지",
+        "item_code": "DEP-BAN-001",
+        "utterance_ref": "01M1W3EMKDCX3CWVBBPZ7BSFMA",
+        "evidence": {
+          "doc_id": "01_금융소비자보호법",
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ]
+        }
+      },
+      {
+        "line": "D15",
+        "alert_type": "number_mismatch",
+        "severity": "warning",
+        "message": "설명서 기준 5년",
+        "item_code": "DEP-TER-001",
+        "comparison": {
+          "said": "3년",
+          "reference": "5년",
+          "condition": null
+        },
+        "utterance_ref": "01M1W3GPFN4603M4TWE99TBWKQ",
+        "evidence": {
+          "doc_id": "05_상품설명서_정기예금",
+          "page": 3,
+          "span": "위법계약해지 요구는 계약서류를 받은 날로부터 5년, 위법사실을 안 날로부터 1년 이내에 가능(계약 종료 시 행사 불가)",
+          "bbox": [
+            137.5,
+            705.3,
+            563.9,
+            736.3
+          ]
+        }
+      },
+      {
+        "line": "D17",
+        "alert_type": "risk_signal",
+        "severity": "critical",
+        "message": "위험 신호: 제3자 계좌 위험 신호. 본인 의사와 거래 목적 확인이 필요합니다",
+        "item_code": "DEP-RSK-001",
+        "utterance_ref": "01M1W3H7CCK8F6HN7RAKSZW7FG",
+        "evidence": {
+          "doc_id": "03_예금거래기본약관",
+          "page": 2,
+          "span": "② 거래처는 현금이나 증권으로 계좌송금(거래처가 개설점 이외에서 자기 계좌에 입금하거나, 제3자가",
+          "bbox": [
+            54.6,
+            686.4,
+            541.1,
+            696.7
+          ]
+        }
+      }
+    ],
+    "roles": {
+      "correct": 24,
+      "scored": 24,
+      "unmatched": [],
+      "errors": []
+    },
+    "coverage": {
+      "total": 18,
+      "covered": 18,
+      "missing": []
+    },
+    "cer": {
+      "errors": 5,
+      "reference_chars": 603,
+      "normalization": "lowercase; strip punctuation/spaces; no numeral conversion"
+    },
+    "latency_ms": {
+      "asr_segment_end_ms": {
+        "n": 18,
+        "p50": 1586.258,
+        "p95": 2306.14,
+        "max": 2306.14
+      },
+      "judge_ms": {
+        "n": 24,
+        "p50": 8.937,
+        "p95": 15.781,
+        "max": 16.168
+      },
+      "refine_ms": {
+        "n": 3,
+        "p50": 2240.861,
+        "p95": 2565.174,
+        "max": 2565.174
+      },
+      "refine_queue_ms": {
+        "n": 3,
+        "p50": 0.077,
+        "p95": 0.083,
+        "max": 0.083
+      },
+      "l3_ms": {
+        "n": 3,
+        "p50": 2231.587,
+        "p95": 2398.88,
+        "max": 2398.88
+      },
+      "speech_end_to_utterance_ms": {
+        "n": 24,
+        "p50": 1733.297,
+        "p95": 2447.913,
+        "max": 3951.636
+      },
+      "speech_end_to_verdict_ms": {
+        "n": 15,
+        "p50": 2012.703,
+        "p95": 4233.428,
+        "max": 4233.428
+      },
+      "speech_end_to_alert_ms": {
+        "n": 3,
+        "p50": 1992.48,
+        "p95": 2239.232,
+        "max": 2239.232
+      },
+      "speech_end_to_assist_ms": {
+        "n": 3,
+        "p50": 2047.564,
+        "p95": 3787.847,
+        "max": 3787.847
+      }
+    },
+    "latency_samples": {
+      "asr_segment_end_ms": [
+        1188.5153560026083,
+        2249.6571429958567,
+        1435.4583409975749,
+        1203.7249829916982,
+        1957.6535959949251,
+        1300.60717000335,
+        2306.1402259988245,
+        1954.0294839942362,
+        1539.2809569934616,
+        1586.2580790015636,
+        2023.1974609947065,
+        2030.9379219950642,
+        1471.9752829981735,
+        1143.7760730017908,
+        2141.721908993204,
+        1827.780845995876,
+        1836.3517589960247,
+        1477.5142410007538
+      ],
+      "judge_ms": [
+        6.87847200606484,
+        7.081935997121036,
+        9.92400299583096,
+        8.168129992554896,
+        9.607964995666407,
+        9.627589999581687,
+        7.936617010273039,
+        6.209131010109559,
+        10.658215003786609,
+        15.780787012772635,
+        10.144640007638372,
+        16.167577996384352,
+        8.339569991221651,
+        9.326548999524675,
+        7.4033269920619205,
+        9.229835995938629,
+        9.7578849963611,
+        10.282129005645402,
+        7.212251002783887,
+        8.936610000091605,
+        7.5932940089842305,
+        7.408670004224405,
+        12.845432007452473,
+        6.5929129923461005
+      ],
+      "refine_ms": [
+        2565.1743399939733,
+        2240.8614519954426,
+        2158.3277819881914
+      ],
+      "refine_queue_ms": [
+        0.07724000897724181,
+        0.053625000873580575,
+        0.08330101263709366
+      ],
+      "l3_ms": [
+        2398.88,
+        2231.587,
+        2133.812
+      ],
+      "speech_end_to_utterance_ms": [
+        2441.1360510013765,
+        2447.9125239915447,
+        3951.6356100011617,
+        1423.8416639978532,
+        1213.1453650052426,
+        1983.062474995968,
+        967.0706739983289,
+        974.8910750043578,
+        2383.621941002668,
+        2394.3161420051474,
+        1925.3550019996474,
+        1569.682998995413,
+        1683.5659470035462,
+        2003.6197719955817,
+        2040.2847729917848,
+        1380.2962149966042,
+        949.1113909945125,
+        2229.1331909956643,
+        1913.2305169984465,
+        1920.4119800048647,
+        1725.7915250046644,
+        1733.2971419927198,
+        1451.9340110043995,
+        1464.7614079938503
+      ],
+      "speech_end_to_verdict_ms": [
+        3961.4140150024323,
+        1431.77221699222,
+        1222.5232920007547,
+        3787.8209540047683,
+        1992.465537005337,
+        4233.427923995187,
+        2409.8956230031326,
+        1935.3971589946887,
+        1585.7385000033537,
+        3744.0853409987176,
+        1691.7660340060247,
+        2012.7025680040242,
+        2047.5428459965624,
+        2239.2147079964634,
+        1740.5794100012863
+      ],
+      "speech_end_to_alert_ms": [
+        1992.480124005233,
+        2239.2323510004207,
+        1740.593360005645
+      ],
+      "speech_end_to_assist_ms": [
+        3787.84713499574,
+        2047.5636660037562,
+        1740.6009030054556
+      ]
+    },
+    "card_triggers": [
+      {
+        "event_id": "01M1W3EGKAXF04T8GSHQDH3TWY",
+        "trigger_line": "D04"
+      },
+      {
+        "event_id": "01M1W3G0QYC1WSKS3FTWJ25Y39",
+        "trigger_line": "D12"
+      },
+      {
+        "event_id": "01M1W3H7CKGSZADWKBMEMEST16",
+        "trigger_line": "D17"
+      }
+    ],
+    "refinement": {
+      "scheduled": 3,
+      "started": 3,
+      "completed": 3,
+      "over_budget_wall": 0,
+      "cache_hits": 0,
+      "llm_tokens_returned": 6625
+    },
+    "invariants": {
+      "no_events_after_end": true,
+      "report_summary_matches": true,
+      "unique_event_ids": true,
+      "unique_sequences": true,
+      "pdf": true
+    },
+    "ws_errors": [],
+    "warmup": {
+      "ready": true,
+      "error": null,
+      "elapsed_s": 2.536,
+      "versions": [
+        "DEP-2026.08-v6"
+      ]
+    },
+    "session_create_ms": 8.207948005292565,
+    "transcript_mapping": [
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100153.173868611,
+        "session_ms": 10004,
+        "text": "안녕하세요. 여유 자금이 좀 생겨서 일년짜리 정기 예금에 넣어두려고요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 3520,
+        "duration_ms": 5280,
+        "speaker_id": "speaker_0",
+        "line_id": "D01",
+        "truth_role": "customer",
+        "touched": [
+          "D01"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100162.155010398,
+        "session_ms": 18985,
+        "text": "네, 십이 개월 만기 기본 이자율은 연 삼점이 퍼센트이고 자동 이체 조건을 채우시면 우대 이자율이 더해집니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 10400,
+        "duration_ms": 6320,
+        "speaker_id": "speaker_1",
+        "line_id": "D02",
+        "truth_role": "teller",
+        "touched": [
+          "D02"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100165.740811596,
+        "session_ms": 22571,
+        "text": "받으시는 이자에는 과세가 되고 세율은 십오점사퍼센트입니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 17600,
+        "duration_ms": 3520,
+        "speaker_id": "speaker_1",
+        "line_id": "D03",
+        "truth_role": "teller",
+        "touched": [
+          "D03"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100170.549078238,
+        "session_ms": 27379,
+        "text": "만기 전에 중도해지하시면 중도해지 이율이 적용되어 이자가 줄어듭니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 22080,
+        "duration_ms": 4080,
+        "speaker_id": "speaker_1",
+        "line_id": "D04",
+        "truth_role": "teller",
+        "touched": [
+          "D04"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100177.223006851,
+        "session_ms": 34053,
+        "text": "그리고 이 예금은 중간에 해지하셔도 손해 보실 일은 없습니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 28640,
+        "duration_ms": 3440,
+        "speaker_id": "speaker_1",
+        "line_id": "D05",
+        "truth_role": "teller",
+        "touched": [
+          "D05"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100182.965960425,
+        "session_ms": 39796,
+        "text": "그래요. 그럼 마음 편하게 넣어도 되겠네요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 34640,
+        "duration_ms": 3840,
+        "speaker_id": "speaker_0",
+        "line_id": "D06",
+        "truth_role": "customer",
+        "touched": [
+          "D06"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100195.811493481,
+        "session_ms": 52642,
+        "text": "정확히 다시 말씀드리겠습니다. 중도 해지하시면 중도 해지 이율이 적용되는데 약정 이율에 경과 기간별 차감률을 곱해서 계산하기 때문에 이자가 많이 줄어듭니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 40480,
+        "duration_ms": 9840,
+        "speaker_id": "speaker_1",
+        "line_id": "D07",
+        "truth_role": "teller",
+        "touched": [
+          "D07"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100200.339382739,
+        "session_ms": 57170,
+        "text": "만기 후에는 만기 후이자율이 적용되어 기간이 지날수록 낮아집니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 51200,
+        "duration_ms": 4000,
+        "speaker_id": "speaker_1",
+        "line_id": "D08",
+        "truth_role": "teller",
+        "touched": [
+          "D08"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100208.244634212,
+        "session_ms": 65075,
+        "text": "이 예금은 예금자 보호법에 따라 원금과 이자를 합쳐 일인당 일억 원까지 보호되고 저희 은행의 다른 예금과 합산해서 계산됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 56160,
+        "duration_ms": 7360,
+        "speaker_id": "speaker_1",
+        "line_id": "D09",
+        "truth_role": "teller",
+        "touched": [
+          "D09"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100212.931611334,
+        "session_ms": 69762,
+        "text": "이 예금은 일부 해지가 안 되고 해지하시면 전액이 한 번에 나옵니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 64320,
+        "duration_ms": 3840,
+        "speaker_id": "speaker_1",
+        "line_id": "D10",
+        "truth_role": "teller",
+        "touched": [
+          "D10"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100218.648550716,
+        "session_ms": 75479,
+        "text": "계좌에 압류나 가압류 질권이 설정되면 원금과 이자 지급이 제한됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 69040,
+        "duration_ms": 4400,
+        "speaker_id": "speaker_1",
+        "line_id": "D11",
+        "truth_role": "teller",
+        "touched": [
+          "D11"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100222.416291177,
+        "session_ms": 79246,
+        "text": "네, 질권 설정이 뭐예요?",
+        "final": true,
+        "confidence": null,
+        "start_ms": 74880,
+        "duration_ms": 2320,
+        "speaker_id": "speaker_0",
+        "line_id": "D12",
+        "truth_role": "customer",
+        "touched": [
+          "D12"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100229.297328538,
+        "session_ms": 86127,
+        "text": "계좌에 압류나 가압류, 질권 설정이 걸리면 원금과 이자를 찾을 수 없다는 뜻입니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 79520,
+        "duration_ms": 5120,
+        "speaker_id": "speaker_1",
+        "line_id": "D13",
+        "truth_role": "teller",
+        "touched": [
+          "D13"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100234.889129328,
+        "session_ms": 91719,
+        "text": "아, 다른 데서 걸어놓은 게 있으면 못 찾는다는 거네요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 86400,
+        "duration_ms": 4160,
+        "speaker_id": "speaker_0",
+        "line_id": "D14",
+        "truth_role": "customer",
+        "touched": [
+          "D14"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100244.687075164,
+        "session_ms": 101517,
+        "text": "가입 후에 설명이 잘못됐다고 판단되시면 위법 계약 해지를 요구하실 수 있고 계약서류를 받은 날부터 3년 안에 하셔야 합니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 92480,
+        "duration_ms": 6880,
+        "speaker_id": "speaker_1",
+        "line_id": "D15",
+        "truth_role": "teller",
+        "touched": [
+          "D15"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100254.293134101,
+        "session_ms": 111123,
+        "text": "죄송합니다. 기간을 정확히 말씀드리면 계약서류를 받은 날부터 5년 위반을 안 날부터 1년 안에 요구하실 수 있습니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 101680,
+        "duration_ms": 7600,
+        "speaker_id": "speaker_1",
+        "line_id": "D16",
+        "truth_role": "teller",
+        "touched": [
+          "D16"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100261.981705014,
+        "session_ms": 118812,
+        "text": "네, 그럼 가입할게요. 돈은 아들이 알려준 계좌에서 옮겨 넣으면 되겠죠?",
+        "final": true,
+        "confidence": null,
+        "start_ms": 111360,
+        "duration_ms": 5600,
+        "speaker_id": "speaker_0",
+        "line_id": "D17",
+        "truth_role": "customer",
+        "touched": [
+          "D17"
+        ]
+      },
+      {
+        "session_id": "01M1W3DKB7VVACZ1H2S92JBHQD",
+        "at": 100269.702867496,
+        "session_ms": 126533,
+        "text": "아드님 계좌라면 본인 확인이 먼저 필요합니다. 실명 확인 증표, 신분증을 먼저 보여주시겠어요?",
+        "final": true,
+        "confidence": null,
+        "start_ms": 119440,
+        "duration_ms": 5600,
+        "speaker_id": "speaker_1",
+        "line_id": "D18",
+        "truth_role": "teller",
+        "touched": [
+          "D18"
+        ]
+      }
+    ]
+  },
+  {
+    "run": "r1-preset-loan-b",
+    "preset": "preset-loan-b",
+    "summary": {
+      "items_total": 11,
+      "met": 5,
+      "partial": 1,
+      "unmet": 5,
+      "waived": 0,
+      "violations": 2,
+      "alerts": 2,
+      "assists_adopted": 1
+    },
+    "summary_diff": {},
+    "exact_summary": true,
+    "item_states": {
+      "total": 11,
+      "correct": 11,
+      "errors": {}
+    },
+    "met": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "violations": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "alerts": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "alert_details": [
+      {
+        "line": "B06",
+        "alert_type": "forbidden_phrase",
+        "severity": "warning",
+        "message": "설명서 기준 확인이 필요합니다: 심사 통과 단정 금지",
+        "item_code": "LOAN-BAN-001",
+        "utterance_ref": "01M1W35J39V7Z6567BG4Z7B23F",
+        "evidence": {
+          "doc_id": "01_금융소비자보호법",
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ]
+        }
+      },
+      {
+        "line": "B09",
+        "alert_type": "forbidden_phrase",
+        "severity": "warning",
+        "message": "설명서 기준 확인이 필요합니다: 상환방식 강요 금지",
+        "item_code": "LOAN-RSK-001",
+        "utterance_ref": "01M1W3635VCT1GXKFJ2HJGES48",
+        "evidence": {
+          "doc_id": "01_금융소비자보호법",
+          "page": 11,
+          "span": "가. 자기 또는 제3자의 이익을 위하여 금융소비자에게 특정 대출 상환방식을 강요하는 행",
+          "bbox": [
+            71.0,
+            532.0,
+            553.5,
+            543.6
+          ]
+        }
+      }
+    ],
+    "roles": {
+      "correct": 21,
+      "scored": 21,
+      "unmatched": [],
+      "errors": []
+    },
+    "coverage": {
+      "total": 16,
+      "covered": 16,
+      "missing": []
+    },
+    "cer": {
+      "errors": 28,
+      "reference_chars": 502,
+      "normalization": "lowercase; strip punctuation/spaces; no numeral conversion"
+    },
+    "latency_ms": {
+      "asr_segment_end_ms": {
+        "n": 16,
+        "p50": 1749.781,
+        "p95": 2189.933,
+        "max": 2189.933
+      },
+      "judge_ms": {
+        "n": 21,
+        "p50": 10.194,
+        "p95": 20.009,
+        "max": 20.8
+      },
+      "refine_ms": {
+        "n": 6,
+        "p50": 2189.176,
+        "p95": 3046.227,
+        "max": 3046.227
+      },
+      "refine_queue_ms": {
+        "n": 6,
+        "p50": 0.128,
+        "p95": 2380.871,
+        "max": 2380.871
+      },
+      "l3_ms": {
+        "n": 6,
+        "p50": 2172.124,
+        "p95": 3033.99,
+        "max": 3033.99
+      },
+      "speech_end_to_utterance_ms": {
+        "n": 21,
+        "p50": 1820.174,
+        "p95": 3472.177,
+        "max": 3481.681
+      },
+      "speech_end_to_verdict_ms": {
+        "n": 11,
+        "p50": 1949.888,
+        "p95": 7082.282,
+        "max": 7082.282
+      },
+      "speech_end_to_alert_ms": {
+        "n": 2,
+        "p50": 1655.22,
+        "p95": 1784.661,
+        "max": 1784.661
+      },
+      "speech_end_to_assist_ms": {
+        "n": 2,
+        "p50": 1083.346,
+        "p95": 4036.444,
+        "max": 4036.444
+      }
+    },
+    "latency_samples": {
+      "asr_segment_end_ms": [
+        1749.7814759978792,
+        1592.7799999905983,
+        1105.9696099953726,
+        1295.7708299928345,
+        2110.5752119910903,
+        1685.4017400037264,
+        1754.778710991959,
+        2189.933035004069,
+        1566.4349909988232,
+        1824.393629002734,
+        1861.4066620043013,
+        2026.8485000013607,
+        1887.7382809942355,
+        1934.5536839956185,
+        1240.8444369927747,
+        1595.5759209988173
+      ],
+      "judge_ms": [
+        9.542487998260185,
+        7.360360992606729,
+        14.728114008903503,
+        7.122632989194244,
+        17.398379000951536,
+        9.186676994431764,
+        13.951155997347087,
+        7.749145006528124,
+        12.451715010683984,
+        8.608399002696387,
+        9.89166198996827,
+        8.280427995487116,
+        6.951581992325373,
+        6.386775989085436,
+        20.00860500265844,
+        20.799619000172243,
+        10.193793990765698,
+        19.815606996417046,
+        10.317647000192665,
+        16.824512000312097,
+        11.345706996507943
+      ],
+      "refine_ms": [
+        2794.017894004355,
+        2390.6102769979043,
+        3046.2267919938313,
+        1468.1766099965898,
+        2189.175804000115,
+        1972.9998980037635
+      ],
+      "refine_queue_ms": [
+        0.10060799831990153,
+        0.15654400340281427,
+        2380.8712939935504,
+        0.1283759920625016,
+        1448.294679998071,
+        0.06127599044702947
+      ],
+      "l3_ms": [
+        2620.442,
+        2371.858,
+        3033.99,
+        1456.012,
+        2172.124,
+        1961.684
+      ],
+      "speech_end_to_utterance_ms": [
+        3472.177049992024,
+        3481.6806379996706,
+        3054.5673859955277,
+        1076.360692004091,
+        1170.2040999974124,
+        2168.976647993084,
+        1770.7445100031327,
+        1676.1917810027953,
+        2279.3574170044158,
+        1636.9069439958548,
+        1645.3249600005802,
+        1564.8208869999507,
+        1863.7946760036284,
+        1870.6134319991106,
+        1877.0344690028578,
+        1929.289095003507,
+        1820.1744669988984,
+        1896.0132480013417,
+        1025.2574180040974,
+        1640.0807129973546,
+        1656.9500899929553
+      ],
+      "speech_end_to_verdict_ms": [
+        3069.102817003499,
+        1083.329739990877,
+        2177.970386993373,
+        1784.6345539955655,
+        4578.640472996049,
+        1655.1946800015867,
+        4036.425826997147,
+        7082.281556997914,
+        1949.8875680017518,
+        1830.1129759986652,
+        1915.659776003682
+      ],
+      "speech_end_to_alert_ms": [
+        1784.6613959927345,
+        1655.2202390000457
+      ],
+      "speech_end_to_assist_ms": [
+        1083.3462889963994,
+        4036.44377799239
+      ]
+    },
+    "card_triggers": [
+      {
+        "event_id": "01M1W34Z5XW5QYB16MDB5QTBNC",
+        "trigger_line": "B03"
+      },
+      {
+        "event_id": "01M1W365GJCRHDJGJC7FHX3D0A",
+        "trigger_line": "B09"
+      }
+    ],
+    "refinement": {
+      "scheduled": 6,
+      "started": 6,
+      "completed": 6,
+      "over_budget_wall": 1,
+      "cache_hits": 0,
+      "llm_tokens_returned": 13713
+    },
+    "invariants": {
+      "no_events_after_end": true,
+      "report_summary_matches": true,
+      "unique_event_ids": true,
+      "unique_sequences": true,
+      "pdf": true
+    },
+    "ws_errors": [],
+    "warmup": {
+      "ready": true,
+      "error": null,
+      "elapsed_s": 2.513,
+      "versions": [
+        "DEP-2026.08-v6"
+      ]
+    },
+    "session_create_ms": 296.6416990093421,
+    "transcript_mapping": [
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99849.091532701,
+        "session_ms": 11044,
+        "text": "안녕하세요. 신용대출을 좀 받고 싶은데 제 조건이면 금리랑 한도가 어느 정도 나올까요?",
+        "final": true,
+        "confidence": null,
+        "start_ms": 3520,
+        "duration_ms": 5760,
+        "speaker_id": "speaker_0",
+        "line_id": "B01",
+        "truth_role": "customer",
+        "touched": [
+          "B01"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99856.934531225,
+        "session_ms": 18887,
+        "text": "먼저 소득과 기존 대출을 확인해서 DSR 총 부채 원리금 상환 비율을 산출하고 심사에 활용합니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 10640,
+        "duration_ms": 6640,
+        "speaker_id": "speaker_1",
+        "line_id": "B02",
+        "truth_role": "teller",
+        "touched": [
+          "B02"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99860.367720835,
+        "session_ms": 22320,
+        "text": "DSR이 뭐예요?",
+        "final": true,
+        "confidence": null,
+        "start_ms": 19440,
+        "duration_ms": 1760,
+        "speaker_id": "speaker_0",
+        "line_id": "B03",
+        "truth_role": "customer",
+        "touched": [
+          "B03"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99867.277522055,
+        "session_ms": 29230,
+        "text": "소득에 비해 모든 대출의 원리금을 얼마나 갚아야 하는지 계산해서 심사하는 비율입니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 23520,
+        "duration_ms": 4400,
+        "speaker_id": "speaker_1",
+        "line_id": "B04",
+        "truth_role": "teller",
+        "touched": [
+          "B04"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99874.172326437,
+        "session_ms": 36125,
+        "text": "금리 방식은 변동금리라서 기준금리가 바뀌면 금리가 오를 변동 가능성이 있습니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 29040,
+        "duration_ms": 4960,
+        "speaker_id": "speaker_1",
+        "line_id": "B05",
+        "truth_role": "teller",
+        "touched": [
+          "B05"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99879.747152965,
+        "session_ms": 41700,
+        "text": "지금 조회한 조건이면 연 4.5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 34960,
+        "duration_ms": 5040,
+        "speaker_id": "speaker_1",
+        "line_id": "B06",
+        "truth_role": "teller",
+        "touched": [
+          "B06"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99884.376529936,
+        "session_ms": 46329,
+        "text": "아, 그러면 확정인 거네요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 42320,
+        "duration_ms": 2240,
+        "speaker_id": "speaker_0",
+        "line_id": "B07",
+        "truth_role": "customer",
+        "touched": [
+          "B07"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99892.49168426,
+        "session_ms": 54444,
+        "text": "정확히는 내부 결제 전이라 확정은 아니고 심사 결과에 따라 금리와 한도가 달라질 수 있습니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 46000,
+        "duration_ms": 6240,
+        "speaker_id": "speaker_1",
+        "line_id": "B08",
+        "truth_role": "teller",
+        "touched": [
+          "B08"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99897.228186216,
+        "session_ms": 59181,
+        "text": "그리고 상환은 원리금 균등으로만 가능합니다. 다른 상환 방식은 안 됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 53280,
+        "duration_ms": 4320,
+        "speaker_id": "speaker_1",
+        "line_id": "B09",
+        "truth_role": "teller",
+        "touched": [
+          "B09"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99902.926144854,
+        "session_ms": 64879,
+        "text": "잡는 방식을 제가 고를 수는 없나 보네요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 60240,
+        "duration_ms": 2800,
+        "speaker_id": "speaker_0",
+        "line_id": "B10",
+        "truth_role": "customer",
+        "touched": [
+          "B10"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99910.483157887,
+        "session_ms": 72436,
+        "text": "죄송합니다. 제가 잘못 말씀드렸습니다. 갚는 방법은 고객님이 원하시는 쪽으로 고르실 수 있습니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 65040,
+        "duration_ms": 5520,
+        "speaker_id": "speaker_1",
+        "line_id": "B11",
+        "truth_role": "teller",
+        "touched": [
+          "B11"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99918.248599725,
+        "session_ms": 80201,
+        "text": "대출을 3년 안에 일찍 갚으시면 중도상환 해약금 부과 가능성이 있고 적용 기간은 대출일부터 3년입니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 71600,
+        "duration_ms": 6560,
+        "speaker_id": "speaker_1",
+        "line_id": "B12",
+        "truth_role": "teller",
+        "touched": [
+          "B12"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99924.909489506,
+        "session_ms": 86862,
+        "text": "연체하시면 대출이자율에 연체가산이자율 연 3%가 더해진 연체이자율이 적용됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 79440,
+        "duration_ms": 5520,
+        "speaker_id": "speaker_1",
+        "line_id": "B13",
+        "truth_role": "teller",
+        "touched": [
+          "B13"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99931.916304909,
+        "session_ms": 93869,
+        "text": "대출 실행 후 14일 안에 철회 의사 표시를 하시고 대출금 반환을 하시면 청약 철회가 됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 86400,
+        "duration_ms": 5520,
+        "speaker_id": "speaker_1",
+        "line_id": "B14",
+        "truth_role": "teller",
+        "touched": [
+          "B14"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99936.582595662,
+        "session_ms": 98535,
+        "text": "신용조회하면 제 등급이 떨어지는 건 아닌지 걱정되네요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 93520,
+        "duration_ms": 3760,
+        "speaker_id": "speaker_0",
+        "line_id": "B15",
+        "truth_role": "customer",
+        "touched": [
+          "B15"
+        ]
+      },
+      {
+        "session_id": "01M1W34933H7QTNEBR41655GKW",
+        "at": 99944.057327146,
+        "session_ms": 106010,
+        "text": "그 부분은 서류 준비 되시면 다시 안내드릴게요. 신분증과 소득 증빙 서류를 준비해 주세요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 99040,
+        "duration_ms": 5360,
+        "speaker_id": "speaker_1",
+        "line_id": "B16",
+        "truth_role": "teller",
+        "touched": [
+          "B16"
+        ]
+      }
+    ]
+  },
+  {
+    "run": "r1-preset-loan-c",
+    "preset": "preset-loan-c",
+    "summary": {
+      "items_total": 11,
+      "met": 7,
+      "partial": 0,
+      "unmet": 4,
+      "waived": 0,
+      "violations": 1,
+      "alerts": 3,
+      "assists_adopted": 1
+    },
+    "summary_diff": {},
+    "exact_summary": true,
+    "item_states": {
+      "total": 11,
+      "correct": 11,
+      "errors": {}
+    },
+    "met": {
+      "tp": 7,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "violations": {
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "alerts": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "missing": [],
+      "extra": []
+    },
+    "alert_details": [
+      {
+        "line": "C01",
+        "alert_type": "risk_signal",
+        "severity": "critical",
+        "message": "위험 신호: 대출빙자 보이스피싱 위험 신호. 본인 의사와 거래 목적 확인이 필요합니다",
+        "item_code": "LOAN-VPH-001",
+        "utterance_ref": "01M1W393QZXAQ1P5RHW8NWB9JF",
+        "evidence": {
+          "doc_id": "10_보이스피싱_피해예방_10계명",
+          "page": 3,
+          "span": "사기범은 자금이 필요한 피해자에게 금융회사를 사칭하며 접근하고 저금리 대환대출을 미끼로 기존 대출을 상환할 필요가 있다고 기망한다.",
+          "bbox": [
+            64.8,
+            323.8,
+            542.9,
+            358.2
+          ]
+        }
+      },
+      {
+        "line": "C07",
+        "alert_type": "forbidden_phrase",
+        "severity": "warning",
+        "message": "설명서 기준 확인이 필요합니다: 심사 통과 단정 금지",
+        "item_code": "LOAN-BAN-001",
+        "utterance_ref": "01M1W3A8SXB0AM1NH7R4A1Z8CG",
+        "evidence": {
+          "doc_id": "01_금융소비자보호법",
+          "page": 11,
+          "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+          "bbox": [
+            61.3,
+            170.0,
+            554.2,
+            181.6
+          ]
+        }
+      },
+      {
+        "line": "C13",
+        "alert_type": "number_mismatch",
+        "severity": "warning",
+        "message": "설명서 기준 연 3%",
+        "item_code": "LOAN-ARR-001",
+        "comparison": {
+          "said": "5%",
+          "reference": "연 3%",
+          "condition": null
+        },
+        "utterance_ref": "01M1W3BEG1VWD3SXTM2M6YF91W",
+        "evidence": {
+          "doc_id": "06_상품설명서_가계대출",
+          "page": 7,
+          "span": "연체가산이자율 : 연 3%",
+          "bbox": [
+            74.4,
+            450.1,
+            169.4,
+            459.5
+          ]
+        }
+      }
+    ],
+    "roles": {
+      "correct": 23,
+      "scored": 23,
+      "unmatched": [],
+      "errors": []
+    },
+    "coverage": {
+      "total": 18,
+      "covered": 18,
+      "missing": []
+    },
+    "cer": {
+      "errors": 23,
+      "reference_chars": 601,
+      "normalization": "lowercase; strip punctuation/spaces; no numeral conversion"
+    },
+    "latency_ms": {
+      "asr_segment_end_ms": {
+        "n": 18,
+        "p50": 1642.419,
+        "p95": 2188.257,
+        "max": 2188.257
+      },
+      "judge_ms": {
+        "n": 23,
+        "p50": 10.042,
+        "p95": 17.947,
+        "max": 18.829
+      },
+      "refine_ms": {
+        "n": 1,
+        "p50": 3246.434,
+        "p95": 3246.434,
+        "max": 3246.434
+      },
+      "refine_queue_ms": {
+        "n": 1,
+        "p50": 0.084,
+        "p95": 0.084,
+        "max": 0.084
+      },
+      "l3_ms": {
+        "n": 1,
+        "p50": 3083.879,
+        "p95": 3083.879,
+        "max": 3083.879
+      },
+      "speech_end_to_utterance_ms": {
+        "n": 23,
+        "p50": 1665.221,
+        "p95": 3089.265,
+        "max": 3100.886
+      },
+      "speech_end_to_verdict_ms": {
+        "n": 10,
+        "p50": 1495.576,
+        "p95": 4511.696,
+        "max": 4511.696
+      },
+      "speech_end_to_alert_ms": {
+        "n": 3,
+        "p50": 1280.233,
+        "p95": 3089.019,
+        "max": 3089.019
+      },
+      "speech_end_to_assist_ms": {
+        "n": 1,
+        "p50": 1283.592,
+        "p95": 1283.592,
+        "max": 1283.592
+      }
+    },
+    "latency_samples": {
+      "asr_segment_end_ms": [
+        1677.3980019940063,
+        1642.4185290042078,
+        1724.8121880023973,
+        1360.8957419922808,
+        1970.7846229959978,
+        1783.4562740055844,
+        1283.3779949950986,
+        1681.775459999335,
+        2084.6174359950237,
+        1452.6656920049572,
+        1390.1104959915392,
+        1537.58342199435,
+        1319.898430001922,
+        1287.9451890010387,
+        2188.2574939989718,
+        2086.501297002542,
+        1812.4632360058604,
+        1552.6521090051392
+      ],
+      "judge_ms": [
+        9.376504007377662,
+        15.47948399093002,
+        11.994957996648736,
+        7.58393899013754,
+        18.828843007213436,
+        9.44684399291873,
+        9.096619003685191,
+        7.191704004071653,
+        10.042276000604033,
+        15.59567499498371,
+        8.070939991739579,
+        8.747432992095128,
+        17.947205997188576,
+        10.23901799635496,
+        9.788747993297875,
+        10.139293997781351,
+        8.259426991571672,
+        10.135584001545794,
+        11.015203999704681,
+        14.778304001083598,
+        13.145545002771541,
+        7.427978998748586,
+        6.6194399987580255
+      ],
+      "refine_ms": [
+        3246.4338120043976
+      ],
+      "refine_queue_ms": [
+        0.08373800665140152
+      ],
+      "l3_ms": [
+        3083.879
+      ],
+      "speech_end_to_utterance_ms": [
+        3064.4313300028443,
+        3073.7177479924867,
+        3089.26536399161,
+        3100.88564999972,
+        1742.1676060026512,
+        1486.229109999258,
+        1656.2223000044469,
+        1665.2205020043766,
+        1721.8577169924974,
+        1249.7063809938263,
+        1397.13027700549,
+        2006.9764299974777,
+        1441.0962169944542,
+        1273.4047069919761,
+        1582.9456029972062,
+        1270.2651179948589,
+        1288.3900429995265,
+        2209.7267729942687,
+        2051.9626460043946,
+        1849.965343001415,
+        1864.8002770029707,
+        1471.1253030040534,
+        1478.531349996454
+      ],
+      "speech_end_to_verdict_ms": [
+        1760.80140400026,
+        1495.5756629927782,
+        1731.6983300052816,
+        1265.1909409983782,
+        4511.695731002488,
+        1458.8369809947908,
+        1283.5734049971215,
+        1280.2156479971018,
+        2219.623024992994,
+        2062.7771960024256
+      ],
+      "speech_end_to_alert_ms": [
+        3089.01906699175,
+        1265.216843000031,
+        1280.2328740013763
+      ],
+      "speech_end_to_assist_ms": [
+        1283.5919070006348
+      ]
+    },
+    "card_triggers": [
+      {
+        "event_id": "01M1W3B14JED7GG4JTA75F04HA",
+        "trigger_line": "C11"
+      }
+    ],
+    "refinement": {
+      "scheduled": 1,
+      "started": 1,
+      "completed": 1,
+      "over_budget_wall": 1,
+      "cache_hits": 0,
+      "llm_tokens_returned": 2215
+    },
+    "invariants": {
+      "no_events_after_end": true,
+      "report_summary_matches": true,
+      "unique_event_ids": true,
+      "unique_sequences": true,
+      "pdf": true
+    },
+    "ws_errors": [],
+    "warmup": {
+      "ready": true,
+      "error": null,
+      "elapsed_s": 2.519,
+      "versions": [
+        "DEP-2026.08-v6"
+      ]
+    },
+    "session_create_ms": 212.26922300411388,
+    "transcript_mapping": [
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 99994.78471533,
+        "session_ms": 13051,
+        "text": "안녕하세요. 어제 저금리 대환대출 문자를 받고 앱을 깔았는데 기존 대출을 먼저 갚으면 한도가 더 나온다고 하더라고요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 3200,
+        "duration_ms": 8160,
+        "speaker_id": "speaker_0",
+        "line_id": "C01",
+        "truth_role": "customer",
+        "touched": [
+          "C01"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100004.509735857,
+        "session_ms": 22776,
+        "text": "고객님, 그건 대출 빙자 보이스피싱의 가능성이 큽니다. 저희는 문자로 갈아타기를 권하거나 다른 계좌로 먼저 갚으라고 하지 않습니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 13680,
+        "duration_ms": 7440,
+        "speaker_id": "speaker_1",
+        "line_id": "C02",
+        "truth_role": "teller",
+        "touched": [
+          "C02"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100011.072129516,
+        "session_ms": 29338,
+        "text": "대신 신용 상태가 좋아지셨으면 금리 인하요구를 하실 수 있고, 다만 대상이 아닌 상품도 있습니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 22000,
+        "duration_ms": 5600,
+        "speaker_id": "speaker_1",
+        "line_id": "C03",
+        "truth_role": "teller",
+        "touched": [
+          "C03"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100015.74821307,
+        "session_ms": 34014,
+        "text": "심사를 위해 신용 정보를 조회하게 되는데 조회 동의를 먼저 받겠습니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 28640,
+        "duration_ms": 4000,
+        "speaker_id": "speaker_1",
+        "line_id": "C04",
+        "truth_role": "teller",
+        "touched": [
+          "C04"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100023.478101951,
+        "session_ms": 41744,
+        "text": "동의할게요. 그런데 이번에는 갚는 방식도 한번 바꿔보고 싶어요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 34480,
+        "duration_ms": 5280,
+        "speaker_id": "speaker_0",
+        "line_id": "C05",
+        "truth_role": "customer",
+        "touched": [
+          "C05"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100030.330773602,
+        "session_ms": 48597,
+        "text": "금리금 균등으로 갚으실지 만기일시로 갚으실지에 따라 만기까지 내는 총 이자가 달라집니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 41760,
+        "duration_ms": 5040,
+        "speaker_id": "speaker_1",
+        "line_id": "C06",
+        "truth_role": "teller",
+        "touched": [
+          "C06"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100034.070695323,
+        "session_ms": 52337,
+        "text": "그리고 지금 조건이면 한도는 이만큼 확실히 나옵니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 47760,
+        "duration_ms": 3280,
+        "speaker_id": "speaker_1",
+        "line_id": "C07",
+        "truth_role": "teller",
+        "touched": [
+          "C07"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100039.829092788,
+        "session_ms": 58095,
+        "text": "그럼 그 금액으로 계획을 세워도 되겠네요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 53760,
+        "duration_ms": 2640,
+        "speaker_id": "speaker_0",
+        "line_id": "C08",
+        "truth_role": "customer",
+        "touched": [
+          "C08"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100046.711934764,
+        "session_ms": 64978,
+        "text": "정확히는 심사 결과에 따라 한도가 달라질 수 있어서 확정은 아닙니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 58080,
+        "duration_ms": 4800,
+        "speaker_id": "speaker_1",
+        "line_id": "C09",
+        "truth_role": "teller",
+        "touched": [
+          "C09"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100054.47998302,
+        "session_ms": 72746,
+        "text": "이자를 한 달 넘게 연체하시면 기한 이익이 상실되어 원금 전체를 한꺼번에 갚으셔야 하고 연체 정보가 신용 정보에 등록됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 64320,
+        "duration_ms": 6960,
+        "speaker_id": "speaker_1",
+        "line_id": "C10",
+        "truth_role": "teller",
+        "touched": [
+          "C10"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100058.977427824,
+        "session_ms": 77243,
+        "text": "근데 기한이 이게 뭐예요?",
+        "final": true,
+        "confidence": null,
+        "start_ms": 73680,
+        "duration_ms": 2160,
+        "speaker_id": "speaker_0",
+        "line_id": "C11",
+        "truth_role": "customer",
+        "touched": [
+          "C11"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100066.88490075,
+        "session_ms": 85151,
+        "text": "이자를 한 달 넘게 연체하면 대출을 만기 전에 한꺼번에 갚아야 하는 기한 이익 상실이 됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 78320,
+        "duration_ms": 5280,
+        "speaker_id": "speaker_1",
+        "line_id": "C12",
+        "truth_role": "teller",
+        "touched": [
+          "C12"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100072.667215758,
+        "session_ms": 90933,
+        "text": "연체하시면 대출이자율에 연체가산이자율 연 5%가 더해진 연체이자율이 적용됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 84560,
+        "duration_ms": 5040,
+        "speaker_id": "speaker_1",
+        "line_id": "C13",
+        "truth_role": "teller",
+        "touched": [
+          "C13"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100078.235262517,
+        "session_ms": 96501,
+        "text": "연체가산이자율은 연 삼 퍼센트입니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 92080,
+        "duration_ms": 3120,
+        "speaker_id": "speaker_1",
+        "line_id": "C14",
+        "truth_role": "teller",
+        "touched": [
+          "C14"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100086.095574822,
+        "session_ms": 104361,
+        "text": "출납정대 인지세가 붙는데 5천만 원 이하는 비과세이고 금액 구간에 따라 세액이 정해집니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 96320,
+        "duration_ms": 5840,
+        "speaker_id": "speaker_1",
+        "line_id": "C15",
+        "truth_role": "teller",
+        "touched": [
+          "C15"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100093.833818625,
+        "session_ms": 112100,
+        "text": "설명이 잘못됐다면 위법 계약 해지를 요구하실 수 있고 계약 체결일부터 5년 위반을 안 날부터 1년까지 가능합니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 103280,
+        "duration_ms": 6720,
+        "speaker_id": "speaker_1",
+        "line_id": "C16",
+        "truth_role": "teller",
+        "touched": [
+          "C16"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100100.599780564,
+        "session_ms": 118866,
+        "text": "진행하시려면 소득 증명서류와 재직 증명서를 준비해 주세요. 신분증도 함께 가져오시면 됩니다.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 111120,
+        "duration_ms": 5920,
+        "speaker_id": "speaker_1",
+        "line_id": "C17",
+        "truth_role": "teller",
+        "touched": [
+          "C17"
+        ]
+      },
+      {
+        "session_id": "01M1W38NG0RDTQMZFYRF468BN7",
+        "at": 100105.219969437,
+        "session_ms": 123486,
+        "text": "네, 알겠습니다. 문자로 온 건 무시할게요.",
+        "final": true,
+        "confidence": null,
+        "start_ms": 119040,
+        "duration_ms": 2880,
+        "speaker_id": "speaker_0",
+        "line_id": "C18",
+        "truth_role": "customer",
+        "touched": [
+          "C18"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,115 @@
+{
+  "planned_runs": 4,
+  "completed_runs": 4,
+  "failed_runs": [],
+  "exact_summaries": 4,
+  "item_states": {
+    "total": 38,
+    "correct": 38
+  },
+  "roles": {
+    "correct": 95,
+    "scored": 95
+  },
+  "role_unmatched": 0,
+  "coverage": {
+    "total": 68,
+    "covered": 68
+  },
+  "cer": {
+    "errors": 71,
+    "reference_chars": 2243
+  },
+  "invariants": {
+    "no_events_after_end": 4,
+    "report_summary_matches": 4,
+    "unique_event_ids": 4,
+    "unique_sequences": 4,
+    "pdf": 4
+  },
+  "latency_ms": {
+    "asr_segment_end_ms": {
+      "n": 68,
+      "p50": 1550.163,
+      "p95": 2012.289,
+      "max": 2217.682
+    },
+    "judge_ms": {
+      "n": 95,
+      "p50": 9.723,
+      "p95": 17.099,
+      "max": 159.529
+    },
+    "refine_ms": {
+      "n": 17,
+      "p50": 2274.488,
+      "p95": 3398.821,
+      "max": 3398.821
+    },
+    "refine_queue_ms": {
+      "n": 17,
+      "p50": 0.069,
+      "p95": 2389.26,
+      "max": 2389.26
+    },
+    "l3_ms": {
+      "n": 17,
+      "p50": 2264.706,
+      "p95": 3389.377,
+      "max": 3389.377
+    },
+    "speech_end_to_utterance_ms": {
+      "n": 95,
+      "p50": 1667.173,
+      "p95": 3147.165,
+      "max": 3700.849
+    },
+    "speech_end_to_verdict_ms": {
+      "n": 49,
+      "p50": 1847.413,
+      "p95": 4389.757,
+      "max": 7252.7
+    },
+    "speech_end_to_alert_ms": {
+      "n": 11,
+      "p50": 1464.621,
+      "p95": 3155.582,
+      "max": 3155.582
+    },
+    "speech_end_to_assist_ms": {
+      "n": 10,
+      "p50": 1867.52,
+      "p95": 5742.483,
+      "max": 5742.483
+    }
+  },
+  "refinement": {
+    "scheduled": 17,
+    "started": 17,
+    "completed": 17,
+    "over_budget_wall": 2,
+    "cache_hits": 0,
+    "llm_tokens_returned": 38451
+  },
+  "met": {
+    "tp": 24,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "violations": {
+    "tp": 5,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "alerts": {
+    "tp": 11,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0
+  }
+}

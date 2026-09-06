@@ -1,0 +1,4 @@
+r1-preset-dep-a summary {} states 8 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 27 / 27
+r1-preset-dep-d summary {} states 8 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 24 / 24
+r1-preset-loan-b summary {} states 11 alerts {'tp': 2, 'fp': 0, 'fn': 0} role 21 / 21
+r1-preset-loan-c summary {} states 11 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 23 / 23
