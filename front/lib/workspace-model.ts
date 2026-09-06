@@ -12,6 +12,9 @@ export type LiveSession = {
   partial: string; interventions: Intervention[]; versions: Record<string, number>; seen: string[];
   progress?: { met: number; partial: number; total: number; density?: string };
   error?: string; textFallback?: boolean; ending: boolean; reportUrl?: string; seconds: number;
+  // 상담 시계의 기준점(Date.now() - 경과 밀리초). 발화가 없어도 초가 흐르게 하는 근거이며,
+  // 서버가 더 앞선 시각을 알려 주면 그때만 다시 잡는다. 시계는 절대 뒤로 가지 않는다
+  clockBase?: number;
   traceHasUtterances?: boolean;
   // TRACE only: alert event ids whose stored record is already acknowledged. Saves one REST read per alert.
   acknowledgedAlertIds?: string[];
@@ -78,6 +81,8 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
   const next = { ...current, seq: Math.max(current.seq, message.seq ?? -1), seen: eventId ? [...current.seen, eventId] : current.seen };
   if (message.t === 'ready') {
     next.status = 'connected'; next.error = undefined;
+    // 연결이 선 순간부터 시계가 흐른다. 재접속이면 이미 흐른 만큼을 빼고 이어 잡는다
+    next.clockBase = Date.now() - Math.round(current.seconds * 1000);
     next.packVersion = String(message.pack_version ?? current.packVersion);
     next.items = (Array.isArray(message.items) ? message.items as Record<string, unknown>[] : []).filter(item => item.required !== false && item.axis === 'omission').map(item => {
       const previous = current.items.find(entry => entry.code === item.item_code);
@@ -88,6 +93,9 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
   if (message.t === 'utterance') {
     next.partial = ''; const t_ms = Number(message.t_ms ?? 0);
     next.seconds = Math.max(current.seconds, t_ms / 1000);
+    // 서버 시각이 화면 시계보다 앞서면 기준점을 다시 잡는다. 안 잡으면 다음 초에
+    // 벽시계가 계산한 작은 값으로 되돌아가 시계가 뒤로 뛴다
+    if (next.seconds > current.seconds) next.clockBase = Date.now() - Math.round(next.seconds * 1000);
     next.transcript = [...current.transcript, { id: eventId, speaker: String(message.speaker), text: String(message.text ?? ''), t_ms }];
   }
   if (message.t === 'verdict') {

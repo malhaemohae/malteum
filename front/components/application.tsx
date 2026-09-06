@@ -52,7 +52,21 @@ export default function Application() {
   }, []);
   const checkHealth = useCallback(() => { malteumApi.health().then(setHealth).catch(() => { /* 화면은 마지막으로 확인한 상태를 유지한다 */ }); }, []);
   useEffect(() => { let active = true; malteumApi.health().then(value => { if (active) setHealth(value); }).catch(() => { if (active) setHealth(null); }); return () => { active = false; socket.current?.close(); capture.current?.stop(); const old = replayAudio.current; replayAudio.current = null; old?.dispose(); clearTimeout(connectTimer.current); clearTimeout(endTimer.current); }; }, []);
-  useEffect(() => { if (!micActive) return; const timer = setInterval(() => update(value => value && value.status === 'connected' ? { ...value, seconds: value.seconds + 1 } : value), 1000); return () => clearInterval(timer); }, [micActive]);
+  // 상담 시계는 발화가 아니라 시간에 매인다. 마이크를 켜야만 돌던 예전 타이머는 시연
+  // 음원에서 아예 멈춰 있다가 새 발화의 t_ms 로만 뛰었다. 소리가 실제로 흐르는 두 모드
+  // (live·replay)에서 초를 흘리고, 기록 재생(trace)은 저장된 시각을 되짚는 화면이라 뺀다.
+  const runningClock = session?.status === 'connected' && !session.ending && (session.mode === 'live' || session.mode === 'replay');
+  useEffect(() => {
+    if (!runningClock) return;
+    // 1초 간격이면 표시가 최대 1초 늦게 넘어간다. 자주 재되 표시 초가 그대로면 같은
+    // 객체를 돌려주어 화면은 다시 그리지 않는다
+    const timer = setInterval(() => update(value => {
+      if (!value || value.status !== 'connected' || value.clockBase === undefined) return value;
+      const seconds = Math.max(value.seconds, (Date.now() - value.clockBase) / 1000);
+      return Math.floor(seconds) === Math.floor(value.seconds) ? value : { ...value, seconds };
+    }), 250);
+    return () => clearInterval(timer);
+  }, [runningClock]);
   useEffect(() => { if (!session || session.status === 'ended') return; const beforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload); }, [session?.id, session?.status]);
   function navigate(value: NavItem) {
     if (creating.current) return;
