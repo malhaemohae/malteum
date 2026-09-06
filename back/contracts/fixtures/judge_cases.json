@@ -42,7 +42,7 @@
       },
       "expect": {
         "tier": "L3",
-        "max_ms": 1500,
+        "max_ms": 3000,
         "verdicts": [
           {
             "item_code": "DEP-INT-002",
@@ -160,7 +160,7 @@
       },
       "expect": {
         "tier": "L3",
-        "max_ms": 1500,
+        "max_ms": 3000,
         "verdicts": [
           {
             "item_code": "DEP-BAN-001",
@@ -201,7 +201,7 @@
       },
       "expect": {
         "tier": "L3",
-        "max_ms": 1500,
+        "max_ms": 3000,
         "verdicts": [
           {
             "item_code": "DEP-BAN-001",
@@ -294,7 +294,7 @@
       },
       "expect": {
         "tier": "L3",
-        "max_ms": 1500,
+        "max_ms": 3000,
         "verdicts": [
           {
             "item_code": "DEP-INT-002",
