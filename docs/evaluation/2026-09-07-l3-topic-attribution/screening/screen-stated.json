@@ -1,0 +1,457 @@
+{
+ "variant": "stated",
+ "results": [
+  {
+   "set": "dev",
+   "name": "B13",
+   "ms": 2982,
+   "tokens": 1928,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "rate-paraphrase",
+   "ms": 2946,
+   "tokens": 1912,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "unrelated",
+   "ms": 2036,
+   "tokens": 1894,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "unmet",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "lapse-cause",
+   "ms": 2425,
+   "tokens": 1913,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "lapse-consequence",
+   "ms": 2095,
+   "tokens": 1916,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "lapse-paraphrase",
+   "ms": 2316,
+   "tokens": 1940,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "met",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "met",
+     "missing": []
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "late-payment-charge",
+   "ms": 1875,
+   "tokens": 1917,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "scheduled-repayment",
+   "ms": 1791,
+   "tokens": 1914,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "lapse-condition",
+   "ms": 1766,
+   "tokens": 1922,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "lapse-effect",
+   "ms": 1618,
+   "tokens": 1924,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     []
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "mixed-topics",
+   "ms": 553,
+   "tokens": null,
+   "err": "LlmUnavailable: openrouter/qwen/qwen3-8b: RateLimitError: litellm.RateLimitError: RateLimitError: OpenrouterException - {\"error\":{\"messa",
+   "raw": [],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "actual": [],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "plain-cause-and-effect",
+   "ms": 565,
+   "tokens": null,
+   "err": "LlmUnavailable: openrouter/qwen/qwen3-8b: RateLimitError: litellm.RateLimitError: RateLimitError: OpenrouterException - {\"error\":{\"messa",
+   "raw": [],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "met",
+     "missing": []
+    }
+   ],
+   "actual": [],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "customer-context-is-not-disclosure",
+   "ms": 569,
+   "tokens": null,
+   "err": "LlmUnavailable: openrouter/qwen/qwen3-8b: RateLimitError: litellm.RateLimitError: RateLimitError: OpenrouterException - {\"error\":{\"messa",
+   "raw": [],
+   "rejected": [],
+   "expected": [],
+   "actual": [],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "teller-follow-up",
+   "ms": 980,
+   "tokens": null,
+   "err": "LlmUnavailable: openrouter/qwen/qwen3-8b: RateLimitError: litellm.RateLimitError: RateLimitError: OpenrouterException - {\"error\":{\"messa",
+   "raw": [],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "met",
+     "missing": []
+    }
+   ],
+   "actual": [],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "tax-is-not-early-termination",
+   "ms": 580,
+   "tokens": null,
+   "err": "LlmUnavailable: openrouter/qwen/qwen3-8b: RateLimitError: litellm.RateLimitError: RateLimitError: OpenrouterException - {\"error\":{\"messa",
+   "raw": [],
+   "rejected": [],
+   "expected": [],
+   "actual": [],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "deposit-early-termination",
+   "ms": 577,
+   "tokens": null,
+   "err": "LlmUnavailable: openrouter/qwen/qwen3-8b: RateLimitError: litellm.RateLimitError: RateLimitError: OpenrouterException - {\"error\":{\"messa",
+   "raw": [],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "적용 이율",
+      "차감률 또는 산출식"
+     ]
+    }
+   ],
+   "actual": [],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "customer-paraphrase",
+   "ms": 581,
+   "tokens": null,
+   "err": "LlmUnavailable: openrouter/qwen/qwen3-8b: RateLimitError: litellm.RateLimitError: RateLimitError: OpenrouterException - {\"error\":{\"messa",
+   "raw": [],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "confirmed",
+     "missing": []
+    }
+   ],
+   "actual": [],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "distinct-disclosures",
+   "ms": 535,
+   "tokens": null,
+   "err": "LlmUnavailable: openrouter/qwen/qwen3-8b: RateLimitError: litellm.RateLimitError: RateLimitError: OpenrouterException - {\"error\":{\"messa",
+   "raw": [],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "met",
+     "missing": []
+    }
+   ],
+   "actual": [],
+   "passed": false,
+   "repeat": 1
+  }
+ ]
+}

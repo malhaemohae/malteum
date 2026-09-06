@@ -1,0 +1,274 @@
+
+qwen/qwen3-8b B13 r1: 2229ms tokens=2068 verdicts=()
+  accepted=[] rejected=[]
+.
+qwen/qwen3-8b rate-paraphrase r1: 2005ms tokens=2054 verdicts=()
+  accepted=[] rejected=[]
+.
+qwen/qwen3-8b unrelated r1: 1420ms tokens=2011 verdicts=()
+  accepted=[] rejected=[]
+.
+qwen/qwen3-8b lapse-cause r1: 2187ms tokens=2069 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=None, missing_elements=('상실 시 불이익',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=None, missing_elements=('상실 시 불이익',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+.
+qwen/qwen3-8b lapse-consequence r1: 2215ms tokens=2072 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=None, missing_elements=('기한이익상실 사유',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=None, missing_elements=('기한이익상실 사유',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+.
+qwen/qwen3-8b lapse-paraphrase r1: 1768ms tokens=2081 verdicts=(VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=None, missing_elements=('상실 시 불이익',), utterance_ref=None, evidence=None, waive_reason=None, supersedes=None),)
+  accepted=[VerdictPayload(item_code='LOAN-EXP-001', axis='omission', state='partial', decided_by='L3', confidence=None, missing_elements=('상실 시 불이익',), utterance_ref='U', evidence=Evidence(doc_id='06_상품설명서_가계대출', page=7, span='※ 기한의 이익 상실 시 채무자는 대출금을 즉시 상환하여야 하며, 연체이자 부담, 일정기간 경과 후 신용정보 등록 등의 불이익을 받게 되므로 기한의 이익의 상실 사유를 반드시 유념하시기 바랍니다.', bbox=(55.2, 131.4, 555.3, 156.4), legal_basis=None), waive_reason=None, supersedes=None)] rejected=[]
+F
+HOLDOUT {"name": "late-payment-charge", "repeat": 1, "ms": 1610, "tokens": 2058, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "scheduled-repayment", "repeat": 1, "ms": 2017, "tokens": 2055, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "lapse-condition", "repeat": 1, "ms": 1985, "tokens": 2085, "expected": [{"state": "partial", "missing": ["상실 시 불이익"]}], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": true}
+.
+HOLDOUT {"name": "lapse-effect", "repeat": 1, "ms": 1954, "tokens": 2072, "expected": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": true}
+.
+HOLDOUT {"name": "mixed-topics", "repeat": 1, "ms": 1983, "tokens": 2092, "expected": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "actual": [{"state": "met", "missing": []}], "passed": false}
+F
+HOLDOUT {"name": "plain-cause-and-effect", "repeat": 1, "ms": 1746, "tokens": 2079, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "partial", "missing": ["상실 시 불이익"]}], "passed": false}
+F
+HOLDOUT {"name": "customer-context-is-not-disclosure", "repeat": 1, "ms": 1467, "tokens": 2043, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "teller-follow-up", "repeat": 1, "ms": 2103, "tokens": 2104, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "met", "missing": []}], "passed": true}
+.
+HOLDOUT {"name": "tax-is-not-early-termination", "repeat": 1, "ms": 1991, "tokens": 2017, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "deposit-early-termination", "repeat": 1, "ms": 2142, "tokens": 2036, "expected": [{"state": "partial", "missing": ["적용 이율", "차감률 또는 산출식"]}], "actual": [{"state": "partial", "missing": ["적용 이율", "차감률 또는 산출식"]}], "passed": true}
+.
+HOLDOUT {"name": "customer-paraphrase", "repeat": 1, "ms": 1904, "tokens": 2038, "expected": [{"state": "confirmed", "missing": []}], "actual": [{"state": "confirmed", "missing": []}], "passed": true}
+.
+HOLDOUT {"name": "distinct-disclosures", "repeat": 1, "ms": 3352, "tokens": 2462, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "met", "missing": []}], "passed": true}
+.
+=================================== FAILURES ===================================
+___________________ test_live_item_scope[lapse-paraphrase-1] ___________________
+
+name = 'lapse-paraphrase'
+text = '이자를 한 달 넘게 내지 않으시면 만기를 기다릴 수 없고 빌린 돈을 한 번에 모두 돌려주셔야 합니다.'
+expected = 'met', missing = (), repeat = 1
+
+    @pytest.mark.skipif(_UNSEEN == "only", reason="미사용 검증셋만 실행")
+    @pytest.mark.parametrize("repeat", REPEATS)
+    @pytest.mark.parametrize("name,text,expected,missing", CASES, ids=[c[0] for c in CASES])
+    def test_live_item_scope(name, text, expected, missing, repeat):
+        settings = Settings()
+        assert settings.llm_api_key, "OpenRouter API 키가 필요합니다"
+        raw = json.loads((FIX / "rulepack_LOAN-2026.08-v7.json").read_text(encoding="utf-8"))
+        pack = load_pack(FakePackSource(raw), raw["pack_version"])
+        state = SessionState(
+            "S",
+            pack.pack_version,
+            "text",
+            items=(ItemState("LOAN-EXP-001", "omission", "unmet", "L1", 0),),
+        )
+        prompt = prompt_builder.build(text, pack, state, ["LOAN-EXP-001"], "qwen/qwen3-8b", "teller")
+        model = "qwen/qwen3-8b"
+        judge = LiteLlmJudge(
+            model,
+            provider="openrouter",
+            api_key=settings.llm_api_key,
+            extra_body={"reasoning": {"enabled": False}},
+        )
+        started = time.perf_counter()
+        decision = judge.decide(prompt)
+        print(
+            f"\n{model} {name} r{repeat}: {(time.perf_counter() - started) * 1000:.0f}ms "
+            f"tokens={decision.tokens} verdicts={decision.verdicts}"
+        )
+        assert decision.tokens and not decision.from_cache
+        verdicts, alerts, assists, rejected = decision_parser.parse(
+            decision,
+            pack,
+            SessionState("S", pack.pack_version, "text"),
+            Utterance("U", "teller", text, 0),
+        )
+        print(f"  accepted={verdicts} rejected={rejected}")
+        assert alerts == []
+        if expected is None:
+            assert verdicts == [] and assists == []
+        else:
+            (verdict,) = verdicts
+            assert verdict.item_code == "LOAN-EXP-001"
+>           assert verdict.state == expected
+E           AssertionError: assert 'partial' == 'met'
+E             
+E             - met
+E             + partial
+
+tests/engine/test_live_scope_regression.py:101: AssertionError
+______________________ test_live_holdout[mixed-topics-1] _______________________
+
+case = {'name': 'mixed-topics', 'pack': 'LOAN-2026.08-v7', 'text': '연체 가산 금리는 연 3%입니다. 기한의 이익을 잃으면 대출금 전액을 즉시 상환해야 합니다.', 'target': 'LOAN-EXP-001', ...}
+repeat = 1
+
+    @pytest.mark.parametrize("repeat", REPEATS)
+    @pytest.mark.parametrize("case", HOLDOUT, ids=[c["name"] for c in HOLDOUT])
+    def test_live_holdout(case, repeat):
+        settings = Settings()
+        assert settings.llm_api_key, "OpenRouter API 키가 필요합니다"
+        raw = json.loads((FIX / f"rulepack_{case['pack']}.json").read_text(encoding="utf-8"))
+        pack = load_pack(FakePackSource(raw), raw["pack_version"])
+        target = case["target"]
+        context = (
+            (Utterance("prior", case["context_speaker"], case["context"], 0),)
+            if "context" in case
+            else ()
+        )
+        state = SessionState(
+            "S",
+            pack.pack_version,
+            "text",
+            items=(
+                ItemState(
+                    target,
+                    "omission",
+                    "partial" if "before_missing" in case else "unmet",
+                    "L3" if "before_missing" in case else "L1",
+                    0,
+                    missing_elements=tuple(case.get("before_missing", ())),
+                ),
+            ),
+            recent_utterances=context,
+        )
+        utterance = Utterance("current", case.get("speaker", "teller"), case["text"], 1)
+        candidates = [target, *([case["additional_target"]] if "additional_target" in case else [])]
+        prompt = prompt_builder.build(
+            utterance.text, pack, state, candidates, "qwen/qwen3-8b", utterance.speaker
+        )
+        judge = LiteLlmJudge(
+            "qwen/qwen3-8b",
+            provider="openrouter",
+            api_key=settings.llm_api_key,
+            extra_body={"reasoning": {"enabled": False}},
+        )
+        started = time.perf_counter()
+        decision = judge.decide(prompt)
+        elapsed = (time.perf_counter() - started) * 1000
+        assert decision.tokens and not decision.from_cache
+        result = decision_parser.parse(decision, pack, state, utterance)
+    
+        def outcome(result):
+            return [
+                {"state": v.state, "missing": sorted(v.missing_elements)}
+                for v in result[0]
+                if v.item_code == target
+            ]
+    
+        expected = (
+            [{"state": case["expected"], "missing": sorted(case.get("missing", []))}]
+            if case["expected"] is not None
+            else []
+        )
+        print(
+            "\nHOLDOUT "
+            + json.dumps(
+                {
+                    "name": case["name"],
+                    "repeat": repeat,
+                    "ms": round(elapsed),
+                    "tokens": decision.tokens,
+                    "expected": expected,
+                    "actual": outcome(result),
+                    "passed": outcome(result) == expected,
+                },
+                ensure_ascii=False,
+            )
+        )
+>       assert outcome(result) == expected
+E       AssertionError: assert [{'state': 'm...missing': []}] == [{'state': 'p...'기한이익상실 사유']}]
+E         
+E         At index 0 diff: {'state': 'met', 'missing': []} != {'state': 'partial', 'missing': ['기한이익상실 사유']}
+E         Use -v to get more diff
+
+tests/engine/test_live_scope_regression.py:190: AssertionError
+_________________ test_live_holdout[plain-cause-and-effect-1] __________________
+
+case = {'name': 'plain-cause-and-effect', 'pack': 'LOAN-2026.08-v7', 'text': '정해진 날에 이자를 못 낸 지 한 달이 넘으면 남은 대출금을 만기 전에 전부 갚으셔야 합니다.', 'target': 'LOAN-EXP-001', ...}
+repeat = 1
+
+    @pytest.mark.parametrize("repeat", REPEATS)
+    @pytest.mark.parametrize("case", HOLDOUT, ids=[c["name"] for c in HOLDOUT])
+    def test_live_holdout(case, repeat):
+        settings = Settings()
+        assert settings.llm_api_key, "OpenRouter API 키가 필요합니다"
+        raw = json.loads((FIX / f"rulepack_{case['pack']}.json").read_text(encoding="utf-8"))
+        pack = load_pack(FakePackSource(raw), raw["pack_version"])
+        target = case["target"]
+        context = (
+            (Utterance("prior", case["context_speaker"], case["context"], 0),)
+            if "context" in case
+            else ()
+        )
+        state = SessionState(
+            "S",
+            pack.pack_version,
+            "text",
+            items=(
+                ItemState(
+                    target,
+                    "omission",
+                    "partial" if "before_missing" in case else "unmet",
+                    "L3" if "before_missing" in case else "L1",
+                    0,
+                    missing_elements=tuple(case.get("before_missing", ())),
+                ),
+            ),
+            recent_utterances=context,
+        )
+        utterance = Utterance("current", case.get("speaker", "teller"), case["text"], 1)
+        candidates = [target, *([case["additional_target"]] if "additional_target" in case else [])]
+        prompt = prompt_builder.build(
+            utterance.text, pack, state, candidates, "qwen/qwen3-8b", utterance.speaker
+        )
+        judge = LiteLlmJudge(
+            "qwen/qwen3-8b",
+            provider="openrouter",
+            api_key=settings.llm_api_key,
+            extra_body={"reasoning": {"enabled": False}},
+        )
+        started = time.perf_counter()
+        decision = judge.decide(prompt)
+        elapsed = (time.perf_counter() - started) * 1000
+        assert decision.tokens and not decision.from_cache
+        result = decision_parser.parse(decision, pack, state, utterance)
+    
+        def outcome(result):
+            return [
+                {"state": v.state, "missing": sorted(v.missing_elements)}
+                for v in result[0]
+                if v.item_code == target
+            ]
+    
+        expected = (
+            [{"state": case["expected"], "missing": sorted(case.get("missing", []))}]
+            if case["expected"] is not None
+            else []
+        )
+        print(
+            "\nHOLDOUT "
+            + json.dumps(
+                {
+                    "name": case["name"],
+                    "repeat": repeat,
+                    "ms": round(elapsed),
+                    "tokens": decision.tokens,
+                    "expected": expected,
+                    "actual": outcome(result),
+                    "passed": outcome(result) == expected,
+                },
+                ensure_ascii=False,
+            )
+        )
+>       assert outcome(result) == expected
+E       AssertionError: assert [{'state': 'p...['상실 시 불이익']}] == [{'state': 'm...missing': []}]
+E         
+E         At index 0 diff: {'state': 'partial', 'missing': ['상실 시 불이익']} != {'state': 'met', 'missing': []}
+E         Use -v to get more diff
+
+tests/engine/test_live_scope_regression.py:190: AssertionError
+=========================== short test summary info ============================
+FAILED tests/engine/test_live_scope_regression.py::test_live_item_scope[lapse-paraphrase-1]
+FAILED tests/engine/test_live_scope_regression.py::test_live_holdout[mixed-topics-1]
+FAILED tests/engine/test_live_scope_regression.py::test_live_holdout[plain-cause-and-effect-1]
+3 failed, 15 passed, 1 deselected in 37.51s

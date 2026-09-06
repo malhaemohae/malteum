@@ -1,0 +1,706 @@
+{
+ "variant": "topic+rel2",
+ "results": [
+  {
+   "set": "dev",
+   "name": "B13",
+   "ms": 5581,
+   "tokens": 2229,
+   "err": null,
+   "raw": [],
+   "topic": [
+    "연체 시 연체가산이자율이 적용되는 상황",
+    [
+     [
+      "LOAN-EXP-001",
+      "other_topic"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "rate-paraphrase",
+   "ms": 2300,
+   "tokens": 2208,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "기한이익상실 사유"
+     ]
+    ]
+   ],
+   "topic": [
+    "납부가 늦어지면 추가 이자가 붙는다",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "unrelated",
+   "ms": 4663,
+   "tokens": 2181,
+   "err": null,
+   "raw": [],
+   "topic": [
+    "신분증을 준비해 주세요.",
+    [
+     [
+      "LOAN-EXP-001",
+      "unrelated"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "lapse-cause",
+   "ms": 2643,
+   "tokens": 2210,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "상실 시 불이익"
+     ]
+    ]
+   ],
+   "topic": [
+    "이자를 한 달 넘게 밀리면 기한이익을 상실합니다.",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "lapse-consequence",
+   "ms": 2357,
+   "tokens": 2222,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "기한이익상실 사유"
+     ]
+    ]
+   ],
+   "topic": [
+    "기한이익을 잃은 경우 남은 원금을 한꺼번에 갚으셔야 합니다.",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "dev",
+   "name": "lapse-paraphrase",
+   "ms": 5713,
+   "tokens": 2248,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "상실 시 불이익"
+     ]
+    ]
+   ],
+   "topic": [
+    "이자를 한 달 넘게 내지 않으시면 만기를 기다릴 수 없고 빌린 돈을 한 번에 모두 돌려주셔야 합니다.",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "met",
+     "missing": []
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "late-payment-charge",
+   "ms": 2723,
+   "tokens": 2215,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "기한이익상실 사유"
+     ]
+    ]
+   ],
+   "topic": [
+    "납입일을 넘긴 금액에 대해 추가 이자가 붙는다는 내용",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "scheduled-repayment",
+   "ms": 2865,
+   "tokens": 2215,
+   "err": null,
+   "raw": [],
+   "topic": [
+    "만기일에 원금을 한 번에 갚는 방법",
+    [
+     [
+      "LOAN-EXP-001",
+      "other_topic"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "lapse-condition",
+   "ms": 2595,
+   "tokens": 2225,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "상실 시 불이익"
+     ]
+    ]
+   ],
+   "topic": [
+    "이자 지급이 한 달을 초과해 지체되면 기한의 이익이 없어집니다.",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "lapse-effect",
+   "ms": 2754,
+   "tokens": 2238,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "기한이익상실 사유"
+     ]
+    ]
+   ],
+   "topic": [
+    "기한의 이익이 사라지면 만기가 아직 남았어도 대출잔액 전부를 즉시 상환하셔야 합니다.",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "mixed-topics",
+   "ms": 2534,
+   "tokens": 2226,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "기한이익상실 사유"
+     ]
+    ]
+   ],
+   "topic": [
+    "연체 가산 금리와 기한의 이익 상실에 대한 설명",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "기한이익상실 사유"
+     ]
+    }
+   ],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "plain-cause-and-effect",
+   "ms": 6254,
+   "tokens": 2244,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "상실 시 불이익"
+     ]
+    ]
+   ],
+   "topic": [
+    "정해진 날에 이자를 못 낸 지 한 달이 넘으면 남은 대출금을 만기 전에 전부 갚으셔야 합니다.",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "met",
+     "missing": []
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "customer-context-is-not-disclosure",
+   "ms": 2603,
+   "tokens": 2225,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "unmet",
+     [
+      "기한이익상실 사유",
+      "상실 시 불이익"
+     ]
+    ]
+   ],
+   "topic": [
+    "기한이익상실에 대한 설명",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [
+    "LOAN-EXP-001: required/teller에 omission/unmet 판정 불가"
+   ],
+   "expected": [],
+   "actual": [],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "teller-follow-up",
+   "ms": 2699,
+   "tokens": 2260,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "상실 시 불이익"
+     ]
+    ]
+   ],
+   "topic": [
+    "이자를 한 달 넘게 연체하면 대출을 만기 전에 한꺼번에 갚아야 하는 기한이익상실",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "met",
+     "missing": []
+    }
+   ],
+   "actual": [],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "tax-is-not-early-termination",
+   "ms": 2504,
+   "tokens": 2210,
+   "err": null,
+   "raw": [
+    [
+     "DEP-INT-002",
+     "omission",
+     "partial",
+     [
+      "적용 이율",
+      "차감률 또는 산출식"
+     ]
+    ]
+   ],
+   "topic": [
+    "세금이 차감된 이자 금액이 입금된다",
+    [
+     [
+      "DEP-INT-002",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "적용 이율",
+      "차감률 또는 산출식"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "deposit-early-termination",
+   "ms": 2646,
+   "tokens": 2229,
+   "err": null,
+   "raw": [
+    [
+     "DEP-INT-002",
+     "omission",
+     "partial",
+     [
+      "차감률 또는 산출식"
+     ]
+    ]
+   ],
+   "topic": [
+    "기간을 다 채우지 않고 돈을 빼면 약속한 이자보다 적게 받는다는 내용",
+    [
+     [
+      "DEP-INT-002",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "partial",
+     "missing": [
+      "적용 이율",
+      "차감률 또는 산출식"
+     ]
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "차감률 또는 산출식"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "customer-paraphrase",
+   "ms": 4660,
+   "tokens": 2197,
+   "err": null,
+   "raw": [
+    [
+     "DEP-INT-002",
+     "comprehension",
+     "confirmed",
+     []
+    ]
+   ],
+   "topic": [
+    "중도해지 시 이자가 줄어든다",
+    [
+     [
+      "DEP-INT-002",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "confirmed",
+     "missing": []
+    }
+   ],
+   "actual": [
+    {
+     "state": "confirmed",
+     "missing": []
+    }
+   ],
+   "passed": true,
+   "repeat": 1
+  },
+  {
+   "set": "holdout",
+   "name": "distinct-disclosures",
+   "ms": 4043,
+   "tokens": 2527,
+   "err": null,
+   "raw": [
+    [
+     "LOAN-EXP-001",
+     "omission",
+     "partial",
+     [
+      "상실 시 불이익"
+     ]
+    ],
+    [
+     "LOAN-ARR-001",
+     "omission",
+     "met",
+     []
+    ]
+   ],
+   "topic": [
+    "대출이자율에 연체가산이자율 연 3%가 추가되고, 이자를 한 달 넘게 연체하면 기한의 이익을 잃어 원금 전액을 즉시 상환해야 한다.",
+    [
+     [
+      "LOAN-EXP-001",
+      "explains_item"
+     ],
+     [
+      "LOAN-ARR-001",
+      "explains_item"
+     ]
+    ]
+   ],
+   "rejected": [],
+   "expected": [
+    {
+     "state": "met",
+     "missing": []
+    }
+   ],
+   "actual": [
+    {
+     "state": "partial",
+     "missing": [
+      "상실 시 불이익"
+     ]
+    }
+   ],
+   "passed": false,
+   "repeat": 1
+  }
+ ]
+}

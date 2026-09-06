@@ -1,0 +1,36 @@
+ssssss
+HOLDOUT {"name": "prepayment-fee-partial", "repeat": 1, "ms": 2327, "tokens": 1993, "expected": [{"state": "partial", "missing": ["적용 기간"]}], "actual": [{"state": "partial", "missing": ["적용 기간"]}], "passed": true}
+.
+HOLDOUT {"name": "prepayment-fee-met", "repeat": 1, "ms": 2037, "tokens": 2017, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "met", "missing": []}], "passed": true}
+.
+HOLDOUT {"name": "fee-is-not-stamp-duty", "repeat": 1, "ms": 1325, "tokens": 2013, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "rate-cut-right-partial", "repeat": 1, "ms": 2209, "tokens": 2075, "expected": [{"state": "partial", "missing": ["대상 제외 가능성"]}], "actual": [{"state": "partial", "missing": ["대상 제외 가능성"]}], "passed": true}
+.
+HOLDOUT {"name": "variable-rate-is-not-rate-cut-right", "repeat": 1, "ms": 1356, "tokens": 2029, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "disbursement-is-not-withdrawal-right", "repeat": 1, "ms": 1245, "tokens": 1985, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "withdrawal-right-met", "repeat": 1, "ms": 2315, "tokens": 2064, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "met", "missing": []}], "passed": true}
+.
+HOLDOUT {"name": "lapse-credit-record", "repeat": 1, "ms": 1764, "tokens": 2063, "expected": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "actual": [{"state": "partial", "missing": ["기한이익상실 사유"]}], "passed": true}
+.
+HOLDOUT {"name": "documents-are-not-dsr", "repeat": 1, "ms": 1283, "tokens": 1964, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "customer-question-is-not-confirmation", "repeat": 1, "ms": 1837, "tokens": 1993, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "teller-follow-up-prepayment", "repeat": 1, "ms": 1807, "tokens": 2034, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "met", "missing": []}], "passed": true}
+.
+HOLDOUT {"name": "two-topics-prepayment", "repeat": 1, "ms": 3574, "tokens": 2380, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "met", "missing": []}], "passed": true}
+.
+HOLDOUT {"name": "after-maturity-partial", "repeat": 1, "ms": 2170, "tokens": 1983, "expected": [{"state": "partial", "missing": ["경과기간별 차등"]}], "actual": [{"state": "partial", "missing": ["경과기간별 차등"]}], "passed": true}
+.
+HOLDOUT {"name": "auto-payout-is-not-after-maturity-rate", "repeat": 1, "ms": 1236, "tokens": 1936, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "partial-withdrawal-met", "repeat": 1, "ms": 2348, "tokens": 1973, "expected": [{"state": "met", "missing": []}], "actual": [{"state": "met", "missing": []}], "passed": true}
+.
+HOLDOUT {"name": "rate-notice-is-not-protection", "repeat": 1, "ms": 1898, "tokens": 1998, "expected": [], "actual": [], "passed": true}
+.
+HOLDOUT {"name": "customer-confirms-after-maturity", "repeat": 1, "ms": 2182, "tokens": 1976, "expected": [{"state": "confirmed", "missing": []}], "actual": [{"state": "confirmed", "missing": []}], "passed": true}
+.s
+17 passed, 7 skipped in 34.29s

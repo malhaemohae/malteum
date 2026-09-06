@@ -1,0 +1,29 @@
+{
+  "created_at": "2026-09-06T18:33:27.509148+00:00",
+  "commit": "cb6360e190f46820a94c70ac86a70234cc768ff0",
+  "hashes": {
+    "assets/scenarios/preset-dep-a/script.json": "0435701d0ea1910cca84089cfc18e399d565136688126d343ab8d0bcea52d9a7",
+    "assets/scenarios/preset-dep-a/audio.wav": "0c6e1aeb491bb802b6a3149edd3af171b2e283cf1022b88fe2fac443544e8f42",
+    "back/contracts/fixtures/rulepack_DEP-2026.08-v4.json": "368d15e7fa3aeb1257a2ff2172a18fe0f4d4f5ff759b2ce06f45ce65d3b3da27",
+    "back/contracts/fixtures/rulepack_LOAN-2026.08-v5.json": "fef047eebe79465218cdcc931a3515e98975de67ec196d8e2a49142bd9077157",
+    "back/contracts/fixtures/rulepack_LOAN-2026.08-v7.json": "5ae36084fbbc639045c3fe6fca2dcea1a8fe9fbb2d062b911ffd11b759c8a629",
+    "back/contracts/fixtures/rulepack_DEP-2026.08-v6.json": "2d07319c74dec3a168d73ff36b7e09362cad9fa9e4450e394b8169de3fcb7da9",
+    "back/tests/fixtures/sortformer_scenarios.json": "f9dfa229c56d023bca596ef0963a2724f7dc4e37757aeba08d7cc94b82779224",
+    "back/scripts/evaluate_current.py": "ce6d022aeb1c8e9d5c557df2efe9ab575a1da5860610b89ab04b9e78e3b830f1"
+  },
+  "primary_runs": 1,
+  "presets": [
+    "preset-dep-a"
+  ],
+  "cache": "fresh server per primary run; model services remain warm",
+  "models": {
+    "asr": "Qwen/Qwen3-ASR-1.7B",
+    "diarization": "nvidia/diar_streaming_sortformer_4spk-v2",
+    "embedding": "intfloat/multilingual-e5-small",
+    "llm": "openrouter/qwen/qwen3-8b",
+    "reasoning": false,
+    "l3_budget_ms": 3000
+  },
+  "store": "memory; PostgreSQL durability excluded",
+  "speed": 1
+}

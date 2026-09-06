@@ -1,0 +1,12 @@
+/home/me/projects/malteum/back/tests/engine/fakes.py:63: DummyPathWarning: [DUMMY] ChunkIndex 비어 있음 → 문서 본문 검색은 항상 근거 없음
+  warn_dummy("ChunkIndex 비어 있음 → 문서 본문 검색은 항상 근거 없음")
+/home/me/projects/malteum/back/engine/pack/compiler.py:92: DummyPathWarning: [DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+  warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+
+U1 l1=[('LOAN-ARR-001', 'met')] l2_candidates=1 l3_ms=2261 cache_hit=False l3=[]
+
+U2 l1=[] l2_candidates=1 l3_ms=1957 cache_hit=False l3=[('LOAN-EXP-001', 'partial', ('상실 시 불이익',))]
+
+U3 l1=[('LOAN-EXP-001', 'met')] l2_candidates=0 l3_ms=0 cache_hit=False l3=[]
+.
+1 passed, 105 deselected in 12.22s
