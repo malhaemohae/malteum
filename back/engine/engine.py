@@ -37,7 +37,7 @@ from engine.state import initial as _initial
 from engine.state import summary as _summary
 from engine.tiers.l0_normalize import normalize
 from engine.tiers.l1 import matcher, numeric
-from engine.tiers.l1.gate import gate
+from engine.tiers.l1.gate import gate, risk_speaker_fallback
 from engine.tiers.l2 import searcher
 from engine.types import RulePack, SessionState
 
@@ -127,6 +127,7 @@ class RuleEngine:
         compiled = self.compiled(pack)
         sw = Stopwatch()
         g = gate(utterance)
+        judged_types = g.types | ({"risk"} if risk_speaker_fallback(utterance) else set())
         ref = utterance.utterance_id
         verdicts: list[VerdictPayload] = []
         alerts: list[AlertPayload] = []
@@ -137,7 +138,7 @@ class RuleEngine:
 
         with sw.lap("l1"):
             text, _replacements = normalize(utterance.text, compiled.jargon)
-            hits = matcher.match(text, pack, compiled, g.types)
+            hits = matcher.match(text, pack, compiled, frozenset(judged_types))
             said_units = {unit for _, unit, _ in numeric.said_numbers(text)}
             for hit in hits:
                 item = hit.item
@@ -187,7 +188,7 @@ class RuleEngine:
                             )
                         )
 
-        if g.types and self.embedder is not None and self.index is not None:
+        if judged_types and self.embedder is not None and self.index is not None:
             with sw.lap("l2"):
                 r = searcher.search(
                     utterance,
@@ -197,7 +198,7 @@ class RuleEngine:
                     state,
                     self.embedder,
                     self.index,
-                    g.types,
+                    frozenset(judged_types),
                     l1_codes,
                 )
             verdicts.extend(v for v in r.verdicts if not _same_state(v, state))
@@ -205,7 +206,7 @@ class RuleEngine:
             assists.extend(r.assists)
             l2_candidates = len(r.candidates)
             needs_refine |= bool(r.candidates) or any(v.state == "suspected" for v in r.verdicts)
-        elif g.types:
+        elif judged_types:
             self._warn_once("임베더·인덱스 없음 → L2 생략. 돌려 말한 발화는 잡히지 않는다")
 
         return JudgeResult(
