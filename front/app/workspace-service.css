@@ -208,3 +208,8 @@
 /* 고른 규정팩에 어떤 시연 음원이 붙어 있는지 준비 화면에서 미리 알려 주는 줄 */
 .wb-demo-hint{font-size:11px;line-height:1.5;padding:6px 10px;border-radius:7px;background:#eff8fa;color:#165c70}
 .wb-demo-hint[data-demo=none]{background:#fdf6ea;color:#7c5a1e}
+
+/* 탭에 따라 붙는 것이 달라도(입력 방식 고르기 대 안내 문구) 줄 높이는 그대로여야 한다.
+   38px → 34px 로 4px 줄던 것이 아래 패널을 위로 끌어올려 화면이 흔들렸다 */
+.wb-service .wb-history-toolbar{min-height:38px;flex-wrap:nowrap}
+.wb-service .wb-history-toolbar>.wb-history-note{flex:1;min-width:0;text-align:right;font-size:11px;line-height:1.45;color:#647980;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
