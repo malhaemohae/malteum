@@ -1,0 +1,45 @@
+
+== DEP-2026.08-v6 · dense 단독 ==
+[통과] dep-int1-preferential  기대(DEP-INT-001→1위)  top3: DEP-INT-001:0.846 DEP-BAN-001:0.845 DEP-INT-002:0.837
+[통과] dep-int2-early-termination  기대(DEP-INT-002→2위)  top3: DEP-INT-003:0.854 DEP-INT-002:0.853 DEP-INT-001:0.851
+[통과] dep-int3-after-maturity  기대(DEP-INT-003→2위)  top3: DEP-BAN-001:0.870 DEP-INT-003:0.856 DEP-INT-002:0.855
+[실패] dep-pro1-protection  기대(DEP-PRO-001→7위)  top3: DEP-RSK-001:0.850 DEP-BAN-001:0.849 DEP-PAY-001:0.834
+[통과] dep-tax1-tax  기대(DEP-TAX-001→1위)  top3: DEP-TAX-001:0.863 DEP-INT-003:0.828 DEP-PRO-001:0.826
+[실패] dep-lim1-partial  기대(DEP-LIM-001→4위)  top3: DEP-INT-002:0.861 DEP-BAN-001:0.840 DEP-INT-003:0.837
+[통과] dep-doc1-documents  기대(DEP-DOC-001→1위)  top3: DEP-DOC-001:0.872 DEP-BAN-001:0.828 DEP-RSK-001:0.827
+[통과] dep-doc2-termination-documents  기대(DEP-DOC-002→2위)  top3: DEP-BAN-001:0.869 DEP-DOC-002:0.855 DEP-INT-002:0.836
+[통과] dep-ter1-illegal-contract  기대(DEP-TER-001→1위)  top3: DEP-TER-001:0.906 DEP-DOC-002:0.855 DEP-BAN-001:0.853
+[통과] dep-pay1-payment-restriction  기대(DEP-PAY-001→1위)  top3: DEP-PAY-001:0.902 DEP-RSK-001:0.854 DEP-INT-002:0.849
+[통과] dep-ban1-after-maturity-assertion  기대(DEP-BAN-001→1위)  top3: DEP-BAN-001:0.913 DEP-INT-003:0.885 DEP-INT-002:0.877
+[통과] dep-ban1-no-loss-assertion  기대(DEP-BAN-001→1위)  top3: DEP-BAN-001:0.886 DEP-RSK-001:0.857 DEP-PRO-001:0.854
+[통과] dep-rsk1-third-party  기대(DEP-RSK-001→1위)  top3: DEP-RSK-001:0.944 DEP-INT-002:0.853 DEP-BAN-001:0.851
+[무관] any-unrelated-parking  최고점 0.817  top3: DEP-BAN-001:0.817 DEP-DOC-001:0.816 DEP-LIM-001:0.810
+[무관] any-unrelated-restroom  최고점 0.806  top3: DEP-BAN-001:0.806 DEP-RSK-001:0.803 DEP-DOC-001:0.783
+[무관] any-unrelated-lunch  최고점 0.822  top3: DEP-BAN-001:0.822 DEP-RSK-001:0.818 DEP-INT-003:0.814
+[무관] any-unrelated-ticket  최고점 0.818  top3: DEP-RSK-001:0.818 DEP-DOC-001:0.813 DEP-BAN-001:0.813
+top-1 8/13  ·  recall@3 11/13
+점수 분리  관련 0.846~0.944  vs  무관 0.806~0.822
+
+== LOAN-2026.08-v7 · dense 단독 ==
+[통과] loan-int1-variable-rate  기대(LOAN-INT-001→1위)  top3: LOAN-INT-001:0.890 LOAN-EXP-001:0.864 LOAN-ARR-001:0.855
+[통과] loan-arr1-overdue  기대(LOAN-ARR-001→1위)  top3: LOAN-ARR-001:0.907 LOAN-EXP-001:0.859 LOAN-RPY-001:0.853
+[통과] loan-pre1-prepayment  기대(LOAN-PRE-001→1위)  top3: LOAN-PRE-001:0.895 LOAN-RSK-001:0.862 LOAN-RPY-001:0.858
+[통과] loan-dsr1-limit  기대(LOAN-DSR-001→3위)  top3: LOAN-BAN-001:0.845 LOAN-VPH-001:0.844 LOAN-DSR-001:0.835
+[통과] loan-wdr1-withdrawal  기대(LOAN-WDR-001→1위)  top3: LOAN-WDR-001:0.916 LOAN-INT-001:0.861 LOAN-VPH-001:0.852
+[통과] loan-rdr1-rate-cut-request  기대(LOAN-RDR-001→1위)  top3: LOAN-RDR-001:0.912 LOAN-BAN-001:0.870 LOAN-RSK-001:0.866
+[통과] loan-cic1-credit-inquiry  기대(LOAN-CIC-001→2위)  top3: LOAN-RDR-001:0.869 LOAN-CIC-001:0.867 LOAN-EXP-001:0.858
+[통과] loan-ban1-fixed-rate-assertion  기대(LOAN-BAN-001→3위)  top3: LOAN-RSK-001:0.903 LOAN-RDR-001:0.891 LOAN-BAN-001:0.891
+[통과] loan-ban1-approval-assertion  기대(LOAN-BAN-001→1위)  top3: LOAN-BAN-001:0.954 LOAN-CIC-001:0.866 LOAN-RSK-001:0.847
+[통과] loan-rsk1-repayment-coercion  기대(LOAN-RSK-001→1위)  top3: LOAN-RSK-001:0.873 LOAN-RPY-001:0.872 LOAN-BAN-001:0.859
+[통과] loan-doc1-documents  기대(LOAN-DOC-001→1위)  top3: LOAN-DOC-001:0.891 LOAN-CIC-001:0.835 LOAN-VPH-001:0.833
+[통과] loan-exp1-acceleration  기대(LOAN-EXP-001→1위)  top3: LOAN-EXP-001:0.882 LOAN-ARR-001:0.875 LOAN-RSK-001:0.867
+[통과] loan-rpy1-repayment-method  기대(LOAN-RPY-001→1위)  top3: LOAN-RPY-001:0.884 LOAN-ARR-001:0.857 LOAN-EXP-001:0.838
+[통과] loan-fee1-stamp-duty  기대(LOAN-FEE-001→1위)  top3: LOAN-FEE-001:0.905 LOAN-VPH-001:0.857 LOAN-RSK-001:0.857
+[통과] loan-ter1-illegal-contract  기대(LOAN-TER-001→1위)  top3: LOAN-TER-001:0.906 LOAN-WDR-001:0.847 LOAN-RDR-001:0.834
+[통과] loan-vph1-refinance-scam  기대(LOAN-VPH-001→1위)  top3: LOAN-VPH-001:0.937 LOAN-RSK-001:0.897 LOAN-BAN-001:0.877
+[무관] any-unrelated-parking  최고점 0.815  top3: LOAN-RSK-001:0.815 LOAN-BAN-001:0.812 LOAN-RDR-001:0.808
+[무관] any-unrelated-restroom  최고점 0.793  top3: LOAN-RSK-001:0.793 LOAN-BAN-001:0.792 LOAN-RPY-001:0.781
+[무관] any-unrelated-lunch  최고점 0.820  top3: LOAN-RPY-001:0.820 LOAN-WDR-001:0.813 LOAN-BAN-001:0.812
+[무관] any-unrelated-ticket  최고점 0.824  top3: LOAN-VPH-001:0.824 LOAN-CIC-001:0.811 LOAN-RSK-001:0.811
+top-1 13/16  ·  recall@3 16/16
+점수 분리  관련 0.845~0.954  vs  무관 0.793~0.824

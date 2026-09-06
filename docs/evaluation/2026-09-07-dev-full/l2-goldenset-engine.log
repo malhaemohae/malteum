@@ -1,0 +1,49 @@
+[DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+  warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+[DUMMY] 팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용
+  warn_dummy("팩에 reask_patterns 없음 → engine 기본 되물음 패턴 사용")
+
+== DEP-2026.08-v6 · 엔진 L2 융합 ==
+[실패] dep-int1-preferential  기대(DEP-INT-001→9위)  top3: DEP-LIM-001:0.000 DEP-BAN-001:0.000 DEP-INT-003:0.000
+[통과] dep-int2-early-termination  기대(DEP-INT-002→1위)  top3: DEP-INT-002:1.000 DEP-INT-003:0.274 DEP-LIM-001:0.000
+[통과] dep-int3-after-maturity  기대(DEP-INT-003→2위)  top3: DEP-INT-002:0.550 DEP-INT-003:0.396 DEP-TAX-001:0.388
+[실패] dep-pro1-protection  기대(DEP-PRO-001→9위)  top3: DEP-INT-001:0.415 DEP-LIM-001:0.000 DEP-BAN-001:0.000
+[통과] dep-tax1-tax  기대(DEP-TAX-001→1위)  top3: DEP-TAX-001:0.528 DEP-INT-002:0.391 DEP-LIM-001:0.000
+[통과] dep-lim1-partial  기대(DEP-LIM-001→1위)  top3: DEP-LIM-001:0.653 DEP-INT-002:0.402 DEP-PAY-001:0.227
+[실패] dep-doc1-documents  기대(DEP-DOC-001→None위)  top3: DEP-LIM-001:0.000 DEP-BAN-001:0.000 DEP-INT-003:0.000
+[실패] dep-doc2-termination-documents  기대(DEP-DOC-002→None위)  top3: DEP-LIM-001:0.000 DEP-BAN-001:0.000 DEP-INT-003:0.000
+[통과] dep-ter1-illegal-contract  기대(DEP-TER-001→1위)  top3: DEP-TER-001:0.794 DEP-INT-002:0.194 DEP-LIM-001:0.119
+[통과] dep-pay1-payment-restriction  기대(DEP-PAY-001→1위)  top3: DEP-PAY-001:0.794 DEP-LIM-001:0.000 DEP-BAN-001:0.000
+[통과] dep-ban1-after-maturity-assertion  기대(DEP-BAN-001→1위)  top3: DEP-BAN-001:0.830 DEP-LIM-001:0.000 DEP-INT-003:0.000
+[통과] dep-ban1-no-loss-assertion  기대(DEP-BAN-001→1위)  top3: DEP-BAN-001:0.644 DEP-LIM-001:0.000 DEP-INT-003:0.000
+[통과] dep-rsk1-third-party  기대(DEP-RSK-001→1위)  top3: DEP-RSK-001:0.784 DEP-LIM-001:0.000 DEP-BAN-001:0.000
+[무관] any-unrelated-parking  최고점 0.000  top3: DEP-LIM-001:0.000 DEP-BAN-001:0.000 DEP-INT-003:0.000
+[무관] any-unrelated-restroom  최고점 0.000  top3: DEP-LIM-001:0.000 DEP-BAN-001:0.000 DEP-INT-003:0.000
+[무관] any-unrelated-lunch  최고점 0.000  top3: DEP-LIM-001:0.000 DEP-BAN-001:0.000 DEP-INT-003:0.000
+[무관] any-unrelated-ticket  최고점 0.000  top3: DEP-LIM-001:0.000 DEP-BAN-001:0.000 DEP-INT-003:0.000
+top-1 8/13  ·  recall@3 9/13
+점수 분리  관련 0.000~1.000  vs  무관 0.000~0.000
+
+== LOAN-2026.08-v7 · 엔진 L2 융합 ==
+[통과] loan-int1-variable-rate  기대(LOAN-INT-001→1위)  top3: LOAN-INT-001:0.404 LOAN-ARR-001:0.339 LOAN-EXP-001:0.319
+[통과] loan-arr1-overdue  기대(LOAN-ARR-001→1위)  top3: LOAN-ARR-001:0.530 LOAN-EXP-001:0.318 LOAN-DSR-001:0.236
+[통과] loan-pre1-prepayment  기대(LOAN-PRE-001→1위)  top3: LOAN-PRE-001:0.720 LOAN-EXP-001:0.258 LOAN-WDR-001:0.000
+[통과] loan-dsr1-limit  기대(LOAN-DSR-001→1위)  top3: LOAN-DSR-001:0.500 LOAN-RPY-001:0.284 LOAN-VPH-001:0.253
+[통과] loan-wdr1-withdrawal  기대(LOAN-WDR-001→1위)  top3: LOAN-WDR-001:0.884 LOAN-INT-001:0.270 LOAN-RDR-001:0.208
+[통과] loan-rdr1-rate-cut-request  기대(LOAN-RDR-001→1위)  top3: LOAN-RDR-001:0.772 LOAN-TER-001:0.278 LOAN-EXP-001:0.233
+[통과] loan-cic1-credit-inquiry  기대(LOAN-CIC-001→3위)  top3: LOAN-RDR-001:0.363 LOAN-EXP-001:0.338 LOAN-CIC-001:0.273
+[실패] loan-ban1-fixed-rate-assertion  기대(LOAN-BAN-001→9위)  top3: LOAN-FEE-001:0.332 LOAN-RDR-001:0.330 LOAN-ARR-001:0.325
+[통과] loan-ban1-approval-assertion  기대(LOAN-BAN-001→1위)  top3: LOAN-BAN-001:1.000 LOAN-FEE-001:0.270 LOAN-CIC-001:0.255
+[통과] loan-rsk1-repayment-coercion  기대(LOAN-RSK-001→2위)  top3: LOAN-RPY-001:0.711 LOAN-RSK-001:0.465 LOAN-EXP-001:0.292
+[실패] loan-doc1-documents  기대(LOAN-DOC-001→None위)  top3: LOAN-DSR-001:0.341 LOAN-TER-001:0.322 LOAN-WDR-001:0.000
+[통과] loan-exp1-acceleration  기대(LOAN-EXP-001→1위)  top3: LOAN-EXP-001:0.393 LOAN-VPH-001:0.277 LOAN-RDR-001:0.260
+[통과] loan-rpy1-repayment-method  기대(LOAN-RPY-001→1위)  top3: LOAN-RPY-001:0.607 LOAN-EXP-001:0.270 LOAN-ARR-001:0.249
+[통과] loan-fee1-stamp-duty  기대(LOAN-FEE-001→1위)  top3: LOAN-FEE-001:0.573 LOAN-WDR-001:0.202 LOAN-RPY-001:0.195
+[통과] loan-ter1-illegal-contract  기대(LOAN-TER-001→1위)  top3: LOAN-TER-001:0.710 LOAN-RDR-001:0.271 LOAN-WDR-001:0.238
+[통과] loan-vph1-refinance-scam  기대(LOAN-VPH-001→1위)  top3: LOAN-VPH-001:0.689 LOAN-EXP-001:0.209 LOAN-RPY-001:0.129
+[무관] any-unrelated-parking  최고점 0.000  top3: LOAN-WDR-001:0.000 LOAN-ARR-001:0.000 LOAN-RPY-001:0.000
+[무관] any-unrelated-restroom  최고점 0.000  top3: LOAN-WDR-001:0.000 LOAN-ARR-001:0.000 LOAN-RPY-001:0.000
+[무관] any-unrelated-lunch  최고점 0.000  top3: LOAN-WDR-001:0.000 LOAN-ARR-001:0.000 LOAN-RPY-001:0.000
+[무관] any-unrelated-ticket  최고점 0.000  top3: LOAN-WDR-001:0.000 LOAN-ARR-001:0.000 LOAN-RPY-001:0.000
+top-1 12/16  ·  recall@3 14/16
+점수 분리  관련 0.332~1.000  vs  무관 0.000~0.000
