@@ -12,6 +12,13 @@ import { DetailSections, Empty, EvidenceView, Feedback, KeyValueList, Modal, Not
 type Navigation = { onNavigate: (nav: NavItem) => void; onNew: () => void };
 function Failure({ error, retry }: { error: string; retry: () => void }) { return <Notice action={<button onClick={retry}>다시 불러오기</button>}>{error}</Notice>; }
 const labelFor = displayField;
+// 요약 수치 중 큰 타일로 나간 것을 뺀 나머지(필수 항목 수·제외·채택한 안내 등)만 표로.
+// 같은 값을 타일과 표에 두 번 싣지 않는다
+function summaryRows(summary: Record<string, unknown> | undefined, shown: string[]) {
+  return Object.entries(summary ?? {})
+    .filter(([key, value]) => !shown.includes(key) && value != null && value !== '')
+    .map(([key, value]) => ({ label: displayField(key), value: <span className="wb-kv-text">{displayValue(value, key)}</span> }));
+}
 // One row per field; nested values keep their readable text form.
 // `message` 는 이미 `설명서 기준 15.4% (조건)` 처럼 reference·condition 을 문장으로 담고
 // 있다. comparison 을 그대로 펼치면 그 두 값이 한 번 더 줄로 뜬다. 새 정보인 said 만 남긴다.
@@ -38,6 +45,7 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
   // 타임라인은 시간 순서로 쭉 읽는 목록이라 스크롤로 둔다. 나머지 탭은 항목 수가 적어
   // 페이지 목록이 한 화면에 정돈돼 보인다
   const RecordList: typeof ScrollList = tab === 'timeline' ? ScrollList : PagedList;
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const [printError, setPrintError] = useState('');
   const [printing, setPrinting] = useState(false);
   async function savePdf() { if (!report.data || printing) return; setPrinting(true); setPrintError('서버 PDF를 요청하고 있습니다.'); try { setPrintError(await exportReport(report.data)); } catch (error) { setPrintError(errorText(error)); } finally { setPrinting(false); } }
@@ -47,7 +55,7 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
     <Feedback message={printError} pending={printing} />
     {!sessionId ? <Panel><Empty><h2>이력에서 상담을 선택해 주세요.</h2><button onClick={() => navigation.onNavigate('이력')}>세션 이력 보기</button></Empty></Panel> : report.loading ? <Panel><Empty>리포트를 불러오고 있습니다.</Empty></Panel> : !report.data ? <Panel><Empty>리포트를 불러오지 못했습니다.</Empty></Panel> : <>
       {shownSummary.length > 0 && <div className="wb-summary">{shownSummary.map(key => <div key={key}><strong>{String(summary?.[key])}</strong><span>{labelFor(key)}</span></div>)}</div>}
-      <div className="wb-toolbar"><Tabs value={tab} onChange={setTab} items={reportTabs} /><label className="wb-report-tab-select">항목<select aria-label="리포트 항목" value={tab} onChange={event => setTab(event.target.value as ReportTab)}>{reportTabs.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><button onClick={() => setDetail({ ...(summary ?? {}), ...(report.data?.sources ? { '출처': report.data.sources } : {}), ...(report.data?.disclaimer ? { '유의사항': report.data.disclaimer } : {}) })}>요약·출처</button></div>
+      <div className="wb-toolbar"><Tabs value={tab} onChange={setTab} items={reportTabs} /><label className="wb-report-tab-select">항목<select aria-label="리포트 항목" value={tab} onChange={event => setTab(event.target.value as ReportTab)}>{reportTabs.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><button onClick={() => setSummaryOpen(true)}>요약·출처</button></div>
       <Panel title={tab === 'comprehension' ? '이해 지원 기록 · 판정 증빙 아님' : '항목별 기록'}><RecordList key={tab} label="리포트" items={rows} empty="이 항목에 대한 서버 기록이 없습니다." render={row => {
         // 경보 전용 표기는 `alert_type` 을 싣고 오는 행(금지·숫자·위험 신호 탭)에만 쓴다.
         // 타임라인의 경보 행은 그 필드가 없고 유형이 `label` 안에 있어, 그대로 태우면
@@ -65,6 +73,29 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
         return <><button className="wb-row-button" onClick={() => setDetail(row)}><span className="wb-row-copy"><strong>{title}</strong><small>{note}</small></span>{badge && <span className="wb-badge" data-state={state}>{badge}</span>}<span>›</span></button>{typeof row.evidence_ref === 'string' && <button onClick={() => onEvidence(String(row.evidence_ref))}>근거</button>}</>;
       }} /></Panel>
     </>}
+    {summaryOpen && report.data && <Modal title="리포트 요약과 출처" className="wb-report-summary" onClose={() => setSummaryOpen(false)}>
+      <div className="wb-report-summary-grid">
+        <section className="wb-report-summary-main">
+          <h3>판정 요약</h3>
+          {shownSummary.length > 0 ? <div className="wb-summary">{shownSummary.map(key => <div key={key}><strong>{String(summary?.[key])}</strong><span>{labelFor(key)}</span></div>)}</div> : <Empty>서버가 보낸 요약 수치가 없습니다.</Empty>}
+          <KeyValueList rows={summaryRows(summary, shownSummary)} />
+          {report.data.disclaimer && <div className="wb-report-disclaimer"><h3>유의사항</h3><p>{report.data.disclaimer}</p></div>}
+        </section>
+        <section className="wb-report-sources">
+          <h3>근거 문서 {(report.data.sources ?? []).length}건</h3>
+          <div className="wb-report-source-list">
+            {(report.data.sources ?? []).length > 0 ? (report.data.sources ?? []).map((source, index) => <article className="wb-report-source" key={source.doc_id ?? index}>
+              <strong>{source.title ?? source.doc_id ?? '문서명 미제공'}</strong>
+              <dl>
+                <div><dt>발행 기관</dt><dd>{source.publisher ?? '미제공'}</dd></div>
+                <div><dt>기준일</dt><dd>{source.snapshot_date ? whenLabel(source.snapshot_date) : '미제공'}</dd></div>
+                {source.doc_id && <div><dt>문서 코드</dt><dd>{source.doc_id}</dd></div>}
+              </dl>
+            </article>) : <Empty>이 리포트에 연결된 근거 문서가 없습니다.</Empty>}
+          </div>
+        </section>
+      </div>
+    </Modal>}
     {detail && <Modal title="리포트 기록 상세" className="wb-compact" onClose={() => setDetail(null)} actions={typeof detail.evidence_ref === 'string' && <button onClick={() => { setDetail(null); onEvidence(String(detail.evidence_ref)); }}>근거 원문</button>}><KeyValueList rows={recordRows(detail)} empty="이 기록에 저장된 항목이 없습니다." /></Modal>}
   </Workbench>;
 }
