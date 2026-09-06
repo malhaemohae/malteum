@@ -1,8 +1,13 @@
-// Bundle the two public, fictional demo recordings inside the frontend Docker
+// Bundle the public, fictional demo recordings inside the frontend Docker
 // build context. Never copy user uploads, credentials or expected judgements.
+// Presets are discovered from the assets folder, not listed here: a hardcoded
+// list silently skipped preset-loan-c and preset-dep-d when their audio landed.
 const fs=require('node:fs');const path=require('node:path');const crypto=require('node:crypto');const assert=require('node:assert/strict');
 const front=path.resolve(__dirname,'..');const check=process.argv.includes('--check');
-for(const preset of ['preset-dep-a','preset-loan-b']){
+const scenarios=path.resolve(front,'../assets/scenarios');
+const presets=fs.readdirSync(scenarios).filter(name=>fs.existsSync(path.join(scenarios,name,'audio.wav'))&&fs.existsSync(path.join(scenarios,name,'script.json'))).sort();
+assert.ok(presets.length,'no scenario carries an audio.wav');
+for(const preset of presets){
  const source=path.resolve(front,'../assets/scenarios',preset);const target=path.join(front,'public/replay',preset);
  const script=JSON.parse(fs.readFileSync(path.join(source,'script.json'),'utf8'));const audio=fs.readFileSync(path.join(source,'audio.wav'));
  assert.equal(audio.toString('ascii',0,4),'RIFF');assert.equal(audio.toString('ascii',8,12),'WAVE');
