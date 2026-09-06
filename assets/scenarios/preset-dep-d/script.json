@@ -8,7 +8,7 @@
     "type": "general",
     "tags": []
   },
-  "duration_ms": 123526,
+  "duration_ms": 126366,
   "audio": {
     "output": "audio.wav",
     "sample_rate": 16000,
@@ -16,16 +16,14 @@
     "sample_width_bytes": 2,
     "min_gap_ms": 1000,
     "gap_ms": 1300,
-    "question_gap_ms": 1050,
     "long_gap_ms": 1750,
     "same_speaker_gap_ms": 780,
     "same_speaker_min_gap_ms": 650,
     "alert_gap_ms": 2200,
     "jitter_ms": 120,
-    "question_max_chars": 45,
     "long_text_chars": 55,
     "tts_model": "ssfm-v30",
-    "placement": "앞 클립 끝에 이어 놓되 쉬는 길이를 앞 줄의 성격으로 고른다. 같은 화자가 이어 말하면 same_speaker_gap_ms, 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 alert_gap_ms, 앞 줄이 question_max_chars 이하의 물음이면 question_gap_ms, long_text_chars 이상의 긴 설명이면 long_gap_ms, 그 밖은 gap_ms. 여기에 줄 id 로 정한 ±jitter_ms 를 더해 같은 값이 반복되지 않게 한다. 화자가 바뀌는 자리는 무엇을 고르든 min_gap_ms 아래로 내려가지 않는다. 그 하한이 화자 분리가 두 사람을 가르는 조건이고 speaker.py 의 NEAREST_GAP_MS 가 같은 값이다. start_ms 는 그렇게 놓인 실제 시각이고 make_scenario_audio.py --write-start 가 되쓴다"
+    "placement": "앞 클립 끝에 이어 놓되 쉬는 길이를 앞 줄의 성격으로 고른다. 같은 화자가 이어 말하면 same_speaker_gap_ms, 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 alert_gap_ms, long_text_chars 이상의 긴 설명이면 long_gap_ms, 그 밖은 gap_ms. 여기에 줄 id 로 정한 ±jitter_ms 를 더해 같은 값이 반복되지 않게 한다. 화자가 바뀌는 자리는 무엇을 고르든 min_gap_ms 아래로 내려가지 않는다. 그 하한이 화자 분리가 두 사람을 가르는 조건이고 speaker.py 의 NEAREST_GAP_MS 가 같은 값이다. start_ms 는 그렇게 놓인 실제 시각이고 make_scenario_audio.py --write-start 가 되쓴다"
   },
   "speakers": {
     "teller": {
@@ -116,7 +114,7 @@
     },
     {
       "id": "D05",
-      "start_ms": 27035,
+      "start_ms": 28455,
       "speaker": "teller",
       "text": "그리고 이 예금은 중간에 해지하셔도 손해 보실 일은 없습니다.",
       "expect": [
@@ -137,7 +135,7 @@
     },
     {
       "id": "D06",
-      "start_ms": 32894,
+      "start_ms": 34314,
       "speaker": "customer",
       "text": "그래요. 그럼 마음 편하게 넣어도 되겠네요.",
       "expect": [],
@@ -145,7 +143,7 @@
     },
     {
       "id": "D07",
-      "start_ms": 38773,
+      "start_ms": 40193,
       "speaker": "teller",
       "text": "아, 정확히 다시 말씀드리겠습니다. 중도해지하시면 중도해지이율이 적용되는데, 약정이율에 경과기간별 차감률을 곱해서 계산하기 때문에 이자가 많이 줄어듭니다.",
       "expect": [
@@ -163,7 +161,7 @@
     },
     {
       "id": "D08",
-      "start_ms": 49709,
+      "start_ms": 51129,
       "speaker": "teller",
       "text": "만기 후에는 만기후이자율이 적용되어 기간이 지날수록 낮아집니다.",
       "expect": [
@@ -173,7 +171,7 @@
     },
     {
       "id": "D09",
-      "start_ms": 54470,
+      "start_ms": 55890,
       "speaker": "teller",
       "text": "이 예금은 예금자보호법에 따라 원금과 이자를 합쳐 1인당 1억 원까지 보호되고, 저희 은행의 다른 예금과 합산해서 계산됩니다.",
       "tts_text": "이 예금은 예금자보호법에 따라 원금과 이자를 합쳐 일인당 일억 원까지 보호되고, 저희 은행의 다른 예금과 합산해서 계산됩니다.",
@@ -184,7 +182,7 @@
     },
     {
       "id": "D10",
-      "start_ms": 62843,
+      "start_ms": 64263,
       "speaker": "teller",
       "text": "이 예금은 일부해지가 안 되고, 해지하시면 전액이 한 번에 나옵니다.",
       "expect": [
@@ -194,7 +192,7 @@
     },
     {
       "id": "D11",
-      "start_ms": 67390,
+      "start_ms": 68810,
       "speaker": "teller",
       "text": "계좌에 압류나 가압류, 질권이 설정되면 원금과 이자 지급이 제한됩니다.",
       "expect": [
@@ -204,7 +202,7 @@
     },
     {
       "id": "D12",
-      "start_ms": 73271,
+      "start_ms": 74691,
       "speaker": "customer",
       "text": "네에, 질권설정이 뭐예요?",
       "tts_text": "네에... 질권설정이 뭐예요?",
@@ -216,7 +214,7 @@
     },
     {
       "id": "D13",
-      "start_ms": 78012,
+      "start_ms": 79432,
       "speaker": "teller",
       "text": "계좌에 압류나 가압류, 질권설정이 걸리면 원금과 이자를 찾을 수 없다는 뜻입니다.",
       "expect": [],
@@ -232,7 +230,7 @@
     },
     {
       "id": "D14",
-      "start_ms": 84535,
+      "start_ms": 85955,
       "speaker": "customer",
       "text": "아, 다른 데서 걸어 놓은 게 있으면 못 찾는다는 거네요.",
       "expect": [],
@@ -249,7 +247,7 @@
     },
     {
       "id": "D15",
-      "start_ms": 90653,
+      "start_ms": 92073,
       "speaker": "teller",
       "text": "가입 후에 설명이 잘못됐다고 판단되시면 위법계약 해지를 요구하실 수 있고, 계약서류를 받은 날부터 3년 안에 하셔야 합니다.",
       "tts_text": "가입 후에 설명이 잘못됐다고 판단되시면 위법계약 해지를 요구하실 수 있고, 계약서류를 받은 날부터 삼 년 안에 하셔야 합니다.",
@@ -261,7 +259,7 @@
     },
     {
       "id": "D16",
-      "start_ms": 98655,
+      "start_ms": 101495,
       "speaker": "teller",
       "text": "죄송합니다, 기간을 정확히 말씀드리면 계약서류를 받은 날부터 5년, 위반을 안 날부터 1년 안에 요구하실 수 있습니다.",
       "tts_text": "죄송합니다, 기간을 정확히 말씀드리면 계약서류를 받은 날부터 오 년, 위반을 안 날부터 일 년 안에 요구하실 수 있습니다.",
@@ -272,7 +270,7 @@
     },
     {
       "id": "D17",
-      "start_ms": 108181,
+      "start_ms": 111021,
       "speaker": "customer",
       "text": "네, 그럼 가입할게요. 돈은 아들이 알려준 계좌에서 옮겨 넣으면 되겠죠.",
       "expect": [
@@ -282,7 +280,7 @@
     },
     {
       "id": "D18",
-      "start_ms": 116476,
+      "start_ms": 119316,
       "speaker": "teller",
       "text": "아드님 계좌라면 본인 확인이 먼저 필요합니다. 실명확인증표, 신분증을 먼저 보여주시겠어요?",
       "expect": [],

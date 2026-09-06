@@ -237,24 +237,35 @@ def test_a_third_number_is_absorbed_into_the_role_it_speaks_like():
     바꿀 구간은 **시각을 박지 않고 그 두 줄과 겹치는 것을 골라 낸다.** 음원을 다시 뽑으면
     구간의 시각도 개수도 달라진다(2026-09-06 에 한 줄이 두 구간으로 갈렸다). 옛 판은
     시작 시각을 문자열로 박아 두어 그때 아무 구간도 안 바뀌고 speaker_2 가 생기지 않았다.
+
+    겹침만 보고 구간을 통째로 바꾸므로 **이웃 줄까지 물고 가지 않았는지 함께 확인한다.**
+    Sortformer 는 0.08초 격자로 구간을 내어 줄 끝을 조금 넘어서기도 한다. 한 구간이
+    A06 과 A07 에 걸치면 A06 도 speaker_2 가 되어 이 시험이 검사하려던 것과 다른
+    상황을 만든다. 그래서 A07·A09 만 speaker_2 를 갖고 이웃 세 줄은 그대로임을 본다.
     """
     script = _script("preset-dep-a")
     durations = FIXTURE["presets"]["preset-dep-a"]["line_duration_ms"]
-    windows = [
-        (line["start_ms"], line["start_ms"] + durations[line["id"]])
-        for line in script["lines"]
-        if line["id"] in ("A07", "A09")
-    ]
 
-    def _in_window(raw: str) -> bool:
+    def _window(line_id: str) -> tuple[int, int]:
+        line = next(x for x in script["lines"] if x["id"] == line_id)
+        return line["start_ms"], line["start_ms"] + durations[line_id]
+
+    moved = [_window(x) for x in ("A07", "A09")]
+    kept = [_window(x) for x in ("A06", "A08", "A10")]
+
+    def _overlaps(raw: str, windows: list[tuple[int, int]]) -> bool:
         start_ms, end_ms = (round(float(v) * 1000) for v in raw.split()[:2])
         return any(min(end_ms, w_end) > max(start_ms, w_start) for w_start, w_end in windows)
 
     segments = [
-        s.replace("speaker_0", "speaker_2") if _in_window(s) else s
+        s.replace("speaker_0", "speaker_2") if _overlaps(s, moved) else s
         for s in FIXTURE["presets"]["preset-dep-a"]["segments"]
     ]
-    assert sum("speaker_2" in s for s in segments) >= 2, "바꿀 구간을 못 찾았습니다"
+    relabelled = [s for s in segments if "speaker_2" in s]
+    assert relabelled, "A07·A09 와 겹치는 구간을 못 찾았습니다"
+    bled = [s for s in relabelled if _overlaps(s, kept)]
+    assert not bled, f"바꾼 구간이 이웃 줄까지 덮었습니다: {bled}"
+
     resolver, replayed = _replay("preset-dep-a", _MarkerJudge(), segments=segments)
     emitted = {line["id"]: us for line, _, us in replayed}
 

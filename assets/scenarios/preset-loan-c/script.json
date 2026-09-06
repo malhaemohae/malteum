@@ -8,7 +8,7 @@
     "type": "general",
     "tags": []
   },
-  "duration_ms": 121882,
+  "duration_ms": 123302,
   "audio": {
     "output": "audio.wav",
     "sample_rate": 16000,
@@ -16,16 +16,14 @@
     "sample_width_bytes": 2,
     "min_gap_ms": 1000,
     "gap_ms": 1300,
-    "question_gap_ms": 1050,
     "long_gap_ms": 1750,
     "same_speaker_gap_ms": 780,
     "same_speaker_min_gap_ms": 650,
     "alert_gap_ms": 2200,
     "jitter_ms": 120,
-    "question_max_chars": 45,
     "long_text_chars": 55,
     "tts_model": "ssfm-v30",
-    "placement": "앞 클립 끝에 이어 놓되 쉬는 길이를 앞 줄의 성격으로 고른다. 같은 화자가 이어 말하면 same_speaker_gap_ms, 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 alert_gap_ms, 앞 줄이 question_max_chars 이하의 물음이면 question_gap_ms, long_text_chars 이상의 긴 설명이면 long_gap_ms, 그 밖은 gap_ms. 여기에 줄 id 로 정한 ±jitter_ms 를 더해 같은 값이 반복되지 않게 한다. 화자가 바뀌는 자리는 무엇을 고르든 min_gap_ms 아래로 내려가지 않는다. 그 하한이 화자 분리가 두 사람을 가르는 조건이고 speaker.py 의 NEAREST_GAP_MS 가 같은 값이다. start_ms 는 그렇게 놓인 실제 시각이고 make_scenario_audio.py --write-start 가 되쓴다"
+    "placement": "앞 클립 끝에 이어 놓되 쉬는 길이를 앞 줄의 성격으로 고른다. 같은 화자가 이어 말하면 same_speaker_gap_ms, 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 alert_gap_ms, long_text_chars 이상의 긴 설명이면 long_gap_ms, 그 밖은 gap_ms. 여기에 줄 id 로 정한 ±jitter_ms 를 더해 같은 값이 반복되지 않게 한다. 화자가 바뀌는 자리는 무엇을 고르든 min_gap_ms 아래로 내려가지 않는다. 그 하한이 화자 분리가 두 사람을 가르는 조건이고 speaker.py 의 NEAREST_GAP_MS 가 같은 값이다. start_ms 는 그렇게 놓인 실제 시각이고 make_scenario_audio.py --write-start 가 되쓴다"
   },
   "speakers": {
     "teller": {
@@ -201,7 +199,7 @@
     },
     {
       "id": "C14",
-      "start_ms": 90430,
+      "start_ms": 91850,
       "speaker": "teller",
       "text": "죄송합니다, 연체가산이자율은 연 3%입니다.",
       "tts_text": "죄송합니다, 연체가산이자율은 연 삼 퍼센트입니다.",
@@ -212,7 +210,7 @@
     },
     {
       "id": "C15",
-      "start_ms": 94669,
+      "start_ms": 96089,
       "speaker": "teller",
       "text": "대출 약정 때 인지세가 붙는데, 5천만원 이하는 비과세이고 금액 구간에 따라 세액이 정해집니다.",
       "tts_text": "대출 약정 때 인지세가 붙는데, 오천만 원 이하는 비과세이고 금액 구간에 따라 세액이 정해집니다.",
@@ -223,7 +221,7 @@
     },
     {
       "id": "C16",
-      "start_ms": 101615,
+      "start_ms": 103035,
       "speaker": "teller",
       "text": "설명이 잘못됐다면 위법계약 해지를 요구하실 수 있고, 계약 체결일부터 5년, 위반을 안 날부터 1년까지 가능합니다.",
       "tts_text": "설명이 잘못됐다면 위법계약 해지를 요구하실 수 있고, 계약 체결일부터 오 년, 위반을 안 날부터 일 년까지 가능합니다.",
@@ -235,7 +233,7 @@
     },
     {
       "id": "C17",
-      "start_ms": 109433,
+      "start_ms": 110853,
       "speaker": "teller",
       "text": "진행하시려면 소득증명서류와 재직증명서를 준비해 주세요. 신분증도 함께 가져오시면 됩니다.",
       "expect": [],
@@ -243,7 +241,7 @@
     },
     {
       "id": "C18",
-      "start_ms": 116932,
+      "start_ms": 118352,
       "speaker": "customer",
       "text": "네, 알겠습니다. 문자로 온 건 무시할게요.",
       "expect": [],
