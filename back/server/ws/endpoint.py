@@ -261,6 +261,7 @@ async def _start_stt(
         SpeakerResolver(diarization, RoleMapper(runtime.role_judge)),
         diarization=diarization,
         hold_ms=settings.speaker_hold_ms,
+        idle_flush_ms=settings.stt_idle_flush_ms,
     )
     try:
         await stt.start(runtime.stt, keyterms)

@@ -136,6 +136,14 @@ class SegmentedFileSttStream:
         covered = getattr(self.diarization, "covered_ms", None)
         return self.received_ms if covered is None else int(covered)
 
+    async def flush(self) -> None:
+        """뒤에 무음이 오지 않아도 지금까지의 구간을 닫는다. 스트림은 열어 둔다.
+
+        녹음 중지가 이 자리다. 오디오가 끊기면 `send()` 가 다시 불릴 일이 없어
+        `_enqueue_closed` 도 다시 안 돌고, 마지막 구간은 영영 안 닫힌다.
+        """
+        self._enqueue_closed(final=True)
+
     async def aclose(self) -> None:
         # 마지막 구간은 뒤에 무음이 오지 않아 스스로 닫히지 않는다. 여기서 닫아야
         # 마지막 발화가 사라지지 않는다

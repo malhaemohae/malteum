@@ -112,6 +112,16 @@ class DeepgramStream:
         except Exception:  # noqa: BLE001  전사 하나가 상담을 끊지 않게 한다
             return
 
+    async def flush(self) -> None:
+        """Finalize. 지금까지 받은 소리를 확정시키고 스트림은 열어 둔다.
+
+        Deepgram 은 **뒤에 이어질 소리**로 말끝을 잡으므로, 오디오가 끊기면 마지막
+        조각을 확정하지 않고 기다린다. CloseStream 과 달리 Finalize 는 스트림을 닫지
+        않아 녹음을 다시 켜면 그대로 이어 받는다.
+        """
+        with suppress(Exception):
+            await self.ws.send(json.dumps({"type": "Finalize"}))
+
     async def aclose(self) -> None:
         # CloseStream 을 보내면 Deepgram 이 남은 전사를 마저 준다. 그냥 끊으면 마지막
         # 발화가 사라지고, 그 발화가 리포트의 마지막 항목일 수 있다

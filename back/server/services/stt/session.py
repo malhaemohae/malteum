@@ -20,6 +20,23 @@
 태스크 하나가 앞에서부터 비운다. 붙잡는 일을 전사 콜백 안에서 그냥 기다리면 공급자의
 수신 루프가 그만큼 멈춰(`deepgram.py` `_read`) 중간 전사가 화면에 늦게 뜬다.
 
+## 오디오가 멈추면 마지막 구간을 닫는다
+
+프론트의 녹음 중지는 오디오 프레임을 멈출 뿐이다. 계약의 c2s 에는 멈춤을 알릴 메시지가
+없어(`contracts/ws_protocol.schema.json` 의 열 가지) 클라이언트가 알려 줄 수단이 없다.
+그런데 공급자는 저마다 **뒤에 이어질 소리**를 보고 말끝을 잡으므로, 오디오가 끊기면
+마지막 조각을 확정하지 않고 기다린다. 그래서 프레임이 `idle_flush_ms` 동안 안 오면
+서버가 스스로 `stream.flush()` 를 불러 그 자리를 닫는다.
+
+닫아 두는 것은 중지 전후가 한 발화로 붙는 것도 막는다. 발화 단위 어댑터의 PCM 버퍼는
+받은 순서로만 쌓여 중지한 시간이 남지 않으므로(`openai_file.py` `_pcm`), 앞을 닫지
+않으면 몇 분을 쉬어도 앞뒤가 맞붙어 한 문장으로 전사된다.
+
+**화자 분리에는 무음을 끼워 넣어야 한다.** 위의 닫기는 전사 쪽만 가른다. 사이드카는
+우리가 준 오디오만 보므로 중지 전 목소리와 재개 후 목소리가 여전히 맞붙어 들리고, 두
+사람이 한 번호로 묶이거나 한 사람이 두 번호로 갈릴 수 있다. 쉰 시간을 그대로 채우면
+몇 분치가 되므로, 사이드카가 구간을 가르기에 충분한 만큼만(`SEAM_SILENCE_MS`) 끼운다.
+
 `other` 로 판정된 번호의 발화는 submit 하지 않는다. 상담 당사자가 아닌 소리를 은행원의
 고지나 고객의 위험 신호로 기록하면 증빙이 오염된다. 다만 무엇을 버렸는지는 로그에
 남긴다. 중간 전사는 화자를 가리기 전에 나가므로(`speaker="unknown"`) 그 번호의 말도
@@ -32,16 +49,30 @@ import asyncio
 import logging
 from collections import deque
 from collections.abc import Awaitable, Callable, Sequence
+from contextlib import suppress
 from dataclasses import dataclass
 
 from contracts.engine_contract import Speaker, Utterance
 from server.services.session.registry import Session
 from server.services.stt.assembler import utterances
+from server.services.stt.audio import SAMPLE_RATE
 from server.services.stt.base import SttAdapter, SttStream, Transcript
 from server.services.stt.diarization import DiarizationSource, TranscriptDiarization
 from server.services.stt.speaker import SPEAKER_HOLD_MS, SpeakerResolver
 
 log = logging.getLogger(__name__)
+
+# 오디오 프레임이 이만큼 안 오면 마지막 구간을 닫는다. 프레임은 100ms 마다 오므로
+# 1.5초는 열다섯 조각이 빈 것이라, 회선이 잠깐 튀는 것과 녹음을 멈춘 것이 갈린다.
+# 짧게 잡으면 말하는 중에 끊어 한 문장이 두 발화로 갈라진다
+IDLE_FLUSH_MS = 1500
+# 유휴로 판단해 구간을 닫을 때 이음매에 끼우는 무음. 두 가지를 동시에 넘겨야 한다.
+# 사이드카가 무음을 한 청크 통째로 봐야 구간이 갈리고(DEC-6, 0.96초), 발화 단위 어댑터가
+# 앞뒤 구간을 합치지 않아야 한다(`openai_file.py` SEGMENT_GAP_MS 600ms). 둘 중 큰 쪽인
+# 0.96초를 넘기는 값이다. 32KB 라 몇 번을 끼워도 버퍼에 부담이 없다
+SEAM_SILENCE_MS = 1000
+# 16kHz mono PCM16 (계약 audioFrame). 무음을 만들 때만 쓴다
+BYTES_PER_MS = SAMPLE_RATE * 2 // 1000
 
 Publish = Callable[[dict], Awaitable[None]]
 Submit = Callable[[Utterance], Awaitable[None]]
@@ -71,6 +102,8 @@ class SttSession:
         *,
         diarization: DiarizationSource | None = None,
         hold_ms: int = SPEAKER_HOLD_MS,
+        idle_flush_ms: int = IDLE_FLUSH_MS,
+        seam_silence_ms: int = SEAM_SILENCE_MS,
     ) -> None:
         self.session = session
         self.publish = publish
@@ -81,6 +114,11 @@ class SttSession:
         self.diarization = diarization if diarization is not None else TranscriptDiarization()
         self.resolver = resolver if resolver is not None else SpeakerResolver(self.diarization)
         self.hold_ms = hold_ms
+        self.idle_flush_ms = idle_flush_ms
+        self.seam_silence_ms = seam_silence_ms
+        # 오디오가 들어올 때마다 세운다. 유휴 감시가 이것으로 끊긴 자리를 본다
+        self._fed = asyncio.Event()
+        self._idle: asyncio.Task | None = None
         self._held: deque[_Held] = deque()
         self._releasing: asyncio.Task | None = None
         # 사이드카 공급원만 오디오를 직접 받는다. 전사에 실려 오는 공급원은 받을 것이 없다
@@ -91,15 +129,57 @@ class SttSession:
         self.stream = await adapter.open(
             self._on_transcript, keyterms, diarization=self.diarization
         )
+        if self.idle_flush_ms > 0:
+            self._idle = asyncio.create_task(self._watch_idle())
 
     async def feed(self, pcm: bytes) -> None:
         """같은 PCM 을 전사 어댑터와 화자 분리 사이드카 양쪽에 준다."""
+        self._fed.set()
+        await self._deliver(pcm)
+
+    async def _deliver(self, pcm: bytes) -> None:
+        """양쪽에 넘기기만 한다. 유휴 감시에는 알리지 않는다.
+
+        이음매 무음이 이 길로 간다. `feed()` 로 넣으면 우리가 만든 소리가 유휴 감시를
+        깨워, 닫고 무음을 넣고 다시 깨우기를 되풀이한다.
+        """
         if self._to_diarization is not None:
             await self._to_diarization(pcm)
         if self.stream is not None:
             await self.stream.send(pcm)
 
+    async def _watch_idle(self) -> None:
+        """오디오가 끊기면 마지막 구간을 닫는다. 한 번 닫으면 다음 오디오까지 잠든다.
+
+        잠잠한 동안 되풀이해 닫으면 공급자와의 빈 왕복만 쌓인다. 닫을 것이 없다는 것을
+        어댑터가 아니라 여기서 알 수 있으므로, 세우는 쪽에서 한 번만 부른다.
+        """
+        while True:
+            await self._fed.wait()
+            self._fed.clear()
+            try:
+                await asyncio.wait_for(self._fed.wait(), self.idle_flush_ms / 1000)
+            except TimeoutError:
+                stream = self.stream
+                flush = getattr(stream, "flush", None) if stream is not None else None
+                if flush is None:
+                    return  # 확정시킬 방법이 없는 공급자다. 계속 볼 이유가 없다
+                try:
+                    await flush()
+                    if self.seam_silence_ms > 0:
+                        await self._deliver(bytes(self.seam_silence_ms * BYTES_PER_MS))
+                except asyncio.CancelledError:
+                    raise
+                except Exception:  # noqa: BLE001  마무리 실패가 상담을 끊지 않게 한다
+                    log.exception("멈춘 오디오의 마지막 구간을 닫지 못했습니다")
+
     async def aclose(self) -> None:
+        if self._idle is not None:
+            # 먼저 세운다. 닫는 중인 스트림을 감시가 다시 두드리면 안 된다
+            self._idle.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._idle
+            self._idle = None
         if self.stream is not None:
             await self.stream.aclose()
             self.stream = None
