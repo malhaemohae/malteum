@@ -15,6 +15,9 @@ function QuickAction({ title, subtitle, icon, tone, onClick, disabled, pressed, 
   return <button type="button" className={`wb-shortcut is-${tone}`} aria-label={label ?? title} aria-pressed={pressed} disabled={disabled} onClick={onClick}><span className="wb-shortcut-title"><strong>{title}</strong><span className="wb-shortcut-arrow"><WorkspaceIcon name="arrow" size={14} /></span></span><span className="wb-shortcut-bottom"><small>{subtitle}</small><span className="wb-shortcut-icon"><WorkspaceIcon name={icon} size={32} /></span></span></button>;
 }
 
+// 전문용어 밀도는 상단 도구 줄의 상태 칩으로 나간다. 서버 enum → 은행원이 읽는 말
+const densityNames: Record<string, string> = { low: '낮음', normal: '보통', high: '높음' };
+
 // 브리핑 항목이 상세로 펼칠 값을 가졌는지. 펼칠 것이 없으면 행을 눌러도 빈 모달만 뜬다.
 const briefingSections = (item: ApiBriefing['must_say'][number]) => detailSections([['확인해야 할 요소', item.elements], ['승인된 쉬운 말', item.plain_language]]);
 
@@ -105,6 +108,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
         {session.mode === 'live' ? <QuickAction title={micPending ? '연결 취소' : micActive ? '녹음 중지' : '녹음 시작'} label={micPending ? '마이크 연결 취소' : micActive ? '■ 녹음 중지' : '● 녹음 시작'} subtitle={micPending ? '권한 창을 확인하세요' : micActive ? '중지 후에도 상담은 유지' : '완료 시 상단 상담 종료'} icon={micActive ? 'stop' : 'mic'} tone={micActive ? 'recording' : 'record'} pressed={micActive} disabled={!canWrite} onClick={onMic} /> : <QuickAction title={session.mode === 'text' ? '텍스트 입력' : '상담 대화'} subtitle={session.mode === 'text' ? '화자를 선택해 입력' : '저장된 상담 확인'} icon="conversation" tone="record" onClick={() => { selectPane('conversation'); requestAnimationFrame(() => inputRef.current?.focus()); }} />}
         <QuickAction title="필요 서류" subtitle="서류 목록 열기" icon="folder" tone="documents" disabled={!pack} onClick={() => setReference('documents')} />
         <QuickAction title="규정팩 보기" subtitle="적용 중인 규정팩의 항목" icon="book" tone="briefing" disabled={!pack} onClick={() => setReference('briefing')} />
+        <div className="wb-density-chip" data-density={session.progress?.density ?? 'none'} role="status" aria-label="전문용어 밀도"><span>전문용어 밀도</span><strong>{session.progress?.density ? densityNames[session.progress.density] ?? session.progress.density : '측정 전'}</strong></div>
       </div>
       <div className="wb-conversation">
         <Panel title="상담 대화" className="wb-transcript" action={replaySound ? <button type="button" className="wb-replay-sound" data-replay-sound={replaySound.status} aria-pressed={replaySound.enabled && replaySound.status !== 'blocked'} onClick={onReplaySound} disabled={replaySound.status === 'loading' || session.ending || session.status !== 'connected'}>{replaySound.status === 'loading' ? '음원 준비 중' : replaySound.status === 'unavailable' ? '소리 다시 시도' : replaySound.status === 'blocked' || !replaySound.enabled ? '소리 켜기' : '소리 끄기'}</button> : <small role="status">{session.mode === 'live' && micActive ? health?.checks?.stt === 'ok' ? '● 녹음 중 · 전사 대기' : '● 녹음 중 · 전사 연결 확인 필요' : '고객 · 상담원'}</small>}>
@@ -137,7 +141,6 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
             </div>
           </div>;
         }} />
-        {session.progress?.density && <div className="wb-density"><span>전문용어 밀도</span><strong>{({ low: '낮음', normal: '보통', high: '높음' } as Record<string, string>)[session.progress.density] ?? session.progress.density}</strong></div>}
       </Panel></div>
         <div className="wb-guide-ask" aria-label="규정 질의">
           {session.mode !== 'trace' && <button disabled={!canWrite || manualPending || !session.transcript.some(row => row.speaker === 'teller')} title="직전 상담원 발화를 고객이 알기 쉬운 말로 바꿔 줍니다" onClick={() => requestRephrase()}>직전 발화 쉬운 말로</button>}
