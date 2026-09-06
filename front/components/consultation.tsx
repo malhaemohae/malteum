@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiBriefing, ApiHealth, ApiPack, ApiPackItem, malteumApi } from '../lib/api';
 import { evidenceForItem, friendlyError, itemTypeNames, STT_UNCONFIGURED, kindNames, latestPacks, LiveSession, modeNames, NavItem, ReadyItem, sessionScreen, statusNames, timeLabel } from '../lib/workspace-model';
-import { DetailSections, detailSections, Empty, Feedback, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
+import { DetailSections, detailSections, Empty, Feedback, KeyValueList, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
 import { speakerLabel, Transcript } from './transcript';
 import { WorkspaceIcon, WorkspaceIconName } from './workspace-icons';
 import { waitingForTraceUtterance } from '../lib/trace-start';
@@ -119,8 +119,8 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
         <div className="wb-guide-tabs"><Tabs value={guidePane} onChange={value => selectPane(value)} items={[{ value: 'attention', label: intervention ? `현재 안내 · ${session.interventions.length}` : '현재 안내' }, { value: 'checks', label: '필수 안내' }]} /></div>
         <div className="wb-guide-content" data-guide-pane={guidePane}>
         <Panel title={intervention ? kindNames[intervention.kind] ?? '현재 안내' : '현재 확인할 내용'} className={`wb-attention ${intervention?.kind === 'risk_signal' ? 'is-risk' : ''}`} action={intervention && <span className="wb-badge">{session.interventions.length > 1 ? `대기 ${session.interventions.length - 1}건` : '현재 1건'}</span>}>
-          {intervention ? <>{compared ? <dl className="wb-compare"><div><dt>말씀하신 값</dt><dd>{intervention.said}</dd></div><div><dt>설명서 값</dt><dd>{intervention.reference}</dd></div>{intervention.condition && <div><dt>조건</dt><dd>{intervention.condition}</dd></div>}</dl>
-            : <TextPages label="현재 안내" text={`${intervention.text}${intervention.said ?? intervention.reference ? `\n말씀하신 값: ${intervention.said ?? '미제공'}\n설명서 값: ${intervention.reference ?? '미제공'}` : ''}${intervention.condition ? `\n${intervention.condition}` : ''}`} />}<div className="wb-actions">{intervention.evidenceRef && <button onClick={() => onEvidence(intervention.evidenceRef!)}>근거 보기</button>}<button className="wb-primary" disabled={intervention.alert && (!canWrite || manualPending)} onClick={resolve}>{intervention.alert ? session.action?.kind === 'acknowledge' && manualPending ? '확인 저장 중…' : '확인 기록' : '닫기'}</button></div></> : <Empty><span className="wb-guide-empty-icon"><WorkspaceIcon name="conversation" size={32} /></span><p>{micActive ? '대화를 듣고 있습니다.' : session.mode === 'live' && !session.transcript.length ? '녹음 시작 버튼을 눌러 상담을 시작하세요.' : '확인이 필요한 안내가 없습니다.'}</p></Empty>}
+          {intervention ? <>{compared ? <KeyValueList className="wb-compare" rows={[{ label: '말씀하신 값', value: intervention.said }, { label: '설명서 값', value: intervention.reference }, ...(intervention.condition ? [{ label: '조건', value: intervention.condition as ReactNode }] : [])]} />
+            : <TextPages label="현재 안내" text={`${intervention.text}${intervention.said != null || intervention.reference != null ? `\n말씀하신 값: ${intervention.said ?? '미제공'}\n설명서 값: ${intervention.reference ?? '미제공'}` : ''}${intervention.condition ? `\n${intervention.condition}` : ''}`} />}<div className="wb-actions">{intervention.evidenceRef && <button onClick={() => onEvidence(intervention.evidenceRef!)}>근거 보기</button>}<button className="wb-primary" disabled={intervention.alert && (!canWrite || manualPending)} onClick={resolve}>{intervention.alert ? session.action?.kind === 'acknowledge' && manualPending ? '확인 저장 중…' : '확인 기록' : '닫기'}</button></div></> : <Empty><span className="wb-guide-empty-icon"><WorkspaceIcon name="conversation" size={32} /></span><p>{micActive ? '대화를 듣고 있습니다.' : session.mode === 'live' && !session.transcript.length ? '녹음 시작 버튼을 눌러 상담을 시작하세요.' : '확인이 필요한 안내가 없습니다.'}</p></Empty>}
           {intervention?.evidenceRef ? <EvidenceCard title="이 안내의 근거" evidenceRef={intervention.evidenceRef} onOpen={() => onEvidence(intervention.evidenceRef!)} />
             : session.recentEvidence ? <EvidenceCard title={`최근 판정 근거 · ${session.recentEvidence.name}`} evidenceRef={session.recentEvidence.ref} onOpen={() => onEvidence(session.recentEvidence!.ref)} /> : null}
         </Panel>

@@ -28,9 +28,9 @@ export function Panel({ title, action, className = '', children }: { title?: str
 }
 export function Empty({ children }: { children: ReactNode }) { return <div className="wb-empty">{children}</div>; }
 // Structured record view for report rows, session details and summaries: a label column and a value column.
-export function KeyValueList({ rows, empty }: { rows: { label: string; value: ReactNode }[]; empty?: string }) {
+export function KeyValueList({ rows, empty, className }: { rows: { label: string; value: ReactNode }[]; empty?: string; className?: string }) {
   if (!rows.length) return empty ? <Empty>{empty}</Empty> : null;
-  return <dl className="wb-kv">{rows.map((row, index) => <div key={`${row.label}-${index}`}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>;
+  return <dl className={className ? `wb-kv ${className}` : 'wb-kv'}>{rows.map((row, index) => <div key={`${row.label}-${index}`}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>;
 }
 // A record reads as labelled groups, never as one run of text. Empty groups never render.
 export function detailSections(sections: [string, (string | undefined)[] | undefined][]) {
