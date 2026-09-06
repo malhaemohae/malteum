@@ -17,7 +17,7 @@ const base = process.env.QA_BASE_URL || 'http://localhost:3000';
   try {
     await page.goto(base,{waitUntil:'domcontentloaded'});
     await page.getByRole('button',{name:/상담 시작|시작하기|대시보드/}).first().click();
-    await page.getByLabel('상품·규정 팩',{exact:true}).selectOption(scenario.pack_version);
+    await page.getByLabel('상품·규정팩',{exact:true}).selectOption(scenario.pack_version);
     await page.getByLabel('입력 방식',{exact:true}).selectOption('text');
     await allSizes(page,'split-briefing');
     await page.getByRole('button',{name:'상담 시작 →'}).click();

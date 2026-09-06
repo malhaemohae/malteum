@@ -53,9 +53,14 @@ async def replay(
     ordered = chains.by_seq(events)
     assist_vers = chains.assist_versions(ordered)
     previous: dict[str, Any] | None = None
+    loop = asyncio.get_running_loop()
+    started = loop.time()
+    elapsed = 0.0
     for i, event in enumerate(ordered):
         if previous is not None:
-            await asyncio.sleep(_gap_seconds(previous, event))
+            # Keep every original gap; fold/publish time consumes the same timeline.
+            elapsed += _gap_seconds(previous, event)
+            await asyncio.sleep(max(0.0, started + elapsed - loop.time()))
         previous = event
         # 그 시점까지의 상태. 실시간 경로와 같은 fold 를 써야 두 값이 갈라지지 않는다
         state = engine.fold(ordered[: i + 1])

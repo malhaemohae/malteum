@@ -43,8 +43,10 @@ let browser;
   for (let n = 0; frames < 2 && n < 50; n++) await page.waitForTimeout(100);
   assert.ok(frames > 0);
   await cards.getByRole('button', { name: '■ 녹음 중지', exact: true }).click();
-  assert.ok(await page.locator('.wb-transcript').evaluate(el => el.classList.contains('wb-pulse')));
-  result.checks.push('microphone toggles and destination pulses');
+  // wb-pulse 는 사라진 클래스라 그 부재를 보는 단언은 무엇이 깨져도 통과했다.
+  // 실제로 확인할 것은 중지 뒤 버튼이 다시 시작 상태로 돌아오는지다.
+  await cards.getByRole('button', { name: '● 녹음 시작', exact: true }).waitFor();
+  result.checks.push('microphone toggles back to the start state');
   await allSizes(page, 'feedback-dashboard');
   const before = result.messages.length;
   await cards.getByRole('button', { name: '필요 서류', exact: true }).click();

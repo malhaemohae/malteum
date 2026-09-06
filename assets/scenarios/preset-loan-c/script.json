@@ -8,17 +8,22 @@
     "type": "general",
     "tags": []
   },
-  "duration_ms": 156855,
+  "duration_ms": 123302,
   "audio": {
     "output": "audio.wav",
     "sample_rate": 16000,
     "channels": 1,
     "sample_width_bytes": 2,
     "min_gap_ms": 1000,
-    "gap_ms": 1200,
-    "alert_gap_ms": 4000,
-    "tts_model": "eleven_multilingual_v2",
-    "placement": "클립을 앞 클립 끝 + gap_ms 에 이어 놓는다. 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 gap_ms 대신 alert_gap_ms 를 둔다. 화자가 바뀌는 자리의 무음(min_gap_ms 이상)이 화자 분리가 발화를 가르는 조건. start_ms 는 추정치라 make_scenario_audio.py --write-start 가 되쓴다"
+    "gap_ms": 1300,
+    "long_gap_ms": 1750,
+    "same_speaker_gap_ms": 780,
+    "same_speaker_min_gap_ms": 650,
+    "alert_gap_ms": 2200,
+    "jitter_ms": 120,
+    "long_text_chars": 55,
+    "tts_model": "ssfm-v30",
+    "placement": "앞 클립 끝에 이어 놓되 쉬는 길이를 앞 줄의 성격으로 고른다. 같은 화자가 이어 말하면 same_speaker_gap_ms, 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 alert_gap_ms, long_text_chars 이상의 긴 설명이면 long_gap_ms, 그 밖은 gap_ms. 여기에 줄 id 로 정한 ±jitter_ms 를 더해 같은 값이 반복되지 않게 한다. 화자가 바뀌는 자리는 무엇을 고르든 min_gap_ms 아래로 내려가지 않는다. 그 하한이 화자 분리가 두 사람을 가르는 조건이고 speaker.py 의 NEAREST_GAP_MS 가 같은 값이다. start_ms 는 그렇게 놓인 실제 시각이고 make_scenario_audio.py --write-start 가 되쓴다"
   },
   "speakers": {
     "teller": {
@@ -26,9 +31,9 @@
       "voice": "30대 남성, 차분한 톤",
       "desc": "가상 인물. 은행 창구 직원",
       "tts": {
-        "provider": "elevenlabs",
-        "voice_id": "CxErO97xpQgQXYmapDKX",
-        "speed": 1.0
+        "provider": "typecast",
+        "voice_id": "tc_61f0859907085fc68561c9a1",
+        "tempo": 1.0
       }
     },
     "customer": {
@@ -36,9 +41,9 @@
       "voice": "30대 여성, 보통 톤",
       "desc": "가상 인물. 기존 신용대출 고객, 대환 문자를 받고 방문",
       "tts": {
-        "provider": "elevenlabs",
-        "voice_id": "8jHHF8rMqMlg8if2mOUe",
-        "speed": 1.0
+        "provider": "typecast",
+        "voice_id": "tc_68537c9420b646f2176890ba",
+        "tempo": 1.0
       }
     }
   },
@@ -61,7 +66,7 @@
     },
     {
       "id": "C02",
-      "start_ms": 16570,
+      "start_ms": 13468,
       "speaker": "teller",
       "text": "고객님, 그건 대출빙자 보이스피싱일 가능성이 큽니다. 저희는 문자로 갈아타기를 권하거나 다른 계좌로 먼저 갚으라고 하지 않습니다.",
       "expect": [],
@@ -69,7 +74,7 @@
     },
     {
       "id": "C03",
-      "start_ms": 28210,
+      "start_ms": 21883,
       "speaker": "teller",
       "text": "대신 신용상태가 좋아지셨으면 금리인하요구를 하실 수 있고, 다만 대상이 아닌 상품도 있습니다.",
       "expect": [
@@ -79,7 +84,7 @@
     },
     {
       "id": "C04",
-      "start_ms": 36950,
+      "start_ms": 28465,
       "speaker": "teller",
       "text": "심사를 위해 신용정보를 조회하게 되는데, 조회 동의를 먼저 받겠습니다.",
       "expect": [
@@ -89,7 +94,7 @@
     },
     {
       "id": "C05",
-      "start_ms": 43805,
+      "start_ms": 33925,
       "speaker": "customer",
       "text": "네, 동의할게요. 그런데 이번에는 갚는 방식도 한번 바꿔 보고 싶어요.",
       "expect": [],
@@ -97,7 +102,7 @@
     },
     {
       "id": "C06",
-      "start_ms": 50660,
+      "start_ms": 41412,
       "speaker": "teller",
       "text": "원리금균등으로 갚으실지 만기일시로 갚으실지에 따라 만기까지 내는 총 이자가 달라집니다.",
       "expect": [
@@ -107,7 +112,7 @@
     },
     {
       "id": "C07",
-      "start_ms": 58820,
+      "start_ms": 47574,
       "speaker": "teller",
       "text": "그리고 지금 조건이면 한도는 이만큼 확실히 나옵니다.",
       "expect": [
@@ -128,7 +133,7 @@
     },
     {
       "id": "C08",
-      "start_ms": 67025,
+      "start_ms": 53335,
       "speaker": "customer",
       "text": "그럼 그 금액으로 계획을 세워도 되겠네요.",
       "expect": [],
@@ -136,7 +141,7 @@
     },
     {
       "id": "C09",
-      "start_ms": 71560,
+      "start_ms": 57958,
       "speaker": "teller",
       "text": "아, 정확히는 심사 결과에 따라 한도가 달라질 수 있어서 확정은 아닙니다.",
       "expect": [],
@@ -144,7 +149,7 @@
     },
     {
       "id": "C10",
-      "start_ms": 78705,
+      "start_ms": 63842,
       "speaker": "teller",
       "text": "이자를 한 달 넘게 연체하시면 기한이익이 상실되어 원금 전체를 한꺼번에 갚으셔야 하고, 연체 정보가 신용정보에 등록됩니다.",
       "expect": [
@@ -154,7 +159,7 @@
     },
     {
       "id": "C11",
-      "start_ms": 89765,
+      "start_ms": 73157,
       "speaker": "customer",
       "text": "네에, 기한이익이 뭐예요?",
       "tts_text": "네에... 기한이익이 뭐예요?",
@@ -166,7 +171,7 @@
     },
     {
       "id": "C12",
-      "start_ms": 95795,
+      "start_ms": 78255,
       "speaker": "teller",
       "text": "이자를 한 달 넘게 연체하면 대출을 만기 전에 한꺼번에 갚아야 하는 기한이익상실이 됩니다.",
       "expect": [],
@@ -182,7 +187,7 @@
     },
     {
       "id": "C13",
-      "start_ms": 104245,
+      "start_ms": 84450,
       "speaker": "teller",
       "text": "연체하시면 대출이자율에 연체가산이자율 연 5%가 더해진 연체이자율이 적용됩니다.",
       "tts_text": "연체하시면 대출이자율에 연체가산이자율 연 오 퍼센트가 더해진 연체이자율이 적용됩니다.",
@@ -194,7 +199,7 @@
     },
     {
       "id": "C14",
-      "start_ms": 114625,
+      "start_ms": 91850,
       "speaker": "teller",
       "text": "죄송합니다, 연체가산이자율은 연 3%입니다.",
       "tts_text": "죄송합니다, 연체가산이자율은 연 삼 퍼센트입니다.",
@@ -205,7 +210,7 @@
     },
     {
       "id": "C15",
-      "start_ms": 122105,
+      "start_ms": 96089,
       "speaker": "teller",
       "text": "대출 약정 때 인지세가 붙는데, 5천만원 이하는 비과세이고 금액 구간에 따라 세액이 정해집니다.",
       "tts_text": "대출 약정 때 인지세가 붙는데, 오천만 원 이하는 비과세이고 금액 구간에 따라 세액이 정해집니다.",
@@ -216,7 +221,7 @@
     },
     {
       "id": "C16",
-      "start_ms": 130990,
+      "start_ms": 103035,
       "speaker": "teller",
       "text": "설명이 잘못됐다면 위법계약 해지를 요구하실 수 있고, 계약 체결일부터 5년, 위반을 안 날부터 1년까지 가능합니다.",
       "tts_text": "설명이 잘못됐다면 위법계약 해지를 요구하실 수 있고, 계약 체결일부터 오 년, 위반을 안 날부터 일 년까지 가능합니다.",
@@ -228,7 +233,7 @@
     },
     {
       "id": "C17",
-      "start_ms": 144270,
+      "start_ms": 110853,
       "speaker": "teller",
       "text": "진행하시려면 소득증명서류와 재직증명서를 준비해 주세요. 신분증도 함께 가져오시면 됩니다.",
       "expect": [],
@@ -236,7 +241,7 @@
     },
     {
       "id": "C18",
-      "start_ms": 152575,
+      "start_ms": 118352,
       "speaker": "customer",
       "text": "네, 알겠습니다. 문자로 온 건 무시할게요.",
       "expect": [],

@@ -6,7 +6,7 @@
 
 이 경로가 비어 있으면 조용히 틀린다. 상담이 끝나면 서버가 `ended` 에 `report_url` 로 이
 주소를 실어 보내고(`ws/endpoint.py`), 화면의 "PDF로 저장" 은 그 값이 있으면 새 탭으로
-연다 — 없으면 심사위원이 404 를 본다.
+연다. 없으면 심사위원이 404 를 본다.
 """
 
 import json
@@ -71,7 +71,7 @@ def test_an_unknown_session_is_404_not_an_empty_pdf(client: TestClient):
 def _text(body: bytes) -> str:
     """구운 PDF 에서 글자를 도로 읽는다.
 
-    바이트를 그대로 뒤지면 안 된다 — reportlab 이 페이지 스트림을 압축해서 ASCII 도
+    바이트를 그대로 뒤지면 안 된다. reportlab 이 페이지 스트림을 압축해서 ASCII 도
     원문으로 안 남는다. 사람이 볼 때 읽히는지를 재려면 뷰어와 같은 방식으로 뽑아야 한다.
     """
     import io
@@ -149,7 +149,7 @@ def test_it_renders_without_a_font_file_in_the_repo():
 
 
 def test_a_report_with_nothing_in_it_still_makes_a_pdf():
-    """세션이 비어도 500 을 내면 안 된다 — 화면의 저장 버튼이 그대로 죽는다."""
+    """세션이 비어도 500 을 내면 안 된다. 화면의 저장 버튼이 그대로 죽는다."""
     assert report_pdf.render({"session_id": "S1"})[:5] == b"%PDF-"
 
 
@@ -162,3 +162,34 @@ def test_long_lines_wrap_instead_of_running_off_the_page():
 def test_a_missing_timestamp_does_not_crash_the_page():
     assert report_pdf._ms(None) == "--:--"
     assert report_pdf._ms(125000) == "02:05"
+
+
+def test_the_pdf_says_alert_kinds_in_korean_not_wire_values(client: TestClient):
+    """심사용 문서에 `number_mismatch` 같은 프로토콜 값이 그대로 찍히면 못 읽는다.
+
+    화면은 이 번역을 갖고 있는데 PDF 만 원문을 찍고 있었다. 같은 사실을 두 산출물이
+    다른 말로 적으면 증빙으로 나란히 못 쓴다.
+    """
+    _, report = _report(client)
+    labels = [str(row.get("label", "")) for row in report["sections"].get("timeline", [])]
+    wire = [
+        head
+        for head in ("teller", "customer", "number_mismatch", "forbidden_phrase", "rephrase")
+        if any(label.startswith(f"{head}: ") for label in labels)
+    ]
+    if not wire:
+        pytest.skip("fixture 타임라인에 번역 대상 라벨이 없다")
+    text = _text(report_pdf.render(report))
+    for head in wire:
+        assert f"{head}:" not in text, f"{head} 가 번역되지 않고 PDF 에 그대로 있다"
+        assert report_pdf.WIRE_LABEL[head] in text, f"{report_pdf.WIRE_LABEL[head]} 가 PDF 에 없다"
+
+
+def test_the_alert_count_reaches_the_pdf_summary(client: TestClient):
+    """화면 요약에는 경보 수가 있는데 PDF 에만 없으면 두 산출물이 어긋난다."""
+    _, report = _report(client)
+    alerts = report["sections"].get("summary", {}).get("alerts")
+    if alerts is None:
+        pytest.skip("fixture 요약에 경보 수가 없다")
+    text = _text(report_pdf.render(report))
+    assert f"경보: {alerts}" in text

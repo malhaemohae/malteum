@@ -79,7 +79,7 @@ def create_session(body: CreateSession, request: Request) -> CreatedSession:
             audio_ref=body.audio_ref,
         )
     except PackNotFound as e:
-        raise HTTPException(404, "규정 팩이 없습니다.") from e
+        raise HTTPException(404, "규정팩이 없습니다.") from e
     # 소켓 주소는 상대 경로로 돌려준다. 공개 주소는 배포 형상에 달렸고 서버가 모른다
     return CreatedSession(
         session_id=session.session_id,
@@ -173,7 +173,7 @@ def get_session(session_id: str, request: Request) -> dict[str, Any]:
     try:
         pack = runtime.registry.pack(state.pack_version)
     except PackNotFound as e:
-        raise HTTPException(404, "규정 팩이 없습니다.") from e
+        raise HTTPException(404, "규정팩이 없습니다.") from e
 
     summary = runtime.engine.summarize(state, pack, events)
     names = {it.code: it.name for it in pack.items}
@@ -310,7 +310,7 @@ def _report(session_id: str, request: Request) -> dict[str, Any]:
         pack = runtime.registry.pack(pack_version)
         doc = runtime.pack_source.read(pack_version)
     except PackNotFound as e:
-        raise HTTPException(404, "규정 팩이 없습니다.") from e
+        raise HTTPException(404, "규정팩이 없습니다.") from e
     return report_builder.build(session_id, events, runtime.engine, pack, doc)
 
 

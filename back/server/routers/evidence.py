@@ -42,7 +42,7 @@ def get_evidence(evidence_ref: str, request: Request) -> dict[str, Any]:
     try:
         doc = runtime.pack_source.read(event["pack_version"])
     except PackNotFound as e:
-        raise HTTPException(404, "규정 팩이 없습니다.") from e
+        raise HTTPException(404, "규정팩이 없습니다.") from e
     source = next((s for s in doc.get("sources", []) if s["doc_id"] == evidence["doc_id"]), {})
     try:
         size = page_size(request.app.state.settings.docs_dir, evidence["doc_id"], evidence["page"])

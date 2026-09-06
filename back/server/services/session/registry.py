@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import threading
 from collections import deque
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
@@ -102,11 +103,21 @@ class SessionRegistry:
         self.store = store
         self._packs: dict[str, RulePack] = {}
         self._sessions: dict[str, Session] = {}
+        self._pack_lock = threading.Lock()
 
     def pack(self, pack_version: str) -> RulePack:
-        if pack_version not in self._packs:
-            self._packs[pack_version] = self.engine.load_pack(pack_version)
-        return self._packs[pack_version]
+        """팩 적재는 임베딩 모델까지 끌고 와 수십 초가 걸린다. 예열 스레드와 상담 요청이
+        같은 팩을 동시에 처음 부르면 검사와 대입 사이가 벌어져 모델이 두 벌 올라간다.
+        잠금으로 뒤에 온 쪽이 앞의 결과를 기다리게 한다(이중 검사)."""
+        cached = self._packs.get(pack_version)
+        if cached is not None:
+            return cached
+        with self._pack_lock:
+            cached = self._packs.get(pack_version)
+            if cached is None:
+                cached = self.engine.load_pack(pack_version)
+                self._packs[pack_version] = cached
+        return cached
 
     def open(
         self,

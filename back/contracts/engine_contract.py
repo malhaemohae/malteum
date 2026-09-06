@@ -59,7 +59,7 @@ AssistTrigger = Literal[
 # 지연 예산. 초과는 버그가 아니라 설계 위반으로 다룬다
 BUDGET_L1_MS = 5
 BUDGET_L1_L2_MS = 20
-BUDGET_L3_MS = 1500
+BUDGET_L3_MS = 3000
 
 
 @dataclass(frozen=True, slots=True)

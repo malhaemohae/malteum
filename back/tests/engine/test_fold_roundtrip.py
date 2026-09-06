@@ -1,5 +1,7 @@
 """시나리오 A 이벤트 48건을 접으면 session_ended.summary 와 같아야 한다."""
 
+from copy import deepcopy
+
 from engine.build import build_engine
 from tests.engine.conftest import PACK_VERSION
 from tests.engine.fakes import FakePackSource
@@ -15,6 +17,9 @@ def test_fold_scenario_a_matches_summary(pack_json, scenario_a):
     # 체인: EV-0011 partial(L1) → EV-0012 partial(L3) → EV-0034 met(L1). 넛지 뒤 산식을 채움
     assert state.state_of("DEP-INT-002").state == "met"
     assert state.state_of("DEP-INT-002").ver == 3
+    # 첫 판정이 가리킨 발화의 t_ms. 시연 음원을 다시 만들면 fixture 와 함께 밀린다
+    assert state.state_of("DEP-INT-002").first_seen_t_ms == 27320  # EV-0010
+    assert state.state_of("DEP-INT-002", "comprehension").first_seen_t_ms == 33169  # EV-0014
     assert state.state_of("DEP-BAN-001", "commission").state == "violated"
     assert state.state_of("DEP-INT-003").state == "met"
     assert state.state_of("DEP-TAX-001").state == "met"  # 세율은 틀렸지만(경보) 항목은 설명함
@@ -29,3 +34,21 @@ def test_fold_is_order_independent(pack_json, scenario_a):
     engine = build_engine(FakePackSource(pack_json))
     shuffled = list(reversed(scenario_a))
     assert engine.fold(shuffled) == engine.fold(scenario_a)
+
+
+def test_fold_counts_only_latest_alert_in_supersede_chain(pack_json, scenario_a):
+    engine = build_engine(FakePackSource(pack_json))
+    original = next(e for e in scenario_a if e["kind"] == "alert")
+    acknowledged = deepcopy(original)
+    acknowledged.update(
+        event_id="FIXT-EV-0049",
+        seq_in_session=49,
+        supersedes=original["event_id"],
+    )
+    acknowledged["alert"]["acknowledged"] = True
+
+    before = engine.fold(scenario_a)
+    after = engine.fold([*scenario_a, acknowledged])
+
+    assert before.alert_count == 3
+    assert after.alert_count == before.alert_count

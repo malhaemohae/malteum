@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "01-system",
+    "overflow": [],
+    "overlaps": [],
+    "fonts": [
+      "\"Geist Mono\", \"Malgun Gothic\", ui-monospace, monospace",
+      "Geist, \"Malgun Gothic\", system-ui, sans-serif"
+    ],
+    "scale": 1.016,
+    "geist": true,
+    "serif": true
+  },
+  {
+    "slug": "02-engine",
+    "overflow": [],
+    "overlaps": [],
+    "fonts": [
+      "\"Geist Mono\", \"Malgun Gothic\", ui-monospace, monospace",
+      "Geist, \"Malgun Gothic\", system-ui, sans-serif"
+    ],
+    "scale": 1.016,
+    "geist": true,
+    "serif": true
+  },
+  {
+    "slug": "03-correction",
+    "overflow": [],
+    "overlaps": [],
+    "fonts": [
+      "\"Geist Mono\", \"Malgun Gothic\", ui-monospace, monospace",
+      "Geist, \"Malgun Gothic\", system-ui, sans-serif"
+    ],
+    "scale": 1.016,
+    "geist": true,
+    "serif": true
+  },
+  {
+    "slug": "04-rulepack",
+    "overflow": [],
+    "overlaps": [],
+    "fonts": [
+      "\"Geist Mono\", \"Malgun Gothic\", ui-monospace, monospace",
+      "Geist, \"Malgun Gothic\", system-ui, sans-serif"
+    ],
+    "scale": 1.016,
+    "geist": true,
+    "serif": true
+  },
+  {
+    "slug": "05-userflow",
+    "overflow": [],
+    "overlaps": [],
+    "fonts": [
+      "\"Geist Mono\", \"Malgun Gothic\", ui-monospace, monospace",
+      "Geist, \"Malgun Gothic\", system-ui, sans-serif"
+    ],
+    "scale": 1.016,
+    "geist": true,
+    "serif": true
+  }
+]

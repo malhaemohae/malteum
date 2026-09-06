@@ -22,6 +22,8 @@ def fold(events: Sequence[dict], compiled: CompiledPack) -> SessionState:
     items: dict[tuple[str, str], ItemState] = {}
     ver: dict[tuple[str, str], int] = {}
     utterances: list[Utterance] = []
+    utterance_t_ms: dict[str, int] = {}
+    first_seen_t_ms: dict[tuple[str, str], int] = {}
     alerts = 0
     for e in sorted(events, key=lambda e: e["seq_in_session"]):
         kind = e["kind"]
@@ -29,6 +31,9 @@ def fold(events: Sequence[dict], compiled: CompiledPack) -> SessionState:
             v = e["verdict"]
             key = (v["item_code"], v["axis"])
             ver[key] = ver.get(key, 0) + 1
+            ref = v.get("utterance_ref")
+            if ref in utterance_t_ms:
+                first_seen_t_ms.setdefault(key, utterance_t_ms[ref])
             if e["event_id"] in superseded:
                 continue
             items[key] = ItemState(
@@ -39,9 +44,11 @@ def fold(events: Sequence[dict], compiled: CompiledPack) -> SessionState:
                 ver=ver[key],
                 missing_elements=tuple(v.get("missing_elements", ())),
                 waive_reason=v.get("waive_reason"),
+                first_seen_t_ms=first_seen_t_ms.get(key),
             )
         elif kind == "utterance":
             u = e["utterance"]
+            utterance_t_ms[e["event_id"]] = u["t_ms"]
             utterances.append(
                 Utterance(
                     utterance_id=e["event_id"],
@@ -53,7 +60,7 @@ def fold(events: Sequence[dict], compiled: CompiledPack) -> SessionState:
                     speaker_confidence=u.get("speaker_confidence"),
                 )
             )
-        elif kind == "alert":
+        elif kind == "alert" and e["event_id"] not in superseded:
             alerts += 1
 
     profile = started["session_started"].get("customer_profile") or {}
