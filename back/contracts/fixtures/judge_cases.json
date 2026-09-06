@@ -348,7 +348,7 @@
     },
     {
       "name": "화자 신뢰도 낮음 → 미고지 쪽으로 남긴다",
-      "why": "P3 fail-safe. 은행원이 말했는지 확실하지 않으면 met 로 올리지 않는다. 잘못된 met 는 잘못된 unmet 보다 위험하다",
+      "why": "P3 fail-safe. 은행원이 말했는지 확실하지 않으면 아무 verdict 도 내지 않고 unmet 상태를 그대로 둔다. 현재 상태를 복사한 verdict 는 초기 ver=0 을 전송하고 L3·human 판정을 L1 으로 덮으므로 만들지 않는다. 잘못된 met 는 잘못된 unmet 보다 위험하다",
       "state_before": {
         "DEP-PRO-001": "unmet"
       },
@@ -361,13 +361,7 @@
       "expect": {
         "tier": "L1",
         "max_ms": 5,
-        "verdicts": [
-          {
-            "item_code": "DEP-PRO-001",
-            "axis": "omission",
-            "state": "unmet"
-          }
-        ],
+        "verdicts": [],
         "alerts": [],
         "assists": []
       }
