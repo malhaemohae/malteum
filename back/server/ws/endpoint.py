@@ -27,6 +27,7 @@ from server.services.stt.session import SttSession
 from server.services.stt.speaker import RoleMapper, SpeakerResolver
 from server.ws.connection import Connection
 from server.ws.handlers import assist, human
+from server.ws.pacing import FramePacing
 from server.ws.protocol import InvalidMessage, parse_audio_frame, parse_c2s
 
 router = APIRouter()
@@ -55,6 +56,8 @@ async def ws_endpoint(socket: WebSocket) -> None:
     stt: SttSession | None = None
     # 마지막으로 받은 오디오 시퀀스. -1 은 아직 한 조각도 안 받았다는 뜻
     audio_seq = -1
+    # 프레임이 실제로 얼마 간격으로 오는지. 유휴 닫기 임계값의 근거가 된다(pacing.py)
+    pacing = FramePacing()
 
     async def refine_failed(e: Exception) -> None:
         """보정은 화면 뒤에서 돈다. 실패해도 상담은 이어져야 하므로 알리기만 한다."""
@@ -68,7 +71,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
             # 오디오는 JSON 이 아니라 바이너리로 온다(계약 $defs/audioFrame). 텍스트만
             # 받으면 프런트가 마이크를 켜는 순간 소켓이 죽는다
             if (blob := frame.get("bytes")) is not None:
-                audio_seq = await _on_audio(blob, conn, audio_seq, stt)
+                audio_seq = await _on_audio(blob, conn, audio_seq, stt, pacing)
                 continue
             try:
                 msg = parse_c2s(frame["text"])
@@ -218,6 +221,9 @@ async def ws_endpoint(socket: WebSocket) -> None:
         with suppress(Exception):
             await conn.send(_error("internal", str(e), retryable=True))
     finally:
+        if pacing.total:
+            # 임계값을 짐작으로 정하지 않으려고 남긴다. 상담 하나면 실측이 된다
+            log.info("세션 %s %s", session.session_id if session else "?", pacing.summary())
         if trace is not None:
             trace.cancel()
         if stt is not None:
@@ -323,13 +329,20 @@ async def _start_stt(
     return stt
 
 
-async def _on_audio(blob: bytes, conn: Connection, last_seq: int, stt: SttSession | None) -> int:
+async def _on_audio(
+    blob: bytes,
+    conn: Connection,
+    last_seq: int,
+    stt: SttSession | None,
+    pacing: FramePacing,
+) -> int:
     """오디오 프레임 하나. 껍질을 벗겨 STT 로 흘린다.
 
     STT 가 없으면 연결당 한 번만 `stt_unavailable` 을 보낸다. 100ms 마다 오는 것이라
     매 조각에 답하면 화면이 오류로 뒤덮인다. 계약이 그 코드를 둔 이유가 이것이다 —
     프런트가 받으면 text 모드 전환을 제안한다(3층 폴백, 기획 7.1 ⑪).
     """
+    pacing.saw_frame()
     try:
         audio = parse_audio_frame(blob)
     except InvalidMessage as e:
