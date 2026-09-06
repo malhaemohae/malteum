@@ -61,3 +61,6 @@ back/scripts/stt_audio/
 # compose 볼륨(uploads:/uploads)이라 레포에 들어올 값이 아니다. 기획 5.3 이
 # 원본 오디오를 저장물에서 뺐는데 커밋에 섞이면 그 결정이 무의미해진다
 uploads/
+
+# 작업용 임시 폴더. 내려받은 원문 PDF 처럼 다시 만들 수 있는 것만 들어간다
+tmp/

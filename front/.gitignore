@@ -1,7 +1,6 @@
-.next-verify/
-.next-qa/
-.next-stale-*/
-.next-final-feedback-*/
+# `MALTEUM_NEXT_DIST_DIR` 로 이름을 바꿔 굽는 빌드가 만드는 dist 디렉터리 전부.
+# 이름을 하나씩 적어 두면 새로 생기는 것마다 빠진다(`.next-dev` 가 그대로 샜음)
+.next-*/
 qa-output/
 .env.backend.local
 .admin-token
