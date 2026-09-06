@@ -71,7 +71,7 @@ export default function Application() {
     if (value === '리포트') { if (current.current) setReportTarget({ id: current.current.id, ended: current.current.status === 'ended' }); setScreen('report'); }
     if (value === '이력') setScreen('history');
     if (value === '기준 관리') setScreen(managementScreen.current);
-    if (value === '규정 팩') { managementScreen.current = 'packs'; setScreen('packs'); }
+    if (value === '규정팩') { managementScreen.current = 'packs'; setScreen('packs'); }
     if (value === '문서') { managementScreen.current = 'documents'; setScreen('documents'); }
   }
   function resetForNew() { stopMic(); closeSocket(); clearReplayAudio(); forgetActiveSession(); update(null); setMicError(''); setError(''); setNewConfirm(false); setScreen('briefing'); }

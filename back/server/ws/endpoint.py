@@ -98,7 +98,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
                             msg.session_id,
                         )
                     except PackNotFound:
-                        await conn.send(_error("pack_not_found", "규정 팩이 없습니다."))
+                        await conn.send(_error("pack_not_found", "규정팩이 없습니다."))
                         continue
                 # 이 뒤의 seq 는 세션에서 이어진다. 재접속이면 앞 연결이 쓰던 번호를
                 # 그대로 잇고, resume 이 그 세션의 로그에서 놓친 구간을 꺼낸다

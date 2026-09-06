@@ -36,7 +36,7 @@ def list_packs(
 def get_pack(pack_version: str, request: Request) -> dict[str, Any]:
     doc = request.app.state.runtime.pack_store.get(pack_version)
     if doc is None:
-        raise HTTPException(404, "규정 팩이 없습니다.")
+        raise HTTPException(404, "규정팩이 없습니다.")
     return doc
 
 
@@ -98,7 +98,7 @@ def get_briefing(
     """
     doc = request.app.state.runtime.pack_store.get(pack_version)
     if doc is None:
-        raise HTTPException(404, "규정 팩이 없습니다.")
+        raise HTTPException(404, "규정팩이 없습니다.")
 
     must_say = []
     must_not_say = []
