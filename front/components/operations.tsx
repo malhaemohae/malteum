@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ApiDocument, ApiPackItem, ApiPreset, ApiSessionSummary, malteumApi } from '../lib/api';
-import { displayField, displayValue, errorText, evidenceForItem, INTERNAL_FIELDS, itemTypeNames, labelState, latestPacks, modeNames, NavItem, statusNames, textValue, timeLabel, whenLabel, withoutStateArrow } from '../lib/workspace-model';
+import { displayField, displayValue, errorText, evidenceForItem, INTERNAL_FIELDS, itemTypeNames, labelState, latestPacks, modeNames, NavItem, statusNames, textValue, timeLabel, whenLabel, withoutKindPrefix, withoutStateArrow } from '../lib/workspace-model';
 import { EvidenceCard } from './evidence';
 import { rememberedSessionIds } from '../lib/session-index';
 import { HistoryAction, traceBlockedReason } from '../lib/session-recovery';
@@ -23,6 +23,9 @@ function recordRows(row: Record<string, unknown>) {
     .map(([key, value]) => ({ label: displayField(key), value: <span className="wb-kv-text">{displayValue(value, key)}</span> }));
 }
 type ReportTab = 'omission' | 'commission' | 'comprehension' | 'risk_signals' | 'timeline';
+// 탭 이름이 이미 유형을 말한다. 위험 신호 행은 `alert_type` 없이 오고 유형이 문구
+// 앞에 붙어 있어, 탭에서 유형을 받아 그 머리말을 화면에서만 뗀다
+const tabKind: Partial<Record<ReportTab, string>> = { risk_signals: 'risk_signal' };
 const reportTabs: { value: ReportTab; label: string }[] = [{ value: 'omission', label: '설명 이행' }, { value: 'commission', label: '금지·숫자' }, { value: 'comprehension', label: '이해 지원' }, { value: 'risk_signals', label: '위험 신호' }, { value: 'timeline', label: '타임라인' }];
 
 export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, error, ...navigation }: Navigation & { sessionId: string | null; onEvidence: (ref: string) => void; onResume: (record: ApiSessionSummary) => void; onTrace: (record: ApiSessionSummary) => void; busy: boolean; error: string }) {
@@ -51,10 +54,11 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
         // 읽히게 하고, 제목에서는 그 화살표를 떼 같은 말이 두 번 나오지 않게 한다
         const state = alert ? (row.acknowledged ? 'met' : 'violated') : String(row.state ?? row.final_state ?? row.outcome ?? labelState(row.label));
         const label = typeof row.label === 'string' ? withoutStateArrow(row.label) : undefined;
+        const kind = typeof row.alert_type === 'string' ? row.alert_type : tabKind[tab];
         const title = alert ? `${displayValue(row.alert_type, 'alert_type')} · ${displayValue(row.name ?? row.item_code ?? '', 'name')}`
-          : displayValue(row.name ?? label ?? row.message ?? row.item_code ?? row.assist_type ?? row.alert_type ?? '기록 상세', label ? 'label' : row.assist_type ? 'assist_type' : row.alert_type ? 'alert_type' : 'name');
+          : withoutKindPrefix(displayValue(row.name ?? label ?? row.message ?? row.item_code ?? row.assist_type ?? row.alert_type ?? '기록 상세', label ? 'label' : row.assist_type ? 'assist_type' : row.alert_type ? 'alert_type' : 'name'), kind);
         const badge = alert ? (row.acknowledged ? '확인 기록' : '미확인 경보') : state ? displayValue(state, 'state') : '';
-        const note = alert ? `${timeLabel(Number(row.t_ms ?? 0) / 1000)} · ${textValue(row.message)}` : typeof row.t_ms === 'number' ? timeLabel(row.t_ms / 1000) : textValue(row.item_code ?? row.event_id ?? '');
+        const note = alert ? `${timeLabel(Number(row.t_ms ?? 0) / 1000)} · ${withoutKindPrefix(textValue(row.message), kind)}` : typeof row.t_ms === 'number' ? timeLabel(row.t_ms / 1000) : textValue(row.item_code ?? row.event_id ?? '');
         return <><button className="wb-row-button" onClick={() => setDetail(row)}><span className="wb-row-copy"><strong>{title}</strong><small>{note}</small></span>{badge && <span className="wb-badge" data-state={state}>{badge}</span>}<span>›</span></button>{typeof row.evidence_ref === 'string' && <button onClick={() => onEvidence(String(row.evidence_ref))}>근거</button>}</>;
       }} /></Panel>
     </>}
