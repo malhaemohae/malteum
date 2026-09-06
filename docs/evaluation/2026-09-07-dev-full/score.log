@@ -1,0 +1,12 @@
+r1-preset-dep-a summary {} states 8 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 27 / 27
+r1-preset-dep-d summary {} states 8 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 24 / 24
+r1-preset-loan-b summary {} states 11 alerts {'tp': 2, 'fp': 0, 'fn': 0} role 21 / 21
+r1-preset-loan-c summary {} states 11 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 23 / 23
+r2-preset-dep-a summary {'violations': {'expected': 1, 'actual': 0}} states 8 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 24 / 27
+r2-preset-dep-d summary {} states 8 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 24 / 24
+r2-preset-loan-b summary {'partial': {'expected': 1, 'actual': 0}, 'unmet': {'expected': 5, 'actual': 6}, 'violations': {'expected': 2, 'actual': 1}} states 10 alerts {'tp': 2, 'fp': 0, 'fn': 0} role 21 / 21
+r2-preset-loan-c summary {} states 11 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 23 / 23
+r3-preset-dep-a summary {} states 8 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 27 / 27
+r3-preset-dep-d summary {} states 8 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 24 / 24
+r3-preset-loan-b summary {} states 11 alerts {'tp': 2, 'fp': 0, 'fn': 0} role 21 / 21
+r3-preset-loan-c summary {} states 11 alerts {'tp': 3, 'fp': 0, 'fn': 0} role 23 / 23

@@ -1,0 +1,28 @@
+L0 {'terms': 79, 'raw_ok': 27, 'norm_ok': 76, 'unmapped_lines': 2}
+tiers {'L1:n': 93, 'L1:hit': 88, 'L1:ok': 86, 'L3v:n': 24, 'L3v:ok': 18, 'L3v:candidate': 20, 'L2:n': 18, 'L2:ok': 17, 'L3:n': 18, 'L3:l2_candidate': 17, 'L3:ok': 15, 'L3:called': 17}
+MISS ('r1-preset-dep-d', 'D08', 'verdict DEP-INT-003 omission met L1', [])
+MISS ('r1-preset-dep-d', 'D09', 'verdict DEP-PRO-001 omission met L1', [('L1', 'partial')])
+MISS ('r1-preset-dep-d', 'D14', {'item_code': 'DEP-PAY-001', 'axis': 'comprehension', 'state': 'confirmed'}, [])
+MISS ('r1-preset-loan-b', 'B09', 'verdict LOAN-RPY-001 omission partial L1 (상환방식만 채움. 총 부담액 차이 미언급)', [])
+MISS ('r2-preset-dep-a', 'A08', {'item_code': 'DEP-BAN-001', 'axis': 'commission', 'state': 'violated'}, [])
+MISS ('r2-preset-dep-a', 'A14', {'item_code': 'DEP-PRO-001', 'axis': 'omission', 'state': 'partial', 'missing_elements': ['동일 은행 합산']}, [])
+MISS ('r2-preset-dep-d', 'D09', 'verdict DEP-PRO-001 omission met L1', [('L1', 'partial')])
+MISS ('r2-preset-dep-d', 'D14', {'item_code': 'DEP-PAY-001', 'axis': 'comprehension', 'state': 'confirmed'}, [])
+MISS ('r2-preset-loan-b', 'B09', 'verdict LOAN-RPY-001 omission partial L1 (상환방식만 채움. 총 부담액 차이 미언급)', [])
+MISS ('r3-preset-dep-d', 'D05', 'verdict DEP-BAN-001 commission suspected L2', [])
+MISS ('r3-preset-dep-d', 'D05', {'item_code': 'DEP-BAN-001', 'axis': 'commission', 'state': 'violated'}, [])
+MISS ('r3-preset-dep-d', 'D09', 'verdict DEP-PRO-001 omission met L1', [])
+MISS ('r3-preset-dep-d', 'D14', {'item_code': 'DEP-PAY-001', 'axis': 'comprehension', 'state': 'confirmed'}, [])
+MISS ('r3-preset-loan-b', 'B09', 'verdict LOAN-RPY-001 omission partial L1 (상환방식만 채움. 총 부담액 차이 미언급)', [])
+r1-preset-dep-a summary True items 8/8 alerts {'tp': 3, 'fp': 0, 'fn': 0} viol {'tp': 1, 'fp': 0, 'fn': 0} roles 27/27 cov 16/16 cer 13/537 refine {'scheduled': 7, 'completed': 7, 'over_budget_wall': 0}
+r1-preset-dep-d summary True items 8/8 alerts {'tp': 3, 'fp': 0, 'fn': 0} viol {'tp': 1, 'fp': 0, 'fn': 0} roles 24/24 cov 18/18 cer 5/603 refine {'scheduled': 3, 'completed': 3, 'over_budget_wall': 0}
+r1-preset-loan-b summary True items 11/11 alerts {'tp': 2, 'fp': 0, 'fn': 0} viol {'tp': 2, 'fp': 0, 'fn': 0} roles 21/21 cov 16/16 cer 28/502 refine {'scheduled': 6, 'completed': 6, 'over_budget_wall': 1}
+r1-preset-loan-c summary True items 11/11 alerts {'tp': 3, 'fp': 0, 'fn': 0} viol {'tp': 1, 'fp': 0, 'fn': 0} roles 23/23 cov 18/18 cer 23/601 refine {'scheduled': 1, 'completed': 1, 'over_budget_wall': 1}
+r2-preset-dep-a summary False items 8/8 alerts {'tp': 3, 'fp': 0, 'fn': 0} viol {'tp': 0, 'fp': 0, 'fn': 1} roles 24/27 cov 16/16 cer 13/537 refine {'scheduled': 7, 'completed': 7, 'over_budget_wall': 4}
+r2-preset-dep-d summary True items 8/8 alerts {'tp': 3, 'fp': 0, 'fn': 0} viol {'tp': 1, 'fp': 0, 'fn': 0} roles 24/24 cov 18/18 cer 5/603 refine {'scheduled': 3, 'completed': 3, 'over_budget_wall': 0}
+r2-preset-loan-b summary False items 10/11 alerts {'tp': 2, 'fp': 0, 'fn': 0} viol {'tp': 1, 'fp': 0, 'fn': 1} roles 21/21 cov 16/16 cer 28/502 refine {'scheduled': 6, 'completed': 6, 'over_budget_wall': 4}
+r2-preset-loan-c summary True items 11/11 alerts {'tp': 3, 'fp': 0, 'fn': 0} viol {'tp': 1, 'fp': 0, 'fn': 0} roles 23/23 cov 18/18 cer 23/601 refine {'scheduled': 1, 'completed': 1, 'over_budget_wall': 0}
+r3-preset-dep-a summary True items 8/8 alerts {'tp': 3, 'fp': 0, 'fn': 0} viol {'tp': 1, 'fp': 0, 'fn': 0} roles 27/27 cov 16/16 cer 18/537 refine {'scheduled': 7, 'completed': 7, 'over_budget_wall': 1}
+r3-preset-dep-d summary True items 8/8 alerts {'tp': 3, 'fp': 0, 'fn': 0} viol {'tp': 1, 'fp': 0, 'fn': 0} roles 24/24 cov 18/18 cer 5/603 refine {'scheduled': 3, 'completed': 3, 'over_budget_wall': 0}
+r3-preset-loan-b summary True items 11/11 alerts {'tp': 2, 'fp': 0, 'fn': 0} viol {'tp': 2, 'fp': 0, 'fn': 0} roles 21/21 cov 16/16 cer 28/502 refine {'scheduled': 6, 'completed': 6, 'over_budget_wall': 0}
+r3-preset-loan-c summary True items 11/11 alerts {'tp': 3, 'fp': 0, 'fn': 0} viol {'tp': 1, 'fp': 0, 'fn': 0} roles 23/23 cov 18/18 cer 23/601 refine {'scheduled': 1, 'completed': 1, 'over_budget_wall': 0}
