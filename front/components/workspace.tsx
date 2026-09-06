@@ -66,6 +66,16 @@ export function PagedList<T>({ items, render, label, empty = '표시할 항목�
   return <div className="wb-list" ref={ref} data-paged-list={label}><div className="wb-list-rows">{items.length ? items.slice(visiblePage * capacity, (visiblePage + 1) * capacity).map((item, index) => <div className="wb-list-row" style={{ height, minHeight: height }} key={visiblePage * capacity + index}>{render(item, visiblePage * capacity + index)}</div>) : <Empty>{empty}</Empty>}</div><div className="wb-list-bottom"><small>{items.length}개</small>{followLatest && !following.current && <button type="button" onClick={() => { following.current = true; setPage(count - 1); }}>최신 발화</button>}<Pager label={label} page={visiblePage} count={count} onChange={value => { following.current = value === count - 1; setPage(value); }} /></div></div>;
 }
 
+// 시간 순서로 쭉 읽는 목록(리포트 타임라인)은 페이지를 넘기지 않는다. 상담 대화와 같은
+// 스크롤 방식이다 — 앞뒤 맥락을 이어 보려는 목록에서 페이지 경계는 방해가 된다.
+// 행 높이를 고정하지 않으므로 라벨이 길어도 잘리지 않는다.
+export function ScrollList<T>({ items, render, label, empty = '표시할 항목이 없습니다.' }: { items: T[]; render: (item: T, index: number) => ReactNode; label: string; empty?: string }) {
+  return <div className="wb-list wb-scroll-list" data-paged-list={label}>
+    <div className="wb-scroll-rows" role="list">{items.length ? items.map((item, index) => <div className="wb-list-row" role="listitem" key={index}>{render(item, index)}</div>) : <Empty>{empty}</Empty>}</div>
+    <div className="wb-list-bottom"><small>{items.length}개</small></div>
+  </div>;
+}
+
 // Exact source text stays continuous and selectable; reading never needs a page turn.
 export function TextPages({ text, label = '내용' }: { text: string; label?: string }) {
   const area = useRef<HTMLDivElement>(null);

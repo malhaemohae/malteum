@@ -7,7 +7,7 @@ import { EvidenceCard } from './evidence';
 import { rememberedSessionIds } from '../lib/session-index';
 import { HistoryAction, traceBlockedReason } from '../lib/session-recovery';
 import { exportReport } from '../lib/report-print';
-import { DetailSections, Empty, EvidenceView, Feedback, KeyValueList, Modal, Notice, PagedList, Panel, Tabs, TextPages, useResource, Workbench } from './workspace';
+import { DetailSections, Empty, EvidenceView, Feedback, KeyValueList, Modal, Notice, PagedList, Panel, ScrollList, Tabs, TextPages, useResource, Workbench } from './workspace';
 
 type Navigation = { onNavigate: (nav: NavItem) => void; onNew: () => void };
 function Failure({ error, retry }: { error: string; retry: () => void }) { return <Notice action={<button onClick={retry}>다시 불러오기</button>}>{error}</Notice>; }
@@ -35,6 +35,9 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
   const [tab, setTab] = useState<ReportTab>('omission'); const [detail, setDetail] = useState<Record<string, unknown> | null>(null);
   const sections = report.data?.sections; const rows = (sections?.[tab] ?? []) as Record<string, unknown>[];
   const summary = sections?.summary;
+  // 타임라인은 시간 순서로 쭉 읽는 목록이라 스크롤로 둔다. 나머지 탭은 항목 수가 적어
+  // 페이지 목록이 한 화면에 정돈돼 보인다
+  const RecordList: typeof ScrollList = tab === 'timeline' ? ScrollList : PagedList;
   const [printError, setPrintError] = useState('');
   const [printing, setPrinting] = useState(false);
   async function savePdf() { if (!report.data || printing) return; setPrinting(true); setPrintError('서버 PDF를 요청하고 있습니다.'); try { setPrintError(await exportReport(report.data)); } catch (error) { setPrintError(errorText(error)); } finally { setPrinting(false); } }
@@ -45,7 +48,7 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
     {!sessionId ? <Panel><Empty><h2>이력에서 상담을 선택해 주세요.</h2><button onClick={() => navigation.onNavigate('이력')}>세션 이력 보기</button></Empty></Panel> : report.loading ? <Panel><Empty>리포트를 불러오고 있습니다.</Empty></Panel> : !report.data ? <Panel><Empty>리포트를 불러오지 못했습니다.</Empty></Panel> : <>
       {shownSummary.length > 0 && <div className="wb-summary">{shownSummary.map(key => <div key={key}><strong>{String(summary?.[key])}</strong><span>{labelFor(key)}</span></div>)}</div>}
       <div className="wb-toolbar"><Tabs value={tab} onChange={setTab} items={reportTabs} /><label className="wb-report-tab-select">항목<select aria-label="리포트 항목" value={tab} onChange={event => setTab(event.target.value as ReportTab)}>{reportTabs.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><button onClick={() => setDetail({ ...(summary ?? {}), ...(report.data?.sources ? { '출처': report.data.sources } : {}), ...(report.data?.disclaimer ? { '유의사항': report.data.disclaimer } : {}) })}>요약·출처</button></div>
-      <Panel title={tab === 'comprehension' ? '이해 지원 기록 · 판정 증빙 아님' : '항목별 기록'}><PagedList key={tab} label="리포트" items={rows} empty="이 항목에 대한 서버 기록이 없습니다." render={row => {
+      <Panel title={tab === 'comprehension' ? '이해 지원 기록 · 판정 증빙 아님' : '항목별 기록'}><RecordList key={tab} label="리포트" items={rows} empty="이 항목에 대한 서버 기록이 없습니다." render={row => {
         // 경보 전용 표기는 `alert_type` 을 싣고 오는 행(금지·숫자·위험 신호 탭)에만 쓴다.
         // 타임라인의 경보 행은 그 필드가 없고 유형이 `label` 안에 있어, 그대로 태우면
         // 제목이 `미제공 · ` 로 시작했다
