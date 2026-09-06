@@ -93,8 +93,10 @@ def test_recorder_roundtrip(pack_json, tmp_path):
 class EchoGenerator:
     def __init__(self, text):
         self.text = text
+        self.calls = []
 
     def generate(self, question, evidence_texts):
+        self.calls.append((question, evidence_texts))
         return self.text
 
 
@@ -111,6 +113,25 @@ def test_generator_guarded_by_p4(pack_json):
     engine2 = _engine(pack_json, ScriptedLlmJudge(), generator=EchoGenerator(fabricated))
     pack2 = engine2.load_pack(PACK_VERSION)
     assert engine2.answer("중간에 깨면 이자가 어떻게 되나요?", pack2, state) is None
+
+
+def test_answer_search_and_generation_are_independently_callable(pack_json):
+    pack_item = next(i for i in pack_json["items"] if i["code"] == "DEP-INT-002")
+    generator = EchoGenerator(pack_item["plain_language"][0])
+    engine = _engine(pack_json, ScriptedLlmJudge(), generator=generator)
+    pack = engine.load_pack(PACK_VERSION)
+    state = engine.initial_state("S", pack, "text")
+
+    sources = engine.search_answer_sources("중간에 깨면 이자가 어떻게 되나요?", pack, state)
+
+    assert sources and sources[0].item_code == "DEP-INT-002"
+    assert sources[0].evidence == pack.item("DEP-INT-002").evidence
+    assert generator.calls == [], "규정 검색만 호출했는데 답변 LLM이 실행됐습니다"
+
+    result = engine.generate_answer("중간에 깨면 이자가 어떻게 되나요?", sources)
+
+    assert result is not None and result.text == pack_item["plain_language"][0]
+    assert len(generator.calls) == 1
 
 
 def test_corrector_adapter_parses_tool_call(monkeypatch):
