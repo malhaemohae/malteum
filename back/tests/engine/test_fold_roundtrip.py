@@ -1,5 +1,7 @@
 """시나리오 A 이벤트 48건을 접으면 session_ended.summary 와 같아야 한다."""
 
+from copy import deepcopy
+
 from engine.build import build_engine
 from tests.engine.conftest import PACK_VERSION
 from tests.engine.fakes import FakePackSource
@@ -29,3 +31,21 @@ def test_fold_is_order_independent(pack_json, scenario_a):
     engine = build_engine(FakePackSource(pack_json))
     shuffled = list(reversed(scenario_a))
     assert engine.fold(shuffled) == engine.fold(scenario_a)
+
+
+def test_fold_counts_only_latest_alert_in_supersede_chain(pack_json, scenario_a):
+    engine = build_engine(FakePackSource(pack_json))
+    original = next(e for e in scenario_a if e["kind"] == "alert")
+    acknowledged = deepcopy(original)
+    acknowledged.update(
+        event_id="FIXT-EV-0049",
+        seq_in_session=49,
+        supersedes=original["event_id"],
+    )
+    acknowledged["alert"]["acknowledged"] = True
+
+    before = engine.fold(scenario_a)
+    after = engine.fold([*scenario_a, acknowledged])
+
+    assert before.alert_count == 3
+    assert after.alert_count == before.alert_count

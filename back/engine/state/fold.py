@@ -53,7 +53,7 @@ def fold(events: Sequence[dict], compiled: CompiledPack) -> SessionState:
                     speaker_confidence=u.get("speaker_confidence"),
                 )
             )
-        elif kind == "alert":
+        elif kind == "alert" and e["event_id"] not in superseded:
             alerts += 1
 
     profile = started["session_started"].get("customer_profile") or {}
