@@ -46,10 +46,30 @@ export function Tabs<T extends string>({ value, items, onChange }: { value: T; i
   return <div className="wb-tabs" role="group" aria-label="화면 선택">{items.map(item => <button type="button" key={item.value} aria-pressed={value === item.value} onClick={() => onChange(item.value)}>{item.label}</button>)}</div>;
 }
 
+// 다시 불러오는 동안 화면이 깜빡이지 않게 하는 두 가지 규칙.
+//
+//   이전 값 유지    새 값이 올 때까지 먼저 받은 값을 그대로 둔다. 예전에는 의존값이
+//                   바뀔 때마다 값을 비워, 고객 유형만 바꿔도 목록이 한 번 사라졌다
+//   로딩 문구 지연   이만큼 넘게 걸릴 때만 `loading` 을 켠다. 30ms 에 끝나는 조회에
+//                   '불러오고 있습니다' 를 내면 글자가 한 프레임 스쳤다 사라진다
+//
+// `settled` 는 한 번이라도 결론(값 또는 오류)이 난 뒤에만 참이다. 부르는 쪽은 이 값이
+// 거짓인 동안 '없습니다' 같은 확정 문구를 내지 않는다 — 아직 없는 것이 아니라 모르는 것이다.
+const SLOW_LOAD_MS = 300;
 export function useResource<T>(loader: () => Promise<T>, dependencies: DependencyList = []) {
-  const [data, setData] = useState<T | null>(null); const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [version, refresh] = useState(0);
-  useEffect(() => { let active = true; setLoading(true); setData(null); setError(''); loader().then(value => { if (active) setData(value); }).catch(reason => { if (active) setError(errorText(reason)); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [...dependencies, version]); // Each caller supplies all loader inputs.
-  return { data, error, loading, refresh: () => refresh(value => value + 1) };
+  const [state, setState] = useState<{ data: T | null; error: string; slow: boolean; settled: boolean }>({ data: null, error: '', slow: false, settled: false });
+  const [version, refresh] = useState(0);
+  useEffect(() => { // Each caller supplies all loader inputs.
+    let active = true; let done = false;
+    setState(previous => ({ ...previous, error: '', slow: false }));
+    const slow = setTimeout(() => { if (active && !done) setState(previous => ({ ...previous, slow: true })); }, SLOW_LOAD_MS);
+    loader()
+      .then(value => { if (active) setState({ data: value, error: '', slow: false, settled: true }); })
+      .catch(reason => { if (active) setState(previous => ({ ...previous, error: errorText(reason), slow: false, settled: true })); })
+      .finally(() => { done = true; clearTimeout(slow); });
+    return () => { active = false; clearTimeout(slow); };
+  }, [...dependencies, version]);
+  return { data: state.data, error: state.error, loading: state.slow, settled: state.settled, refresh: () => refresh(value => value + 1) };
 }
 
 function Pager({ page, count, onChange, label }: { page: number; count: number; onChange: (page: number) => void; label: string }) {
