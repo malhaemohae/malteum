@@ -84,7 +84,7 @@ if(require.main===module) (async () => {
   console.log('Landing buttons:', await page.getByRole('button').allTextContents());
   await start.click();
   await page.getByRole('button',{name:'상담 시작 →'}).waitFor();
-  await page.waitForFunction(()=>document.querySelector('select[aria-label="상품·규정 팩"]')?.value);
+  await page.waitForFunction(()=>document.querySelector('select[aria-label="상품·규정팩"]')?.value);
   await allSizes(page,'briefing');
   await page.getByRole('button',{name:'상담 시작 →'}).click();
   await page.getByRole('button',{name:'● 녹음 시작'}).waitFor({state:'visible'});
@@ -227,7 +227,7 @@ if(require.main===module) (async () => {
   // Failure and empty states are independently sized; no product-side fake data.
   await page.route('**/api/packs',route=>route.fulfill({json:{packs:[]}}));
   await page.getByRole('button',{name:'＋ 새 상담',exact:true}).click();
-  await page.getByText('서버에 발행된 규정 팩이 없습니다.',{exact:false}).waitFor();
+  await page.getByText('서버에 발행된 규정팩이 없습니다.',{exact:false}).waitFor();
   await allSizes(page,'no-packs');
   assert.equal(await page.getByRole('button',{name:'상담 시작 →'}).isEnabled(),false);
   await page.route('**/api/packs',route=>route.fulfill({status:503,json:{message:'검증용 서버 연결 오류'}}));
