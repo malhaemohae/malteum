@@ -137,10 +137,18 @@ def _targets(
             if ref.fact.unit != unit:
                 continue
             # 약정금리와 연체가산금리는 같은 항목·단위여도 다른 수치다.
+            # ponytail: 복합 주제는 'X에 <팩 label> [연/약] 수치'만 귀속한다.
+            # 병렬·비교 구문은 보류하며, 다른 결합 문법은 재현 사례와 함께 확장한다.
             if (
                 hit is not None
                 and ref.fact.label in item.requirement_elements
                 and hit.elements != {ref.fact.label}
+                and not re.search(
+                    r"에"
+                    + re.escape(re.sub(r"\s+", "", ref.fact.label))
+                    + r"(?:은|는|이|가)?(?:연|약|연약)?$",
+                    joined,
+                )
             ):
                 continue
             label = re.sub(r"\s+", "", ref.fact.label)
