@@ -58,6 +58,11 @@ class Settings(BaseSettings):
     # 계약 BUDGET_L3_MS. OpenRouter 왕복이 1.5초를 자주 넘겨 refine 이 통째로 버려졌다 —
     # 실측에 맞춰 3초로 완화했다 (사용자 결정, 월요일 합의 대상)
     l3_budget_ms: float = 3000
+    # 종료를 누르면 남은 전사와 예약된 L3 보정을 이만큼까지 기다렸다가 session_ended
+    # 를 쓴다. 안 기다리면 마지막 발화가 종료 뒤에 붙고, 오래 기다리면 프런트가 종료
+    # 확인을 포기한다(`front` 의 `END_CONFIRM_MS` × `END_CONFIRM_ROUNDS` = 30초).
+    # 넘기면 남은 마무리를 배경에 두고 종료하며, 그 결과는 닫힌 상담이 막는다
+    session_finish_budget_s: float = 15.0
     # STT. 키가 비면 오디오 층이 빠지고 ws 가 stt_unavailable 을 낸다(3층 폴백).
     # 기획 11.3: Deepgram nova-3 ko · keyterm·numerals·mip_opt_out
     #   deepgram      스트리밍. APP_STT_API_KEY 가 있어야 한다
@@ -77,6 +82,11 @@ class Settings(BaseSettings):
     # 13장이 라이선스·약관 조건으로 정한 값. 할인을 포기하고 학습 사용을 거부한다.
     # 은행 도입 전제에서 옵션이 아니라 조건이라 기본값을 켜 둔다
     stt_mip_opt_out: bool = True
+    # 오디오 프레임이 이만큼 안 오면 서버가 마지막 구간을 닫는다. 프론트의 녹음 중지는
+    # 프레임을 멈출 뿐이고 계약의 c2s 에는 멈춤을 알릴 메시지가 없어(ws_protocol.schema.json)
+    # 서버가 스스로 본다. 브라우저가 프레임을 묶어 보내 정상 간격도 250ms 남짓이므로
+    # 그 여섯 배로 잡았다(`ws/pacing.py`). 0 이면 안 보고 마지막 발화는 종료 때만 나간다
+    stt_idle_flush_ms: int = 1500
     # 화자 분리 번호를 teller·customer 로 옮길 때 LLM 에 묻는다. LLM_MODEL 설정을 그대로
     # 쓰므로 그것이 비면 어차피 규칙 폴백(확정 번호가 하나면 반대, 아니면 teller, 낮은
     # 신뢰도)이다. 끄는 자리를 둔 것은 LLM 은 쓰되 화자 추론만 빼고 싶을 때를 위해서다

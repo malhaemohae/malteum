@@ -23,7 +23,12 @@ OnError = Callable[[Exception], Awaitable[None]]
 
 
 class Refiner:
-    """발화 하나에 보정 하나. 연결이 닫히면 남은 것은 버린다."""
+    """발화 하나에 보정 하나.
+
+    끝내는 방법이 둘이고 쓰는 자리가 다르다. 연결이 끊긴 자리는 `aclose()` 로 남은 것을
+    버리고, 사람이 종료를 누른 자리는 `drain()` 으로 마저 돌린다. 종료에서 버리면
+    마지막 발화의 L3 판정이 아예 생기지 않은 채로 리포트가 확정된다.
+    """
 
     def __init__(
         self, session: Session, pipeline: Pipeline, publish: Publish, on_error: OnError
@@ -52,6 +57,20 @@ class Refiner:
                 await self.on_error(e)
             finally:
                 self.queue.task_done()
+
+    async def drain(self, timeout_s: float) -> bool:
+        """예약된 보정을 상한 안에서 마저 돌린다. 다 비웠으면 True.
+
+        상한을 넘기면 남은 것을 두고 돌아온다. 끝나지 않는 종료가 늦은 판정보다 나쁘다.
+        부른 쪽이 그 사실을 로그로 남긴다.
+        """
+        if self.worker is None:
+            return True
+        try:
+            await asyncio.wait_for(self.queue.join(), timeout_s)
+        except TimeoutError:
+            return False
+        return True
 
     async def aclose(self) -> None:
         if self.worker is None:

@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import Awaitable
 from contextlib import suppress
 
@@ -26,9 +27,11 @@ from server.services.stt.session import SttSession
 from server.services.stt.speaker import RoleMapper, SpeakerResolver
 from server.ws.connection import Connection
 from server.ws.handlers import assist, human
+from server.ws.pacing import FramePacing
 from server.ws.protocol import InvalidMessage, parse_audio_frame, parse_c2s
 
 router = APIRouter()
+log = logging.getLogger(__name__)
 
 
 def _error(code: str, message: str, retryable: bool = False) -> dict:
@@ -53,6 +56,8 @@ async def ws_endpoint(socket: WebSocket) -> None:
     stt: SttSession | None = None
     # 마지막으로 받은 오디오 시퀀스. -1 은 아직 한 조각도 안 받았다는 뜻
     audio_seq = -1
+    # 프레임이 실제로 얼마 간격으로 오는지. 유휴 닫기 임계값의 근거가 된다(pacing.py)
+    pacing = FramePacing()
 
     async def refine_failed(e: Exception) -> None:
         """보정은 화면 뒤에서 돈다. 실패해도 상담은 이어져야 하므로 알리기만 한다."""
@@ -66,7 +71,7 @@ async def ws_endpoint(socket: WebSocket) -> None:
             # 오디오는 JSON 이 아니라 바이너리로 온다(계약 $defs/audioFrame). 텍스트만
             # 받으면 프런트가 마이크를 켜는 순간 소켓이 죽는다
             if (blob := frame.get("bytes")) is not None:
-                audio_seq = await _on_audio(blob, conn, audio_seq, stt)
+                audio_seq = await _on_audio(blob, conn, audio_seq, stt, pacing)
                 continue
             try:
                 msg = parse_c2s(frame["text"])
@@ -152,7 +157,28 @@ async def ws_endpoint(socket: WebSocket) -> None:
                 except NotImplementedError as e:  # 엔진 뼈대 단계. tiers/ 가 생기면 사라진다
                     await conn.send(_error("internal", str(e), retryable=True))
             elif msg.t == "end":
+                # 상담 길이는 여기까지다. 아래 마무리에 걸린 시간은 상담이 아니다
                 duration_ms = session.elapsed_ms()
+                # 남은 전사와 예약된 보정을 먼저 끝낸다. 발화 단위 어댑터의 마지막
+                # 구간은 뒤에 무음이 없어 aclose 에서만 닫히는데, 그것을 finally 에
+                # 두면 session_ended 를 쓴 뒤에 돌아 마지막 발화가 종료 뒤에 붙는다.
+                # 프런트는 ended 를 받는 순간 리포트로 넘어가므로 그 발화를 볼 기회가
+                # 없고, 그때 조회한 리포트와 나중에 다시 연 리포트가 달라진다
+                finishing = _spawn_finish(stt, refiner, settings.session_finish_budget_s)
+                stt, refiner = None, None  # 마무리는 저 태스크가 들고 간다
+                try:
+                    await asyncio.wait_for(
+                        asyncio.shield(finishing), settings.session_finish_budget_s
+                    )
+                except TimeoutError:
+                    # 취소하지 않는다. 전사 왕복을 중간에 끊으면 그 발화가 사라지고 HTTP
+                    # 연결 풀도 안 거둬진다. 배경에서 마저 돌게 두되, 바로 아래 end 가
+                    # 상담을 닫아 늦게 온 결과가 리포트를 바꾸지 못하게 한다
+                    log.warning(
+                        "마무리가 %.1f 초를 넘겨 남은 것을 두고 종료합니다 (세션 %s).",
+                        settings.session_finish_budget_s,
+                        session.session_id,
+                    )
                 ended = pipeline.end(session, duration_ms)
                 await conn.send(
                     {
@@ -195,6 +221,9 @@ async def ws_endpoint(socket: WebSocket) -> None:
         with suppress(Exception):
             await conn.send(_error("internal", str(e), retryable=True))
     finally:
+        if pacing.total:
+            # 임계값을 짐작으로 정하지 않으려고 남긴다. 상담 하나면 실측이 된다
+            log.info("세션 %s %s", session.session_id if session else "?", pacing.summary())
         if trace is not None:
             trace.cancel()
         if stt is not None:
@@ -202,6 +231,34 @@ async def ws_endpoint(socket: WebSocket) -> None:
         if refiner is not None:
             await refiner.aclose()
         await conn.close()
+
+
+# 종료 마무리 태스크. 끝날 때까지 참조를 붙들지 않으면 수집되어 중간에 사라질 수 있다
+_FINISHING: set[asyncio.Task] = set()
+
+
+def _spawn_finish(stt: SttSession | None, refiner: Refiner | None, budget_s: float) -> asyncio.Task:
+    task = asyncio.create_task(_finish(stt, refiner, budget_s))
+    _FINISHING.add(task)
+    task.add_done_callback(_FINISHING.discard)
+    return task
+
+
+async def _finish(stt: SttSession | None, refiner: Refiner | None, budget_s: float) -> None:
+    """남은 전사와 예약된 보정을 끝내고 둘 다 거둔다.
+
+    취소로 자르지 않는다. 전사 왕복을 중간에 끊으면 그 발화가 사라지고 HTTP 연결 풀도
+    안 거둬진다. 그래서 부른 쪽이 기다림에만 상한을 두고, 상한을 넘긴 뒤 도착한 결과는
+    닫힌 상담이 막는다(`pipeline.SessionClosed`).
+    """
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + budget_s
+    if stt is not None:
+        await stt.aclose()
+    if refiner is not None:
+        if not await refiner.drain(max(deadline - loop.time(), 0.0)):
+            log.warning("L3 보정이 상한 안에 안 끝나 남은 것을 버립니다.")
+        await refiner.aclose()
 
 
 async def _assist(call: Awaitable[str | None], conn: Connection) -> None:
@@ -261,6 +318,7 @@ async def _start_stt(
         SpeakerResolver(diarization, RoleMapper(runtime.role_judge)),
         diarization=diarization,
         hold_ms=settings.speaker_hold_ms,
+        idle_flush_ms=settings.stt_idle_flush_ms,
     )
     try:
         await stt.start(runtime.stt, keyterms)
@@ -271,13 +329,20 @@ async def _start_stt(
     return stt
 
 
-async def _on_audio(blob: bytes, conn: Connection, last_seq: int, stt: SttSession | None) -> int:
+async def _on_audio(
+    blob: bytes,
+    conn: Connection,
+    last_seq: int,
+    stt: SttSession | None,
+    pacing: FramePacing,
+) -> int:
     """오디오 프레임 하나. 껍질을 벗겨 STT 로 흘린다.
 
     STT 가 없으면 연결당 한 번만 `stt_unavailable` 을 보낸다. 100ms 마다 오는 것이라
     매 조각에 답하면 화면이 오류로 뒤덮인다. 계약이 그 코드를 둔 이유가 이것이다 —
     프런트가 받으면 text 모드 전환을 제안한다(3층 폴백, 기획 7.1 ⑪).
     """
+    pacing.saw_frame()
     try:
         audio = parse_audio_frame(blob)
     except InvalidMessage as e:

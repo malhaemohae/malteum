@@ -988,7 +988,7 @@ class _RecordingAdapter:
         return _NullStream()
 
 
-def _start(diarization_url=None, hold_ms=2000):
+def _start(diarization_url=None, hold_ms=2000, idle_flush_ms=1500):
     """`ws/endpoint.py` 의 `_start_stt` 를 그대로 부른다. 배선만 본다."""
     from types import SimpleNamespace
 
@@ -1001,7 +1001,11 @@ def _start(diarization_url=None, hold_ms=2000):
         role_judge=judge,
         pack_source=SimpleNamespace(read=lambda version: {"jargon_terms": ["만기후이자율"]}),
     )
-    settings = SimpleNamespace(diarization_url=diarization_url, speaker_hold_ms=hold_ms)
+    settings = SimpleNamespace(
+        diarization_url=diarization_url,
+        speaker_hold_ms=hold_ms,
+        stt_idle_flush_ms=idle_flush_ms,
+    )
     session = SimpleNamespace(pack=SimpleNamespace(pack_version=PACK_VERSION))
 
     async def send(message):
@@ -1023,6 +1027,7 @@ def test_the_endpoint_hands_the_session_the_runtimes_role_judge():
     assert stt is not None
     assert stt.resolver.mapper.judge is judge
     assert stt.hold_ms == 2000
+    assert stt.idle_flush_ms == 1500
     assert adapter.keyterms == ["만기후이자율"]  # 팩의 jargon_terms 가 그대로 간다
     assert adapter.diarization is stt.diarization  # 발화 단위 어댑터가 끊을 자리를 얻는다
 

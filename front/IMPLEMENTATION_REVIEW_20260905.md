@@ -2,7 +2,7 @@
 
 이 문서는 현재 `components/application.tsx`, `app/workspace.css`, `app/workspace-service.css`의 동작 기준이다. 과거 프론트 감사 문서의 로컬 판정 폴백·낙관적 수동 체크·내부 스크롤 설명은 현재 구현에 해당하지 않는다.
 
-**서비스 최종 승인 상태: 보류.** 실제 음성/LLM/DB 연동은 확인했지만 숫자 경보의 발화 분리 누락과 종료 후 잔여 전사 저장을 재현했다. 백엔드 수정이 필요한 두 건의 근거·재현 명령은 [BACKEND_INTEGRATION_FINDINGS_20260905.md](BACKEND_INTEGRATION_FINDINGS_20260905.md)에 있다. 아래 화면·계약 검사 통과를 이 두 기능의 완료로 해석하지 않는다.
+**서비스 최종 승인 상태: 보류.** 실제 음성/LLM/DB 연동은 확인했지만 숫자 경보의 발화 분리 누락과 종료 후 잔여 전사 저장을 재현했다. 종료 후 잔여 전사는 서버에서 고쳤고(2026-09-07), 숫자 경보 한 건이 남아 있다. 근거·재현 명령과 해결 내용은 [BACKEND_INTEGRATION_FINDINGS_20260905.md](BACKEND_INTEGRATION_FINDINGS_20260905.md)에 있다. 아래 화면·계약 검사 통과를 남은 한 건의 완료로 해석하지 않는다.
 
 ## 기준
 

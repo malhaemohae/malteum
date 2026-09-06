@@ -63,6 +63,9 @@ class Session:
     latest_assist: dict[chains.AssistKey, tuple[str, int]] = field(default_factory=dict)
     # 저장된 이벤트에서 되살린 세션. session_started 를 다시 쓰면 안 된다
     restored: bool = False
+    # session_ended 가 이미 저장됐다. 뒤에 무엇이든 붙으면 종료 직후 조회한 리포트와
+    # 나중에 다시 연 리포트가 달라진다(pipeline 의 SessionClosed 가 이 값을 본다)
+    ended: bool = False
     # t_ms 의 원점. 계약이 "세션 시작 기준" 이라 연결이 아니라 세션이 들고 있어야 한다.
     # 되살린 세션은 session_started.occurred_at 을 도로 가져온다
     started_at: datetime = field(default_factory=_now)
@@ -173,6 +176,8 @@ class SessionRegistry:
             latest_event_by_item=chains.latest_verdicts(events),
             latest_assist=chains.latest_assists(events),
             restored=True,
+            # 되살린 세션이 이미 끝난 것일 수 있다. 안 보면 끝난 상담에 이벤트가 더 붙는다
+            ended=any(e["kind"] == "session_ended" for e in events),
             started_at=_started_at(events),
         )
         self._sessions[session_id] = session

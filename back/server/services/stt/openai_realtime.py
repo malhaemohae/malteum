@@ -209,6 +209,15 @@ class OpenAiRealtimeStream:
             log.exception("전사 수신이 끊겼습니다")
             return
 
+    async def flush(self) -> None:
+        """지금까지 받은 소리를 한 턴으로 확정시킨다. 소켓은 열어 둔다.
+
+        말끝은 서버 VAD 가 잡지만 오디오가 아예 끊기면 잡을 것이 없다. commit 은
+        소켓을 닫지 않아 녹음을 다시 켜면 그대로 이어 받는다.
+        """
+        with suppress(Exception):
+            await self.ws.send(json.dumps({"type": "input_audio_buffer.commit"}))
+
     async def aclose(self) -> None:
         # 남은 소리를 확정시킨다. 그냥 끊으면 마지막 발화가 사라지고, 그 발화가
         # 리포트의 마지막 항목일 수 있다

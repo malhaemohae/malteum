@@ -238,3 +238,60 @@ def test_the_last_segment_goes_out_even_though_no_silence_follows_it():
         return got
 
     assert len(asyncio.run(run())) == 1
+
+
+def test_the_last_segment_closes_when_audio_stops_but_the_consultation_goes_on():
+    """녹음만 멈춘 자리. 구간 닫기가 `send()` 안에서만 돌면 마지막 발화가 영영 안 나간다.
+
+    은행원이 녹음 중지를 누르면 오디오가 끊기고, 그 구간을 닫아 줄 무음도 뒤에 오지
+    않는다. 상담은 이어지므로 `aclose()` 로 스트림을 닫을 수도 없다. 다시 켤 수 있어야
+    한다. 그래서 닫는 일만 따로 하는 자리가 필요하다.
+    """
+    client = _StubClient()
+
+    async def run():
+        _, got, stream = _stream(client, [SpeakerSegment(0, 1_000, "speaker_0")])
+        await _feed(stream, 1_200)  # 구간이 끝난 뒤 200ms 뿐이라 스스로는 안 닫힌다
+        await asyncio.sleep(0)
+        stuck = list(got)
+        await stream.flush()
+        await asyncio.sleep(0)
+        flushed = list(got)
+        # 스트림은 살아 있다. 녹음을 다시 켜면 그대로 이어 받는다
+        await stream.send(SILENCE * (100 * BYTES_PER_MS // 2))
+        await stream.aclose()
+        return stuck, flushed
+
+    stuck, flushed = asyncio.run(run())
+    assert stuck == [], "무음이 모자란 동안에는 아직 안 나가는 것이 맞다"
+    assert [(t.start_ms, t.duration_ms) for t in flushed] == [(0, 1_000)]
+
+
+def test_audio_from_before_and_after_a_pause_does_not_become_one_utterance():
+    """중지 전후 오디오는 버퍼에서 맞붙는다. 앞을 닫아 두지 않으면 한 발화가 된다.
+
+    `_pcm` 은 받은 순서로만 쌓여 은행원이 30초를 쉬어도 그 공백이 남지 않는다. 앞 구간을
+    닫아 두지 않으면 화자가 같을 때 `_runs` 가 둘을 한 구간으로 합치고, 이어진 적 없는
+    두 발화가 한 문장으로 전사된다.
+    """
+    client = _StubClient()
+
+    async def run():
+        source = _LaggingDiarization()
+        _, got, stream = _stream(client, source)
+        source.saw(1_200, [(0, 1_000, "speaker_0")])
+        await _feed(stream, 1_200)
+        await stream.flush()  # 녹음 중지
+        await asyncio.sleep(0)
+        # 재개. 공백이 지워진 탓에 사이드카는 같은 화자가 쭉 말한 것으로 본다
+        source.saw(2_400, [(0, 2_200, "speaker_0")])
+        await _feed(stream, 1_200)
+        await stream.flush()
+        await asyncio.sleep(0)
+        await stream.aclose()
+        return got
+
+    got = asyncio.run(run())
+    assert [(t.start_ms, t.duration_ms) for t in got] == [(0, 1_000), (1_000, 1_200)], (
+        "중지 전후가 한 발화로 붙었습니다"
+    )
