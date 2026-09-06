@@ -23,7 +23,11 @@ services:
   server:
     build: ./back
     restart: unless-stopped
+    # Jenkins 가 .env.age 를 복호화해 만든 루트 .env 를 그대로 전달한다.
+    # 모델·공급자 설정을 추가할 때마다 이 파일에 같은 키를 반복하지 않는다.
+    env_file: .env
     environment:
+      # 컨테이너 내부 주소와 경로는 배포 호스트의 .env 값보다 이 구성이 우선한다.
       APP_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
       APP_PACK_DIR: /app/contracts/fixtures
       # 근거 원문 PDF (기능 ⑭). 경로를 못박아 둔다 — 기본값은 코드 위치에서 거슬러
@@ -32,28 +36,8 @@ services:
       # 구조 추출 덤프. 오프라인에서 떠서 커밋한 결과다(scripts/dump_extraction.py).
       # 서버는 자바를 부르지 않으므로 이미지에 JRE 가 없다 — services/extraction.py
       APP_EXTRACTION_DIR: /assets/extraction
-      # 엔진 어댑터. 루트 .env 에서 그대로 넘긴다. 비어 있으면 그 층이 빠지고
-      # engine 이 [DUMMY] 경고로 알린다 (bootstrap/startup.py). 값은 .env.example 참조
-      APP_EMBEDDING_MODEL: ${APP_EMBEDDING_MODEL:-}
-      APP_EMBEDDING_BACKEND: ${APP_EMBEDDING_BACKEND:-local}
-      APP_EMBEDDING_DIM: ${APP_EMBEDDING_DIM:-384}
-      APP_LLM_PROVIDER: ${APP_LLM_PROVIDER:-openrouter}
-      APP_LLM_API_KEY: ${APP_LLM_API_KEY:-}
-      APP_LLM_MODEL: ${APP_LLM_MODEL:-}
-      APP_LLM_NO_REASONING: ${APP_LLM_NO_REASONING:-false}
-      APP_LLM_CORRECTOR: ${APP_LLM_CORRECTOR:-false}
-      APP_LLM_GENERATOR: ${APP_LLM_GENERATOR:-false}
-      APP_L3_BUDGET_MS: ${APP_L3_BUDGET_MS:-3000}   # OpenRouter 왕복 1.2~2.4초 실측(2026-09-04)
-      # STT. 비면 오디오 층이 빠지고 ws 가 stt_unavailable 을 낸다 (3층 폴백).
-      # 공급자와 키는 .env 에서. 화자 분리는 아래 diarization 사이드카가 기본이다
-      APP_STT_PROVIDER: ${APP_STT_PROVIDER:-deepgram}
-      APP_STT_API_KEY: ${APP_STT_API_KEY:-}
-      APP_STT_BASE_URL: ${APP_STT_BASE_URL:-}
-      APP_STT_MODEL: ${APP_STT_MODEL:-nova-3}
-      APP_STT_LANGUAGE: ${APP_STT_LANGUAGE:-ko}
+      # 화자 분리 사이드카는 Compose 내부 주소가 기본이다. 외부 공급자를 쓸 때만 .env 로 덮는다.
       APP_DIARIZATION_URL: ${APP_DIARIZATION_URL:-ws://diarization:8300/ws}
-      APP_SPEAKER_HOLD_MS: ${APP_SPEAKER_HOLD_MS:-3000}
-      APP_ADMIN_TOKEN: ${APP_ADMIN_TOKEN:-}
       APP_UPLOAD_DIR: /uploads
       HF_HOME: /hf
     ports:
