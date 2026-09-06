@@ -7,7 +7,9 @@ evidence 는 모델이 쓰지 않는다. decision_parser 가 팩에서 붙인다
 주제와의 관계) → verdicts(말한 요소만). Qwen3-8B 는 산문 규칙만으로는 주제가 다른 발화(연체이자 →
 기한이익상실)를 걸러내지 못했고, 주제·관계를 먼저 쓰게 한 구조와 후보 밖 항목 이름(other_items)이
 있어야 걸러냈다. 발화는 본문 마지막에 둔다(문맥 문장을 근거로 세는 일이 줄었다).
-required/omission 의 상태는 모델의 state 가 아니라 stated_elements 로 계산한다.
+required/omission 의 상태는 모델의 state 가 아니라 stated_elements 로 계산하고 axis 는 항목
+타입·화자에서 정한다(모델의 axis 는 고객·금지 항목을 떠올리게 하는 단서일 뿐이다). 프롬프트 길이가
+3초 예산에 직접 닿으므로 쓰지 않는 confidence 는 묻지 않고 topic_relations 는 코드 키 객체로 받는다.
 """
 
 from __future__ import annotations
@@ -24,7 +26,7 @@ from contracts.engine_contract import (
 
 TOOL_NAME = "judge"
 
-PROMPT_VERSION = "2026-09-07.topic-relations"
+PROMPT_VERSION = "2026-09-07.topic-relations.v3"
 """판정 정책(프롬프트·스키마)이 바뀔 때 올린다. cache_key 에 들어가 옛 응답 재사용을 막는다."""
 
 SYSTEM_PROMPT = """당신은 은행 창구 상담의 설명의무 이행을 심판하는 역할이다.
@@ -66,24 +68,19 @@ speaker 가 teller 면 은행원, customer 면 고객의 발화다.
 def judge_tool(prompt: JudgePrompt) -> dict[str, Any]:
     codes = [it.code for it in prompt.candidate_items] or ["(none)"]
     elements = sorted({e for it in prompt.candidate_items for e in it.requirement_elements})
-    names = " / ".join(f"{it.code}={it.name}" for it in prompt.candidate_items)
+    # 주제 관계는 required 항목에만 뜻이 있다. forbidden 은 말투·취지의 문제라 슬롯을 주면 모델이
+    # 관계 대신 타입("forbidden")을 적어 스키마 검증에 실패한다
+    topical = [it for it in prompt.candidate_items if it.type == "required"]
+    names = " / ".join(f"{it.code}={it.name}" for it in topical)
     relation = {
-        "type": "object",
-        "properties": {
-            "item_code": {"type": "string", "enum": codes},
-            "relation": {
-                "type": "string",
-                "enum": ["explains_item", "other_topic", "unrelated"],
-                "description": (
-                    "explains_item: 발화가 그 항목 이름의 사안 자체(그 사안이 생기는 경우나 "
-                    "그 사안의 내용)를 설명한다. other_topic: 조건·결과·금액이 겹치더라도 "
-                    "실제 주제는 다른 사안이다(other_items 에 있는 사안이면 other_topic). "
-                    "unrelated: 무관하다"
-                ),
-            },
-        },
-        "required": ["item_code", "relation"],
-        "additionalProperties": False,
+        "type": "string",
+        "enum": ["explains_item", "other_topic", "unrelated"],
+        "description": (
+            "explains_item: 발화가 그 항목 이름의 사안 자체(그 사안이 생기는 경우나 "
+            "그 사안의 내용)를 설명한다. other_topic: 조건·결과·금액이 겹치더라도 "
+            "실제 주제는 다른 사안이다(other_items 에 있는 사안이면 other_topic). "
+            "unrelated: 무관하다"
+        ),
     }
     verdict = {
         "type": "object",
@@ -108,7 +105,6 @@ def judge_tool(prompt: JudgePrompt) -> dict[str, Any]:
                     "confirmed",
                 ],
             },  # fmt: skip
-            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
         },
         "required": ["item_code", "stated_elements", "axis", "state"],
         "additionalProperties": False,
@@ -139,8 +135,10 @@ def judge_tool(prompt: JudgePrompt) -> dict[str, Any]:
                         ),
                     },
                     "topic_relations": {
-                        "type": "array",
-                        "items": relation,
+                        "type": "object",
+                        "properties": {it.code: relation for it in topical},
+                        "required": [it.code for it in topical],
+                        "additionalProperties": False,
                         "description": (
                             f"후보 항목마다 하나씩. utterance_topic 과 항목 이름({names})의 관계"
                         ),
@@ -194,28 +192,36 @@ def messages(prompt: JudgePrompt) -> list[dict[str, str]]:
 def to_decision(args: dict[str, Any], tokens: int | None, prompt: JudgePrompt) -> JudgeDecision:
     """스키마 검증이 끝난 툴 인자 → JudgeDecision. 규칙 검사는 decision_parser 가 한다.
 
-    topic_relations 가 explains_item 이 아닌 항목의 verdict 는 버린다(주제가 다른 발화).
-    required 항목의 omission 은 stated_elements 로 state·missing_elements 를 계산한다.
+    required 항목은 topic_relations 가 explains_item 이 아니면 verdict 를 버린다(주제가 다른 발화).
+    forbidden 은 주제가 아니라 금지 취지의 문제라 관계 라벨로 거르지 않는다. axis 는 항목 타입·
+    화자에서 정한다. required/omission 은 stated_elements 로 state·missing_elements 를 계산하고,
+    고객이 요소를 전부 되짚었다고(met) 답하면 comprehension/confirmed 다.
     """
-    relations = {r["item_code"]: r["relation"] for r in args.get("topic_relations", ())}
+    relations = args.get("topic_relations", {})
     items = {it.code: it for it in prompt.candidate_items}
     verdicts = []
     for v in args.get("verdicts", ()):
-        if relations.get(v["item_code"], "explains_item") != "explains_item":
-            continue
         item = items.get(v["item_code"])
+        required = item is not None and item.type == "required"
+        if required and relations.get(v["item_code"], "explains_item") != "explains_item":
+            continue
         state, missing = v["state"], ()
-        if v["axis"] == "omission" and item is not None and item.type == "required":
+        if prompt.speaker == "customer" or item is None:
+            axis = "comprehension"
+            state = "confirmed" if state == "met" else state
+        elif item.type == "forbidden":
+            axis = "commission"
+        else:
+            axis = "omission"
             stated = set(v.get("stated_elements", ()))
             missing = tuple(e for e in item.requirement_elements if e not in stated)
             state = "partial" if missing else "met"
         verdicts.append(
             VerdictPayload(
                 item_code=v["item_code"],
-                axis=v["axis"],
+                axis=axis,
                 state=state,
                 decided_by="L3",
-                confidence=v.get("confidence"),
                 missing_elements=missing,
             )
         )

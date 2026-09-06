@@ -43,10 +43,10 @@ def test_tool_schema_enums_come_from_candidates(pack_json):
     params = tool["function"]["parameters"]
     # 생성 순서 = 판정 순서: 주제 → 후보별 관계 → 판정
     assert list(params["properties"])[:3] == ["utterance_topic", "topic_relations", "verdicts"]
-    assert params["properties"]["topic_relations"]["items"]["properties"]["item_code"]["enum"] == [
-        "DEP-INT-002",
-        "DEP-BAN-001",
-    ]
+    # 주제 관계는 required 후보만. forbidden 슬롯을 주면 모델이 관계 대신 "forbidden" 을 적었다
+    assert params["properties"]["topic_relations"]["required"] == ["DEP-INT-002"]
+    assert "DEP-BAN-001" not in params["properties"]["topic_relations"]["properties"]
+    assert "confidence" not in props  # 쓰지 않는 필드는 묻지 않는다
 
 
 def test_decide_parses_forced_tool_call(pack_json, monkeypatch):
@@ -57,17 +57,13 @@ def test_decide_parses_forced_tool_call(pack_json, monkeypatch):
         return _response(
             {
                 "utterance_topic": "중도해지 시 이자 감소",
-                "topic_relations": [
-                    {"item_code": "DEP-INT-002", "relation": "explains_item"},
-                    {"item_code": "DEP-BAN-001", "relation": "unrelated"},
-                ],
+                "topic_relations": {"DEP-INT-002": "explains_item"},
                 "verdicts": [
                     {
                         "item_code": "DEP-INT-002",
                         "axis": "omission",
                         "state": "met",  # 모델의 state 는 무시하고 stated_elements 로 계산한다
                         "stated_elements": ["만기 전 해지 시 불이익"],
-                        "confidence": 0.8,
                     }
                 ],
             }
@@ -94,8 +90,10 @@ def test_decide_retries_once_on_schema_violation_then_gives_up(pack_json, monkey
         return _response(
             {
                 "utterance_topic": "t",
-                "topic_relations": [],
-                "verdicts": [{"item_code": "NOPE", "axis": "omission", "state": "met"}],
+                "topic_relations": {"DEP-INT-002": "unrelated"},
+                "verdicts": [
+                    {"item_code": "NOPE", "stated_elements": [], "axis": "omission", "state": "met"}
+                ],
             }
         )
 
@@ -110,7 +108,13 @@ def test_decide_retry_can_succeed(pack_json, monkeypatch):
     answers = iter(
         [
             _response("not json"),
-            _response({"utterance_topic": "t", "topic_relations": [], "verdicts": []}),
+            _response(
+                {
+                    "utterance_topic": "t",
+                    "topic_relations": {"DEP-INT-002": "unrelated"},
+                    "verdicts": [],
+                }
+            ),
         ]
     )
     monkeypatch.setattr(adapter.litellm, "completion", lambda **kw: next(answers))
@@ -155,7 +159,7 @@ def test_other_topic_relation_drops_the_verdict(pack_json, monkeypatch):
         return _response(
             {
                 "utterance_topic": "세금 공제",
-                "topic_relations": [{"item_code": "DEP-INT-002", "relation": "other_topic"}],
+                "topic_relations": {"DEP-INT-002": "other_topic"},
                 "verdicts": [
                     {
                         "item_code": "DEP-INT-002",
@@ -182,3 +186,87 @@ def test_other_topic_relation_drops_the_verdict(pack_json, monkeypatch):
     )
     d = adapter.LiteLlmJudge("x", provider="openrouter", api_key="k").decide(prompt)
     assert d.verdicts == ()
+
+
+def test_axis_is_derived_from_item_type_not_from_model(pack_json, monkeypatch):
+    def fake_completion(**kw):
+        return _response(
+            {
+                "utterance_topic": "단정",
+                "topic_relations": {"DEP-INT-002": "unrelated"},
+                "verdicts": [
+                    {
+                        "item_code": "DEP-BAN-001",
+                        "stated_elements": [],
+                        "axis": "omission",
+                        "state": "violated",
+                    }
+                ],
+            }
+        )
+
+    monkeypatch.setattr(adapter.litellm, "completion", fake_completion)
+    (v,) = (
+        adapter.LiteLlmJudge("x", provider="openrouter", api_key="k")
+        .decide(_prompt(pack_json))
+        .verdicts
+    )
+    assert (v.axis, v.state, v.missing_elements) == ("commission", "violated", ())
+
+
+def test_customer_full_restatement_becomes_confirmed(pack_json, monkeypatch):
+    def fake_completion(**kw):
+        return _response(
+            {
+                "utterance_topic": "중도해지 시 이자 감소를 되짚음",
+                "topic_relations": {"DEP-INT-002": "explains_item"},
+                "verdicts": [
+                    {
+                        "item_code": "DEP-INT-002",
+                        "stated_elements": ["만기 전 해지 시 불이익"],
+                        "axis": "omission",
+                        "state": "met",
+                    }
+                ],
+            }
+        )
+
+    monkeypatch.setattr(adapter.litellm, "completion", fake_completion)
+    pack = load_pack(FakePackSource(pack_json), PACK_VERSION)
+    prompt = JudgePrompt(
+        "아, 먼저 찾으면 이자를 덜 받는군요.",
+        "customer",
+        (),
+        (pack.item("DEP-INT-002"), pack.item("DEP-BAN-001")),
+        (),
+        "general",
+        "k",
+    )
+    (v,) = adapter.LiteLlmJudge("x", provider="openrouter", api_key="k").decide(prompt).verdicts
+    assert (v.axis, v.state, v.missing_elements) == ("comprehension", "confirmed", ())
+
+
+def test_forbidden_verdict_is_not_filtered_by_topic_relation(pack_json, monkeypatch):
+    def fake_completion(**kw):
+        return _response(
+            {
+                "utterance_topic": "예금을 그대로 두라는 조언",
+                "topic_relations": {"DEP-INT-002": "unrelated"},
+                "verdicts": [
+                    {
+                        "item_code": "DEP-BAN-001",
+                        "stated_elements": [],
+                        "axis": "commission",
+                        "state": "violated",
+                    }
+                ],
+            }
+        )
+
+    monkeypatch.setattr(adapter.litellm, "completion", fake_completion)
+    (v,) = (
+        adapter.LiteLlmJudge("x", provider="openrouter", api_key="k")
+        .decide(_prompt(pack_json))
+        .verdicts
+    )
+    assert (v.axis, v.state) == ("commission", "violated")
