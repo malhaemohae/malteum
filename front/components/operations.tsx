@@ -100,7 +100,7 @@ export function ReportScreen({ sessionId, onEvidence, onResume, onTrace, busy, e
   </Workbench>;
 }
 
-export function HistoryScreen({ onOpen, onStartPreset, busy, error, initialView = 'sessions', ...navigation }: Navigation & { onOpen: (record: ApiSessionSummary, action: HistoryAction) => void; onStartPreset: (preset: ApiPreset) => void; busy: boolean; error: string; initialView?: 'sessions' | 'presets' }) {
+export function HistoryScreen({ onOpen, onStartPreset, busy, error, initialView = 'sessions', packVersion = '', ...navigation }: Navigation & { onOpen: (record: ApiSessionSummary, action: HistoryAction) => void; onStartPreset: (preset: ApiPreset) => void; busy: boolean; error: string; initialView?: 'sessions' | 'presets'; packVersion?: string }) {
   const [mode, setMode] = useState('');
   const [view, setView] = useState<'sessions' | 'presets'>(initialView);
   // 상담 준비에서 시연 음원을 바로 부르면 그 탭으로 연다.
@@ -108,7 +108,10 @@ export function HistoryScreen({ onOpen, onStartPreset, busy, error, initialView 
   const presets = useResource(() => malteumApi.presets());
   const packCatalog = useResource(() => malteumApi.packs());
   const latestPackVersions = new Set(latestPacks(packCatalog.data?.packs ?? []).map(pack => pack.pack_version));
-  const playablePresets = presets.data?.presets.filter(preset => preset.mode === 'replay' && preset.audio_ref && latestPackVersions.has(preset.pack_version)) ?? [];
+  // 상담 준비에서 고른 규정팩의 음원을 앞에 세운다. 시연 음원은 상품 시나리오가 정해져
+  // 있어 규정팩과 짝이 맞아야 하고, 목록이 섞여 있으면 어느 것을 골라야 하는지 알 수 없다
+  const playablePresets = (presets.data?.presets.filter(preset => preset.mode === 'replay' && preset.audio_ref && latestPackVersions.has(preset.pack_version)) ?? [])
+    .sort((a, b) => Number(b.pack_version === packVersion) - Number(a.pack_version === packVersion));
   const refreshPresets = () => { presets.refresh(); packCatalog.refresh(); };
   const records = useResource(async () => {
     const all: ApiSessionSummary[] = []; let cursor: string | undefined; const seen = new Set<string>();
@@ -122,7 +125,12 @@ export function HistoryScreen({ onOpen, onStartPreset, busy, error, initialView 
   return <Workbench screen="history" title="세션 이력" subtitle="저장된 상담과 시연 음원" {...navigation} actions={busy ? <span className="wb-badge" role="status">상담 확인 중…</span> : <button onClick={view === 'sessions' ? records.refresh : refreshPresets} disabled={view === 'sessions' ? records.loading : presets.loading || packCatalog.loading}>새로고침</button>}>
     <Failure error={(view === 'sessions' ? records.error : presets.error || packCatalog.error) || error} retry={view === 'sessions' ? records.refresh : refreshPresets} />
     <div className="wb-toolbar"><Tabs value={view} onChange={setView} items={[{ value: 'sessions', label: '저장된 상담' }, { value: 'presets', label: '시연 음원' }]} />{view === 'sessions' && <label>입력 방식<select aria-label="이력 입력 방식" value={mode} onChange={event => setMode(event.target.value)}><option value="">전체 (재생 기록 제외)</option>{(['live', 'text', 'replay', 'trace'] as const).map(value => <option key={value} value={value}>{modeNames[value]}</option>)}</select></label>}</div>
-    {view === 'presets' ? <Panel className="wb-history-list"><PagedList label="시연 음원" items={playablePresets} rowHeight={100} empty={presets.loading || packCatalog.loading ? '시연 음원을 불러오는 중입니다.' : presets.error || packCatalog.error ? '음원을 확인하지 못했습니다.' : '최신 규정팩에 연결된 시연 음원이 없습니다.'} render={preset => <><div className="wb-row-button" data-preset-id={preset.preset_id}><span className="wb-row-copy"><strong>{preset.label}</strong><small>{preset.description ?? preset.pack_version}</small></span></div><div className="wb-actions"><button className="wb-primary" disabled={busy} onClick={() => onStartPreset(preset)}>시연 시작</button></div></>} /></Panel> : <>
+    {view === 'presets' ? <><Notice>{packVersion ? `상담 준비에서 고른 규정팩 ${packVersion} 의 음원이 위에 옵니다. 다른 규정팩 음원을 시작하면 그 규정팩 기준으로 판정됩니다.` : ''}</Notice>
+    <Panel className="wb-history-list"><PagedList label="시연 음원" items={playablePresets} rowHeight={100} empty={presets.loading || packCatalog.loading ? '시연 음원을 불러오는 중입니다.' : presets.error || packCatalog.error ? '음원을 확인하지 못했습니다.' : '최신 규정팩에 연결된 시연 음원이 없습니다.'} render={preset => {
+      const catalog = packCatalog.data?.packs.find(entry => entry.pack_version === preset.pack_version);
+      const matched = Boolean(packVersion) && preset.pack_version === packVersion;
+      return <><div className="wb-row-button" data-preset-id={preset.preset_id}><span className="wb-row-copy"><strong>{preset.label}</strong><small>{[catalog?.product?.name ?? preset.product_code, preset.pack_version, preset.description].filter(Boolean).join(' · ')}</small></span></div><div className="wb-actions">{packVersion && <span className="wb-badge" data-state={matched ? 'met' : 'waived'}>{matched ? '고른 규정팩' : '다른 규정팩'}</span>}<button className="wb-primary" disabled={busy} onClick={() => onStartPreset(preset)}>시연 시작</button></div></>;
+    }} /></Panel></> : <>
     <Panel className="wb-history-list"><PagedList label="세션 이력" items={(records.data ?? []).filter(record => mode || record.mode !== 'trace')} rowHeight={100} empty={records.loading ? '이력을 불러오고 있습니다.' : records.error ? '이력을 확인하지 못했습니다.' : '아직 저장된 세션이 없습니다.'} render={record => <><button className="wb-row-button" data-session-id={record.session_id} onClick={() => setDetail(record)}><span className="wb-row-copy"><strong>{record.product_name ?? record.pack_version}</strong><small>{whenLabel(record.started_at)} · {modeNames[record.mode]} · {statusNames[record.status] ?? record.status}</small>{traceBlockedReason(record) && <small className="wb-history-hint">{traceBlockedReason(record)}</small>}</span></button><div className="wb-actions"><button disabled={busy} onClick={() => onOpen(record, 'report')}>{record.status === 'running' ? '중간 리포트' : '리포트'}</button>{record.status === 'running' ? <button className="wb-primary" disabled={busy} onClick={() => onOpen(record, 'resume')}>{record.mode === 'trace' || record.mode === 'replay' ? '재생 이어보기' : '상담 열기'}</button> : <button disabled={busy || Boolean(traceBlockedReason(record))} title={traceBlockedReason(record) || undefined} onClick={() => onOpen(record, 'trace')}>기록 재생</button>}</div></>} /></Panel>
     </>}
     {detail && <Modal title="세션 정보" className="wb-compact" onClose={() => setDetail(null)} actions={<><button disabled={busy} onClick={() => { onOpen(detail, 'report'); setDetail(null); }}>{detail.status === 'running' ? '중간 리포트' : '리포트'}</button>{detail.status === 'running' && <button className="wb-primary" disabled={busy} onClick={() => { onOpen(detail, 'resume'); setDetail(null); }}>{detail.mode === 'trace' || detail.mode === 'replay' ? '재생 이어보기' : '상담 열기'}</button>}</>}><KeyValueList rows={recordRows(detail)} empty="이 기록에 저장된 항목이 없습니다." /></Modal>}

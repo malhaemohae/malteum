@@ -20,7 +20,7 @@ import { Empty, Modal, Notice, TextPages } from './workspace';
 import { EvidenceView, loadEvidence } from './evidence';
 
 export default function Application() {
-  const [screen, setScreen] = useState<Screen>('landing'); const [historyView, setHistoryView] = useState<'sessions' | 'presets'>('sessions'); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
+  const [screen, setScreen] = useState<Screen>('landing'); const [historyView, setHistoryView] = useState<'sessions' | 'presets'>('sessions'); const [demoPack, setDemoPack] = useState(''); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
   const [pack, setPack] = useState<ApiPack | null>(null); const [health, setHealth] = useState<ApiHealth | null>(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ id: string; ended: boolean } | null>(null); const [newConfirm, setNewConfirm] = useState(false); const newAfterEnd = useRef(false);
   const [traceSelection, setTraceSelection] = useState<ApiSessionSummary | null>(null);
@@ -310,7 +310,8 @@ export default function Application() {
   }
   const navigation = { onNavigate: navigate, onNew: requestNew };
   // navigate 가 먼저 'sessions' 로 되돌린 뒤 이번 진입만 시연 음원으로 연다.
-  function openDemoAudio() { navigate('이력'); setHistoryView('presets'); }
+  // 준비 화면에서 고른 규정팩을 목록까지 들고 간다. 어느 음원이 그 팩의 것인지 표시하는 근거
+  function openDemoAudio(packVersion: string) { setDemoPack(packVersion); navigate('이력'); setHistoryView('presets'); }
   let page;
   if (screen === 'landing') page = <MarketingLanding onStart={() => setScreen('briefing')} onNavigate={navigate} />;
   else if (screen === 'briefing') page = <Briefing {...navigation} busy={busy} onStart={start} onDemo={openDemoAudio} defaults={preparation.current} health={health} onCheckHealth={checkHealth} />;
@@ -318,7 +319,7 @@ export default function Application() {
   else if (screen === 'report') page = <ReportScreen {...navigation} sessionId={reportTarget?.id ?? session?.id ?? null} onEvidence={openEvidence} onResume={record => openHistory(record, 'resume')} onTrace={record => openHistory(record, 'trace')} busy={busy} error={error} />;
   else if (screen === 'packs') page = <PackScreen {...navigation} />;
   else if (screen === 'documents') page = <DocumentsScreen {...navigation} />;
-  else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} initialView={historyView} busy={busy} error={error} />;
+  else page = <HistoryScreen {...navigation} onOpen={openHistory} onStartPreset={startPreset} initialView={historyView} packVersion={demoPack} busy={busy} error={error} />;
   return <>{page}{error && screen === 'briefing' && <Modal title="상담 연결 확인" className="wb-compact" onClose={() => setError('')}><TextPages text={error} /></Modal>}
     {micIntro && screen === 'dashboard' && session?.mode === 'live' && session.status === 'connected' && !session.ending && <SpeakerIntroModal onClose={() => setMicIntro(false)} onContinue={() => { void toggleMic(); }} />}
     {traceSelection && <TraceSourcePicker trace={traceSelection} busy={busy} error={error} onClose={() => { setTraceSelection(null); setError(''); }} onPlay={record => openHistory(record, 'trace')} />}

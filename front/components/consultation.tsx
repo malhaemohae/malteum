@@ -22,7 +22,7 @@ const densityNames: Record<string, string> = { low: '낮음', normal: '보통', 
 const briefingSections = (item: ApiBriefing['must_say'][number]) => detailSections([['확인해야 할 요소', item.elements], ['승인된 쉬운 말', item.plain_language]]);
 
 export type Preparation = { packVersion?: string; mode: 'live' | 'text'; customer: 'general' | 'professional' };
-export function Briefing({ onStart, onNavigate, onNew, onDemo, busy, defaults, health, onCheckHealth }: { onStart: (pack: ApiPack, mode: 'live' | 'text', customer: 'general' | 'professional') => void; onNavigate: (nav: NavItem) => void; onNew: () => void; onDemo: () => void; busy: boolean; defaults?: Preparation; health: ApiHealth | null; onCheckHealth: () => void }) {
+export function Briefing({ onStart, onNavigate, onNew, onDemo, busy, defaults, health, onCheckHealth }: { onStart: (pack: ApiPack, mode: 'live' | 'text', customer: 'general' | 'professional') => void; onNavigate: (nav: NavItem) => void; onNew: () => void; onDemo: (packVersion: string) => void; busy: boolean; defaults?: Preparation; health: ApiHealth | null; onCheckHealth: () => void }) {
   const packs = useResource(() => malteumApi.packs());
   const choices = useMemo(() => latestPacks(packs.data?.packs ?? []), [packs.data]);
   const [version, setVersion] = useState(defaults?.packVersion ?? ''); const [mode, setMode] = useState<'live' | 'text'>(defaults?.mode ?? 'live'); const [customer, setCustomer] = useState<'general' | 'professional'>(defaults?.customer ?? 'general');
@@ -31,6 +31,10 @@ export function Briefing({ onStart, onNavigate, onNew, onDemo, busy, defaults, h
   const pack = useResource(() => version ? malteumApi.pack(version) : Promise.resolve(null), [version]);
   const briefing = useResource(() => version ? malteumApi.briefing(version, customer) : Promise.resolve(null), [version, customer]);
   const [pane, setPane] = useState<'items' | 'documents'>('items');
+  // 시연 음원은 상품 시나리오가 정해져 있어 규정팩과 짝이 맞아야 한다. 어느 음원이 이
+  // 규정팩에 붙어 있는지 여기서 보여 주지 않으면 목록에 가서야 알게 된다
+  const presets = useResource(() => malteumApi.presets());
+  const demoAudios = useMemo(() => (presets.data?.presets ?? []).filter(item => item.mode === 'replay' && item.audio_ref && item.pack_version === version), [presets.data, version]);
   // 서버가 임베딩 모델을 데우는 동안(첫 로딩 26초) 시작하면 그만큼 첫 판정이 늦다.
   // 준비되면 스스로 멈추고, 끝내 안 되면 1분 뒤 포기해 폴링이 남지 않게 한다.
   const warming = health?.checks?.embedding === 'fail';
@@ -53,7 +57,8 @@ export function Briefing({ onStart, onNavigate, onNew, onDemo, busy, defaults, h
         const copy = <span className="wb-row-copy"><strong>{item.name}</strong><small>{sections.length ? sections[0][1].join(' · ') : item.item_code}</small></span>;
         return sections.length ? <button className="wb-row-button" onClick={() => setDetail(item)}>{copy}<span aria-hidden="true">›</span></button> : <div className="wb-row-static">{copy}</div>;
       }} /> : <PagedList label="필요 서류" items={briefing.data?.documents_required ?? []} empty={briefing.loading ? '필요 서류를 불러오는 중입니다.' : '이 상품에 등록된 필요 서류가 없습니다.'} render={item => <div className="wb-row-static"><span className="wb-row-copy"><strong>{item}</strong></span></div>} />}
-      <div className="wb-briefing-footer"><label className="wb-composer"><small>입력</small><select aria-label="입력 방식" value={mode} disabled={busy} onChange={event => setMode(event.target.value as 'live' | 'text')}><option value="live">마이크 녹음</option><option value="text">텍스트 입력</option></select></label><div className="wb-actions"><button disabled={busy} onClick={onDemo}>시연 음원으로 시작</button><button className="wb-primary" disabled={busy || packs.loading || Boolean(packs.error) || !choices.some(choice => choice.pack_version === version) || !pack.data || pack.data.pack_version !== version || !briefing.data || briefing.data.pack_version !== version || briefing.loading || pack.loading} onClick={() => pack.data && onStart(pack.data, mode, customer)}>{busy ? '세션 연결 중…' : '상담 시작'} →</button></div></div>
+      <div className="wb-briefing-footer"><label className="wb-composer"><small>입력</small><select aria-label="입력 방식" value={mode} disabled={busy} onChange={event => setMode(event.target.value as 'live' | 'text')}><option value="live">마이크 녹음</option><option value="text">텍스트 입력</option></select></label><div className="wb-actions"><button disabled={busy} onClick={() => onDemo(version)}>시연 음원으로 시작{demoAudios.length ? ` · ${demoAudios.length}편` : ''}</button><button className="wb-primary" disabled={busy || packs.loading || Boolean(packs.error) || !choices.some(choice => choice.pack_version === version) || !pack.data || pack.data.pack_version !== version || !briefing.data || briefing.data.pack_version !== version || briefing.loading || pack.loading} onClick={() => pack.data && onStart(pack.data, mode, customer)}>{busy ? '세션 연결 중…' : '상담 시작'} →</button></div></div>
+      {version && <small className="wb-demo-hint" data-demo={demoAudios.length ? 'ready' : 'none'}>{presets.loading ? '이 규정팩의 시연 음원을 확인하고 있습니다.' : demoAudios.length ? `이 규정팩의 시연 음원 ${demoAudios.length}편 · ${demoAudios.map(item => item.label).join(' · ')}` : '이 규정팩에는 연결된 시연 음원이 없습니다. 마이크 녹음이나 텍스트 입력으로 시작해 주세요.'}</small>}
       <small className="wb-processing-notice">마이크가 없거나 STT 가 멈추면 텍스트 입력으로 같은 판정을 받을 수 있습니다. 시연 입력은 외부 STT·AI 서비스에서 처리됩니다. 실제 개인정보를 입력하지 마세요.</small>
     </Panel>
     {detail && <Modal title={detail.name} className="wb-compact" onClose={() => setDetail(null)}><DetailSections sections={briefingSections(detail)} /><small className="wb-muted">항목 코드 {detail.item_code}</small></Modal>}
