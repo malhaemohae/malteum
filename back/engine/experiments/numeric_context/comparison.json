@@ -1,0 +1,4791 @@
+{
+  "replay": {
+    "utterances": 484,
+    "verdict_unchanged": 484,
+    "changed_rows": [
+      {
+        "source": "nemotron/offline_out_eval.json",
+        "id": "A03",
+        "text": "받으시는 이자 수익에는 과세가 되는데요. 세율은 십사퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "nemotron/offline_out_eval.json",
+        "id": "A11",
+        "text": "아까 세금도 정정하겠습니다. 이제 과세되는 세율은 십오점사퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/offline_out_eval.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사점 오퍼센트 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc13_eval.json",
+        "id": "A03",
+        "text": "받으시는 이자 수익에는 과세 가 되는데요. 세율은 십사퍼센트입니다. 그리고",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc13_eval.json",
+        "id": "A11",
+        "text": "세금도 정 정하겠습니다. 이제 과세되는 세율은 십오점사 퍼센트입니다. 그리고",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc13_eval.json",
+        "id": "B06",
+        "text": "조 회한 조건이면 연사 점 오 퍼센트 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc3_eval.json",
+        "id": "A03",
+        "text": "받으 시는 이 자 수익 에는 과세 가 되는데 요. 세율 은 십사퍼 센트 입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc3_eval.json",
+        "id": "A11",
+        "text": "아 까 세 금도 정 정하겠 습니다 . 이제 과세 되는 세 율은 십오 점 사 퍼센트 입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc3_eval.json",
+        "id": "B06",
+        "text": "지금 조 회한 조 건이 면 연 사점 오퍼센트 정도 나오는데 심사는 무조건 승인 됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_clips.json",
+        "id": "A03",
+        "text": "받으시는 이자 수익에는 과세가 되는데요. 세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_clips.json",
+        "id": "A11",
+        "text": "아까 세금도 정정하겠습니다. 이제 과세되는 세율은 15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_clips.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사 점 5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_clips.json",
+        "id": "B13",
+        "text": "연체하시면 대출 이자율에 연체 가산 이자율 연삼 퍼센트가 더해진 연체 이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_clips.json",
+        "id": "A03",
+        "text": "받으시는 이자 수익에는 과세가 되는데요. 세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_clips.json",
+        "id": "A11",
+        "text": "아까 세금도 정정하겠습니다. 이제 과세되는 세율은 15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_clips.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사 점 5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_clips.json",
+        "id": "B13",
+        "text": "연체하시면 대출 이자율에 연체 가산 이자율 연삼 퍼센트가 더해진 연체 이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_seg.json",
+        "id": "A03",
+        "text": "받으시는 이자 수익에는 과세가 되는데요. 세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_seg.json",
+        "id": "A11",
+        "text": "아까 세금도 정정하겠습니다. 이제 과세되는 세율은. 15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_seg.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사 점 오 퍼센트 정도 나오는데. 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_seg.json",
+        "id": "B13",
+        "text": "연체하시면 대출이자율에 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_seg.json",
+        "id": "A03",
+        "text": "받으시는 이자 수익에는 과세가 되는데요. 세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_seg.json",
+        "id": "A11",
+        "text": "아까 세금도 정정하겠습니다. 이제 과세되는 세율은. 15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_seg.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사 점 오 퍼센트 정도 나오는데. 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_seg.json",
+        "id": "B13",
+        "text": "연체하시면 대출이자율에 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_clips.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사점 5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_clips.json",
+        "id": "B13",
+        "text": "연체하시면 대출 이자율에 연체 가산 이자율 연 삼 퍼센트가 더해진 연체 이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_seg.json",
+        "id": "A11",
+        "text": "아까 세금도 정정하겠습니다. 이제 과세되는 세율은. 십오 점 사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_seg.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사점 5% 정도 나오는데. 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_seg.json",
+        "id": "B13",
+        "text": "연체하시면 대출 이자율에. 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_cpu_stream.json",
+        "id": "A03",
+        "text": "받으시는 이자 수익에는 과세가 되는데요. 세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_cpu_stream.json",
+        "id": "A11",
+        "text": "아까 세금도 정정하겠습니다. 이제 과세되는 세율은. 15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_cpu_stream.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사 점 오 퍼센트 정도 나오는데. 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_cpu_stream.json",
+        "id": "B13",
+        "text": "연체하시면 대출이자율에 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_gpu_stream.json",
+        "id": "A03",
+        "text": "받으시는 이자 수익에는 과세가 되는데요. 세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "DEP-TAX-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 2,
+                "span": "세금우대 및 비과세종합저축 적용 불가능",
+                "bbox": [
+                  215.4,
+                  220.7,
+                  404.0,
+                  230.3
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_gpu_stream.json",
+        "id": "A11",
+        "text": "아까 세금도 정정하겠습니다. 이제 과세되는 세율은. 15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_gpu_stream.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사 점 오 퍼센트 정도 나오는데. 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_gpu_stream.json",
+        "id": "B13",
+        "text": "연체하시면 대출이자율에 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_17b_gpu_stream.json",
+        "id": "A11",
+        "text": "아까 세금도 정정하겠습니다. 이제 과세되는 세율은. 십오 점 사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_17b_gpu_stream.json",
+        "id": "B06",
+        "text": "지금 조회한 조건이면 연사점 5% 정도 나오는데. 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_17b_gpu_stream.json",
+        "id": "B13",
+        "text": "연체하시면 대출 이자율에. 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "8b/preset-loan-b.json",
+        "id": "01M1RB4SWQD0X33ZX1B225HP4S",
+        "text": "지금 조회한 조건이면 연사점 5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "01M1RB4SWQD0X33ZX1B225HP4S",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "01M1RB4SWQD0X33ZX1B225HP4S",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "8b/preset-loan-b.json",
+        "id": "01M1RB6HFTWB4STN3GCYQ9XMV8",
+        "text": "연체하시면 대출 이자율에 연체 가산 이자율 연 삼 퍼센트가 더해진 연체 이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "01M1RB6HFTWB4STN3GCYQ9XMV8",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "01M1RB6HFTWB4STN3GCYQ9XMV8",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "32b/preset-loan-b.json",
+        "id": "01M1RBH7AHVC9GSNWTW5KMBB36",
+        "text": "지금 조회한 조건이면 연사점 5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "01M1RBH7AHVC9GSNWTW5KMBB36",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "01M1RBH7AHVC9GSNWTW5KMBB36",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "32b/preset-loan-b.json",
+        "id": "01M1RBJYXB90EBXW7DSR7BYYJQ",
+        "text": "연체하시면 대출 이자율에 연체 가산 이자율 연 삼 퍼센트가 더해진 연체 이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "01M1RBJYXB90EBXW7DSR7BYYJQ",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "01M1RBJYXB90EBXW7DSR7BYYJQ",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      }
+    ]
+  },
+  "split": {
+    "utterances": 669,
+    "verdict_unchanged": 667,
+    "changed_rows": [
+      {
+        "source": "nemotron/offline_out_eval.json",
+        "id": "A03/1",
+        "text": "세율은 십사퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "nemotron/offline_out_eval.json",
+        "id": "A11/1",
+        "text": "이제 과세되는 세율은 십오점사퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/offline_out_eval.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사점 오퍼센트 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc13_eval.json",
+        "id": "A03/1",
+        "text": "세율은 십사퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc13_eval.json",
+        "id": "A11/1",
+        "text": "이제 과세되는 세율은 십오점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc13_eval.json",
+        "id": "B06/0",
+        "text": "조 회한 조건이면 연사 점 오 퍼센트 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc3_eval.json",
+        "id": "A03/1",
+        "text": "세율 은 십사퍼 센트 입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc3_eval.json",
+        "id": "A11/1",
+        "text": "이제 과세 되는 세 율은 십오 점 사 퍼센트 입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "nemotron/stream_out_rc3_eval.json",
+        "id": "B06/0",
+        "text": "지금 조 회한 조 건이 면 연 사점 오퍼센트 정도 나오는데 심사는 무조건 승인 됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_clips.json",
+        "id": "A03/1",
+        "text": "세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_clips.json",
+        "id": "A11/1",
+        "text": "이제 과세되는 세율은 15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_clips.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사 점 5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_clips.json",
+        "id": "B13/0",
+        "text": "연체하시면 대출 이자율에 연체 가산 이자율 연삼 퍼센트가 더해진 연체 이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_clips.json",
+        "id": "A03/1",
+        "text": "세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_clips.json",
+        "id": "A11/1",
+        "text": "이제 과세되는 세율은 15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_clips.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사 점 5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_clips.json",
+        "id": "B13/0",
+        "text": "연체하시면 대출 이자율에 연체 가산 이자율 연삼 퍼센트가 더해진 연체 이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_seg.json",
+        "id": "A03/1",
+        "text": "세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_seg.json",
+        "id": "A11/2",
+        "text": "15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_seg.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사 점 오 퍼센트 정도 나오는데.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_gpu_seg.json",
+        "id": "B13/0",
+        "text": "연체하시면 대출이자율에 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_seg.json",
+        "id": "A03/1",
+        "text": "세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_seg.json",
+        "id": "A11/2",
+        "text": "15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_seg.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사 점 오 퍼센트 정도 나오는데.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_06b_seg.json",
+        "id": "B13/0",
+        "text": "연체하시면 대출이자율에 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_clips.json",
+        "id": "A03/1",
+        "text": "세율은 14%입니다.",
+        "before": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_clips.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사점 5% 정도 나오는데 심사는 무조건 승인됩니다.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-BAN-001",
+              "axis": "commission",
+              "state": "suspected",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B06/0",
+              "evidence": {
+                "doc_id": "01_금융소비자보호법",
+                "page": 11,
+                "span": "1. 불확실한 사항에 대하여 단정적 판단을 제공하거나 확실하다고 오인하게 할 소지가 있는",
+                "bbox": [
+                  61.3,
+                  170.0,
+                  554.2,
+                  181.6
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_clips.json",
+        "id": "B13/0",
+        "text": "연체하시면 대출 이자율에 연체 가산 이자율 연 삼 퍼센트가 더해진 연체 이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_seg.json",
+        "id": "A11/2",
+        "text": "십오 점 사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_seg.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사점 5% 정도 나오는데.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_offline_17b_gpu_seg.json",
+        "id": "B13/1",
+        "text": "연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "partial",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [
+                "대출이자율"
+              ],
+              "utterance_ref": "B13/1",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_cpu_stream.json",
+        "id": "A03/1",
+        "text": "세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_cpu_stream.json",
+        "id": "A11/2",
+        "text": "15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_cpu_stream.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사 점 오 퍼센트 정도 나오는데.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_cpu_stream.json",
+        "id": "B13/0",
+        "text": "연체하시면 대출이자율에 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_gpu_stream.json",
+        "id": "A03/1",
+        "text": "세율은 십사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_gpu_stream.json",
+        "id": "A11/2",
+        "text": "15점사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_gpu_stream.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사 점 오 퍼센트 정도 나오는데.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_06b_gpu_stream.json",
+        "id": "B13/0",
+        "text": "연체하시면 대출이자율에 연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "met",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [],
+              "utterance_ref": "B13/0",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_17b_gpu_stream.json",
+        "id": "A03/1",
+        "text": "세율은 14%입니다.",
+        "before": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              14.0,
+              "%",
+              "14%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": [
+            {
+              "alert_type": "number_mismatch",
+              "severity": "warning",
+              "message": "설명서 기준 15.4%",
+              "item_code": "DEP-TAX-001",
+              "comparison": {
+                "said": "14%",
+                "reference": "15.4%",
+                "condition": null
+              },
+              "utterance_ref": "A03/1",
+              "evidence": {
+                "doc_id": "05_상품설명서_정기예금",
+                "page": 1,
+                "span": "정상일반세율은 이자소득의 15.4%",
+                "bbox": [
+                  146.6,
+                  326.1,
+                  302.6,
+                  335.6
+                ],
+                "legal_basis": null
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_17b_gpu_stream.json",
+        "id": "A11/2",
+        "text": "십오 점 사 퍼센트입니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              15.4,
+              "%",
+              "15.4%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_17b_gpu_stream.json",
+        "id": "B06/0",
+        "text": "지금 조회한 조건이면 연사점 5% 정도 나오는데.",
+        "before": {
+          "numbers": [
+            [
+              5.0,
+              "%",
+              "5%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              4.5,
+              "%",
+              "4.5%"
+            ]
+          ],
+          "verdicts": [],
+          "numeric_alerts": []
+        }
+      },
+      {
+        "source": "qwen_asr/eval_stream_17b_gpu_stream.json",
+        "id": "B13/1",
+        "text": "연체 가산이자율 연 삼 퍼센트가 더해진 연체이자율이 적용됩니다.",
+        "before": {
+          "numbers": [],
+          "verdicts": [],
+          "numeric_alerts": []
+        },
+        "after": {
+          "numbers": [
+            [
+              3.0,
+              "%",
+              "3%"
+            ]
+          ],
+          "verdicts": [
+            {
+              "item_code": "LOAN-ARR-001",
+              "axis": "omission",
+              "state": "partial",
+              "decided_by": "L1",
+              "confidence": null,
+              "missing_elements": [
+                "대출이자율"
+              ],
+              "utterance_ref": "B13/1",
+              "evidence": {
+                "doc_id": "06_상품설명서_가계대출",
+                "page": 7,
+                "span": "◉ 연체이자율은 [대출이자율 + 연체가산이자율]로 적용합니다.",
+                "bbox": [
+                  43.3,
+                  468.8,
+                  303.1,
+                  479.2
+                ],
+                "legal_basis": null
+              },
+              "waive_reason": null,
+              "supersedes": null
+            }
+          ],
+          "numeric_alerts": []
+        }
+      }
+    ]
+  },
+  "baseline_commit": "6171c1f",
+  "final_engine_sha256": {
+    "back/engine/engine.py": "5970eb8a1eff733c12fcd61fc3390beced8c875459533013766ad7a523c34855",
+    "back/engine/tiers/l1/numeric.py": "edc69e4e500bfee17b0ce59a0b9504c5d115107b6ae1ed3b24e54b95188e4362"
+  },
+  "l1_performance": [
+    {
+      "scenario": "combined_tax",
+      "calls": 1000,
+      "p50_ms": 0.143049,
+      "p95_ms": 0.14664,
+      "max_ms": 0.185532
+    },
+    {
+      "scenario": "split_tax",
+      "calls": 1000,
+      "p50_ms": 0.11796999999999999,
+      "p95_ms": 0.122157,
+      "max_ms": 0.136092
+    },
+    {
+      "scenario": "loan_rates",
+      "calls": 1000,
+      "p50_ms": 0.2597295,
+      "p95_ms": 0.27076,
+      "max_ms": 0.507823
+    }
+  ],
+  "tests": {
+    "baseline_passed": 487,
+    "final_passed": 560,
+    "skipped": 2,
+    "numeric_context_cases": 73,
+    "ruff": "passed",
+    "import_linter": "5 kept",
+    "generated_models": "up to date"
+  }
+}

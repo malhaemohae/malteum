@@ -168,10 +168,7 @@ class RuleEngine:
                 elif item.type == "risk":
                     alerts.append(matcher.risk_alert(hit, ref))
             if "required" in g.types:
-                required_hits = [
-                    h.item for h in hits if h.type_is("required") and h.item.code in l1_codes
-                ]
-                alerts.extend(numeric.check(text, required_hits, compiled, ref))
+                alerts.extend(numeric.check(utterance, pack, compiled, state))
             if g.low_confidence:
                 # 은행원인지 확실하지 않다. 건드린 항목은 현재 상태 그대로 verdict 로 남긴다 (P3)
                 for hit in matcher.match(text, pack, compiled, frozenset({"required"})):
