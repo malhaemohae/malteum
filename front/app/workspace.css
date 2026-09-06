@@ -60,7 +60,7 @@
 
 /* Conversation and guidance are independent columns. Color reinforces, never replaces, role labels. */
 .wb-transcript>.wb-panel-head{padding-bottom:10px;border-bottom:1px solid var(--line)}
-.wb-chat-rows{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin;scrollbar-color:#c9d8db transparent}.wb-chat-rows>.wb-chat-entry:first-child{margin-top:auto}
+.wb-chat-rows{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin;scrollbar-color:#c9d8db transparent}
 .wb-chat-entry{display:flex;flex-direction:column;align-items:flex-start;gap:5px;flex-shrink:0}
 .wb-chat-meta{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);padding:0 3px;line-height:18px}
 .wb-chat-meta strong{font-weight:650;color:var(--ink)}.wb-chat-meta time{font-size:11px;font-variant-numeric:tabular-nums}
