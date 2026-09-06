@@ -19,6 +19,12 @@ import { DocumentsScreen, HistoryScreen, PackScreen, ReportScreen } from './oper
 import { Empty, Modal, Notice, TextPages } from './workspace';
 import { EvidenceView, loadEvidence } from './evidence';
 
+// 종료를 누른 뒤 서버가 확정하기를 기다리는 간격과 횟수. 서버는 마지막 발화의 전사와
+// 그 판정을 다 실어 보낸 뒤에야 ended 를 준다. 한 번 재고 포기하면 그 마무리가 오는
+// 중에 화면만 오류로 바뀌고, 은행원은 멀쩡히 끝난 상담을 다시 종료하려 든다
+const END_CONFIRM_MS = 10000;
+const END_CONFIRM_ROUNDS = 3;
+
 export default function Application() {
   const [screen, setScreen] = useState<Screen>('landing'); const [historyView, setHistoryView] = useState<'sessions' | 'presets'>('sessions'); const [demoPack, setDemoPack] = useState(''); const [session, setSession] = useState<LiveSession | null>(null); const current = useRef<LiveSession | null>(null);
   const [pack, setPack] = useState<ApiPack | null>(null); const [health, setHealth] = useState<ApiHealth | null>(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
@@ -252,12 +258,18 @@ export default function Application() {
   function endSession() {
     const active = current.current; if (!active || active.ending || active.status === 'ended') return;
     stopMic(); replayAudio.current?.stop(); if (!command({ t: 'end' })) return; update(value => value ? { ...value, ending: true } : value);
-    endTimer.current = setTimeout(async () => {
+    let rounds = 0;
+    const confirm = async () => {
       if (current.current?.id !== active.id || !current.current.ending) return;
       try { if ((await malteumApi.session(active.id)).status !== 'running') { finishSession(active.id); return; } } catch { /* Never assume an unconfirmed end succeeded. */ }
       if (current.current?.id !== active.id || current.current.status === 'ended') return;
+      // 연결이 살아 있고 상담도 아직 running 이면 서버가 마무리 중이다. 응답이 없는
+      // 것과 다르므로 한 번 더 기다린다. 기다림이 완료를 대신하지는 않는다 (여기서
+      // finishSession 을 부르지 않는다). 상한을 넘기면 그대로 실패로 알린다
+      if (++rounds < END_CONFIRM_ROUNDS && socket.current?.readyState === WebSocket.OPEN) { endTimer.current = setTimeout(confirm, END_CONFIRM_MS); return; }
       newAfterEnd.current = false; update(value => value ? { ...value, ending: false, error: '종료가 확인되지 않았습니다. 다시 연결하거나 이력에서 상담을 열어 종료해 주세요.' } : value);
-    }, 10000);
+    };
+    endTimer.current = setTimeout(confirm, END_CONFIRM_MS);
   }
   async function openEvidence(ref: string) {
     const requestId = ++evidenceRequest.current; setEvidence({ loading: true });
