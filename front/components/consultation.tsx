@@ -70,7 +70,8 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
   function selectPane(value: typeof pane) { setPane(value); if (value !== 'conversation') setGuidePane(value); }
   function requestRephrase(code?: string) {
     if (code) { setPlainCode(code); setSelected(null); setRephraseOpen(true); return; }
-    if (onCommand({ t: 'assist_request', assist_type: 'rephrase' })) { setPlainCode(null); setSelected(null); setRephraseOpen(true); }
+    // 직전 발화 쉬운 말은 그 발화 아래에 붙는다. 어느 말을 바꾼 것인지 대조가 되어야 하므로 창을 띄우지 않는다
+    if (onCommand({ t: 'assist_request', assist_type: 'rephrase' })) { closeDetails(); setPane('conversation'); }
   }
   const rephraseItem = plainCode ? pack?.items.find(entry => entry.code === plainCode) : undefined;
   const rephraseText = rephraseItem ? rephraseItem.plain_language?.join('\n') : session.action?.result?.text;
@@ -85,6 +86,8 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
   const intervention = session.interventions[0]; const canWrite = session.status === 'connected' && session.mode !== 'trace' && !session.ending;
   // 숫자 확인 경보는 말한 값과 설명서 값의 비교가 전부다. 서버 문구가 기준 값을
   // 다시 말하고 있어 같은 숫자가 세 번 뜨던 것을 비교 표 하나로 바꾼다.
+  // 직전 발화 쉬운 말은 그 발화 아래에 이미 떠 있다. 위쪽 알림 줄이 같은 말을 되풀이하지 않게 한다
+  const inlineRephrase = session.action?.kind === 'rephrase' && Boolean(session.action.sourceUtteranceId);
   const compared = Boolean(intervention?.said && intervention?.reference);
   const notice = micError || friendlyError(session.error) || replaySound?.error || (session.mode === 'live' && !session.textFallback && health?.checks?.stt === 'unconfigured' ? STT_UNCONFIGURED : '');
   function resolve() { if (intervention?.alert) { onCommand({ t: 'acknowledge', alert_ref: intervention.id }); return; } onDismiss(); }
@@ -96,7 +99,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
     {session.mode === 'trace' && session.traceHasUtterances === false && <Notice>이 기록에는 발화 없이 판정·안내만 저장되어 있습니다.</Notice>}
     <Notice action={<><button onClick={() => setDetail({ title: '연결 상태', text: notice })}>상세</button>{session.status === 'disconnected' ? <button onClick={onRetry}>다시 연결</button> : session.mode === 'live' && !session.textFallback ? <button onClick={onTextMode}>텍스트 입력</button> : null}</>}>{notice}</Notice>
     <div className="wb-mobile-tabs"><Tabs value={pane} onChange={selectPane} items={[{ value: 'conversation', label: '상담 대화' }, { value: 'attention', label: intervention ? `현재 안내 · ${session.interventions.length}` : '현재 안내' }, { value: 'checks', label: '필수 안내' }]} /></div>
-    <Feedback message={micPending ? '마이크를 연결하고 있습니다.' : session.action?.message} pending={micPending || session.action?.pending} action={!rephraseOpen && session.action?.kind === 'rephrase' && (session.action.pending || session.action.result) ? <button onClick={() => { closeDetails(); setRephraseOpen(true); }}>쉬운 말 보기</button> : undefined} />
+    <Feedback message={micPending ? '마이크를 연결하고 있습니다.' : inlineRephrase ? undefined : session.action?.message} pending={micPending || (!inlineRephrase && session.action?.pending)} action={!rephraseOpen && !inlineRephrase && session.action?.kind === 'rephrase' && (session.action.pending || session.action.result) ? <button onClick={() => { closeDetails(); setRephraseOpen(true); }}>쉬운 말 보기</button> : undefined} />
     <div className="wb-dashboard" data-pane={pane}>
       <div className="wb-shortcuts" aria-label="상담 주요 기능">
         {session.mode === 'live' ? <QuickAction title={micPending ? '연결 취소' : micActive ? '녹음 중지' : '녹음 시작'} label={micPending ? '마이크 연결 취소' : micActive ? '■ 녹음 중지' : '● 녹음 시작'} subtitle={micPending ? '권한 창을 확인하세요' : micActive ? '중지 후에도 상담은 유지' : '완료 시 상단 상담 종료'} icon={micActive ? 'stop' : 'mic'} tone={micActive ? 'recording' : 'record'} pressed={micActive} disabled={!canWrite} onClick={onMic} /> : <QuickAction title={session.mode === 'text' ? '텍스트 입력' : '상담 대화'} subtitle={session.mode === 'text' ? '화자를 선택해 입력' : '저장된 상담 확인'} icon="conversation" tone="record" onClick={() => { selectPane('conversation'); requestAnimationFrame(() => inputRef.current?.focus()); }} />}
@@ -106,7 +109,7 @@ export function Dashboard({ session, pack, health, micActive, micPending, micErr
       <div className="wb-conversation">
         <Panel title="상담 대화" className="wb-transcript" action={replaySound ? <button type="button" className="wb-replay-sound" data-replay-sound={replaySound.status} aria-pressed={replaySound.enabled && replaySound.status !== 'blocked'} onClick={onReplaySound} disabled={replaySound.status === 'loading' || session.ending || session.status !== 'connected'}>{replaySound.status === 'loading' ? '음원 준비 중' : replaySound.status === 'unavailable' ? '소리 다시 시도' : replaySound.status === 'blocked' || !replaySound.enabled ? '소리 켜기' : '소리 끄기'}</button> : <small role="status">{session.mode === 'live' && micActive ? health?.checks?.stt === 'ok' ? '● 녹음 중 · 전사 대기' : '● 녹음 중 · 전사 연결 확인 필요' : '고객 · 상담원'}</small>}>
           <div className="wb-conversation-filters" aria-label="대화 화자 필터"><Tabs value={filter} onChange={setFilter} items={[{ value: 'all', label: '전체' }, { value: 'customer', label: '고객' }, { value: 'teller', label: '상담원' }]} /></div>
-          <Transcript key={filter} items={transcript} empty={filter === 'all' ? '첫 발화를 기다리고 있습니다.' : '이 화자의 발화가 아직 없습니다.'} onSelect={row => setDetail({ title: `${speakerLabel(row.speaker)} · ${timeLabel(row.t_ms / 1000)}`, text: row.text })} />
+          <Transcript key={filter} items={transcript} rephrases={session.rephrases} onEvidence={showEvidence} empty={filter === 'all' ? '첫 발화를 기다리고 있습니다.' : '이 화자의 발화가 아직 없습니다.'} onSelect={row => setDetail({ title: `${speakerLabel(row.speaker)} · ${timeLabel(row.t_ms / 1000)}`, text: row.text })} />
           {session.partial && <button className="wb-row-button wb-partial" onClick={() => setDetail({ title: '중간 전사', text: session.partial })}>듣는 중 · {session.partial}</button>}
           {session.mode === 'text' || session.textFallback ? <form className="wb-composer" onSubmit={event => { event.preventDefault(); if (text.trim() && onCommand({ t: 'text_utterance', text: text.trim(), speaker })) setText(''); }}><select aria-label="화자" value={speaker} onChange={event => setSpeaker(event.target.value)}><option value="teller">상담원</option><option value="customer">고객</option></select><input ref={inputRef} aria-label="상담 발화" value={text} maxLength={5000} onChange={event => setText(event.target.value)} placeholder="상담 발화 입력" /><button disabled={!canWrite || !text.trim()} type="submit">전송</button></form> : null}
         </Panel>

@@ -5,12 +5,18 @@ import { LiveSession, timeLabel } from '../lib/workspace-model';
 import { Empty } from './workspace';
 
 type Utterance = LiveSession['transcript'][number];
+type Rephrase = NonNullable<LiveSession['rephrases']>[string];
 export const speakerLabel = (speaker: string) => ({ customer: '고객', teller: '상담원', system: '시스템' }[speaker] ?? '화자 미확인');
 
-function Bubble({ row, onSelect }: { row: Utterance; onSelect: (row: Utterance) => void }) {
+function Bubble({ row, rephrase, onSelect, onEvidence }: { row: Utterance; rephrase?: Rephrase; onSelect: (row: Utterance) => void; onEvidence?: (ref: string) => void }) {
   return <article className="wb-chat-entry" data-speaker={row.speaker}>
     <div className="wb-chat-meta"><strong>{speakerLabel(row.speaker)}</strong><time>{timeLabel(row.t_ms / 1000)}</time></div>
     <button type="button" className="wb-chat-bubble" aria-label={`${speakerLabel(row.speaker)} 발화 전체 보기 · ${timeLabel(row.t_ms / 1000)}`} onClick={() => onSelect(row)}><span className="wb-chat-text">{row.text}</span></button>
+    {rephrase && <div className="wb-chat-plain" aria-live="polite">
+      <span className="wb-chat-plain-label">쉬운 말</span>
+      {rephrase.pending ? <span className="wb-chat-plain-wait">고객이 알기 쉬운 말로 바꾸고 있습니다.</span>
+        : <><span className="wb-chat-text">{rephrase.text}</span>{rephrase.evidenceRef && onEvidence && <button type="button" className="wb-chat-plain-evidence" onClick={() => onEvidence(rephrase.evidenceRef!)}>근거 보기 →</button>}</>}
+    </div>}
   </article>;
 }
 
@@ -18,7 +24,7 @@ function Bubble({ row, onSelect }: { row: Utterance; onSelect: (row: Utterance) 
 // reader scrolls up, then holds still and offers a jump back to the latest message.
 const FOLLOW_THRESHOLD = 32;
 const SETTLE_FRAMES = 60;
-export function Transcript({ items, onSelect, empty = '첫 발화를 기다리고 있습니다.' }: { items: Utterance[]; onSelect: (row: Utterance) => void; empty?: string }) {
+export function Transcript({ items, rephrases, onSelect, onEvidence, empty = '첫 발화를 기다리고 있습니다.' }: { items: Utterance[]; rephrases?: LiveSession['rephrases']; onSelect: (row: Utterance) => void; onEvidence?: (ref: string) => void; empty?: string }) {
   const area = useRef<HTMLDivElement>(null);
   const [following, setFollowing] = useState(true);
   const [unread, setUnread] = useState(0);
@@ -51,7 +57,7 @@ export function Transcript({ items, onSelect, empty = '첫 발화를 기다리�
     if (following) { scrollToEnd(items.length - seen.current > 1 ? 'auto' : 'smooth'); setUnread(0); }
     else setUnread(value => value + Math.max(0, items.length - seen.current));
     seen.current = items.length;
-  }, [items, following]);
+  }, [items, rephrases, following]);
   useEffect(() => {
     const host = area.current; if (!host) return;
     // Keep the newest message in view when the pane itself changes size (responsive layout, fonts).
@@ -68,7 +74,7 @@ export function Transcript({ items, onSelect, empty = '첫 발화를 기다리�
     if (atEnd !== following) { setFollowing(atEnd); if (atEnd) setUnread(0); }
   }
   return <div className="wb-list wb-chat" data-paged-list="상담 전사" data-following={following}>
-    <div className="wb-chat-rows" ref={area} onScroll={onScroll} role="log" aria-live="polite" aria-relevant="additions">{items.length ? items.map(row => <Bubble key={row.id} row={row} onSelect={onSelect} />) : <Empty>{empty}</Empty>}</div>
+    <div className="wb-chat-rows" ref={area} onScroll={onScroll} role="log" aria-live="polite" aria-relevant="additions">{items.length ? items.map(row => <Bubble key={row.id} row={row} rephrase={rephrases?.[row.id]} onSelect={onSelect} onEvidence={onEvidence} />) : <Empty>{empty}</Empty>}</div>
     <div className="wb-list-bottom"><small>{items.length}개 발화 · 선택하면 전체 보기</small>{!following && <button type="button" className="wb-chat-jump" onClick={() => { setFollowing(true); scrollToEnd('smooth'); }}>{unread > 0 ? `새 발화 ${unread}개 · 최신으로` : '최신 발화로'} ↓</button>}</div>
   </div>;
 }

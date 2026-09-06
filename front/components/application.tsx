@@ -82,8 +82,10 @@ export default function Application() {
     const tracked = ['mark_met', 'mark_waived', 'acknowledge'].includes(String(value.t)) || (value.t === 'assist_request' && value.assist_type === 'rephrase');
     if (tracked && current.current.action?.pending) return false;
     if (tracked) {
-      const action = { kind: value.t === 'assist_request' ? 'rephrase' : String(value.t), itemCode: typeof value.item_code === 'string' ? value.item_code : undefined, ref: typeof value.alert_ref === 'string' ? value.alert_ref : undefined, pending: true, message: value.t === 'assist_request' ? (value.item_code ? '쉬운 말을 상담 기록에 남기고 있습니다.' : '직전 발화를 쉬운 말로 바꾸고 있습니다.') : '변경 사항을 서버에 기록하고 있습니다.' };
-      update(previous => previous ? { ...previous, error: undefined, action } : previous);
+      // 서버 응답에는 어느 발화를 바꿨는지가 없다. 계약상 직전 상담원 발화이므로 지금 그것을 붙잡아 둔다
+      const lastTeller = value.t === 'assist_request' && !value.item_code ? [...current.current.transcript].reverse().find(row => row.speaker === 'teller')?.id : undefined;
+      const action = { kind: value.t === 'assist_request' ? 'rephrase' : String(value.t), itemCode: typeof value.item_code === 'string' ? value.item_code : undefined, ref: typeof value.alert_ref === 'string' ? value.alert_ref : undefined, sourceUtteranceId: lastTeller, pending: true, message: value.t === 'assist_request' ? (value.item_code ? '쉬운 말을 상담 기록에 남기고 있습니다.' : '직전 발화를 쉬운 말로 바꾸고 있습니다.') : '변경 사항을 서버에 기록하고 있습니다.' };
+      update(previous => previous ? { ...previous, error: undefined, action, rephrases: lastTeller ? { ...previous.rephrases, [lastTeller]: { pending: true } } : previous.rephrases } : previous);
       const id = current.current?.id;
       setTimeout(() => { if (current.current?.id === id && current.current.action === action && action.pending) update(previous => previous ? { ...previous, action: { ...action, pending: false, message: '서버 응답이 지연되고 있습니다. 다시 요청해 주세요.' } } : previous); }, 15000);
     }

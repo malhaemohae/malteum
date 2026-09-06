@@ -18,7 +18,9 @@ export type LiveSession = {
   // Newest judgement that carried evidence. The guide panel shows it while no intervention is open.
   recentEvidence?: { ref: string; itemCode: string; name: string };
   query?: { question: string; answer?: string; evidenceRef?: string; pending: boolean };
-  action?: { kind: string; itemCode?: string; ref?: string; pending: boolean; message: string; result?: { text: string; evidenceRef?: string } };
+  action?: { kind: string; itemCode?: string; ref?: string; sourceUtteranceId?: string; pending: boolean; message: string; result?: { text: string; evidenceRef?: string } };
+  // 직전 발화 쉬운 말. 어느 발화를 바꾼 것인지 보이도록 그 발화 id 에 매달아 둔다
+  rephrases?: Record<string, { text?: string; evidenceRef?: string; pending: boolean }>;
 };
 
 export const statusNames: Record<string, string> = { met: '고지', partial: '부분 고지', unmet: '미고지', waived: '제외', clean: '이상 없음', suspected: '검토 필요', violated: '위반', adopted: '채택', ignored: '미채택', pending: '대기', approved: '승인', rejected: '반려', running: '진행 중', ended: '종료', aborted: '중단', timeout: '시간 만료' };
@@ -107,14 +109,20 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
     // Answer text without an evidence reference is never presented as a grounded answer.
     const text = kind === 'answer' && !reference ? '연결된 근거가 없어 답변을 표시할 수 없습니다.' : String(message.message ?? message.text ?? '');
     if (message.acknowledged === true || message.outcome === 'adopted' || message.outcome === 'ignored') next.interventions = remaining;
-    else if (kind !== 'term_density') {
+    // rephrase 는 그 발화 아래 카드로 붙는다. 가이드 대기줄에 또 세우면 같은 문장이 두 번 뜬다
+    else if (!['term_density', 'rephrase'].includes(kind)) {
       const comparison = (message.comparison ?? {}) as Record<string, unknown>;
       const priority = ({ risk_signal: 0, forbidden_phrase: 1, number_mismatch: 2, rephrase: 3, answer: 4, nudge: 5, documents: 6, briefing: 6 } as Record<string, number>)[kind] ?? 7;
       const intervention: Intervention = { id: eventId, key, kind, text, priority, alert: message.t === 'alert', evidenceRef: reference, said: typeof comparison.said === 'string' ? comparison.said : undefined, reference: typeof comparison.reference === 'string' ? comparison.reference : undefined, condition: typeof comparison.condition === 'string' ? comparison.condition : undefined };
       next.interventions = [...remaining, intervention].sort((a, b) => a.priority - b.priority);
     }
     if (kind === 'answer') next.query = { question: current.query?.question ?? '', answer: text, evidenceRef: reference, pending: false };
-    if (current.action?.kind === 'rephrase' && kind === 'rephrase' && (current.action.itemCode == null || current.action.itemCode === message.item_code)) next.action = { ...current.action, pending: false, itemCode: typeof message.item_code === 'string' ? message.item_code : current.action.itemCode, message: current.action.itemCode == null ? '직전 발화를 쉬운 말로 바꿨습니다.' : '쉬운 말이 상담 기록에 남았습니다.', result: { text, evidenceRef: reference } };
+    if (current.action?.kind === 'rephrase' && kind === 'rephrase' && (current.action.itemCode == null || current.action.itemCode === message.item_code)) {
+      const source = current.action.sourceUtteranceId;
+      next.action = { ...current.action, pending: false, itemCode: typeof message.item_code === 'string' ? message.item_code : current.action.itemCode, message: current.action.itemCode == null ? '직전 발화를 쉬운 말로 바꿨습니다.' : '쉬운 말이 상담 기록에 남았습니다.', result: { text, evidenceRef: reference } };
+      // 대화 옆에 그 발화의 쉬운 말로 붙인다. 어느 말을 바꾼 것인지 대조가 되어야 한다
+      if (source) next.rephrases = { ...current.rephrases, [source]: { text, evidenceRef: reference, pending: false } };
+    }
     if (current.action?.kind === 'acknowledge' && message.acknowledged === true && current.action.pending && current.action.ref === message.acknowledged_ref) next.action = { ...current.action, pending: false, message: '확인 기록이 서버에 저장됐습니다.' };
   }
   if (message.t === 'progress') next.progress = { met: Number(message.met), partial: Number(message.partial ?? 0), total: Number(message.items_total), density: typeof message.term_density === 'string' ? message.term_density : undefined };
