@@ -10,7 +10,7 @@ const normalize=(text:string)=>text.toLowerCase().replace(/디에스알/g,'dsr')
 // 아니라 붙여넣기처럼 보인다
 const REVEAL_GAP_MS=700;
 // 재생 위치를 기다리는 상한. 음원이 없거나 짧아 위치가 끝내 안 지나가도 전사를
-// 인질로 잡지 않는다 — 늦게 뜨는 것보다 안 뜨는 것이 나쁘다
+// 인질로 잡지 않는다. 늦게 뜨는 것보다 안 뜨는 것이 나쁘다
 const POSITION_WAIT_CAP_MS=8000;
 
 // Match only this preset's unambiguous forward original turns. This has no role in judging

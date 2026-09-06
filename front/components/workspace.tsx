@@ -54,7 +54,7 @@ export function Tabs<T extends string>({ value, items, onChange }: { value: T; i
 //                   '불러오고 있습니다' 를 내면 글자가 한 프레임 스쳤다 사라진다
 //
 // `settled` 는 한 번이라도 결론(값 또는 오류)이 난 뒤에만 참이다. 부르는 쪽은 이 값이
-// 거짓인 동안 '없습니다' 같은 확정 문구를 내지 않는다 — 아직 없는 것이 아니라 모르는 것이다.
+// 거짓인 동안 '없습니다' 같은 확정 문구를 내지 않는다. 아직 없는 것이 아니라 모르는 것이다.
 const SLOW_LOAD_MS = 300;
 export function useResource<T>(loader: () => Promise<T>, dependencies: DependencyList = []) {
   const [state, setState] = useState<{ data: T | null; error: string; slow: boolean; settled: boolean }>({ data: null, error: '', slow: false, settled: false });
@@ -103,7 +103,7 @@ export function PagedList<T>({ items, render, label, empty = '표시할 항목�
 }
 
 // 시간 순서로 쭉 읽는 목록(리포트 타임라인)은 페이지를 넘기지 않는다. 상담 대화와 같은
-// 스크롤 방식이다 — 앞뒤 맥락을 이어 보려는 목록에서 페이지 경계는 방해가 된다.
+// 스크롤 방식이다. 앞뒤 맥락을 이어 보려는 목록에서 페이지 경계는 방해가 된다.
 // 행 높이를 고정하지 않으므로 라벨이 길어도 잘리지 않는다.
 export function ScrollList<T>({ items, render, label, empty = '표시할 항목이 없습니다.' }: { items: T[]; render: (item: T, index: number) => ReactNode; label: string; empty?: string }) {
   return <div className="wb-list wb-scroll-list" data-paged-list={label}>

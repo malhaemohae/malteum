@@ -10,7 +10,7 @@ export const speakerLabel = (speaker: string) => ({ customer: '고객', teller: 
 
 function Bubble({ row, rephrase, onSelect, onEvidence }: { row: Utterance; rephrase?: Rephrase; onSelect: (row: Utterance) => void; onEvidence?: (ref: string) => void }) {
   // 쉬운 말은 이 발화에 딸린 것이므로 버블과 한 덩어리로 묶는다. 따로 떼면 다른 사람이
-  // 한 마디 더 한 것처럼 읽힌다 — `wb-chat-group` 이 둘의 테두리를 하나로 잇는다
+  // 한 마디 더 한 것처럼 읽힌다. `wb-chat-group` 이 둘의 테두리를 하나로 잇는다
   return <article className="wb-chat-entry" data-speaker={row.speaker}>
     <div className="wb-chat-meta"><strong>{speakerLabel(row.speaker)}</strong><time>{timeLabel(row.t_ms / 1000)}</time></div>
     <div className="wb-chat-group" data-has-plain={rephrase ? 'true' : undefined}>
