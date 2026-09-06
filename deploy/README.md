@@ -11,7 +11,7 @@ GitHub push(main) → webhook → https://jenkins.gjguswns.com/github-webhook/
 | 조각 | 어디 | 비고 |
 | --- | --- | --- |
 | 파이프라인 | `Jenkinsfile` | 저장소가 정본. Jenkins 화면에서 고치지 않는다 |
-| 루트 `.env` | 저장소의 `.env.age` (age 암호문) + Jenkins 자격증명 `malteum-age-key` (Secret text, 개인키) | 평문은 저장소에 없다. 값을 바꾸면 `tools/envsecret.py encrypt` 로 다시 암호화해 커밋한다 — 배포가 자동으로 새 값을 쓴다 |
+| 루트 `.env` | 저장소의 `.env.age` (age 암호문) + Jenkins 자격증명 `malteum-age-key` (Secret text, 개인키) | 평문은 저장소에 없다. Compose 가 전체 값을 서버 컨테이너에 전달한다. 값을 바꾸면 `tools/envsecret.py encrypt` 로 다시 암호화해 커밋한다 |
 | 화자 분리 사이드카 | `compose.yaml` 의 `diarization` (`back/sidecar/diarization`) | CPU Sortformer. STT 가 화자 번호를 안 줄 때(OpenAI) 화자 단계가 이것으로 접착한다 |
 | 리버스 프록시 | `deploy/nginx/malteum.conf` → `/etc/nginx/conf.d/` | `malteum.gjguswns.com` · `/api/`·`/ws` → 8000, `/` → 3000(프런트) |
 | 컨테이너 | `compose.yaml` | 프로젝트명 `malteum` 고정이라 워크스페이스 경로가 바뀌어도 볼륨(pgdata·hfcache·uploads)은 그대로 |
@@ -41,7 +41,7 @@ python tools/envsecret.py keys                 # 수신자 목록
 - `SERVER_PORT=127.0.0.1:8000`, `POSTGRES_PORT=127.0.0.1:5432` — nginx 뒤에 있으니 밖으로 열지 않는다. compose 는 `호스트IP:포트` 꼴을 그대로 받는다
 - `APP_EMBEDDING_MODEL=intfloat/multilingual-e5-small`, `APP_EMBEDDING_DIM=384` — 팩(`contracts/fixtures`)의 임베딩과 같아야 L2 가 돈다
 - STT: `APP_STT_PROVIDER=openai_file`, `APP_STT_BASE_URL=https://api.openai.com`, `APP_STT_MODEL=gpt-4o-transcribe`, `APP_STT_API_KEY=<OpenAI 키>` — 화자 구간마다 배치 전사. Realtime 어댑터가 오면 `openai_realtime` 로 바꾼다(`back/server/services/stt/README.md`). 화자 분리 주소는 compose 기본값 `ws://diarization:8300/ws`
-- `APP_L3_BUDGET_MS` 는 compose 기본값 3000. OpenRouter 왕복 1.2~2.4초 실측(2026-09-04). 느린 시간대에 L3 판정이 빠지면 여기를 올린다
+- `APP_L3_BUDGET_MS` 는 서버 설정 기본값 3000. OpenRouter 왕복 1.2~2.4초 실측(2026-09-04). 느린 시간대에 L3 판정이 빠지면 여기를 올린다
 
 ## 호스트에서 한 번 (root 필요)
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal, TypedDict
 
 from contracts.engine_contract import Chunk, Evidence, PackItem, Utterance
+from engine.assist.answer import AnswerSource
 from engine.pack.compiler import CompiledPack
 from engine.types import RulePack, SessionState
 
@@ -16,6 +17,7 @@ class AssistState(TypedDict, total=False):
     session: SessionState
     items: list[PackItem]
     chunks: list[Chunk]
+    sources: list[AnswerSource]
     text: str | None
     evidence: Evidence | None
     item_code: str | None

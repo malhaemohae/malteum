@@ -6,32 +6,19 @@ MVP 의 generate 는 LLM 없이 팩의 plain_language·evidence·문서 청크 �
 
 from __future__ import annotations
 
-from typing import Protocol
-
 from contracts.engine_contract import (
     AssistPayload,
-    Chunk,
     ChunkIndex,
     Embedder,
     Evidence,
     PackItem,
     VectorIndex,
 )
+from engine.assist import answer
 from engine.graphs.assist.state import AssistState
 from engine.tiers.l0_normalize import normalize
 from engine.tiers.l1 import matcher
 from engine.tiers.l2.searcher import fused_scores
-
-# 실측: 정답 항목 0.58~0.65 vs 무관 발화("점심시간에도 하나요?") 최고 0.50
-THRESHOLD_ITEM = 0.55
-THRESHOLD_CHUNK = 0.5
-TOP_K = 3
-
-
-class Generator(Protocol):
-    """LLM 문장 생성. 반환 문장은 guard 가 근거와 대조한다. 계약 밖, engine 내부 Protocol."""
-
-    def generate(self, question: str, evidence_texts: list[str]) -> str: ...
 
 
 class Deps:
@@ -40,7 +27,7 @@ class Deps:
         embedder: Embedder | None,
         index: VectorIndex | None,
         chunks: ChunkIndex | None,
-        generator: Generator | None = None,
+        generator: answer.Generator | None = None,
     ) -> None:
         self.embedder = embedder
         self.index = index
@@ -50,7 +37,14 @@ class Deps:
 
 def make_nodes(deps: Deps):
     def route(s: AssistState) -> AssistState:
-        return {"items": [], "chunks": [], "text": None, "evidence": None, "item_code": None}
+        return {
+            "items": [],
+            "chunks": [],
+            "sources": [],
+            "text": None,
+            "evidence": None,
+            "item_code": None,
+        }
 
     def retrieve(s: AssistState) -> AssistState:
         pack, compiled = s["pack"], s["compiled"]
@@ -67,24 +61,23 @@ def make_nodes(deps: Deps):
             if not items and deps.embedder is not None and deps.index is not None:
                 items = _items_by_similarity(text, pack, compiled, deps)
             return {"items": items}
-        question = s["question"]
-        items: list[PackItem] = []
-        chunks: list[Chunk] = []
-        if deps.embedder is not None:
-            if deps.index is not None:
-                ranked = fused_scores(question, pack, compiled, deps.embedder, deps.index)
-                for code, sim in ranked[:TOP_K]:
-                    it = pack.item(code)
-                    if it is not None and sim >= THRESHOLD_ITEM:
-                        items.append(it)
-            if not items and deps.chunks is not None:
-                vector = deps.embedder.encode([question])[0]
-                chunks = [
-                    c for c, sim in deps.chunks.search(vector, TOP_K) if sim >= THRESHOLD_CHUNK
-                ]
-        return {"items": items, "chunks": chunks}
+        return {
+            "sources": list(
+                answer.search(
+                    s["question"],
+                    pack,
+                    s["session"],
+                    compiled,
+                    deps.embedder,
+                    deps.index,
+                    deps.chunks,
+                )
+            )
+        }
 
     def generate(s: AssistState) -> AssistState:
+        if s["mode"] == "answer":
+            return {"result": answer.generate(s["question"], tuple(s["sources"]), deps.generator)}
         items, chunks = s["items"], s["chunks"]
         if items:
             it = items[0]
@@ -97,12 +90,12 @@ def make_nodes(deps: Deps):
         else:
             return {"text": None, "evidence": None}
         text = base
-        if deps.generator is not None and s["mode"] == "answer":
-            text = deps.generator.generate(s["question"], [evidence.span, base])
         return {"text": text, "evidence": evidence, "item_code": items[0].code if items else None}
 
     def guard(s: AssistState) -> AssistState:
         """P4. 근거가 없거나, 생성 문장이 근거·팩 문장 밖의 내용을 담으면 None."""
+        if s["mode"] == "answer":
+            return {}
         text, evidence = s.get("text"), s.get("evidence")
         if not text or evidence is None:
             return {"result": None}
@@ -110,8 +103,6 @@ def make_nodes(deps: Deps):
         if s.get("item_code"):
             it = s["pack"].item(s["item_code"])
             allowed.extend(it.plain_language)
-        if deps.generator is not None and not _grounded(text, allowed):
-            return {"result": None}
         if s["mode"] == "rephrase":
             payload = AssistPayload(
                 assist_type="rephrase",
@@ -121,14 +112,6 @@ def make_nodes(deps: Deps):
                 source_utterance_ref=s["source"].utterance_id,
                 evidence=evidence,
             )
-        else:
-            payload = AssistPayload(
-                assist_type="answer",
-                text=text,
-                item_code=s.get("item_code"),
-                trigger="teller_typed",
-                evidence=evidence,
-            )
         return {"result": payload}
 
     return route, retrieve, generate, guard
@@ -136,19 +119,8 @@ def make_nodes(deps: Deps):
 
 def _items_by_similarity(text: str, pack, compiled, deps: Deps) -> list[PackItem]:
     out = []
-    for code, sim in fused_scores(text, pack, compiled, deps.embedder, deps.index)[:TOP_K]:
+    for code, sim in fused_scores(text, pack, compiled, deps.embedder, deps.index)[: answer.TOP_K]:
         it = pack.item(code)
-        if it is not None and sim >= THRESHOLD_ITEM:
+        if it is not None and sim >= answer.THRESHOLD_ITEM:
             out.append(it)
     return out
-
-
-def _grounded(text: str, allowed: list[str]) -> bool:
-    """생성 문장의 핵심이 근거 안에 있는가 (P4). 숫자와 5자 이상 어절 각각이
-    허용 문장 중 어느 하나에는 있어야 한다. 여러 근거를 합쳐 답하는 것은 정당하다."""
-    import re
-
-    tokens = re.findall(r"\d+(?:\.\d+)?%?|[가-힣]{5,}", text)
-    if not tokens:
-        return any(text.strip() in a for a in allowed)
-    return all(any(t in a for a in allowed) for t in tokens)

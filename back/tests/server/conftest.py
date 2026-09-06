@@ -6,6 +6,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def _no_live_adapters(monkeypatch):
     monkeypatch.setenv("APP_LLM_MODEL", "")
+    monkeypatch.setenv("APP_ANSWER_LLM_MODEL", "")
     monkeypatch.setenv("APP_EMBEDDING_MODEL", "")
     monkeypatch.setenv("APP_STT_API_KEY", "")
     # 온프레미스 경로는 키가 아니라 주소로 붙는다. 키만 지우면 개발자의 .env 에

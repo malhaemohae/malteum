@@ -25,6 +25,7 @@ from contracts.engine_contract import (
 )
 from engine.assist import briefing as _briefing
 from engine.assist import documents as _documents
+from engine.assist.answer import AnswerSource
 from engine.budget import Stopwatch
 from engine.errors import warn_dummy
 from engine.pack.compiler import CompiledPack, compile_pack
@@ -168,10 +169,7 @@ class RuleEngine:
                 elif item.type == "risk":
                     alerts.append(matcher.risk_alert(hit, ref))
             if "required" in g.types:
-                required_hits = [
-                    h.item for h in hits if h.type_is("required") and h.item.code in l1_codes
-                ]
-                alerts.extend(numeric.check(text, required_hits, compiled, ref))
+                alerts.extend(numeric.check(utterance, pack, compiled, state))
             if g.low_confidence:
                 # 은행원인지 확실하지 않다. 건드린 항목은 현재 상태 그대로 verdict 로 남긴다 (P3)
                 for hit in matcher.match(text, pack, compiled, frozenset({"required"})):
@@ -254,6 +252,30 @@ class RuleEngine:
         return self._graph
 
     # --- assist ------------------------------------------------------------
+    def search_answer_sources(
+        self, question: str, pack: RulePack, state: SessionState
+    ) -> tuple[AnswerSource, ...]:
+        """LLM 호출 없이 답변에 사용할 규정 항목·문서 근거를 찾는다."""
+        from engine.assist import answer
+
+        return answer.search(
+            question,
+            pack,
+            state,
+            self.compiled(pack),
+            self.embedder,
+            self.index,
+            self.chunks,
+        )
+
+    def generate_answer(
+        self, question: str, sources: tuple[AnswerSource, ...]
+    ) -> AssistPayload | None:
+        """이미 검색한 근거로 답변을 만들고 P4 검사를 적용한다."""
+        from engine.assist import answer
+
+        return answer.generate(question, sources, self.generator)
+
     def answer(self, question: str, pack: RulePack, state: SessionState) -> AssistPayload | None:
         """기능 ①⑩. 팩 항목 → 문서 본문 순으로 근거를 찾고, 없으면 None (P4)."""
         out = self._assist_graph().invoke(

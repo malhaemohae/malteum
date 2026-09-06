@@ -208,7 +208,7 @@ def _adapters(settings: Settings) -> dict:
                 api_key=settings.llm_api_key,
             )
         out["index"] = MemoryVectorIndex()
-    if settings.llm_model:
+    if settings.llm_model or settings.answer_llm_model:
         from engine.adapters.llm.litellm import LiteLlmCorrector, LiteLlmGenerator, LiteLlmJudge
 
         kw = dict(
@@ -216,10 +216,13 @@ def _adapters(settings: Settings) -> dict:
             api_key=settings.llm_api_key,
             extra_body={"reasoning": {"enabled": False}} if settings.llm_no_reasoning else None,
         )
-        out["llm"] = LiteLlmJudge(settings.llm_model, **kw)
-        out["cache"] = MemoryDecisionCache()
-        if settings.llm_corrector:
-            out["corrector"] = LiteLlmCorrector(settings.llm_model, **kw)
-        if settings.llm_generator:
-            out["generator"] = LiteLlmGenerator(settings.llm_model, **kw)
+        if settings.llm_model:
+            out["llm"] = LiteLlmJudge(settings.llm_model, **kw)
+            out["cache"] = MemoryDecisionCache()
+            if settings.llm_corrector:
+                out["corrector"] = LiteLlmCorrector(settings.llm_model, **kw)
+            if settings.llm_generator and not settings.answer_llm_model:
+                out["generator"] = LiteLlmGenerator(settings.llm_model, **kw)
+        if settings.answer_llm_model:
+            out["generator"] = LiteLlmGenerator(settings.answer_llm_model, **kw)
     return out
