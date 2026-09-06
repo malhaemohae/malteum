@@ -60,7 +60,7 @@ def test_number_expressions(text, expected):
 
 @pytest.fixture(scope="module")
 def engine(pack_json):
-    loan = json.loads((FIX / "rulepack_LOAN-2026.08-v5.json").read_text())
+    loan = json.loads((FIX / "rulepack_LOAN-2026.08-v5.json").read_text(encoding="utf-8"))
     return build_engine(FakePackSource(pack_json, loan))
 
 
@@ -219,7 +219,7 @@ def test_sentences_from_one_stt_segment_can_share_or_overlap_timestamps(engine, 
 
 
 def test_ambiguous_previous_subjects_do_not_select_a_reference(pack_json):
-    loan = json.loads((FIX / "rulepack_LOAN-2026.08-v5.json").read_text())
+    loan = json.loads((FIX / "rulepack_LOAN-2026.08-v5.json").read_text(encoding="utf-8"))
     # 테스트 팩에 서로 다른 % 기준 두 개를 함께 넣는다. 공식 fixture 는 변경하지 않는다.
     combined = dict(pack_json, items=[*pack_json["items"], *loan["items"]])
     engine = build_engine(FakePackSource(combined))
