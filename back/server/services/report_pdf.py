@@ -35,18 +35,21 @@ LINE = 5.2 * mm
 # 한 줄에 넣을 글자 수. CID 폰트는 폭을 정확히 못 재서 글자 수로 자른다
 WIDTH_CHARS = 46
 
+# front/lib/workspace-model.ts 의 statusNames·metadataNames 와 반드시 같은 말을 써야 한다
 STATE_LABEL = {
+    "clean": "이상 없음",
     "met": "고지",
     "partial": "부분 고지",
     "unmet": "미고지",
-    "waived": "면제",
+    "waived": "제외",
     "violated": "위반",
-    "suspected": "의심",
-    "explained": "설명함",
-    "confirmed": "이해 확인",
+    "suspected": "검토 필요",
+    "explained": "설명됨",
+    "confirmed": "이해 확인 신호",
 }
 # 이벤트 타임라인과 경보 행의 label 은 프로토콜 값(영문 slug)을 그대로 담는다.
-# 화면은 이것을 번역해 보여 주는데 PDF 는 그대로 찍고 있었다. 같은 사전을 여기 둔다
+# front/lib/workspace-model.ts 의 kindNames 와 반드시 같은 말을 써야 한다.
+# 화면과 PDF 가 같은 사실을 다른 말로 적으면 증빙 두 벌이 서로 다른 말을 하게 된다
 WIRE_LABEL = {
     "teller": "상담원",
     "customer": "고객",
@@ -55,11 +58,16 @@ WIRE_LABEL = {
     "forbidden_phrase": "금지 표현",
     "risk_signal": "위험 신호",
     "term_density": "전문용어 밀도",
-    "rephrase": "쉬운 말",
+    "rephrase": "쉬운 말 안내",
     "answer": "규정 답변",
-    "nudge": "미고지 알림",
-    "briefing": "브리핑",
+    "nudge": "미고지 안내",
+    "briefing": "상담 기준",
     "documents": "필요 서류",
+}
+SEVERITY_LABEL = {
+    "critical": "심각",
+    "warning": "경고",
+    "info": "참고",
 }
 AXIS_TITLE = {
     "omission": "필수 고지 (누락 축)",
@@ -154,7 +162,7 @@ def render(report: dict[str, Any]) -> bytes:
         ("고지", "met"),
         ("부분 고지", "partial"),
         ("미고지", "unmet"),
-        ("면제", "waived"),
+        ("제외", "waived"),
         ("위반", "violations"),
         ("경보", "alerts"),
     ):
@@ -170,7 +178,7 @@ def render(report: dict[str, Any]) -> bytes:
         for row in rows:
             if row.get("kind") == "alert":
                 # 금지 표현·숫자 오류 경보 행. 항목 상태가 아니라 발생 시각과 확인 여부가 뜻이다
-                seen = "확인함" if row.get("acknowledged") else "미확인"
+                seen = "확인함" if row.get("acknowledged") else "확인 안 함"
                 sheet.line(
                     f"{_ms(row.get('t_ms'))} "
                     f"[{WIRE_LABEL.get(row.get('alert_type', ''), '경보')}] "
@@ -185,16 +193,17 @@ def render(report: dict[str, Any]) -> bytes:
             if missing := row.get("missing_elements"):
                 sheet.line(f"빠진 요소: {', '.join(missing)}", size=8.5, indent=9 * mm)
             if reason := row.get("waive_reason"):
-                sheet.line(f"면제 사유: {reason}", size=8.5, indent=9 * mm)
+                sheet.line(f"제외 사유: {reason}", size=8.5, indent=9 * mm)
         sheet.rule()
 
     # 기획 10.3: 위험 신호는 경보만이 아니라 **확인 기록까지** 남는다
     if risks := sections.get("risk_signals"):
         sheet.line("위험 신호", size=12, gap=2 * mm)
         for risk in risks:
-            seen = "확인함" if risk.get("acknowledged") else "미확인"
+            seen = "확인함" if risk.get("acknowledged") else "확인 안 함"
             sheet.line(
-                f"{_ms(risk.get('t_ms'))} [{risk.get('severity', '')}] "
+                f"{_ms(risk.get('t_ms'))} "
+                f"[{SEVERITY_LABEL.get(risk.get('severity', ''), '경보')}] "
                 f"{risk.get('message', '')} · {seen}",
                 indent=4 * mm,
             )
