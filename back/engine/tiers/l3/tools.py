@@ -14,6 +14,7 @@ required/omission 의 상태는 모델의 state 가 아니라 stated_elements �
 
 from __future__ import annotations
 
+import copy
 import json
 from typing import Any
 
@@ -26,7 +27,7 @@ from contracts.engine_contract import (
 
 TOOL_NAME = "judge"
 
-PROMPT_VERSION = "2026-09-07.topic-relations.v3"
+PROMPT_VERSION = "2026-09-07.topic-relations.v4"
 """판정 정책(프롬프트·스키마)이 바뀔 때 올린다. cache_key 에 들어가 옛 응답 재사용을 막는다."""
 
 SYSTEM_PROMPT = """당신은 은행 창구 상담의 설명의무 이행을 심판하는 역할이다.
@@ -69,7 +70,7 @@ def judge_tool(prompt: JudgePrompt) -> dict[str, Any]:
     codes = [it.code for it in prompt.candidate_items] or ["(none)"]
     elements = sorted({e for it in prompt.candidate_items for e in it.requirement_elements})
     # 주제 관계는 required 항목에만 뜻이 있다. forbidden 은 말투·취지의 문제라 슬롯을 주면 모델이
-    # 관계 대신 타입("forbidden")을 적어 스키마 검증에 실패한다
+    # 관계 대신 타입("forbidden")을 적었고, 슬롯을 빼도 적어 보내므로 자유 문자열로 받아 버린다
     topical = [it for it in prompt.candidate_items if it.type == "required"]
     names = " / ".join(f"{it.code}={it.name}" for it in topical)
     relation = {
@@ -138,7 +139,8 @@ def judge_tool(prompt: JudgePrompt) -> dict[str, Any]:
                         "type": "object",
                         "properties": {it.code: relation for it in topical},
                         "required": [it.code for it in topical],
-                        "additionalProperties": False,
+                        # forbidden 후보를 적어 보내도 형식 오류로 만들지 않는다. 값은 쓰지 않는다
+                        "additionalProperties": {"type": "string"},
                         "description": (
                             f"후보 항목마다 하나씩. utterance_topic 과 항목 이름({names})의 관계"
                         ),
@@ -151,6 +153,16 @@ def judge_tool(prompt: JudgePrompt) -> dict[str, Any]:
             },
         },
     }
+
+
+def validation_schema(tool: dict[str, Any]) -> dict[str, Any]:
+    """응답 검증용 스키마. 모델에게는 enum 으로 안내하되, 지어낸 요소 이름 하나 때문에 응답 전체를
+    형식 오류로 만들지 않는다(재시도 → 3초 예산 초과). 모르는 요소는 to_decision 이 '말하지 않음'
+    으로 무시한다(P3). item_code·state·relation 은 그대로 엄격하다."""
+    schema = copy.deepcopy(tool["function"]["parameters"])
+    verdict = schema["properties"]["verdicts"]["items"]["properties"]
+    verdict["stated_elements"]["items"] = {"type": "string"}
+    return schema
 
 
 def messages(prompt: JudgePrompt) -> list[dict[str, str]]:

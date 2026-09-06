@@ -68,7 +68,7 @@ class LiteLlmJudge:
 
     def decide(self, prompt: JudgePrompt) -> JudgeDecision:
         tool = tools.judge_tool(prompt)
-        schema = tool["function"]["parameters"]
+        schema = tools.validation_schema(tool)
         messages: list[dict[str, Any]] = tools.messages(prompt)
         last: Exception | None = None
         for attempt in range(1 + self.max_retries):

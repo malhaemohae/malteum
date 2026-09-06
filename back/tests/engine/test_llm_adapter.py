@@ -46,6 +46,7 @@ def test_tool_schema_enums_come_from_candidates(pack_json):
     # 주제 관계는 required 후보만. forbidden 슬롯을 주면 모델이 관계 대신 "forbidden" 을 적었다
     assert params["properties"]["topic_relations"]["required"] == ["DEP-INT-002"]
     assert "DEP-BAN-001" not in params["properties"]["topic_relations"]["properties"]
+    assert params["properties"]["topic_relations"]["additionalProperties"] == {"type": "string"}
     assert "confidence" not in props  # 쓰지 않는 필드는 묻지 않는다
 
 
@@ -251,7 +252,7 @@ def test_forbidden_verdict_is_not_filtered_by_topic_relation(pack_json, monkeypa
         return _response(
             {
                 "utterance_topic": "예금을 그대로 두라는 조언",
-                "topic_relations": {"DEP-INT-002": "unrelated"},
+                "topic_relations": {"DEP-INT-002": "unrelated", "DEP-BAN-001": "forbidden"},
                 "verdicts": [
                     {
                         "item_code": "DEP-BAN-001",
@@ -270,3 +271,34 @@ def test_forbidden_verdict_is_not_filtered_by_topic_relation(pack_json, monkeypa
         .verdicts
     )
     assert (v.axis, v.state) == ("commission", "violated")
+
+
+def test_unknown_stated_element_is_ignored_not_a_format_error(pack_json, monkeypatch):
+    """지어낸 요소 이름은 말하지 않은 것으로 무시한다. 형식 오류 재시도는 3초 예산을 넘긴다."""
+    calls = []
+
+    def fake_completion(**kw):
+        calls.append(1)
+        return _response(
+            {
+                "utterance_topic": "중도해지",
+                "topic_relations": {"DEP-INT-002": "explains_item"},
+                "verdicts": [
+                    {
+                        "item_code": "DEP-INT-002",
+                        "stated_elements": ["만기 전 해지 시 불이익", "만기 후이자율"],
+                        "axis": "omission",
+                        "state": "met",
+                    }
+                ],
+            }
+        )
+
+    monkeypatch.setattr(adapter.litellm, "completion", fake_completion)
+    (v,) = (
+        adapter.LiteLlmJudge("x", provider="openrouter", api_key="k")
+        .decide(_prompt(pack_json))
+        .verdicts
+    )
+    assert len(calls) == 1
+    assert (v.state, v.missing_elements) == ("partial", ("적용 이율", "차감률 또는 산출식"))
