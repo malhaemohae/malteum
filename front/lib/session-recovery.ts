@@ -57,5 +57,14 @@ export function recoveredSession(detail: ApiSessionDetail, pack: ApiPack, events
   });
   active.seen = active.transcript.map(entry => entry.id);
   active.seconds = Math.max(0, (detail.duration_ms ?? 0) / 1000, ...active.transcript.map(entry => entry.t_ms / 1000));
+  // 직전 발화 쉬운 말도 발화 옆에 다시 붙인다. 저장된 assist 이벤트가 대상 발화를 그대로 갖고 있다
+  const rephrases: LiveSession['rephrases'] = {};
+  for (const event of events) {
+    if (event.kind !== 'assist') continue;
+    const body = event.assist as { assist_type?: string; text?: string; source_utterance_ref?: string } | undefined;
+    if (body?.assist_type !== 'rephrase' || typeof body.source_utterance_ref !== 'string' || typeof body.text !== 'string') continue;
+    rephrases[body.source_utterance_ref] = { text: body.text, pending: false };
+  }
+  if (Object.keys(rephrases).length) active.rephrases = rephrases;
   return active;
 }
