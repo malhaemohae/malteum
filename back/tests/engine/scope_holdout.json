@@ -1,0 +1,17 @@
+{
+  "purpose": "사례별 프롬프트 튜닝에 사용하지 않는 별도 검증 문장. 최초 실행 후 기대값을 변경하지 않는다.",
+  "cases": [
+    {"name":"late-payment-charge","pack":"LOAN-2026.08-v7","text":"납입일을 넘긴 금액에는 약정된 이자에 추가 이자를 얹습니다.","target":"LOAN-EXP-001","expected":null},
+    {"name":"scheduled-repayment","pack":"LOAN-2026.08-v7","text":"만기일에는 남아 있는 원금을 한 번에 갚으시면 됩니다.","target":"LOAN-EXP-001","expected":null},
+    {"name":"lapse-condition","pack":"LOAN-2026.08-v7","text":"이자 지급이 한 달을 초과해 지체되면 기한의 이익이 없어집니다.","target":"LOAN-EXP-001","expected":"partial","missing":["상실 시 불이익"]},
+    {"name":"lapse-effect","pack":"LOAN-2026.08-v7","text":"기한의 이익이 사라지면 만기가 아직 남았어도 대출잔액 전부를 즉시 상환하셔야 합니다.","target":"LOAN-EXP-001","expected":"partial","missing":["기한이익상실 사유"]},
+    {"name":"mixed-topics","pack":"LOAN-2026.08-v7","text":"연체 가산 금리는 연 3%입니다. 기한의 이익을 잃으면 대출금 전액을 즉시 상환해야 합니다.","target":"LOAN-EXP-001","expected":"partial","missing":["기한이익상실 사유"]},
+    {"name":"plain-cause-and-effect","pack":"LOAN-2026.08-v7","text":"정해진 날에 이자를 못 낸 지 한 달이 넘으면 남은 대출금을 만기 전에 전부 갚으셔야 합니다.","target":"LOAN-EXP-001","expected":"met"},
+    {"name":"customer-context-is-not-disclosure","pack":"LOAN-2026.08-v7","text":"네, 말씀은 알겠습니다.","context_speaker":"customer","context":"기한의 이익이 사라지면 원금을 전부 갚는 건가요?","target":"LOAN-EXP-001","expected":null},
+    {"name":"teller-follow-up","pack":"LOAN-2026.08-v7","text":"그 경우에는 남은 대출금을 만기 전에 한꺼번에 갚으셔야 합니다.","context_speaker":"teller","context":"이자를 한 달 넘게 연체하면 기한의 이익을 상실합니다.","before_missing":["상실 시 불이익"],"target":"LOAN-EXP-001","expected":"met"},
+    {"name":"tax-is-not-early-termination","pack":"DEP-2026.08-v6","text":"발생한 이자에서 세금을 제외한 금액이 입금됩니다.","target":"DEP-INT-002","expected":null},
+    {"name":"deposit-early-termination","pack":"DEP-2026.08-v6","text":"기간을 다 채우지 않고 돈을 빼시면 약속한 이자보다 적게 받게 됩니다.","target":"DEP-INT-002","expected":"partial","missing":["적용 이율","차감률 또는 산출식"]},
+    {"name":"customer-paraphrase","pack":"DEP-2026.08-v6","speaker":"customer","text":"아, 약속한 날보다 먼저 찾으면 이자를 덜 받는다는 말씀이군요.","target":"DEP-INT-002","expected":"confirmed"},
+    {"name":"distinct-disclosures","pack":"LOAN-2026.08-v7","text":"대출이자율에 연체가산이자율 연 3%가 추가됩니다. 이자를 한 달 넘게 연체하면 기한의 이익을 잃어 원금 전액을 즉시 상환하셔야 합니다.","target":"LOAN-EXP-001","additional_target":"LOAN-ARR-001","expected":"met"}
+  ]
+}
