@@ -233,11 +233,28 @@ def test_a_third_number_is_absorbed_into_the_role_it_speaks_like():
 
     A07 은 이 번호의 첫 줄이고 한 문장이지만 그 문장이 길어(`MIN_FIRST_CHARS` 이상)
     그 자리에서 판정이 걸린다(DEC-8). 그래서 첫 줄부터 정식 고객 라벨을 받는다.
+
+    바꿀 구간은 **시각을 박지 않고 그 두 줄과 겹치는 것을 골라 낸다.** 음원을 다시 뽑으면
+    구간의 시각도 개수도 달라진다(2026-09-06 에 한 줄이 두 구간으로 갈렸다). 옛 판은
+    시작 시각을 문자열로 박아 두어 그때 아무 구간도 안 바뀌고 speaker_2 가 생기지 않았다.
     """
+    script = _script("preset-dep-a")
+    durations = FIXTURE["presets"]["preset-dep-a"]["line_duration_ms"]
+    windows = [
+        (line["start_ms"], line["start_ms"] + durations[line["id"]])
+        for line in script["lines"]
+        if line["id"] in ("A07", "A09")
+    ]
+
+    def _in_window(raw: str) -> bool:
+        start_ms, end_ms = (round(float(v) * 1000) for v in raw.split()[:2])
+        return any(min(end_ms, w_end) > max(start_ms, w_start) for w_start, w_end in windows)
+
     segments = [
-        s.replace("speaker_0", "speaker_2") if s.startswith(("55.600", "71.280")) else s
+        s.replace("speaker_0", "speaker_2") if _in_window(s) else s
         for s in FIXTURE["presets"]["preset-dep-a"]["segments"]
     ]
+    assert sum("speaker_2" in s for s in segments) >= 2, "바꿀 구간을 못 찾았습니다"
     resolver, replayed = _replay("preset-dep-a", _MarkerJudge(), segments=segments)
     emitted = {line["id"]: us for line, _, us in replayed}
 

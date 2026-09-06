@@ -8,17 +8,24 @@
     "type": "general",
     "tags": []
   },
-  "duration_ms": 160380,
+  "duration_ms": 123526,
   "audio": {
     "output": "audio.wav",
     "sample_rate": 16000,
     "channels": 1,
     "sample_width_bytes": 2,
     "min_gap_ms": 1000,
-    "gap_ms": 1200,
-    "alert_gap_ms": 4000,
-    "tts_model": "eleven_multilingual_v2",
-    "placement": "클립을 앞 클립 끝 + gap_ms 에 이어 놓는다. 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 gap_ms 대신 alert_gap_ms 를 둔다. 화자가 바뀌는 자리의 무음(min_gap_ms 이상)이 화자 분리가 발화를 가르는 조건. start_ms 는 추정치라 make_scenario_audio.py --write-start 가 되쓴다"
+    "gap_ms": 1300,
+    "question_gap_ms": 1050,
+    "long_gap_ms": 1750,
+    "same_speaker_gap_ms": 780,
+    "same_speaker_min_gap_ms": 650,
+    "alert_gap_ms": 2200,
+    "jitter_ms": 120,
+    "question_max_chars": 45,
+    "long_text_chars": 55,
+    "tts_model": "ssfm-v30",
+    "placement": "앞 클립 끝에 이어 놓되 쉬는 길이를 앞 줄의 성격으로 고른다. 같은 화자가 이어 말하면 same_speaker_gap_ms, 앞 줄이 경보·카드(expect 의 alert·assist)를 내면 심사위원이 읽을 시간으로 alert_gap_ms, 앞 줄이 question_max_chars 이하의 물음이면 question_gap_ms, long_text_chars 이상의 긴 설명이면 long_gap_ms, 그 밖은 gap_ms. 여기에 줄 id 로 정한 ±jitter_ms 를 더해 같은 값이 반복되지 않게 한다. 화자가 바뀌는 자리는 무엇을 고르든 min_gap_ms 아래로 내려가지 않는다. 그 하한이 화자 분리가 두 사람을 가르는 조건이고 speaker.py 의 NEAREST_GAP_MS 가 같은 값이다. start_ms 는 그렇게 놓인 실제 시각이고 make_scenario_audio.py --write-start 가 되쓴다"
   },
   "speakers": {
     "teller": {
@@ -26,9 +33,9 @@
       "voice": "30대 남성, 차분한 톤",
       "desc": "가상 인물. 은행 창구 직원",
       "tts": {
-        "provider": "elevenlabs",
-        "voice_id": "CxErO97xpQgQXYmapDKX",
-        "speed": 1.0
+        "provider": "typecast",
+        "voice_id": "tc_61f0859907085fc68561c9a1",
+        "tempo": 1.0
       }
     },
     "customer": {
@@ -36,9 +43,9 @@
       "voice": "30대 여성, 보통 톤",
       "desc": "가상 인물. 정기예금 신규 가입 고객",
       "tts": {
-        "provider": "elevenlabs",
-        "voice_id": "8jHHF8rMqMlg8if2mOUe",
-        "speed": 1.0
+        "provider": "typecast",
+        "voice_id": "tc_68537c9420b646f2176890ba",
+        "tempo": 1.0
       }
     }
   },
@@ -60,7 +67,7 @@
     },
     {
       "id": "D02",
-      "start_ms": 9855,
+      "start_ms": 10216,
       "speaker": "teller",
       "text": "네, 12개월 만기 기본이자율은 연 3.2%이고, 자동이체 조건을 채우시면 우대이자율이 더해집니다.",
       "tts_text": "네, 십이 개월 만기 기본이자율은 연 삼 점 이 퍼센트이고, 자동이체 조건을 채우시면 우대이자율이 더해집니다.",
@@ -71,7 +78,7 @@
     },
     {
       "id": "D03",
-      "start_ms": 19030,
+      "start_ms": 17432,
       "speaker": "teller",
       "text": "받으시는 이자에는 과세가 되고, 세율은 15.4%입니다.",
       "tts_text": "받으시는 이자에는 과세가 되고, 세율은 십오 점 사 퍼센트입니다.",
@@ -83,7 +90,7 @@
     },
     {
       "id": "D04",
-      "start_ms": 27525,
+      "start_ms": 21801,
       "speaker": "teller",
       "text": "만기 전에 중도해지하시면 중도해지이율이 적용되어 이자가 줄어듭니다.",
       "expect": [
@@ -109,7 +116,7 @@
     },
     {
       "id": "D05",
-      "start_ms": 36890,
+      "start_ms": 27035,
       "speaker": "teller",
       "text": "그리고 이 예금은 중간에 해지하셔도 손해 보실 일은 없습니다.",
       "expect": [
@@ -130,7 +137,7 @@
     },
     {
       "id": "D06",
-      "start_ms": 45820,
+      "start_ms": 32894,
       "speaker": "customer",
       "text": "그래요. 그럼 마음 편하게 넣어도 되겠네요.",
       "expect": [],
@@ -138,7 +145,7 @@
     },
     {
       "id": "D07",
-      "start_ms": 50500,
+      "start_ms": 38773,
       "speaker": "teller",
       "text": "아, 정확히 다시 말씀드리겠습니다. 중도해지하시면 중도해지이율이 적용되는데, 약정이율에 경과기간별 차감률을 곱해서 계산하기 때문에 이자가 많이 줄어듭니다.",
       "expect": [
@@ -156,7 +163,7 @@
     },
     {
       "id": "D08",
-      "start_ms": 64170,
+      "start_ms": 49709,
       "speaker": "teller",
       "text": "만기 후에는 만기후이자율이 적용되어 기간이 지날수록 낮아집니다.",
       "expect": [
@@ -166,7 +173,7 @@
     },
     {
       "id": "D09",
-      "start_ms": 70445,
+      "start_ms": 54470,
       "speaker": "teller",
       "text": "이 예금은 예금자보호법에 따라 원금과 이자를 합쳐 1인당 1억 원까지 보호되고, 저희 은행의 다른 예금과 합산해서 계산됩니다.",
       "tts_text": "이 예금은 예금자보호법에 따라 원금과 이자를 합쳐 일인당 일억 원까지 보호되고, 저희 은행의 다른 예금과 합산해서 계산됩니다.",
@@ -177,7 +184,7 @@
     },
     {
       "id": "D10",
-      "start_ms": 81795,
+      "start_ms": 62843,
       "speaker": "teller",
       "text": "이 예금은 일부해지가 안 되고, 해지하시면 전액이 한 번에 나옵니다.",
       "expect": [
@@ -187,7 +194,7 @@
     },
     {
       "id": "D11",
-      "start_ms": 88505,
+      "start_ms": 67390,
       "speaker": "teller",
       "text": "계좌에 압류나 가압류, 질권이 설정되면 원금과 이자 지급이 제한됩니다.",
       "expect": [
@@ -197,7 +204,7 @@
     },
     {
       "id": "D12",
-      "start_ms": 95360,
+      "start_ms": 73271,
       "speaker": "customer",
       "text": "네에, 질권설정이 뭐예요?",
       "tts_text": "네에... 질권설정이 뭐예요?",
@@ -209,7 +216,7 @@
     },
     {
       "id": "D13",
-      "start_ms": 101390,
+      "start_ms": 78012,
       "speaker": "teller",
       "text": "계좌에 압류나 가압류, 질권설정이 걸리면 원금과 이자를 찾을 수 없다는 뜻입니다.",
       "expect": [],
@@ -225,7 +232,7 @@
     },
     {
       "id": "D14",
-      "start_ms": 109115,
+      "start_ms": 84535,
       "speaker": "customer",
       "text": "아, 다른 데서 걸어 놓은 게 있으면 못 찾는다는 거네요.",
       "expect": [],
@@ -242,7 +249,7 @@
     },
     {
       "id": "D15",
-      "start_ms": 114955,
+      "start_ms": 90653,
       "speaker": "teller",
       "text": "가입 후에 설명이 잘못됐다고 판단되시면 위법계약 해지를 요구하실 수 있고, 계약서류를 받은 날부터 3년 안에 하셔야 합니다.",
       "tts_text": "가입 후에 설명이 잘못됐다고 판단되시면 위법계약 해지를 요구하실 수 있고, 계약서류를 받은 날부터 삼 년 안에 하셔야 합니다.",
@@ -254,7 +261,7 @@
     },
     {
       "id": "D16",
-      "start_ms": 128960,
+      "start_ms": 98655,
       "speaker": "teller",
       "text": "죄송합니다, 기간을 정확히 말씀드리면 계약서류를 받은 날부터 5년, 위반을 안 날부터 1년 안에 요구하실 수 있습니다.",
       "tts_text": "죄송합니다, 기간을 정확히 말씀드리면 계약서류를 받은 날부터 오 년, 위반을 안 날부터 일 년 안에 요구하실 수 있습니다.",
@@ -265,7 +272,7 @@
     },
     {
       "id": "D17",
-      "start_ms": 142530,
+      "start_ms": 108181,
       "speaker": "customer",
       "text": "네, 그럼 가입할게요. 돈은 아들이 알려준 계좌에서 옮겨 넣으면 되겠죠.",
       "expect": [
@@ -275,7 +282,7 @@
     },
     {
       "id": "D18",
-      "start_ms": 152330,
+      "start_ms": 116476,
       "speaker": "teller",
       "text": "아드님 계좌라면 본인 확인이 먼저 필요합니다. 실명확인증표, 신분증을 먼저 보여주시겠어요?",
       "expect": [],
