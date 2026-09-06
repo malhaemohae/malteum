@@ -83,11 +83,19 @@ export default function Application() {
     if (tracked && current.current.action?.pending) return false;
     if (tracked) {
       // 서버 응답에는 어느 발화를 바꿨는지가 없다. 계약상 직전 상담원 발화이므로 지금 그것을 붙잡아 둔다
-      const lastTeller = value.t === 'assist_request' && !value.item_code ? [...current.current.transcript].reverse().find(row => row.speaker === 'teller')?.id : undefined;
+      // event_id 가 비어 있는 발화는 없다고 본다. 빈 문자열을 그대로 두면 '있지만 falsy' 한
+      // 값이 되어 아래 모든 truthy 검사가 조용히 이 기능을 건너뛴다.
+      const lastTeller = value.t === 'assist_request' && !value.item_code ? [...current.current.transcript].reverse().find(row => row.speaker === 'teller')?.id || undefined : undefined;
       const action = { kind: value.t === 'assist_request' ? 'rephrase' : String(value.t), itemCode: typeof value.item_code === 'string' ? value.item_code : undefined, ref: typeof value.alert_ref === 'string' ? value.alert_ref : undefined, sourceUtteranceId: lastTeller, pending: true, message: value.t === 'assist_request' ? (value.item_code ? '쉬운 말을 상담 기록에 남기고 있습니다.' : '직전 발화를 쉬운 말로 바꾸고 있습니다.') : '변경 사항을 서버에 기록하고 있습니다.' };
       update(previous => previous ? { ...previous, error: undefined, action, rephrases: lastTeller ? { ...previous.rephrases, [lastTeller]: { pending: true } } : previous.rephrases } : previous);
       const id = current.current?.id;
-      setTimeout(() => { if (current.current?.id === id && current.current.action === action && action.pending) update(previous => previous ? { ...previous, action: { ...action, pending: false, message: '서버 응답이 지연되고 있습니다. 다시 요청해 주세요.' } } : previous); }, 15000);
+      setTimeout(() => { if (current.current?.id === id && current.current.action === action && action.pending) update(previous => {
+        if (!previous) return previous;
+        const timeoutMessage = '서버 응답이 지연되고 있습니다. 다시 요청해 주세요.';
+        // 발화 아래 붙은 쉬운 말 카드도 함께 풀어 준다. 안 풀면 대화 옆 카드가 영원히 '바꾸고 있습니다' 로 남는다
+        const rephrases = lastTeller && previous.rephrases?.[lastTeller]?.pending ? { ...previous.rephrases, [lastTeller]: { pending: false, error: timeoutMessage } } : previous.rephrases;
+        return { ...previous, action: { ...action, pending: false, message: timeoutMessage }, rephrases };
+      }); }, 15000);
     }
     if (value.t === 'acknowledge') pendingAcknowledgements.current.add(String(value.alert_ref));
     socket.current.send(JSON.stringify(value)); return true;

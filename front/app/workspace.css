@@ -69,6 +69,7 @@
 .wb-chat-plain-label{font-size:11px;font-weight:700;letter-spacing:.02em;color:#087e9f}
 .wb-chat-plain .wb-chat-text{font-size:14px;line-height:22px;-webkit-user-select:text;user-select:text}
 .wb-chat-plain-wait{font-size:13px;color:var(--muted)}
+.wb-chat-plain-error{font-size:13px;color:#a03a2e}
 .wb .wb-chat-plain-evidence{min-height:26px;padding:2px 8px;font-size:12px;border-color:#bfe0ea;color:#087e9f;background:#fff}
 .wb-chat-entry[data-speaker=system]{align-items:center}.wb-chat-entry[data-speaker=system] .wb-chat-bubble{background:#fafafa;border-style:dashed;border-radius:10px}
 .wb .wb-chat-jump{min-height:28px;padding:3px 10px;font-size:12px;background:var(--ink);color:#fff;border-color:var(--ink)}.wb .wb-chat-jump:hover:not(:disabled){background:#245e68;color:#fff;border-color:#245e68}.wb-chat .wb-list-bottom>small{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}

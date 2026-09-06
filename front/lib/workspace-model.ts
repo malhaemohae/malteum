@@ -20,7 +20,7 @@ export type LiveSession = {
   query?: { question: string; answer?: string; evidenceRef?: string; pending: boolean };
   action?: { kind: string; itemCode?: string; ref?: string; sourceUtteranceId?: string; pending: boolean; message: string; result?: { text: string; evidenceRef?: string } };
   // 직전 발화 쉬운 말. 어느 발화를 바꾼 것인지 보이도록 그 발화 id 에 매달아 둔다
-  rephrases?: Record<string, { text?: string; evidenceRef?: string; pending: boolean }>;
+  rephrases?: Record<string, { text?: string; evidenceRef?: string; pending: boolean; error?: string }>;
 };
 
 export const statusNames: Record<string, string> = { met: '고지', partial: '부분 고지', unmet: '미고지', waived: '제외', clean: '이상 없음', suspected: '검토 필요', violated: '위반', adopted: '채택', ignored: '미채택', pending: '대기', approved: '승인', rejected: '반려', running: '진행 중', ended: '종료', aborted: '중단', timeout: '시간 만료' };
@@ -133,7 +133,12 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
     // 지연 안내로 끝난다.
     next.error = reason;
     if (current.query?.pending) next.query = { ...current.query, pending: false, answer: reason };
-    if (current.action?.pending) next.action = { ...current.action, pending: false, message: reason };
+    if (current.action?.pending) {
+      next.action = { ...current.action, pending: false, message: reason };
+      // 발화 아래 붙은 쉬운 말 카드도 함께 풀어 준다. 안 풀면 그 카드만 영원히 대기 상태로 남는다
+      const source = current.action.sourceUtteranceId;
+      if (source && current.rephrases?.[source]?.pending) next.rephrases = { ...current.rephrases, [source]: { pending: false, error: reason } };
+    }
   }
   if (message.t === 'ended') { next.status = 'ended'; next.ending = false; next.reportUrl = typeof message.report_url === 'string' ? message.report_url : undefined; }
   return next;

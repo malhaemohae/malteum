@@ -15,6 +15,7 @@ function Bubble({ row, rephrase, onSelect, onEvidence }: { row: Utterance; rephr
     {rephrase && <div className="wb-chat-plain" aria-live="polite">
       <span className="wb-chat-plain-label">쉬운 말</span>
       {rephrase.pending ? <span className="wb-chat-plain-wait">고객이 알기 쉬운 말로 바꾸고 있습니다.</span>
+        : rephrase.error ? <span className="wb-chat-plain-error">{rephrase.error} 위의 '직전 발화 쉬운 말로' 를 다시 눌러 주세요.</span>
         : <><span className="wb-chat-text">{rephrase.text}</span>{rephrase.evidenceRef && onEvidence && <button type="button" className="wb-chat-plain-evidence" onClick={() => onEvidence(rephrase.evidenceRef!)}>근거 보기 →</button>}</>}
     </div>}
   </article>;
