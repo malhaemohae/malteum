@@ -219,3 +219,12 @@
 .wb-service .wb-history-list .wb-list-row>.wb-actions{flex:0 0 auto;width:220px;justify-content:flex-end;gap:6px;flex-wrap:nowrap}
 .wb-service .wb-history-list .wb-list-row>.wb-actions>button{flex:0 1 107px;min-width:0;padding:6px 8px;justify-content:center;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
 .wb-service .wb-history-list .wb-list-row>.wb-actions>.wb-badge{flex:0 0 auto}
+
+/* 화면마다 본문이 다르게 보이던 것을 하나로 맞춘다. 상담 화면은 두 칸이 꽉 차 있는데
+   나머지 화면은 패널 하나가 무조건 화면 끝까지 늘어나, 규정 관리처럼 항목이 2건뿐인
+   화면은 카드 안에 흰 여백만 500px 남았다. 패널은 내용만큼 자라고 화면 높이를 넘지
+   않는다. 상담 준비는 자체 그리드로 높이를 나눠 쓰므로 뺀다 */
+.wb-service .wb-body>.wb-panel:not(.wb-briefing){flex:0 1 auto;max-height:100%}
+.wb-service .wb-body>.wb-panel:not(.wb-briefing)>.wb-panel-body{flex:0 1 auto;min-height:0}
+.wb-service .wb-body>.wb-panel:not(.wb-briefing) .wb-list{flex:0 1 auto}
+.wb-service .wb-body>.wb-panel:not(.wb-briefing) .wb-list-rows{flex:0 1 auto}

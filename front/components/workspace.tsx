@@ -80,7 +80,23 @@ function Pager({ page, count, onChange, label }: { page: number; count: number; 
 // The capacity follows the available pane, not an arbitrary breakpoint or hidden overflow.
 export function PagedList<T>({ items, render, label, empty = '표시할 항목이 없습니다.', rowHeight = 66, followLatest = false }: { items: T[]; render: (item: T, index: number) => ReactNode; label: string; empty?: string; rowHeight?: number; followLatest?: boolean }) {
   const ref = useRef<HTMLDivElement>(null); const [capacity, setCapacity] = useState(1); const [height, setHeight] = useState(rowHeight); const [page, setPage] = useState(0); const following = useRef(followLatest);
-  useLayoutEffect(() => { if (!ref.current) return; const observer = new ResizeObserver(([entry]) => { const effective = rowHeight + (entry.contentRect.width < 520 ? 16 : 0); setHeight(effective); setCapacity(Math.max(1, Math.floor((entry.contentRect.height - 38) / effective))); }); observer.observe(ref.current); return () => observer.disconnect(); }, [rowHeight]);
+  // 패널이 내용만큼 줄어들 수 있으므로 목록 자기 높이로 용량을 재면 둘이 서로를 물고
+  // 늘어진다(줄면 용량이 줄고, 용량이 줄면 또 준다). 목록 위에 놓인 것들의 높이는 내용에
+  // 매여 있어 흔들리지 않으므로, 본문 높이에서 그만큼을 뺀 값을 쓸 수 있는 높이로 본다.
+  useLayoutEffect(() => {
+    const host = ref.current; if (!host) return;
+    const body = host.closest('.wb-body');
+    const measure = () => {
+      const effective = rowHeight + (host.clientWidth < 520 ? 16 : 0);
+      const above = body ? host.getBoundingClientRect().top - body.getBoundingClientRect().top : 0;
+      const available = body ? body.clientHeight - above : host.clientHeight;
+      setHeight(effective);
+      setCapacity(Math.max(1, Math.floor((available - 38) / effective)));
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(host); if (body) observer.observe(body);
+    return () => observer.disconnect();
+  }, [rowHeight]);
   const count = Math.max(1, Math.ceil(items.length / capacity)); const visiblePage = Math.min(page, count - 1);
   useEffect(() => { if (followLatest && following.current) setPage(count - 1); else setPage(value => Math.min(value, count - 1)); }, [count, items.length, followLatest]);
   return <div className="wb-list" ref={ref} data-paged-list={label}><div className="wb-list-rows">{items.length ? items.slice(visiblePage * capacity, (visiblePage + 1) * capacity).map((item, index) => <div className="wb-list-row" style={{ height, minHeight: height }} key={visiblePage * capacity + index}>{render(item, visiblePage * capacity + index)}</div>) : <Empty>{empty}</Empty>}</div><div className="wb-list-bottom"><small>{items.length}개</small>{followLatest && !following.current && <button type="button" onClick={() => { following.current = true; setPage(count - 1); }}>최신 발화</button>}<Pager label={label} page={visiblePage} count={count} onChange={value => { following.current = value === count - 1; setPage(value); }} /></div></div>;
