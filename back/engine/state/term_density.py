@@ -3,6 +3,8 @@
 팩의 `jargon_terms` 목록 대조로만 센다 (rulepack.schema.json: 게이지는 결정적이어야 함).
 L0 치환을 거친 은행원 발화에서 용어가 몇 번 나왔는지를 `SessionState.recent_utterances`
 창 안에서 합산한다. fold(저장 이벤트)와 observe(실시간)가 같은 창을 보므로 같은 값이 나온다.
+은행원인지 확실하지 않은 발화(`gate` 의 저신뢰 판정)는 판정과 마찬가지로 세지 않는다.
+창 자체에는 남으므로 원문 감사와 L3 문맥은 그대로다.
 """
 
 from __future__ import annotations
@@ -13,6 +15,7 @@ from typing import Literal
 from contracts.engine_contract import Utterance
 from engine.pack.compiler import CompiledPack
 from engine.tiers.l0_normalize import normalize
+from engine.tiers.l1.gate import gate
 
 Level = Literal["low", "normal", "high"]
 
@@ -35,7 +38,7 @@ def count_terms(text: str, compiled: CompiledPack) -> int:
 
 
 def level(recent: Sequence[Utterance], compiled: CompiledPack) -> Level:
-    teller = [u for u in recent if u.speaker == "teller"]
+    teller = [u for u in recent if u.speaker == "teller" and not gate(u).low_confidence]
     if not teller:
         return "normal"  # 아직 잴 것이 없다
     total = sum(count_terms(u.text, compiled) for u in teller)
