@@ -22,8 +22,9 @@ export type LiveSession = {
   recentEvidence?: { ref: string; itemCode: string; name: string };
   query?: { question: string; answer?: string; evidenceRef?: string; pending: boolean };
   action?: { kind: string; itemCode?: string; ref?: string; sourceUtteranceId?: string; pending: boolean; message: string; result?: { text: string; evidenceRef?: string } };
-  // 직전 발화 쉬운 말. 어느 발화를 바꾼 것인지 보이도록 그 발화 id 에 매달아 둔다
-  rephrases?: Record<string, { text?: string; evidenceRef?: string; pending: boolean; error?: string }>;
+  // 쉬운 말. 어느 발화에 딸린 것인지 보이도록 그 발화 id 에 매달아 둔다. `itemCode` 는
+  // 같은 항목의 쉬운 말이 다시 왔을 때 새 카드를 만들지 않고 먼저 붙은 것을 찾는 열쇠다
+  rephrases?: Record<string, { text?: string; evidenceRef?: string; pending: boolean; error?: string; itemCode?: string; adopted?: boolean }>;
 };
 
 export const statusNames: Record<string, string> = { met: '고지', partial: '부분 고지', unmet: '미고지', waived: '제외', clean: '이상 없음', suspected: '검토 필요', violated: '위반', adopted: '채택', ignored: '미채택', pending: '대기', approved: '승인', rejected: '반려', running: '진행 중', ended: '종료', aborted: '중단', timeout: '시간 만료' };
@@ -129,7 +130,16 @@ export function reduceServer(current: LiveSession, message: ServerMessage): Live
       const source = current.action.sourceUtteranceId;
       next.action = { ...current.action, pending: false, itemCode: typeof message.item_code === 'string' ? message.item_code : current.action.itemCode, message: current.action.itemCode == null ? '직전 발화를 쉬운 말로 바꿨습니다.' : '쉬운 말이 상담 기록에 남았습니다.', result: { text, evidenceRef: reference } };
       // 대화 옆에 그 발화의 쉬운 말로 붙인다. 어느 말을 바꾼 것인지 대조가 되어야 한다
-      if (source) next.rephrases = { ...current.rephrases, [source]: { text, evidenceRef: reference, pending: false } };
+      if (source) next.rephrases = { ...current.rephrases, [source]: { text, evidenceRef: reference, pending: false, itemCode: typeof message.item_code === 'string' ? message.item_code : undefined } };
+    } else if (kind === 'rephrase' && text) {
+      // 서버가 스스로 보내는 쉬운 말도 그 발화 아래 카드로 붙인다. 예전에는 버튼으로 부른
+      // 것만 붙었고 자동으로 온 것은 대기줄에서도 빠져 어디에도 안 떴다(조용히 사라짐)
+      const entries = { ...(current.rephrases ?? {}) };
+      const itemCode = typeof message.item_code === 'string' ? message.item_code : undefined;
+      // 같은 항목의 쉬운 말이 다시 오면(L1 뒤 L3 가 ver 2 로 보냄) 먼저 붙은 카드를 갱신한다
+      const known = itemCode ? Object.keys(entries).find(id => entries[id].itemCode === itemCode) : undefined;
+      const anchor = known ?? current.transcript[current.transcript.length - 1]?.id;
+      if (anchor) next.rephrases = { ...entries, [anchor]: { text, evidenceRef: reference, pending: false, itemCode, adopted: message.outcome === 'adopted' } };
     }
     if (current.action?.kind === 'acknowledge' && message.acknowledged === true && current.action.pending && current.action.ref === message.acknowledged_ref) next.action = { ...current.action, pending: false, message: '확인 기록이 서버에 저장됐습니다.' };
   }

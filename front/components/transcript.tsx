@@ -9,15 +9,19 @@ type Rephrase = NonNullable<LiveSession['rephrases']>[string];
 export const speakerLabel = (speaker: string) => ({ customer: '고객', teller: '상담원', system: '시스템' }[speaker] ?? '화자 미확인');
 
 function Bubble({ row, rephrase, onSelect, onEvidence }: { row: Utterance; rephrase?: Rephrase; onSelect: (row: Utterance) => void; onEvidence?: (ref: string) => void }) {
+  // 쉬운 말은 이 발화에 딸린 것이므로 버블과 한 덩어리로 묶는다. 따로 떼면 다른 사람이
+  // 한 마디 더 한 것처럼 읽힌다 — `wb-chat-group` 이 둘의 테두리를 하나로 잇는다
   return <article className="wb-chat-entry" data-speaker={row.speaker}>
     <div className="wb-chat-meta"><strong>{speakerLabel(row.speaker)}</strong><time>{timeLabel(row.t_ms / 1000)}</time></div>
-    <button type="button" className="wb-chat-bubble" aria-label={`${speakerLabel(row.speaker)} 발화 전체 보기 · ${timeLabel(row.t_ms / 1000)}`} onClick={() => onSelect(row)}><span className="wb-chat-text">{row.text}</span></button>
-    {rephrase && <div className="wb-chat-plain" aria-live="polite">
-      <span className="wb-chat-plain-label">쉬운 말</span>
-      {rephrase.pending ? <span className="wb-chat-plain-wait">고객이 알기 쉬운 말로 바꾸고 있습니다.</span>
-        : rephrase.error ? <span className="wb-chat-plain-error">{rephrase.error} 위의 '직전 발화 쉬운 말로' 를 다시 눌러 주세요.</span>
-        : <><span className="wb-chat-text">{rephrase.text}</span>{rephrase.evidenceRef && onEvidence && <button type="button" className="wb-chat-plain-evidence" onClick={() => onEvidence(rephrase.evidenceRef!)}>근거 보기 →</button>}</>}
-    </div>}
+    <div className="wb-chat-group" data-has-plain={rephrase ? 'true' : undefined}>
+      <button type="button" className="wb-chat-bubble" aria-label={`${speakerLabel(row.speaker)} 발화 전체 보기 · ${timeLabel(row.t_ms / 1000)}`} onClick={() => onSelect(row)}><span className="wb-chat-text">{row.text}</span></button>
+      {rephrase && <div className="wb-chat-plain" aria-live="polite">
+        <span className="wb-chat-plain-label">쉬운 말{rephrase.adopted ? ' · 안내에 사용' : ''}</span>
+        {rephrase.pending ? <span className="wb-chat-plain-wait">고객이 알기 쉬운 말로 바꾸고 있습니다.</span>
+          : rephrase.error ? <span className="wb-chat-plain-error">{rephrase.error} 위의 '직전 발화 쉬운 말로' 를 다시 눌러 주세요.</span>
+          : <><span className="wb-chat-text">{rephrase.text}</span>{rephrase.evidenceRef && onEvidence && <button type="button" className="wb-chat-plain-evidence" onClick={() => onEvidence(rephrase.evidenceRef!)}>근거 보기 →</button>}</>}
+      </div>}
+    </div>
   </article>;
 }
 
