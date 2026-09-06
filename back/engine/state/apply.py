@@ -23,12 +23,16 @@ def apply(state: SessionState, result: JudgeResult) -> SessionState:
             raise ValueError("waive_reason 필수: waived 는 사람만, 사유와 함께")
     items = list(state.items)
     for v in result.verdicts:
+        first_seen_t_ms = next(
+            (u.t_ms for u in state.recent_utterances if u.utterance_id == v.utterance_ref),
+            None,
+        )
         idx = next(
             (i for i, s in enumerate(items) if s.item_code == v.item_code and s.axis == v.axis),
             None,
         )
         if idx is None:
-            items.append(_new_item(v, ver=1))
+            items.append(_new_item(v, ver=1, first_seen_t_ms=first_seen_t_ms))
         else:
             cur = items[idx]
             if (cur.state, cur.decided_by) != (v.state, v.decided_by):
@@ -39,7 +43,12 @@ def apply(state: SessionState, result: JudgeResult) -> SessionState:
                     ver=cur.ver + 1,
                     missing_elements=v.missing_elements,
                     waive_reason=v.waive_reason,
+                    first_seen_t_ms=(
+                        cur.first_seen_t_ms if cur.first_seen_t_ms is not None else first_seen_t_ms
+                    ),
                 )
+            elif cur.first_seen_t_ms is None and first_seen_t_ms is not None:
+                items[idx] = replace(cur, first_seen_t_ms=first_seen_t_ms)
     return replace(
         state,
         items=tuple(items),
@@ -56,7 +65,7 @@ def observe(state: SessionState, utterance: Utterance, compiled: CompiledPack) -
     )
 
 
-def _new_item(v: VerdictPayload, ver: int) -> ItemState:
+def _new_item(v: VerdictPayload, ver: int, first_seen_t_ms: int | None = None) -> ItemState:
     return ItemState(
         item_code=v.item_code,
         axis=v.axis,
@@ -65,4 +74,5 @@ def _new_item(v: VerdictPayload, ver: int) -> ItemState:
         ver=ver,
         missing_elements=v.missing_elements,
         waive_reason=v.waive_reason,
+        first_seen_t_ms=first_seen_t_ms,
     )

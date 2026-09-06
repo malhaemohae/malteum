@@ -17,6 +17,8 @@ def test_fold_scenario_a_matches_summary(pack_json, scenario_a):
     # 체인: EV-0011 partial(L1) → EV-0012 partial(L3) → EV-0034 met(L1). 넛지 뒤 산식을 채움
     assert state.state_of("DEP-INT-002").state == "met"
     assert state.state_of("DEP-INT-002").ver == 3
+    assert state.state_of("DEP-INT-002").first_seen_t_ms == 35786
+    assert state.state_of("DEP-INT-002", "comprehension").first_seen_t_ms == 41815
     assert state.state_of("DEP-BAN-001", "commission").state == "violated"
     assert state.state_of("DEP-INT-003").state == "met"
     assert state.state_of("DEP-TAX-001").state == "met"  # 세율은 틀렸지만(경보) 항목은 설명함
